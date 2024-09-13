@@ -1,0 +1,63 @@
+name: CI/CD for VSAT
+
+on:
+  push: # Trigger workflow on push to any branch
+    branches:
+      - '**' # '**' means all branches
+  pull_request: # Trigger workflow on all pull requests to any branch
+    branches:
+      - '**'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x] # Define Node.js versions to test against
+      fail-fast: false # Continue testing all matrix versions even if one fails
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3 # Checks out the repository under $GITHUB_WORKSPACE
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3 # Sets up Node.js environment
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3 # Caches 'node_modules' to speed up future builds
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci # Installs project dependencies using 'ci' for clean install
+
+      - name: Run lint
+        run: npm run lint # Runs lint checks
+
+      - name: Run tests with coverage
+        env:
+          CI: true # Set CI environment variable to true for better output in CI environments
+        run: npm run test -- --coverage # Runs unit tests with coverage enabled
+
+      - name: Upload test coverage report
+        if: always() # Upload even if there is a failure for debugging purposes
+        uses: actions/upload-artifact@v3 # Uploads test coverage report as an artifact
+        with:
+          name: coverage-report
+          path: coverage # Adjust the path if needed (e.g., 'coverage/lcov-report' for LCOV)
+
+      - name: Build the app
+        run: npm run build # Builds the NestJS application
+
+      - name: Upload build artifacts
+        if: success() # Only upload if the build is successful
+        uses: actions/upload-artifact@v3 # Uploads build artifacts (if needed)
+        with:
+          name: build-artifacts
+          path: dist # Adjust the path if needed
