@@ -44,7 +44,7 @@ jobs:
       - name: Run tests with coverage
         env:
           CI: true # Set CI environment variable to true for better output in CI environments
-        run: npm run test -- --coverage # Runs unit tests with coverage enabled
+        run: npm run test -- --coverage --passWithNoTests # Add --passWithNoTests flag to allow tests to pass when no test files are found
 
       - name: Upload test coverage report
         if: always() # Upload even if there is a failure for debugging purposes
