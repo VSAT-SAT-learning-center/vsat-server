@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Role } from './role.entity';
 
 @Entity('account')
@@ -6,52 +6,52 @@ export class Account {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  createdAt: Date;
+  @CreateDateColumn({ type: 'timestamp' })
+  createdat: Date;
 
   @Column({ type: 'uuid', nullable: true })
-  createdBy: string;
+  createdby: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  updatedAt: Date;
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedat: Date;
 
   @Column({ type: 'uuid', nullable: true })
-  updatedBy: string;
+  updatedby: string;
+
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'roleid' })
+  role: Role;
 
   @Column({ type: 'varchar', length: 100 })
   username: string;
 
   @Column({ type: 'varchar', length: 255 })
-  passwordHash: string;
+  passwordhash: string;
 
   @Column({ type: 'varchar', length: 100 })
-  firstName: string;
+  firstname: string;
 
   @Column({ type: 'varchar', length: 100 })
-  lastName: string;
+  lastname: string;
 
   @Column({ type: 'boolean', nullable: true })
   gender: boolean;
 
   @Column({ type: 'date', nullable: true })
-  dateOfBirth: Date;
+  dateofbirth: Date;
 
   @Column({ type: 'varchar', length: 15, nullable: true })
-  phoneNumber: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  address: string;
+  phonenumber: string;
 
   @Column({ type: 'varchar', length: 100, unique: true })
   email: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  profilePictureUrl: string;
+  address: string;
 
-  @ManyToOne(() => Role, (role) => role.accounts)
-  @JoinColumn({ name: 'roleid' })
-  role: Role;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  profilepictureurl: string;
 
-  @Column({ type: 'boolean', nullable: true })
+  @Column({ type: 'boolean', default: true })
   status: boolean;
 }

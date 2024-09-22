@@ -1,8 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Account } from './account.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('role')
-export class Role {
+@Entity('examtype')
+export class ExamType {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -19,11 +18,11 @@ export class Role {
   updatedby: string;
 
   @Column({ type: 'varchar', length: 100 })
-  rolename: string;
+  name: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
 
   @Column({ type: 'boolean', default: true })
   status: boolean;
-
-  @OneToMany(() => Account, (account) => account.role)
-  accounts: Account[];
 }

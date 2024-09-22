@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Account } from './account.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Domain } from './domain.entity';
 
-@Entity('role')
-export class Role {
+@Entity('skill')
+export class Skill {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -18,12 +18,13 @@ export class Role {
   @Column({ type: 'uuid', nullable: true })
   updatedby: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  rolename: string;
+  @ManyToOne(() => Domain)
+  @JoinColumn({ name: 'domainid' })
+  domain: Domain;
+
+  @Column({ type: 'text', nullable: true })
+  content: string;
 
   @Column({ type: 'boolean', default: true })
   status: boolean;
-
-  @OneToMany(() => Account, (account) => account.role)
-  accounts: Account[];
 }
