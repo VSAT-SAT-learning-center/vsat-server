@@ -1,22 +1,57 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Role } from './role.entity';
 
-@Entity('users') 
-export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('account')
+export class Account {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ length: 100 })
-  name: string;
+  @CreateDateColumn({ type: 'timestamp' })
+  createdat: Date;
 
-  @Column({ unique: true })
+  @Column({ type: 'uuid', nullable: true })
+  createdby: string;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedat: Date;
+
+  @Column({ type: 'uuid', nullable: true })
+  updatedby: string;
+
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'roleid' })
+  role: Role;
+
+  @Column({ type: 'varchar', length: 100 })
+  username: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  passwordhash: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  firstname: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  lastname: string;
+
+  @Column({ type: 'boolean', nullable: true })
+  gender: boolean;
+
+  @Column({ type: 'date', nullable: true })
+  dateofbirth: Date;
+
+  @Column({ type: 'varchar', length: 15, nullable: true })
+  phonenumber: string;
+
+  @Column({ type: 'varchar', length: 100, unique: true })
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  address: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  profilepictureurl: string;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
-  updatedAt: Date;
+  @Column({ type: 'boolean', default: true })
+  status: boolean;
 }
