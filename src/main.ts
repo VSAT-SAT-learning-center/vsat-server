@@ -18,7 +18,7 @@ async function bootstrap() {
     }),
   );
   // Register global exception filter
-  
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   await app.listen(PORT, () => {
     console.log("start success with port: " + PORT);
