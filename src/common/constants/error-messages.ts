@@ -71,3 +71,13 @@ export const ErrorMessage = {
         statusCode: 500,
     },
 };
+
+
+// return ResponseHelper.error('User not found', 'USER_NOT_FOUND');
+// => {
+//   "success": true,
+//   "data": {
+//     // The actual data returned (e.g., list of users, product details, etc.)
+//   },
+//   "message": "Data retrieved successfully"
+// }

@@ -1,4 +1,5 @@
 export const SuccessMessages = {
+  get: (entity: string) => `Get ${entity} successfully.`,
   create: (entity: string) => `Successfully created ${entity}.`,
   update: (entity: string) => `Successfully updated ${entity}.`,
   delete: (entity: string) => `Successfully deleted ${entity}.`,
@@ -10,3 +11,11 @@ export const SuccessMessages = {
   save: () => `Data has been saved successfully.`,
   remember: () => `Successfully remembered.`,
 };
+
+
+// return ResponseHelper.success(newUser, SuccessMessages.create("User"));
+// => {
+//   "success": false,
+//   "message": "User not found",
+//   "errorCode": "USER_NOT_FOUND"
+// }
