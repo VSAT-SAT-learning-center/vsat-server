@@ -21,13 +21,12 @@ async function bootstrap() {
     // Register global exception filter
     app.useGlobalFilters(new AllExceptionsFilter());
 
-<<<<<<< HEAD
   // Config Swagger
   const config = new DocumentBuilder()
     .setTitle('API Documentation')
     .setDescription('API documentation for the project')
     .setVersion('1.0')
-    .addBearerAuth()  // Thêm auth nếu cần
+    .addBearerAuth()  //Add auth if necessary
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -36,15 +35,10 @@ async function bootstrap() {
   await app.listen(PORT, () => {
     console.log("start success with port: " + PORT);
   });
-=======
-    await app.listen(PORT, () => {
-        console.log('start success with port: ' + PORT);
-    });
->>>>>>> main
 
-    if (module.hot) {
-        module.hot.accept();
-        module.hot.dispose(() => app.close());
-    }
+  if (module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => app.close());
+  } 
 }
 bootstrap();
