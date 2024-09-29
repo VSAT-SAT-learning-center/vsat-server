@@ -4,6 +4,7 @@ import { Unit } from 'src/database/entities/unit.entity';
 import { Repository } from 'typeorm';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { PaginationOptionsDto } from 'src/common/helpers/dto/pagination-options.dto.ts';
 
 @Injectable()
 export class UnitService {
@@ -17,8 +18,24 @@ export class UnitService {
     return this.unitRepository.save(unit);
   }
 
-  findAll(): Promise<Unit[]> {
-    return this.unitRepository.find();
+  async findAll(paginationOptions: PaginationOptionsDto) {
+    const { page, pageSize, sortBy, sortOrder } = paginationOptions;
+
+    // Tính toán `skip` và `take` cho phân trang
+    const skip = (page - 1) * pageSize;
+
+    const queryBuilder = this.unitRepository.createQueryBuilder('unit')
+      .orderBy(`unit.${sortBy}`, sortOrder)
+      .skip(skip)
+      .take(pageSize);
+
+    const [data, totalItems] = await queryBuilder.getManyAndCount();
+
+    return {
+      data,
+      totalItems,
+      totalPages: Math.ceil(totalItems / pageSize),
+    };
   }
 
   findOne(id: string): Promise<Unit> {
