@@ -4,4 +4,5 @@ export class ResponseFormat<T> {
     data?: T;
     message: string;
     errorCode?: string;
+    details?: any;
 }

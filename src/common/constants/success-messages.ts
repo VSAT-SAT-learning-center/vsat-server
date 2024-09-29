@@ -1,5 +1,6 @@
 export const SuccessMessages = {
   get: (entity: string) => `Get ${entity} successfully.`,
+  gets: (entity: string) => `Get ${entity} list successfully.`,
   create: (entity: string) => `Successfully created ${entity}.`,
   update: (entity: string) => `Successfully updated ${entity}.`,
   delete: (entity: string) => `Successfully deleted ${entity}.`,
