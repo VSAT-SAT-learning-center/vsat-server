@@ -4,7 +4,9 @@ import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto'; // Import SuccessMessages
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Unit')
 @Controller('units')
 export class UnitController {
   constructor(private readonly unitService: UnitService) {}
