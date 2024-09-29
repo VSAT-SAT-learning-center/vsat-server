@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, HttpStatus, Query } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto'; // Import SuccessMessages
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { ApiTags } from '@nestjs/swagger';
+import { PaginationOptionsDto } from 'src/common/helpers/dto/pagination-options.dto.ts';
 
 @ApiTags('Unit')
 @Controller('units')
@@ -22,10 +23,23 @@ export class UnitController {
   }
 
   @Get()
-  async findAll() {
+  async findAll(@Query() paginationOptions: PaginationOptionsDto) {
     try {
-      const units = await this.unitService.findAll();
-      return ResponseHelper.success(HttpStatus.OK, units, SuccessMessages.gets('Units'));
+      const { data, totalItems, totalPages } = await this.unitService.findAll(paginationOptions);
+      
+      const paging = {
+        page: paginationOptions.page,
+        pageSize: paginationOptions.pageSize,
+        totalItems,
+        totalPages
+      };
+    
+      const sorting = {
+        sortBy: paginationOptions.sortBy,
+        sortOrder: paginationOptions.sortOrder
+      };
+
+      return ResponseHelper.success(HttpStatus.OK, data, SuccessMessages.gets("Units"), paging, sorting);
     } catch (error) {
       return ResponseHelper.error(error, HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to retrieve units');
     }
