@@ -19,7 +19,7 @@ async function bootstrap() {
         }),
     );
     // Register global exception filter
-    app.useGlobalFilters(new AllExceptionsFilter());
+    //app.useGlobalFilters(new AllExceptionsFilter());
 
   // Config Swagger
   const config = new DocumentBuilder()

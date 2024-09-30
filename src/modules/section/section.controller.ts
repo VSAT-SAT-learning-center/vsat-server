@@ -7,20 +7,28 @@ import {
     Param,
     Post,
     Put,
+    Req,
+    UseGuards,
 } from '@nestjs/common';
 import { SectionService } from './section.service';
 import { SectionDTO } from './dto/section.dto';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @Controller('section')
 export class SectionController {
     constructor(private readonly sectionService: SectionService) {}
 
     @Post()
-    async create(@Body() sectionDto: SectionDTO) {
+    @UseGuards(JwtAuthGuard)
+    async create(@Body() sectionDto: SectionDTO, @Req() req) {
         try {
-            const saveSection = await this.sectionService.save(sectionDto);
+            const userId = req.user.id;
+            const saveSection = await this.sectionService.save(
+                sectionDto,
+                userId,
+            );
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveSection,
@@ -38,11 +46,18 @@ export class SectionController {
     }
 
     @Put(':id')
-    async update(@Param('id') id: string, @Body() sectionDto: SectionDTO) {
+    @UseGuards(JwtAuthGuard)
+    async update(
+        @Param('id') id: string,
+        @Body() sectionDto: SectionDTO,
+        @Req() req,
+    ) {
         try {
+            const userId = req.user.id;
             const updatedSection = await this.sectionService.update(
                 id,
                 sectionDto,
+                userId,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,

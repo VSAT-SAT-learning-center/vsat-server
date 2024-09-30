@@ -13,7 +13,12 @@ export class SectionService {
     ) {}
 
     //save
-    async save(sectionDto: SectionDTO): Promise<SectionDTO> {
+    async save(sectionDto: SectionDTO, userId: string): Promise<SectionDTO> {
+        if (!sectionDto.id) {
+            sectionDto.createdby = userId;
+        }
+
+        sectionDto.updatedby = userId;
         const section = await this.sectionRepository.save(sectionDto);
 
         console.log(section);
@@ -31,7 +36,16 @@ export class SectionService {
     }
 
     //update
-    async update(id: string, sectionDto: SectionDTO): Promise<SectionDTO> {
+    async update(
+        id: string,
+        sectionDto: SectionDTO,
+        userId: string,
+    ): Promise<SectionDTO> {
+        if (!sectionDto.id) {
+            sectionDto.createdby = userId;
+        }
+
+        sectionDto.updatedby = userId;
         const sectionId = await this.sectionRepository.findOneBy({ id });
 
         if (!sectionId) {

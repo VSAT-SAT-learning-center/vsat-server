@@ -10,17 +10,24 @@ import {
     Param,
     Post,
     Put,
+    Req,
+    UseGuards,
 } from '@nestjs/common';
 import { SuccessMessages } from 'src/common/constants/success-messages';
+import { JwtAuthGuard } from '../../common/guards/jwt.guard';
+import { RolesGuard } from '../../common/guards/role.guard';
 
 @Controller('level')
+@UseGuards(JwtAuthGuard)
 export class LevelController {
     constructor(private readonly levelService: LevelService) {}
 
     @Post()
-    async save(@Body() levelDto: LevelDTO) {
+    @UseGuards(JwtAuthGuard)
+    async save(@Body() levelDto: LevelDTO, @Req() req) {
         try {
-            const saveLevel = await this.levelService.save(levelDto);
+            const userId = req.user.id;
+            const saveLevel = await this.levelService.save(levelDto, userId);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveLevel,
@@ -38,9 +45,19 @@ export class LevelController {
     }
 
     @Put(':id')
-    async update(@Param('id') id: string, @Body() levelDto: LevelDTO) {
+    @UseGuards(JwtAuthGuard)
+    async update(
+        @Param('id') id: string,
+        @Body() levelDto: LevelDTO,
+        @Req() req,
+    ) {
         try {
-            const updateLevel = await this.levelService.update(id, levelDto);
+            const userId = req.user.id;
+            const updateLevel = await this.levelService.update(
+                id,
+                levelDto,
+                userId,
+            );
             return {
                 statusCode: 200,
                 message: 'Success',
@@ -58,6 +75,7 @@ export class LevelController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     async find() {
         try {
             const level = await this.levelService.find();
