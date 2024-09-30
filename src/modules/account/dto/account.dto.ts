@@ -1,27 +1,23 @@
+import { IsNotEmpty } from 'class-validator';
 import { Role } from 'src/database/entities/role.entity';
 
 export class AccountDTO {
+
+    @IsNotEmpty()
     role: Role;
 
+    @IsNotEmpty()
     username: string;
 
-    passwordhash: string;
+    @IsNotEmpty()
+    password: string;
 
     firstname: string;
 
     lastname: string;
 
-    gender: boolean;
-
-    dateofbirth: Date;
-
-    phonenumber: string;
-
+    @IsNotEmpty()
     email: string;
-
-    address: string;
-
-    profilepictureurl: string;
 
     status: boolean;
 }

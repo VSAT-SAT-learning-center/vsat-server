@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
 import { Repository } from 'typeorm';
 import { AuthDTO } from './dto/auth.dto';
-import { JwtService } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +21,7 @@ export class AuthService {
         };
         return this.jwtService.sign(payload, {
             secret: process.env.ACCESS_TOKEN_KEY,
-            expiresIn: '20s',
+            expiresIn: '60m',
         });
     }
 
@@ -31,7 +31,7 @@ export class AuthService {
 
         return this.jwtService.sign(payload, {
             secret: process.env.REFRESH_TOKEN_KEY,
-            expiresIn: '60m',
+            expiresIn: '7d',
         });
     }
 
@@ -60,6 +60,10 @@ export class AuthService {
             const accessToken = this.createAccessToken(accountData);
             const refreshToken = this.createRefreshToken(accountData);
 
+            if (findAcc.refreshToken) {
+                findAcc.refreshToken = null;
+            }
+
             findAcc.refreshToken = refreshToken;
             await this.authRepository.save(findAcc);
 
@@ -76,29 +80,77 @@ export class AuthService {
     }
 
     async refreshAccessToken(refreshToken: string) {
-        const decoded = this.jwtService.verify(refreshToken, {
-            secret: process.env.REFRESH_TOKEN_KEY,
+        try {
+            const decoded = this.jwtService.verify(refreshToken, {
+                secret: process.env.REFRESH_TOKEN_KEY,
+            });
+
+            const findAcc = await this.authRepository.findOne({
+                where: { id: decoded.id, username: decoded.username },
+                relations: ['role'],
+            });
+
+            if (!findAcc) {
+                throw new HttpException(
+                    'User not found',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            }
+
+            if (findAcc.refreshToken !== refreshToken) {
+                throw new HttpException(
+                    'Token expired or invalid',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            }
+
+            const accessToken = this.createAccessToken({
+                id: findAcc.id,
+                username: findAcc.username,
+                role: findAcc.role.rolename,
+            });
+
+            return {
+                accessToken,
+            };
+        } catch (error) {
+            if (
+                error instanceof JsonWebTokenError &&
+                error.message === 'invalid signature'
+            ) {
+                throw new HttpException(
+                    'Invalid token signature',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            } else if (
+                error instanceof JsonWebTokenError &&
+                error.name === 'TokenExpiredError'
+            ) {
+                throw new HttpException(
+                    'Token expired',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            } else {
+                throw new HttpException(
+                    'Invalid or expired token',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            }
+        }
+    }
+
+    async logout(userId: string): Promise<boolean> {
+        const user = await this.authRepository.findOne({
+            where: { id: userId },
         });
 
-        console.log(decoded);
-
-        const findAcc = await this.authRepository.findOne({
-            where: { id: decoded.id, username: decoded.username },
-            relations: ['role'],
-        });
-
-        if (!findAcc) {
-            throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
 
-        const accessToken = this.createAccessToken({
-            id: findAcc.id,
-            username: findAcc.username,
-            role: findAcc.role.rolename,
-        });
+        user.refreshToken = null;
+        await this.authRepository.save(user);
 
-        return {
-            accessToken,
-        };
+        return true;
     }
 }

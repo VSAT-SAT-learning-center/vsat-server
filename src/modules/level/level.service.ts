@@ -13,7 +13,13 @@ export class LevelService {
     ) {}
 
     //save
-    async save(levelDto: LevelDTO): Promise<LevelDTO> {
+    async save(levelDto: LevelDTO, userId: string): Promise<LevelDTO> {
+        if (!levelDto.id) {
+            levelDto.createdby = userId;
+        }
+
+        levelDto.updatedby = userId;
+
         const saveLevel = await this.levelRepository.save(levelDto);
 
         if (!saveLevel) {
@@ -29,7 +35,16 @@ export class LevelService {
     }
 
     //update
-    async update(id: string, levelDto: LevelDTO): Promise<LevelDTO> {
+    async update(
+        id: string,
+        levelDto: LevelDTO,
+        userId: string,
+    ): Promise<LevelDTO> {
+        if (!levelDto.id) {
+            levelDto.createdby = userId;
+        }
+
+        levelDto.updatedby = userId;
         const level = await this.levelRepository.findOneBy({ id });
 
         if (!level) {

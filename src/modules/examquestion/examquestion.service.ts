@@ -37,7 +37,16 @@ export class ExamQuestionService {
         });
     }
 
-    async save(examQuestionDto: ExamQuestionDTO): Promise<ExamQuestionDTO> {
+    async save(
+        examQuestionDto: ExamQuestionDTO,
+        userId: string,
+    ): Promise<ExamQuestionDTO> {
+        if (!examQuestionDto.id) {
+            examQuestionDto.createdby = userId;
+        }
+
+        examQuestionDto.updatedby = userId;
+
         const saveExamQuestion =
             await this.examQuestionRepository.save(examQuestionDto);
         if (!saveExamQuestion) {
@@ -52,7 +61,13 @@ export class ExamQuestionService {
     async update(
         id: string,
         examQuestionDto: ExamQuestionDTO,
+        userId: string,
     ): Promise<ExamQuestionDTO> {
+        if (!examQuestionDto.id) {
+            examQuestionDto.createdby = userId;
+        }
+
+        examQuestionDto.updatedby = userId;
         const examQuestion = await this.examQuestionRepository.findOneBy({
             id,
         });

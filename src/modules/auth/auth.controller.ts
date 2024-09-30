@@ -4,12 +4,14 @@ import {
     HttpException,
     HttpStatus,
     Post,
+    Req,
     UseGuards,
 } from '@nestjs/common';
 import { AuthDTO } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
-import { LocalGuard } from './guards/local.guard';
+import { LocalGuard } from '../../common/guards/local.guard';
+import { Request } from 'express';
+import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +33,7 @@ export class AuthController {
         }
     }
 
-    @Post('refresh-token')
+    @Post('refreshToken')
     async refreshToken(@Body('refreshToken') refreshToken: string) {
         if (!refreshToken) {
             throw new HttpException(
@@ -49,6 +51,32 @@ export class AuthController {
                     message: 'Invalid or expired refresh token',
                 },
                 HttpStatus.UNAUTHORIZED,
+            );
+        }
+    }
+
+    @Post('logout')
+    @UseGuards(JwtAuthGuard)
+    async logout(@Req() req: Request) {
+        try {
+            const userId = req.user['id'];
+
+            console.log(userId);
+
+            const result = await this.authService.logout(userId);
+
+            if (result) {
+                return { message: 'Logout successful' };
+            } else {
+                throw new HttpException(
+                    'Logout failed',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+        } catch (error) {
+            throw new HttpException(
+                error.message || 'Logout failed',
+                HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
     }

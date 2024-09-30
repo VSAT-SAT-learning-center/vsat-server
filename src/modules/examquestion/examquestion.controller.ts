@@ -7,6 +7,7 @@ import {
     Param,
     Post,
     Put,
+    Req,
 } from '@nestjs/common';
 import { ExamQuestionService } from './examquestion.service';
 import { ExamQuestionDTO } from './dto/examquestion.dto';
@@ -58,10 +59,13 @@ export class ExamQuestionController {
     }
 
     @Post()
-    async save(@Body() examQuestionDto: ExamQuestionDTO) {
+    async save(@Body() examQuestionDto: ExamQuestionDTO, @Req() req) {
         try {
-            const saveExamQuestion =
-                await this.examQuestionService.save(examQuestionDto);
+            const userId = req.user.id;
+            const saveExamQuestion = await this.examQuestionService.save(
+                examQuestionDto,
+                userId,
+            );
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveExamQuestion,
@@ -82,11 +86,14 @@ export class ExamQuestionController {
     async update(
         @Param('id') id: string,
         @Body() examQuestionDto: ExamQuestionDTO,
+        @Req() req,
     ) {
         try {
+            const userId = req.user.id;
             const updateExamQuestion = await this.examQuestionService.update(
                 id,
                 examQuestionDto,
+                userId,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,

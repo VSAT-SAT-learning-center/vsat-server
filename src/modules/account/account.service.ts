@@ -14,6 +14,7 @@ export class AccountService {
 
     //save
     async save(accountDTO: AccountDTO): Promise<AccountDTO> {
+        
         accountDTO.status = false;
 
         const saveAccount = await this.accountRepository.save(accountDTO);

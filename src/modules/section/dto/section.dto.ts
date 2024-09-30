@@ -1,7 +1,8 @@
 import { Expose } from 'class-transformer';
 import { IsString, IsNotEmpty } from 'class-validator';
+import { BaseDTO } from 'src/common/dto/base.dto';
 
-export class SectionDTO {
+export class SectionDTO extends BaseDTO {
     @Expose()
     id: string;
 
