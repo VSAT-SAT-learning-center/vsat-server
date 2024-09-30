@@ -10,8 +10,11 @@ import {
     Param,
     Post,
     Put,
+    UseGuards,
 } from '@nestjs/common';
 import { SuccessMessages } from 'src/common/constants/success-messages';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/role.guard';
 
 @Controller('level')
 export class LevelController {
@@ -58,6 +61,7 @@ export class LevelController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard, RolesGuard)
     async find() {
         try {
             const level = await this.levelService.find();
