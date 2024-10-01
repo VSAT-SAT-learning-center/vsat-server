@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UnitModule } from './modules/unit/unit.module';
@@ -37,6 +37,8 @@ import { TargetLearningModule } from './modules/target-learning/target-learning.
 import { UnitAreaProgressModule } from './modules/unit-area-progress/unit-area-progress.module';
 import { UnitProgressModule } from './modules/unit-progress/unit-progress.module';
 import { UnitLevelModule } from './modules/unit-level/unit-level.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
     imports: [
@@ -81,6 +83,34 @@ import { UnitLevelModule } from './modules/unit-level/unit-level.module';
         UnitAreaProgressModule,
         UnitLevelModule,
         UnitProgressModule,
+
+        MailerModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                transport: {
+                    host: 'smtp.gmail.com',
+                    port: 465,
+                    // ignoreTLS: true,
+                    secure: true,
+                    auth: {
+                        user: configService.get<string>('MAIL_USER'),
+                        pass: configService.get<string>('MAIL_PASSWORD'),
+                    },
+                },
+                defaults: {
+                    from: '"VSAT Center" <no-reply@localhost>',
+                },
+                //preview: true,
+                template: {
+                    dir: process.cwd() + '/src/',
+                    adapter: new HandlebarsAdapter(),
+                    options: {
+                        strict: true,
+                    },
+                },
+            }),
+            inject: [ConfigService],
+        }),
     ],
 })
 export class AppModule {}

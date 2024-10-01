@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Get,
     HttpException,
     HttpStatus,
     Post,
@@ -12,10 +13,14 @@ import { AuthService } from './auth.service';
 import { LocalGuard } from '../../common/guards/local.guard';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly mailerService: MailerService,
+    ) {}
 
     @Post('login')
     @UseGuards(LocalGuard)
@@ -80,4 +85,6 @@ export class AuthController {
             );
         }
     }
+
+   
 }
