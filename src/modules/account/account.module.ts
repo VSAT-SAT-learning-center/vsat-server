@@ -3,10 +3,11 @@ import { AccountController } from './account.controller';
 import { AccountService } from './account.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Account])],
     controllers: [AccountController],
-    providers: [AccountService],
+    providers: [AccountService, JwtService],
 })
 export class AccountModule {}
