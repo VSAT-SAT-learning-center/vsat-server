@@ -34,6 +34,7 @@ async function bootstrap() {
 
   await app.listen(PORT, () => {
     console.log("start success with port: " + PORT);
+    console.log("Swagger in: " + "http://localhost:" + PORT + "/api#/");
   });
 
   if (module.hot) {

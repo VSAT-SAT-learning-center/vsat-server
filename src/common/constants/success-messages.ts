@@ -13,10 +13,3 @@ export const SuccessMessages = {
   remember: () => `Successfully remembered.`,
 };
 
-
-// return ResponseHelper.success(newUser, SuccessMessages.create("User"));
-// => {
-//   "success": false,
-//   "message": "User not found",
-//   "errorCode": "USER_NOT_FOUND"
-// }
