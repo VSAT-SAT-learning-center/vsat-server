@@ -4,6 +4,7 @@ import { Account } from 'src/database/entities/account.entity';
 import { Repository } from 'typeorm';
 import { AuthDTO } from './dto/auth.dto';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
@@ -11,7 +12,23 @@ export class AuthService {
         @InjectRepository(Account)
         private readonly authRepository: Repository<Account>,
         private readonly jwtService: JwtService,
+        private readonly mailerService: MailerService,
     ) {}
+
+    async sendMail(email: string, activationToken: string) {
+        const activationLink = `http://localhost:5000/account/activate?token=${activationToken}`;
+
+        await this.mailerService.sendMail({
+            to: email,
+            subject: 'Activate Your Account',
+            template: './common/mail/templates/active.hbs',
+            context: {
+                activation_link: activationLink,
+            },
+        });
+
+        return 'Activation email sent';
+    }
 
     createAccessToken(account: any) {
         const payload = {
@@ -35,13 +52,12 @@ export class AuthService {
         });
     }
 
+    //login
     async validateAccount({ username, password }: AuthDTO) {
         const findAcc = await this.authRepository.findOne({
             where: { username },
             relations: ['role'],
         });
-
-        console.log(findAcc);
 
         if (!findAcc) {
             throw new HttpException(
@@ -67,9 +83,39 @@ export class AuthService {
             findAcc.refreshToken = refreshToken;
             await this.authRepository.save(findAcc);
 
+            if (!findAcc.status) {
+                const activationToken = this.createAccessToken(accountData);
+                await this.sendMail(findAcc.email, activationToken);
+            }
+
             return {
                 accessToken,
                 refreshToken,
+            };
+        } else {
+            throw new HttpException(
+                'Wrong username or password',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+    }
+
+    async validate({ username, password }: AuthDTO): Promise<any> {
+        const findAcc = await this.authRepository.findOne({
+            where: { username },
+        });
+
+        if (!findAcc) {
+            throw new HttpException(
+                'Wrong username or password',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+
+        if (password === findAcc.password) {
+            return {
+                id: findAcc.id,
+                username: findAcc.username,
             };
         } else {
             throw new HttpException(

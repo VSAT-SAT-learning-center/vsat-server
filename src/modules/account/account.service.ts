@@ -14,7 +14,6 @@ export class AccountService {
 
     //save
     async save(accountDTO: AccountDTO): Promise<AccountDTO> {
-        
         accountDTO.status = false;
 
         const saveAccount = await this.accountRepository.save(accountDTO);
@@ -29,5 +28,13 @@ export class AccountService {
         return plainToInstance(AccountDTO, saveAccount, {
             excludeExtraneousValues: true,
         });
+    }
+
+    async active(userId: string) {
+        const findAcc = await this.accountRepository.findOneBy({ id: userId });
+
+        findAcc.status = true;
+
+        return await this.accountRepository.save(findAcc);
     }
 }

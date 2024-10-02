@@ -18,7 +18,6 @@ import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { RolesGuard } from '../../common/guards/role.guard';
 
 @Controller('level')
-@UseGuards(JwtAuthGuard)
 export class LevelController {
     constructor(private readonly levelService: LevelService) {}
 
@@ -75,7 +74,6 @@ export class LevelController {
     }
 
     @Get()
-    @UseGuards(JwtAuthGuard)
     async find() {
         try {
             const level = await this.levelService.find();
