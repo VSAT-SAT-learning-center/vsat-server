@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, HttpStatus, Query } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
+import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 
 @Controller('lessons')
 export class LessonController {
@@ -20,9 +21,9 @@ export class LessonController {
   }
 
   @Get()
-  async findAll() {
+  async findAll(@Query() paginationOptions: PaginationOptionsDto) {
     try {
-      const lessons = await this.lessonService.findAll();
+      const lessons = await this.lessonService.findAll(paginationOptions);
       return ResponseHelper.success(HttpStatus.OK, lessons, SuccessMessages.gets('Lessons'));
     } catch (error) {
       return ResponseHelper.error(error, HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to retrieve lessons');

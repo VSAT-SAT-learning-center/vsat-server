@@ -15,7 +15,7 @@ export class PaginationService {
     return { data, totalItems, totalPages };
   }
 
-  sort<T>(items: T[], sortBy: keyof T, sortOrder: 'ASC' | 'DESC'): T[] {
+  sort<T>(items: T[], sortBy: string, sortOrder: 'ASC' | 'DESC'): T[] {
     return items.sort((a, b) => {
       if (sortOrder === 'ASC') {
         return a[sortBy] > b[sortBy] ? 1 : -1;

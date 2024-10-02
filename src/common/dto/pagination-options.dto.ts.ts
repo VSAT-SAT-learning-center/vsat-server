@@ -17,7 +17,7 @@ export class PaginationOptionsDto {
 
   @IsOptional()
   @IsString()
-  sortBy?: string = 'name';  // Trường mặc định để sắp xếp
+  sortBy?: string = 'id';  // Trường mặc định để sắp xếp
 
   @IsOptional()
   @IsIn(['ASC', 'DESC'])  // Chỉ chấp nhận 'ASC' hoặc 'DESC'
