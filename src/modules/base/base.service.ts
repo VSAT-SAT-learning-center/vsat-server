@@ -4,8 +4,8 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 
 export class BaseService<T> {
   constructor(
-    private readonly repository: Repository<T>,
-    private readonly paginationService: PaginationService, // Inject PaginationService
+    protected readonly repository: Repository<T>,
+    protected readonly paginationService: PaginationService, // Inject PaginationService
   ) {}
 
   async findAll(
@@ -31,7 +31,7 @@ export class BaseService<T> {
   }
 
   async findOne(id: string | number): Promise<T | undefined> {
-    return this.repository.findOne({id} as any );
+    return this.repository.findOne({ where: { id } as any });
   }
 
   async create(entity: DeepPartial<T>): Promise<T> {

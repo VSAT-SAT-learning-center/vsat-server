@@ -6,54 +6,15 @@ import { UpdateQuizSkillDto } from './dto/update-quizskill.dto';
 import { QuizSkill } from 'src/database/entities/quizskill.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
+import { BaseService } from '../base/base.service';
+
 
 @Injectable()
-export class QuizSkillService {
+export class QuizSkillService extends BaseService<QuizSkill> {
   constructor(
-    @InjectRepository(QuizSkill)
-    private readonly quizSkillRepository: Repository<QuizSkill>,
-    private readonly paginationService: PaginationService,
-  ) {}
-
-  async findAll(paginationOptions: PaginationOptionsDto) {
-    const { page, pageSize, sortBy, sortOrder } = paginationOptions;
-
-    const quizSkills = await this.quizSkillRepository.find({
-      relations: ['quiz', 'skill'],
-    });
-
-    const sortedQuizSkills = this.paginationService.sort(quizSkills, sortBy, sortOrder);
-    const { data, totalItems, totalPages } = this.paginationService.paginate(
-      sortedQuizSkills,
-      page,
-      pageSize,
-    );
-
-    return {
-      data,
-      totalItems,
-      totalPages,
-    };
-  }
-
-  async findOne(id: string) {
-    return await this.quizSkillRepository.findOne({ 
-      where: { id },
-      relations: ['quiz', 'skill'] });
-  }
-
-  async create(createQuizSkillDto: CreateQuizSkillDto) {
-    const quizSkill = this.quizSkillRepository.create(createQuizSkillDto);
-    return await this.quizSkillRepository.save(quizSkill);
-  }
-
-  async update(id: string, updateQuizSkillDto: UpdateQuizSkillDto) {
-    await this.quizSkillRepository.update(id, updateQuizSkillDto);
-    return await this.findOne(id);
-  }
-
-  async remove(id: string) {
-    await this.quizSkillRepository.delete(id);
-    return { deleted: true };
+    @InjectRepository(QuizSkill) repository: Repository<QuizSkill>, // Inject repository for QuizSkill
+    paginationService: PaginationService,
+  ) {
+    super(repository, paginationService); // Pass repository and paginationService to BaseService
   }
 }

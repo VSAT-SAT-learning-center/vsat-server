@@ -9,7 +9,7 @@ import { UnitAreaModule } from './modules/unit-area/unit-area.module';
 import { SectionModule } from './modules/section/section.module';
 import { LevelModule } from './modules/level/level.module';
 import { ExamQuestionModule } from './modules/examquestion/examquestion.module';
-import { QuizQuestionModule } from './modules/quizquestion/quizquestion.module';
+import { QuizQuestionModule } from './modules/quizquestion/quiz-question.module';
 import { DomainModule } from './modules/domain/domain.module';
 import { DomainDistributionModule } from './modules/domain-distribution/domain-distribution.module';
 import { AccountModule } from './modules/account/account.module';
@@ -37,6 +37,7 @@ import { TargetLearningModule } from './modules/target-learning/target-learning.
 import { UnitAreaProgressModule } from './modules/unit-area-progress/unit-area-progress.module';
 import { UnitProgressModule } from './modules/unit-progress/unit-progress.module';
 import { UnitLevelModule } from './modules/unit-level/unit-level.module';
+import { PaginationService } from './common/helpers/pagination.service';
 
 @Module({
     imports: [
@@ -82,5 +83,7 @@ import { UnitLevelModule } from './modules/unit-level/unit-level.module';
         UnitLevelModule,
         UnitProgressModule,
     ],
+    // providers: [PaginationService],
+    // exports: [PaginationService]
 })
 export class AppModule {}

@@ -4,87 +4,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ExamQuestion } from 'src/database/entities/examquestion.entity';
 import { Repository } from 'typeorm';
 import { ExamQuestionDTO } from './dto/examquestion.dto';
+import { BaseService } from '../base/base.service';
+import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Injectable()
-export class ExamQuestionService {
-    constructor(
-        @InjectRepository(ExamQuestion)
-        private readonly examQuestionRepository: Repository<ExamQuestion>,
-    ) {}
-
-    async find(): Promise<ExamQuestionDTO> {
-        return plainToInstance(
-            ExamQuestionDTO,
-            this.examQuestionRepository.find(),
-            { excludeExtraneousValues: true },
-        );
-    }
-
-    async findById(id: string): Promise<ExamQuestionDTO> {
-        const examQuestion = await this.examQuestionRepository.findOneBy({
-            id,
-        });
-
-        if (!examQuestion) {
-            throw new HttpException(
-                'ExamQuestion not found',
-                HttpStatus.NOT_FOUND,
-            );
-        }
-
-        return plainToInstance(ExamQuestionDTO, examQuestion, {
-            excludeExtraneousValues: true,
-        });
-    }
-
-    async save(
-        examQuestionDto: ExamQuestionDTO,
-        userId: string,
-    ): Promise<ExamQuestionDTO> {
-        if (!examQuestionDto.id) {
-            examQuestionDto.createdby = userId;
-        }
-
-        examQuestionDto.updatedby = userId;
-
-        const saveExamQuestion =
-            await this.examQuestionRepository.save(examQuestionDto);
-        if (!saveExamQuestion) {
-            throw new HttpException('Failed to save', HttpStatus.BAD_REQUEST);
-        }
-
-        return plainToInstance(ExamQuestionDTO, saveExamQuestion, {
-            excludeExtraneousValues: true,
-        });
-    }
-
-    async update(
-        id: string,
-        examQuestionDto: ExamQuestionDTO,
-        userId: string,
-    ): Promise<ExamQuestionDTO> {
-        if (!examQuestionDto.id) {
-            examQuestionDto.createdby = userId;
-        }
-
-        examQuestionDto.updatedby = userId;
-        const examQuestion = await this.examQuestionRepository.findOneBy({
-            id,
-        });
-
-        if (!examQuestion) {
-            throw new HttpException(
-                'ExamQuestion not found',
-                HttpStatus.NOT_FOUND,
-            );
-        }
-
-        await this.examQuestionRepository.update(id, examQuestionDto);
-
-        return plainToInstance(
-            ExamQuestionDTO,
-            this.examQuestionRepository.findOneBy({ id }),
-            { excludeExtraneousValues: true },
-        );
-    }
+export class ExamQuestionService extends BaseService<ExamQuestion> {
+  constructor(
+    @InjectRepository(ExamQuestion)
+    examQuestionRepository: Repository<ExamQuestion>,
+    paginationService: PaginationService,
+  ) {
+    super(examQuestionRepository, paginationService);
+  }
 }

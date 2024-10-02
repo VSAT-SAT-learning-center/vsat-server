@@ -5,10 +5,11 @@ import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entit
 import { Question } from 'src/database/entities/question.entity';
 import { ExamAttemptDetailController } from './exam-attempt-detail.controller';
 import { ExamAttemptDetailService } from './exam-attempt-detail.service';
+import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ExamAttemptDetail, ExamAttempt, Question])],
-  providers: [ExamAttemptDetailService],
+  providers: [ExamAttemptDetailService, PaginationService],
   controllers: [ExamAttemptDetailController],
 })
 export class ExamAttemptDetailModule {}

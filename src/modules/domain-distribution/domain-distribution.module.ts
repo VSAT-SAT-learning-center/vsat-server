@@ -5,10 +5,11 @@ import { DomainDistribution } from 'src/database/entities/domaindistribution.ent
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { DomainDistributionService } from './domain-distribution.service';
 import { DomainDistributionController } from './domain-distribution.controller';
+import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DomainDistribution, Domain, ModuleType])],
-  providers: [DomainDistributionService],
+  providers: [DomainDistributionService, PaginationService],
   controllers: [DomainDistributionController],
 })
 export class DomainDistributionModule {}
