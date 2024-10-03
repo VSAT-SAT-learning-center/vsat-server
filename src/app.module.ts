@@ -84,6 +84,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         UnitAreaProgressModule,
         UnitLevelModule,
         UnitProgressModule,
+        
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

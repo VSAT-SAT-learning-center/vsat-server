@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Level } from 'src/database/entities/level.entity';
 import { Repository } from 'typeorm';
-import { LevelDTO } from './dto/level.dto';
+import { GetLevelDTO } from './dto/get-level.dto';
 
 @Injectable()
 export class LevelService {
@@ -13,7 +13,7 @@ export class LevelService {
     ) {}
 
     //save
-    async save(levelDto: LevelDTO, userId: string): Promise<LevelDTO> {
+    async save(levelDto: GetLevelDTO, userId: string): Promise<GetLevelDTO> {
         if (!levelDto.id) {
             levelDto.createdby = userId;
         }
@@ -29,7 +29,7 @@ export class LevelService {
             );
         }
 
-        return plainToInstance(LevelDTO, saveLevel, {
+        return plainToInstance(GetLevelDTO, saveLevel, {
             excludeExtraneousValues: true,
         });
     }
@@ -37,9 +37,9 @@ export class LevelService {
     //update
     async update(
         id: string,
-        levelDto: LevelDTO,
+        levelDto: GetLevelDTO,
         userId: string,
-    ): Promise<LevelDTO> {
+    ): Promise<GetLevelDTO> {
         if (!levelDto.id) {
             levelDto.createdby = userId;
         }
@@ -55,27 +55,27 @@ export class LevelService {
 
         const levelUpdated = this.levelRepository.findOneBy({ id });
 
-        return plainToInstance(LevelDTO, levelUpdated, {
+        return plainToInstance(GetLevelDTO, levelUpdated, {
             excludeExtraneousValues: true,
         });
     }
 
     //find
-    async find(): Promise<LevelDTO> {
-        return plainToInstance(LevelDTO, this.levelRepository.find(), {
+    async find(): Promise<GetLevelDTO> {
+        return plainToInstance(GetLevelDTO, this.levelRepository.find(), {
             excludeExtraneousValues: true,
         });
     }
 
     //findById
-    async findById(id: string): Promise<LevelDTO> {
+    async findById(id: string): Promise<GetLevelDTO> {
         const level = await this.levelRepository.findOneBy({ id });
 
         if (!level) {
             throw new HttpException('Level not found', HttpStatus.NOT_FOUND);
         }
 
-        return plainToInstance(LevelDTO, level, {
+        return plainToInstance(GetLevelDTO, level, {
             excludeExtraneousValues: true,
         });
     }
