@@ -1,8 +1,9 @@
+import { Get } from '@nestjs/common';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { Expose } from 'class-transformer';
 import { BaseDTO } from 'src/common/dto/base.dto';
 
-export class LevelDTO extends BaseDTO {
+export class GetLevelDTO extends BaseDTO {
     @Expose()
     id: string;
 
@@ -10,10 +11,4 @@ export class LevelDTO extends BaseDTO {
     @IsString()
     @IsNotEmpty()
     name: string;
-
-    @Expose()
-    @IsNotEmpty()
-    status: boolean;
-
-
 }

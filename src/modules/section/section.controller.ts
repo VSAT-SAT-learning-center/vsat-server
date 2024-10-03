@@ -15,7 +15,9 @@ import { SectionDTO } from './dto/section.dto';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Sections')
 @Controller('section')
 export class SectionController {
     constructor(private readonly sectionService: SectionService) {}

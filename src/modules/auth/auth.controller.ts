@@ -14,7 +14,9 @@ import { LocalGuard } from '../../common/guards/local.guard';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -85,6 +87,4 @@ export class AuthController {
             );
         }
     }
-
-   
 }
