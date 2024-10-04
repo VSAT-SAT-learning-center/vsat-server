@@ -7,12 +7,14 @@ import {
     ManyToOne,
     JoinColumn,
     Unique,
+    OneToMany,
 } from 'typeorm';
 import { Unit } from './unit.entity';
 import { Level } from './level.entity';
 import { Skill } from './skill.entity';
 import { Lesson } from './lesson.entity';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
+import { Answer } from './anwser.entity';
 
 @Entity('question')
 @Unique(['content'])
@@ -48,20 +50,11 @@ export class Question {
     @JoinColumn({ name: 'lessonid' })
     lesson: Lesson;
 
+    @OneToMany(() => Answer, (answer) => answer.question)
+    answers: Answer[];
+
     @Column({ type: 'text', nullable: true })
     content: string;
-
-    @Column({ type: 'text', nullable: true })
-    answer1: string;
-
-    @Column({ type: 'text', nullable: true })
-    answer2: string;
-
-    @Column({ type: 'text', nullable: true })
-    answer3: string;
-
-    @Column({ type: 'text', nullable: true })
-    answer4: string;
 
     @Column({ type: 'int', nullable: true })
     correctoption: number;

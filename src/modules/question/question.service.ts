@@ -17,6 +17,7 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { GetQuestionDTO } from './dto/get-question.dto';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 
 @Injectable()
 export class QuestionService {
@@ -80,16 +81,28 @@ export class QuestionService {
         });
     }
 
-    async getAll(): Promise<GetQuestionDTO[]> {
-        const questions = await this.questionRepository.find({
+    async getAll(page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [questions, total] = await this.questionRepository.findAndCount({
             relations: ['unit', 'level', 'skill', 'lesson'],
+            skip: skip,
+            take: pageSize,
         });
-        return plainToInstance(GetQuestionDTO, questions, {
-            excludeExtraneousValues: true,
-        });
+
+        const totalPages = Math.ceil(total / pageSize);
+        return{
+            data: plainToInstance(GetQuestionDTO, questions, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+
+        } 
     }
 
-    async approve(id: string, status: QuestionStatus): Promise<boolean> {
+    async updateStatus(id: string, status: QuestionStatus): Promise<boolean> {
         if (!Object.values(QuestionStatus).includes(status)) {
             throw new BadRequestException(`Invalid status value: ${status}`);
         }
@@ -156,5 +169,26 @@ export class QuestionService {
         return plainToInstance(UpdateQuestionDTO, updatedQuestion, {
             excludeExtraneousValues: true,
         });
+    }
+
+    async getQuestionWithAnswer(page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [questions, total] = await this.questionRepository.findAndCount({
+            relations: ['answers'],
+            skip: skip,
+            take: pageSize,
+        });
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetQuestionWithAnswerDTO, questions, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
     }
 }

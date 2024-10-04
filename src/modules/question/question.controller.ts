@@ -9,6 +9,7 @@ import {
     Param,
     Post,
     Put,
+    Query,
 } from '@nestjs/common';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
@@ -50,9 +51,12 @@ export class QuestionController {
     }
 
     @Get()
-    async getAll() {
+    async getAll(
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+    ) {
         try {
-            const questions = await this.questionService.getAll();
+            const questions = await this.questionService.getAll(page, pageSize);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
@@ -69,7 +73,7 @@ export class QuestionController {
         }
     }
 
-    @Put('approve-question/:id')
+    @Put('update-status/:id')
     @ApiBody({
         schema: {
             type: 'object',
@@ -81,13 +85,13 @@ export class QuestionController {
             },
         },
     })
-    async approve(
+    async updateStatus(
         @Param('id') id: string,
         @Body() body: { status: string }, // Nhận toàn bộ body
     ) {
         try {
             const { status } = body;
-            const checkQuestion = await this.questionService.approve(
+            const checkQuestion = await this.questionService.updateStatus(
                 id,
                 status as QuestionStatus,
             );
@@ -123,6 +127,33 @@ export class QuestionController {
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
+                SuccessMessages.get('Question'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('get-question-with-answer')
+    async getQuestionWithAnswer(
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+    ) {
+        try {
+            const questions = await this.questionService.getQuestionWithAnswer(
+                page,
+                pageSize,
+            );
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                questions,
                 SuccessMessages.get('Question'),
             );
         } catch (error) {

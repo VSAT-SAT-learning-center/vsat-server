@@ -7,7 +7,7 @@ import { ExamTypeController } from './exam-type.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ExamType])],
-  providers: [ExamTypeService, PaginationService],
+  providers: [ExamTypeService],
   controllers: [ExamTypeController],
 })
 export class ExamTypeModule {}
