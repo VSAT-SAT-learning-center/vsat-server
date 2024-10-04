@@ -17,6 +17,7 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { GetQuestionDTO } from './dto/get-question.dto';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 
 @Injectable()
 export class QuestionService {
@@ -154,6 +155,16 @@ export class QuestionService {
         const updatedQuestion = await this.questionRepository.save(question);
 
         return plainToInstance(UpdateQuestionDTO, updatedQuestion, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getQuestionWithAnswer(): Promise<GetQuestionWithAnswerDTO[]> {
+        const questions = await this.questionRepository.find({
+            relations: ['answers'],
+        });
+
+        return plainToInstance(GetQuestionWithAnswerDTO, questions, {
             excludeExtraneousValues: true,
         });
     }

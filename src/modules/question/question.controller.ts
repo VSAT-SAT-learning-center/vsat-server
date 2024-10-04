@@ -135,4 +135,24 @@ export class QuestionController {
             );
         }
     }
+
+    @Get('get-question-with-answer')
+    async getQuestionWithAnswer() {
+        try {
+            const question = await this.questionService.getQuestionWithAnswer();
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                question,
+                SuccessMessages.get('Question'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

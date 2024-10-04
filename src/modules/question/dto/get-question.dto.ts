@@ -28,18 +28,6 @@ export class GetQuestionDTO {
     content: string;
 
     @Expose()
-    answer1: string;
-
-    @Expose()
-    answer2: string;
-
-    @Expose()
-    answer3: string;
-
-    @Expose()
-    answer4: string;
-
-    @Expose()
     correctoption: number;
 
     @Expose()

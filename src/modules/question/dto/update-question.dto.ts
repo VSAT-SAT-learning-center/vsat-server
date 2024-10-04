@@ -81,30 +81,6 @@ export class UpdateQuestionDTO extends BaseDTO {
     content: string;
 
     @Expose()
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    answer1: string;
-
-    @Expose()
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    answer2: string;
-
-    @Expose()
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    answer3: string;
-
-    @Expose()
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    answer4: string;
-
-    @Expose()
     @IsNotEmpty()
     @ApiProperty()
     correctoption: number;
