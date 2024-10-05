@@ -9,25 +9,23 @@ export class BaseService<T> {
   ) {}
 
   async findAll(
-    options: any,
-    page: number = 1,
-    pageSize: number = 10,
-    sortBy: string = 'id', // Mặc định sắp xếp theo trường 'id'
-    sortOrder: 'ASC' | 'DESC' = 'ASC',
+    paginationOptions: PaginationOptionsDto
   ): Promise<{ data: T[]; totalItems: number; totalPages: number }> {
-    const items = await this.repository.find(options);
+    
+    const { filter, page, pageSize, sortBy, sortOrder, relations } = paginationOptions;
 
-    // Sắp xếp items bằng PaginationService
-    const sortedItems = this.paginationService.sort(items, sortBy, sortOrder);
+    const [items, totalItems] = await this.repository.findAndCount({
+      where: filter,
+      order: { [sortBy]: sortOrder } as FindManyOptions<T>['order'],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      relations, // Lấy quan hệ liên quan
+    });
 
-    // Phân trang bằng PaginationService
-    const { data, totalItems, totalPages } = this.paginationService.paginate(
-      sortedItems,
-      page,
-      pageSize,
-    );
+    const totalPages = Math.ceil(totalItems / pageSize);
 
-    return { data, totalItems, totalPages };
+    return { data: items, totalItems, totalPages };
+
   }
 
   async findOne(id: string | number): Promise<T | undefined> {
