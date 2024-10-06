@@ -17,4 +17,6 @@ export class GetQuestionWithAnswerDTO {
     @Expose()
     @Type(() => GetAnswerDTO)
     answers: GetAnswerDTO[];
+
+    
 }

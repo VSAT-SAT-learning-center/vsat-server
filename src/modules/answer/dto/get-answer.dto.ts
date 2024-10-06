@@ -2,11 +2,13 @@ import { Expose } from 'class-transformer';
 
 export class GetAnswerDTO {
     @Expose()
-    id: string; // ID của câu trả lời
+    id: string;
 
     @Expose()
-    label: string; // Nhãn của câu trả lời (A, B, C, D)
+    label: string;
 
     @Expose()
-    text: string; // Nội dung của câu trả lời
+    text: string;
+
+    
 }
