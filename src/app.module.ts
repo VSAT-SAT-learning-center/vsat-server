@@ -40,6 +40,7 @@ import { UnitLevelModule } from './modules/unit-level/unit-level.module';
 import { PaginationService } from './common/helpers/pagination.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { AnswerModule } from './modules/answer/answer.module';
 
 @Module({
     imports: [
@@ -84,7 +85,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         UnitAreaProgressModule,
         UnitLevelModule,
         UnitProgressModule,
-        
+        AnswerModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

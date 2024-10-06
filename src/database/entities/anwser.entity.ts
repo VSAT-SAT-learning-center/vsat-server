@@ -21,4 +21,7 @@ export class Answer {
 
     @Column({ type: 'text', nullable: true })
     text: string;
+
+    @Column({ type: 'boolean', nullable: true, default: false })
+    isCorretAnswer: boolean;
 }
