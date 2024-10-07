@@ -6,11 +6,12 @@ import { UnitAreaService } from './unit-area.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { UnitService } from '../unit/unit.service';
 import { Unit } from 'src/database/entities/unit.entity';
+import { UnitModule } from '../unit/unit.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UnitArea, Unit])],
+    imports: [TypeOrmModule.forFeature([UnitArea]), UnitModule],
     controllers: [UnitAreaController],
-    providers: [UnitAreaService, PaginationService, UnitService],
+    providers: [UnitAreaService, PaginationService],
     exports: [UnitAreaService],
 })
 export class UnitAreaModule {}
