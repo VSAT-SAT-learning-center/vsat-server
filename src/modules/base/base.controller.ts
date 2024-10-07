@@ -21,83 +21,80 @@ export class BaseController<T> {
     ) {}
 
     @Get()
-    @ApiQuery({ name: 'page', required: false, example: 1, description: 'Page number for pagination' })
-    @ApiQuery({ name: 'pageSize', required: false, example: 10, description: 'Number of items per page' })
-    @ApiQuery({ name: 'sortBy', required: false, example: 'id', description: 'Field to sort by' })
-    @ApiQuery({ name: 'sortOrder', required: false, example: 'ASC', enum: ['ASC', 'DESC'], description: 'Order to sort (ASC/DESC)' })
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        example: 1,
+        description: 'Page number for pagination',
+    })
+    @ApiQuery({
+        name: 'pageSize',
+        required: false,
+        example: 10,
+        description: 'Number of items per page',
+    })
+    @ApiQuery({
+        name: 'sortBy',
+        required: false,
+        example: 'id',
+        description: 'Field to sort by',
+    })
+    @ApiQuery({
+        name: 'sortOrder',
+        required: false,
+        example: 'ASC',
+        enum: ['ASC', 'DESC'],
+        description: 'Order to sort (ASC/DESC)',
+    })
     async findAll(@Query() paginationOptions: PaginationOptionsDto) {
-        try {
-            const { data, totalItems, totalPages } =
-                await this.baseService.findAll(paginationOptions);
-            const paging = {
-                page: paginationOptions.page,
-                pageSize: paginationOptions.pageSize,
-                totalItems,
-                totalPages,
-            };
+        const { data, totalItems, totalPages } =
+            await this.baseService.findAll(paginationOptions);
+        const paging = {
+            page: paginationOptions.page,
+            pageSize: paginationOptions.pageSize,
+            totalItems,
+            totalPages,
+        };
 
-            const sorting = {
-                sortBy: paginationOptions.sortBy,
-                sortOrder: paginationOptions.sortOrder,
-            };
+        const sorting = {
+            sortBy: paginationOptions.sortBy,
+            sortOrder: paginationOptions.sortOrder,
+        };
 
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                data,
-                SuccessMessages.gets(this.entityName),
-                paging,
-                sorting,
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                `Failed to retrieve ${this.entityName} list`,
-            );
-        }
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            data,
+            SuccessMessages.gets(this.entityName),
+            paging,
+            sorting,
+        );
     }
 
     @Post()
     async create(@Body() createDto: any) {
-        try {
-            const createdEntity = await this.baseService.create(createDto);
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                createdEntity,
-                SuccessMessages.create(this.entityName),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                `Failed to create ${this.entityName}`,
-            );
-        }
+        const createdEntity = await this.baseService.create(createDto);
+        return ResponseHelper.success(
+            HttpStatus.CREATED,
+            createdEntity,
+            SuccessMessages.create(this.entityName),
+        );
     }
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        try {
-            const entity = await this.baseService.findOne(id);
-            if (!entity) {
-                return ResponseHelper.error(
-                    null,
-                    HttpStatus.NOT_FOUND,
-                    `${this.entityName} not found`,
-                );
-            }
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                entity,
-                SuccessMessages.get(this.entityName),
-            );
-        } catch (error) {
+        const entity = await this.baseService.findOne(id);
+        if (!entity) {
             return ResponseHelper.error(
-                error,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                `Failed to retrieve ${this.entityName}`,
+                null,
+                HttpStatus.NOT_FOUND,
+                `${this.entityName} not found`,
             );
         }
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            entity,
+            SuccessMessages.get(this.entityName),
+        );
     }
 
     // @Get(':id')
@@ -127,37 +124,21 @@ export class BaseController<T> {
 
     @Patch(':id')
     async update(@Param('id') id: string, @Body() updateDto: any) {
-        try {
-            const updatedEntity = await this.baseService.update(id, updateDto);
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                updatedEntity,
-                SuccessMessages.update(this.entityName),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                `Failed to update ${this.entityName}`,
-            );
-        }
+        const updatedEntity = await this.baseService.update(id, updateDto);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            updatedEntity,
+            SuccessMessages.update(this.entityName),
+        );
     }
 
     @Delete(':id')
     async remove(@Param('id') id: string) {
-        try {
-            await this.baseService.remove(id);
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                null,
-                SuccessMessages.delete(this.entityName),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                `Failed to delete ${this.entityName}`,
-            );
-        }
+        await this.baseService.remove(id);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            null,
+            SuccessMessages.delete(this.entityName),
+        );
     }
 }

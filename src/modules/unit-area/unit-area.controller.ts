@@ -24,23 +24,16 @@ export class UnitAreaController extends BaseController<UnitArea> {
         super(unitAreaService, 'UnitArea');
     }
 
+    
     @Post()
     async create(@Body() createUnitAreaDto: CreateUnitAreaDto) {
-        try {
-            const createdUnitArea =
-                await this.unitAreaService.create(createUnitAreaDto);
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                createdUnitArea,
-                SuccessMessages.create('UnitArea'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to create UnitArea',
-            );
-        }
+        const createdUnitArea =
+            await this.unitAreaService.create(createUnitAreaDto);
+        return ResponseHelper.success(
+            HttpStatus.CREATED,
+            createdUnitArea,
+            SuccessMessages.create('UnitArea'),
+        );
     }
 
     @Patch(':id')
@@ -48,22 +41,14 @@ export class UnitAreaController extends BaseController<UnitArea> {
         @Param('id') id: string,
         @Body() updateUnitAreaDto: UpdateUnitAreaDto,
     ) {
-        try {
-            const updatedUnitArea = await this.unitAreaService.update(
-                id,
-                updateUnitAreaDto,
-            );
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                updatedUnitArea,
-                SuccessMessages.update('UnitArea'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to update UnitArea',
-            );
-        }
+        const updatedUnitArea = await this.unitAreaService.update(
+            id,
+            updateUnitAreaDto,
+        );
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            updatedUnitArea,
+            SuccessMessages.update('UnitArea'),
+        );
     }
 }

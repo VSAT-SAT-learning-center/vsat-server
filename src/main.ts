@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/exception/exception.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -21,7 +22,7 @@ async function bootstrap() {
         }),
     );
     // Register global exception filter
-    //app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalFilters(new AllExceptionsFilter());
 
     // Config Swagger
     const config = new DocumentBuilder()

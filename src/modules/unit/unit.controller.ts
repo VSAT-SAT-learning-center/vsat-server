@@ -28,38 +28,22 @@ export class UnitController extends BaseController<Unit> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        try {
-            const unit = await this.unitService.findOne(id, ['unitAreas']);
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                unit,
-                SuccessMessages.get('Unit'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to get Unit',
-            );
-        }
+        const unit = await this.unitService.findOne(id, ['unitAreas']);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            unit,
+            SuccessMessages.get('Unit'),
+        );
     }
 
     @Post()
     async create(@Body() createUnitDto: CreateUnitDto) {
-        try {
-            const createdUnit = await this.unitService.create(createUnitDto);
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                createdUnit,
-                SuccessMessages.create('Unit'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to create Unit',
-            );
-        }
+        const createdUnit = await this.unitService.create(createUnitDto);
+        return ResponseHelper.success(
+            HttpStatus.CREATED,
+            createdUnit,
+            SuccessMessages.create('Unit'),
+        );
     }
 
     @Patch(':id')
@@ -67,22 +51,11 @@ export class UnitController extends BaseController<Unit> {
         @Param('id') id: string,
         @Body() updateUnitDto: UpdateUnitDto,
     ) {
-        try {
-            const updatedUnit = await this.unitService.update(
-                id,
-                updateUnitDto,
-            );
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                updatedUnit,
-                SuccessMessages.update('Unit'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to update Unit',
-            );
-        }
+        const updatedUnit = await this.unitService.update(id, updateUnitDto);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            updatedUnit,
+            SuccessMessages.update('Unit'),
+        );
     }
 }
