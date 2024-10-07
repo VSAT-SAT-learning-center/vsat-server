@@ -40,7 +40,7 @@ export class LevelService extends BaseService<Level> {
     }
 
     //update
-    async updateUnit(
+    async updateLevel(
         id: string,
         levelDto: GetLevelDTO,
         userId: string,

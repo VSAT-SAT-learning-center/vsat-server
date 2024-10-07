@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { UnitArea } from './unitarea.entity';
+import { LessonContent } from './lessoncontent.entity';
 
 @Entity('lesson')
 export class Lesson {
@@ -33,4 +34,7 @@ export class Lesson {
 
   @Column({ type: 'boolean', default: true })
   status: boolean;
+
+  @OneToMany(() => LessonContent, (lessonContent) => lessonContent.lesson, { cascade: true })
+  lessonContents: LessonContent[];
 }

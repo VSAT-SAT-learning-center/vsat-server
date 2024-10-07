@@ -5,6 +5,7 @@ import {
     Param,
     Patch,
     HttpStatus,
+    Get,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -14,6 +15,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { BaseController } from '../base/base.controller';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { UpdateUnitDto } from '../unit/dto/update-unit.dto';
 
 @ApiTags('Lessons')
 @Controller('lessons')
@@ -22,40 +24,37 @@ export class LessonController extends BaseController<Lesson> {
         super(lessonService, 'Lesson');
     }
 
+    @Get(':id')
+    async findOne(@Param('id') id: string) {
+        const unit = await this.lessonService.findOne(id, ['lessonContents']);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            unit,
+            SuccessMessages.get('Lesson'),
+        );
+    }
+
     @Post()
     async create(@Body() createLessonDto: CreateLessonDto) {
-        try {
-            const createdLesson = await this.lessonService.create(createLessonDto);
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                createdLesson,
-                SuccessMessages.create('Lesson'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to create Lesson',
-            );
-        }
+        const createdUnit = await this.lessonService.create(createLessonDto);
+        return ResponseHelper.success(
+            HttpStatus.CREATED,
+            createdUnit,
+            SuccessMessages.create('Lesson'),
+        );
     }
 
     @Patch(':id')
-    async update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
-        try {
-            const updatedLesson = await this.lessonService.update(id, updateLessonDto);
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                updatedLesson,
-                SuccessMessages.update('Lesson'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to update Lesson',
-            );
-        }
+    async update(
+        @Param('id') id: string,
+        @Body() updateUnitDto: UpdateUnitDto,
+    ) {
+        const updatedUnit = await this.lessonService.update(id, updateUnitDto);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            updatedUnit,
+            SuccessMessages.update('Lesson'),
+        );
     }
 }
 

@@ -55,19 +55,16 @@ export class UnitService extends BaseService<Unit> {
     async update(id: string, updateUnitDto: UpdateUnitDto): Promise<Unit> {
         const { sectionId, levelId, ...unitData } = updateUnitDto;
 
-        // Find the unit to be updated
         const unit = await this.findOne(id);
         if (!unit) {
             throw new Error('Unit not found');
         }
 
-        // Fetch and validate the section
         const section = await this.sectionService.findOneById(sectionId);
         if (!section) {
             throw new Error('Section not found');
         }
 
-        // Fetch and validate the level (optional)
         let level = null;
         if (levelId) {
             level = await this.levelService.findOne(levelId);
@@ -76,10 +73,9 @@ export class UnitService extends BaseService<Unit> {
             }
         }
 
-        // Update the unit properties
         const updatedUnit = this.unitRepository.create({
             ...unit,
-            ...unitData, // Update only the fields provided
+            ...unitData,
             section: section,
             level: level,
         });
