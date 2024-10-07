@@ -5,7 +5,6 @@ import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 
 @Injectable()

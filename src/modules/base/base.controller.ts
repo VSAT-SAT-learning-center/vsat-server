@@ -100,6 +100,31 @@ export class BaseController<T> {
         }
     }
 
+    // @Get(':id')
+    // async findOne(@Param('id') id: string, @Query('relations') relations: string[] = []) {
+    //     try {
+    //         const entity = await this.baseService.findOne(id, relations);
+    //         if (!entity) {
+    //             return ResponseHelper.error(
+    //                 null,
+    //                 HttpStatus.NOT_FOUND,
+    //                 `${this.entityName} not found`,
+    //             );
+    //         }
+    //         return ResponseHelper.success(
+    //             HttpStatus.OK,
+    //             entity,
+    //             SuccessMessages.get(this.entityName),
+    //         );
+    //     } catch (error) {
+    //         return ResponseHelper.error(
+    //             error,
+    //             HttpStatus.INTERNAL_SERVER_ERROR,
+    //             `Failed to retrieve ${this.entityName}`,
+    //         );
+    //     }
+    // }
+
     @Patch(':id')
     async update(@Param('id') id: string, @Body() updateDto: any) {
         try {

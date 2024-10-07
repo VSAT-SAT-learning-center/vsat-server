@@ -4,79 +4,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Level } from 'src/database/entities/level.entity';
 import { Repository } from 'typeorm';
 import { LevelDTO } from './dto/level.dto';
+import { BaseService } from '../base/base.service';
+import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Injectable()
-export class LevelService {
+export class LevelService extends BaseService<Level> {
     constructor(
-        @InjectRepository(Level)
-        private readonly levelRepository: Repository<Level>,
-    ) {}
-
-    //save
-    async save(levelDto: LevelDTO, userId: string): Promise<LevelDTO> {
-        if (!levelDto.id) {
-            levelDto.createdby = userId;
-        }
-
-        levelDto.updatedby = userId;
-
-        const saveLevel = await this.levelRepository.save(levelDto);
-
-        if (!saveLevel) {
-            throw new HttpException(
-                'Fail to save level',
-                HttpStatus.BAD_REQUEST,
-            );
-        }
-
-        return plainToInstance(LevelDTO, saveLevel, {
-            excludeExtraneousValues: true,
-        });
+      @InjectRepository(Level)
+      levelRepository: Repository<Level>,
+      paginationService: PaginationService,
+    ) {
+      super(levelRepository, paginationService);
     }
-
-    //update
-    async update(
-        id: string,
-        levelDto: LevelDTO,
-        userId: string,
-    ): Promise<LevelDTO> {
-        if (!levelDto.id) {
-            levelDto.createdby = userId;
-        }
-
-        levelDto.updatedby = userId;
-        const level = await this.levelRepository.findOneBy({ id });
-
-        if (!level) {
-            throw new HttpException('Level not found', HttpStatus.NOT_FOUND);
-        }
-
-        await this.levelRepository.update(id, levelDto);
-
-        const levelUpdated = this.levelRepository.findOneBy({ id });
-
-        return plainToInstance(LevelDTO, levelUpdated, {
-            excludeExtraneousValues: true,
-        });
-    }
-
-    //find
-    async find(): Promise<LevelDTO> {
-        return plainToInstance(LevelDTO, this.levelRepository.find(), {
-            excludeExtraneousValues: true,
-        });
-    }
-
-    //findById
-    async findById(id: string): Promise<LevelDTO> {
-        const level = await this.levelRepository.findOneBy({ id });
-
-        if (!level) {
-            throw new HttpException('Level not found', HttpStatus.NOT_FOUND);
-        }
-
-        return plainToInstance(LevelDTO, level, {
-            excludeExtraneousValues: true,
-        });
-    }
-}
+  }

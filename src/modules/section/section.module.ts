@@ -11,6 +11,7 @@ import { Section } from "../../database/entities/section.entity"
     ],
     controllers: [SectionController],
     providers: [SectionService],
+    exports: [SectionService],
 })
 
 export class SectionModule {}

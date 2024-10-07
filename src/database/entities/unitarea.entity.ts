@@ -18,7 +18,7 @@ export class UnitArea {
   @Column({ type: 'uuid', nullable: true })
   updatedby: string;
 
-  @ManyToOne(() => Unit)
+  @ManyToOne(() => Unit, (unit) => unit.unitAreas)
   @JoinColumn({ name: 'unitid' })
   unit: Unit;
 

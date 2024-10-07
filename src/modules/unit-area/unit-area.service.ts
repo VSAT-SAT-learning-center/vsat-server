@@ -9,12 +9,11 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
-  constructor(
-    @InjectRepository(UnitArea)
-    unitAreaRepository: Repository<UnitArea>,
-    paginationService: PaginationService,
-  ) {
-    super(unitAreaRepository, paginationService);
-  }
+    constructor(
+        @InjectRepository(UnitArea)
+        unitAreaRepository: Repository<UnitArea>,
+        paginationService: PaginationService,
+    ) {
+        super(unitAreaRepository, paginationService);
+    }
 }
-

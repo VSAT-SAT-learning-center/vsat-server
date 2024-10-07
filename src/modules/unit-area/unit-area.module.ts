@@ -6,8 +6,8 @@ import { UnitAreaService } from './unit-area.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UnitArea])],
-  controllers: [UnitAreaController],
-  providers: [UnitAreaService, PaginationService],
+    imports: [TypeOrmModule.forFeature([UnitArea])],
+    controllers: [UnitAreaController],
+    providers: [UnitAreaService, PaginationService],
 })
 export class UnitAreaModule {}
