@@ -1,19 +1,78 @@
-import { Injectable } from '@nestjs/common';
+import { UpdateExamTypeDto } from './dto/update-examtype.dto';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateExamTypeDto } from './dto/create-examtype.dto';
-import { UpdateExamTypeDto } from './dto/update-examtype.dto';
 import { ExamType } from 'src/database/entities/examtype.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { BaseService } from '../base/base.service';
+import { GetExamTypeDTO } from './dto/get-examtype.dto';
+import { plainToInstance } from 'class-transformer';
+import { CreateExamTypeDto } from './dto/create-examtype.dto';
 
 @Injectable()
-export class ExamTypeService extends BaseService<ExamType> {
-  constructor(
-    @InjectRepository(ExamType) repository: Repository<ExamType>, // Inject repository for ExamType
-    paginationService: PaginationService,
-  ) {
-    super(repository, paginationService); // Pass repository and paginationService to BaseService
-  }
+export class ExamTypeService {
+    constructor(
+        @InjectRepository(ExamType)
+        private readonly examTypeRepository: Repository<ExamType>,
+    ) {}
+
+    async getAll(page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [examType, total] = await this.examTypeRepository.findAndCount({
+            skip: skip,
+            take: pageSize,
+        });
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetExamTypeDTO, examType, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
+    async save(
+        createExamTypeDto: CreateExamTypeDto,
+    ): Promise<CreateExamTypeDto> {
+        const saveExamType =
+            await this.examTypeRepository.save(createExamTypeDto);
+
+        if (!saveExamType) {
+            throw new HttpException(
+                'Failed to save exam type',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return plainToInstance(CreateExamTypeDto, saveExamType, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async update(
+        id: string,
+        updateExamTypeDto: UpdateExamTypeDto,
+    ): Promise<UpdateExamTypeDto> {
+        const examType = await this.examTypeRepository.findOneBy({ id });
+
+        if (!examType) {
+            throw new NotFoundException('Not found exam type');
+        }
+
+        Object.assign(examType, updateExamTypeDto);
+
+        const updateExamType = await this.examTypeRepository.save(examType);
+
+        return plainToInstance(UpdateExamTypeDto, updateExamType, {
+            excludeExtraneousValues: true,
+        });
+    }
 }

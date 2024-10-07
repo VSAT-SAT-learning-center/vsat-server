@@ -19,7 +19,9 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Accounts')
 @Controller('account')
 export class AccountController {
     constructor(
