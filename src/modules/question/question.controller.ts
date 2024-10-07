@@ -22,33 +22,32 @@ import { UpdateQuestionDTO } from './dto/update-question.dto';
 export class QuestionController {
     constructor(private readonly questionService: QuestionService) {}
 
-    @Post()
-    async save(@Body() createQuestionDto: CreateQuestionDTO) {
-        try {
-            const saveQuestion =
-                await this.questionService.save(createQuestionDto);
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                saveQuestion,
-                SuccessMessages.create('Question'),
-            );
-        } catch (error) {
-            if (error.code === '23505') {
-                // PostgreSQL code for unique constraint violation
-                throw new HttpException(
-                    'Question content already exists',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
+    // @Post()
+    // async save(@Body() createQuestionDto: CreateQuestionDTO) {
+    //     try {
+    //         const saveQuestion =
+    //             await this.questionService.save(createQuestionDto);
+    //         return ResponseHelper.success(
+    //             HttpStatus.CREATED,
+    //             saveQuestion,
+    //             SuccessMessages.create('Question'),
+    //         );
+    //     } catch (error) {
+    //         if (error.code === '23505') {
+    //             throw new HttpException(
+    //                 'Question content already exists',
+    //                 HttpStatus.BAD_REQUEST,
+    //             );
+    //         }
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 
     @Get()
     async getAll(

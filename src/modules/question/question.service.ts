@@ -18,6 +18,7 @@ import { GetQuestionDTO } from './dto/get-question.dto';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
+import { Answerservice } from '../answer/answer.service';
 
 @Injectable()
 export class QuestionService {
@@ -32,53 +33,57 @@ export class QuestionService {
         private readonly skillRepository: Repository<Skill>,
         @InjectRepository(Lesson)
         private readonly lessonRepository: Repository<Lesson>,
+        private readonly answerService: Answerservice,
     ) {}
 
     async save(
-        createQuestionDto: CreateQuestionDTO,
-    ): Promise<CreateQuestionDTO> {
-        const { level, unit, skill, lesson } = createQuestionDto;
+        createQuestionDtoArray: CreateQuestionDTO[],
+    ): Promise<Question[]> {
+        const savedQuestions: Question[] = [];
 
-        const foundUnit = await this.unitRepository.findOne({
-            where: { id: unit.id },
-        });
-        const foundLevel = await this.levelRepository.findOne({
-            where: { id: level.id },
-        });
-        const foundSkill = await this.skillRepository.findOne({
-            where: { id: skill.id },
-        });
-        const foundLesson = await this.lessonRepository.findOne({
-            where: { id: lesson.id },
-        });
+        for (const createQuestionDto of createQuestionDtoArray) {
+            const { level, unit, skill, lesson, answers } = createQuestionDto;
 
-        if (!foundUnit || !foundLevel || !foundSkill || !foundLesson) {
-            throw new HttpException(
-                'Some relations not found',
-                HttpStatus.BAD_REQUEST,
+            const foundUnit = await this.unitRepository.findOne({
+                where: { id: unit.id },
+            });
+            const foundLevel = await this.levelRepository.findOne({
+                where: { id: level.id },
+            });
+            const foundSkill = await this.skillRepository.findOne({
+                where: { id: skill.id },
+            });
+            const foundLesson = await this.lessonRepository.findOne({
+                where: { id: lesson.id },
+            });
+
+            if (!foundUnit || !foundLevel || !foundSkill || !foundLesson) {
+                throw new HttpException(
+                    'Some relations not found',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            const newQuestion = this.questionRepository.create({
+                ...createQuestionDto,
+                unit: foundUnit,
+                level: foundLevel,
+                skill: foundSkill,
+                lesson: foundLesson,
+            });
+
+            const savedQuestion =
+                await this.questionRepository.save(newQuestion);
+
+            await this.answerService.createMultipleAnswers(
+                savedQuestion.id,
+                answers,
             );
+
+            savedQuestions.push(savedQuestion); // Thêm trực tiếp đối tượng Question thay vì DTO
         }
 
-        const newQuestion = this.questionRepository.create({
-            ...createQuestionDto,
-            unit: foundUnit,
-            level: foundLevel,
-            skill: foundSkill,
-            lesson: foundLesson,
-        });
-
-        const saveQuestion = await this.questionRepository.save(newQuestion);
-
-        if (!saveQuestion) {
-            throw new HttpException(
-                'Question failed to save',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
-
-        return plainToInstance(CreateQuestionDTO, saveQuestion, {
-            excludeExtraneousValues: true,
-        });
+        return savedQuestions;
     }
 
     async getAll(page: number, pageSize: number): Promise<any> {
@@ -91,15 +96,14 @@ export class QuestionService {
         });
 
         const totalPages = Math.ceil(total / pageSize);
-        return{
+        return {
             data: plainToInstance(GetQuestionDTO, questions, {
                 excludeExtraneousValues: true,
             }),
             totalPages: totalPages,
             currentPage: page,
             totalItems: total,
-
-        } 
+        };
     }
 
     async updateStatus(id: string, status: QuestionStatus): Promise<boolean> {
@@ -191,7 +195,4 @@ export class QuestionService {
             totalItems: total,
         };
     }
-
-    
-
 }

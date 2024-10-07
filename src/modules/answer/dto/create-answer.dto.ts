@@ -8,15 +8,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
-class CreateAnswerDTO {
-    @ApiProperty({
-        description: 'ID của câu hỏi liên quan đến câu trả lời',
-        example: 'd07b7a76-b7c7-45f7-bdc5-e2a5b2c4c256',
-    })
-    @IsNotEmpty()
-    @IsUUID()
-    questionId: string;
-
+export class CreateAnswerDTO {
     @ApiProperty({
         description: 'Nhãn của câu trả lời',
         example: 'A',
@@ -30,9 +22,16 @@ class CreateAnswerDTO {
     })
     @IsNotEmpty()
     text: string;
+
+    @ApiProperty({
+        description: 'Xác định câu trả lời có đúng hay không',
+        example: true,
+    })
+    @IsNotEmpty()
+    isCorrectAnswer: boolean;
 }
 
-export class CreateMultipleAnswersDTO {
+class CreateMultipleAnswersDTO {
     @ApiProperty({ type: [CreateAnswerDTO] })
     @IsArray()
     @ValidateNested({ each: true })
