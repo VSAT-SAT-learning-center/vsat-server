@@ -18,7 +18,7 @@ export class Lesson {
   @Column({ type: 'uuid', nullable: true })
   updatedby: string;
 
-  @ManyToOne(() => UnitArea)
+  @ManyToOne(() => UnitArea, (unitArea) => unitArea.lessons)
   @JoinColumn({ name: 'unitareaid' })
   unitArea: UnitArea;
 

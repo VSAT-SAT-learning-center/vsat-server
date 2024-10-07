@@ -11,5 +11,6 @@ import { UnitAreaProgressController } from './unit-area-progress.controller';
   imports: [TypeOrmModule.forFeature([UnitAreaProgress, UnitArea, UnitProgress])],
   providers: [UnitAreaProgressService, PaginationService],
   controllers: [UnitAreaProgressController],
+  exports: [UnitAreaProgress],
 })
 export class UnitAreaProgressModule {}

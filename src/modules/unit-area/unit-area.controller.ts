@@ -24,7 +24,16 @@ export class UnitAreaController extends BaseController<UnitArea> {
         super(unitAreaService, 'UnitArea');
     }
 
-    
+    @Get(':id')
+    async findOne(@Param('id') id: string) {
+        const unitArea = await this.unitAreaService.findOne(id, ['lessons']);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            unitArea,
+            SuccessMessages.get('UnitArea'),
+        );
+    }
+
     @Post()
     async create(@Body() createUnitAreaDto: CreateUnitAreaDto) {
         const createdUnitArea =
