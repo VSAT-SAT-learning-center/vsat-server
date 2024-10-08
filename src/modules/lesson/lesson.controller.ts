@@ -15,7 +15,6 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { BaseController } from '../base/base.controller';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { ApiTags } from '@nestjs/swagger';
-import { UpdateUnitDto } from '../unit/dto/update-unit.dto';
 
 @ApiTags('Lessons')
 @Controller('lessons')
@@ -36,10 +35,10 @@ export class LessonController extends BaseController<Lesson> {
 
     @Post()
     async create(@Body() createLessonDto: CreateLessonDto) {
-        const createdUnit = await this.lessonService.create(createLessonDto);
+        const createdLesson = await this.lessonService.create(createLessonDto);
         return ResponseHelper.success(
             HttpStatus.CREATED,
-            createdUnit,
+            createdLesson,
             SuccessMessages.create('Lesson'),
         );
     }
@@ -47,12 +46,12 @@ export class LessonController extends BaseController<Lesson> {
     @Patch(':id')
     async update(
         @Param('id') id: string,
-        @Body() updateUnitDto: UpdateUnitDto,
+        @Body() updateLessonDto: UpdateLessonDto,
     ) {
-        const updatedUnit = await this.lessonService.update(id, updateUnitDto);
+        const updatedLesson = await this.lessonService.update(id, updateLessonDto);
         return ResponseHelper.success(
             HttpStatus.OK,
-            updatedUnit,
+            updatedLesson,
             SuccessMessages.update('Lesson'),
         );
     }

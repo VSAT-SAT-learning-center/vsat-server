@@ -5,7 +5,6 @@ import {
     Body,
     Param,
     Patch,
-    Delete,
     HttpStatus,
 } from '@nestjs/common';
 import { LessonContentService } from './lesson-content.service';
@@ -24,23 +23,27 @@ export class LessonContentController extends BaseController<LessonContent> {
         super(lessonContentService, 'LessonContent');
     }
 
+    @Get(':id')
+    async findByLessonId(@Param('id') id: string) {
+        const lessonContent =
+            await this.lessonContentService.findByLessonId(id);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            lessonContent,
+            SuccessMessages.get('LessonContent'),
+        );
+    }
+
     @Post()
     async create(@Body() createLessonContentDto: CreateLessonContentDto) {
-        try {
-            const createdLessonContent =
-                await this.lessonContentService.create(createLessonContentDto);
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                createdLessonContent,
-                SuccessMessages.create('LessonContent'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to create LessonContent',
-            );
-        }
+        const createdLessonContent = await this.lessonContentService.create(
+            createLessonContentDto,
+        );
+        return ResponseHelper.success(
+            HttpStatus.CREATED,
+            createdLessonContent,
+            SuccessMessages.create('LessonContent'),
+        );
     }
 
     @Patch(':id')
@@ -48,22 +51,14 @@ export class LessonContentController extends BaseController<LessonContent> {
         @Param('id') id: string,
         @Body() updateLessonContentDto: UpdateLessonContentDto,
     ) {
-        try {
-            const updatedLessonContent = await this.lessonContentService.update(
-                id,
-                updateLessonContentDto,
-            );
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                updatedLessonContent,
-                SuccessMessages.update('LessonContent'),
-            );
-        } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Failed to update LessonContent',
-            );
-        }
+        const updatedLessonContent = await this.lessonContentService.update(
+            id,
+            updateLessonContentDto,
+        );
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            updatedLessonContent,
+            SuccessMessages.update('LessonContent'),
+        );
     }
 }

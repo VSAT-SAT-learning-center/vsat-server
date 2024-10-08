@@ -4,12 +4,10 @@ import { Unit } from 'src/database/entities/unit.entity';
 import { Repository } from 'typeorm';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { SectionService } from '../section/section.service';
 import { LevelService } from '../level/level.service';
-import { Level } from 'src/database/entities/level.entity';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {

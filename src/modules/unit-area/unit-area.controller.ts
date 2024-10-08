@@ -5,7 +5,6 @@ import {
     Body,
     Param,
     Patch,
-    Delete,
     HttpStatus,
 } from '@nestjs/common';
 import { CreateUnitAreaDto } from './dto/create-unitarea.dto';

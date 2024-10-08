@@ -5,19 +5,16 @@ import {
     Body,
     Param,
     Patch,
-    Delete,
     HttpStatus,
-    Query,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto'; // Import SuccessMessages
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseController } from '../base/base.controller';
 import { Unit } from 'src/database/entities/unit.entity';
+import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Units')
 @Controller('units')

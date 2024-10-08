@@ -24,7 +24,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
 
         const unit = await this.unitService.findOne(unitId);
         if (!unit) {
-            throw new Error('Section not found');
+            throw new Error('Unit not found');
         }
 
         const newUnitArea = this.unitAreaRepository.create({
@@ -45,7 +45,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
 
         const unit = await this.unitService.findOne(unitId);
         if (!unit) {
-            throw new Error('Section not found');
+            throw new Error('Unit not found');
         }
 
         const updatedUnitArea = this.unitAreaRepository.create({
