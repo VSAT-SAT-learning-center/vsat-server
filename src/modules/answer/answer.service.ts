@@ -2,10 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Repository } from 'typeorm';
-import { CreateMultipleAnswersDTO } from './dto/create-answer.dto';
 import { plainToInstance } from 'class-transformer';
 import { Question } from 'src/database/entities/question.entity';
 import { CheckAnswerDTO } from './dto/check-answer.dto';
+import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
 
 @Injectable()
 export class Answerservice {
@@ -32,10 +32,10 @@ export class Answerservice {
 
             await this.answerRepository.update(
                 { question: { id: questionId } },
-                { isCorretAnswer: false },
+                { isCorrectAnswer: false },
             );
 
-            answer.isCorretAnswer = true;
+            answer.isCorrectAnswer = true;
             await this.answerRepository.save(answer);
         }
 
@@ -43,12 +43,13 @@ export class Answerservice {
     }
 
     async createMultipleAnswers(
-        createMultipleAnswersDto: CreateMultipleAnswersDTO,
-    ): Promise<CreateMultipleAnswersDTO[]> {
-        const savedAnswers: CreateMultipleAnswersDTO[] = [];
+        questionId: string,
+        createMultipleAnswersDto: CreateAnswerDTO[],
+    ): Promise<CreateAnswerDTO[]> {
+        const savedAnswers: CreateAnswerDTO[] = [];
 
-        for (const answerDto of createMultipleAnswersDto.answers) {
-            const { questionId, label, text } = answerDto;
+        for (const answerDto of createMultipleAnswersDto) {
+            const { label, text, isCorrectAnswer } = answerDto;
 
             const question = await this.questionRepository.findOne({
                 where: { id: questionId },
@@ -64,11 +65,12 @@ export class Answerservice {
                 label,
                 text,
                 question,
+                isCorrectAnswer,
             });
 
             const savedAnswer = await this.answerRepository.save(answer);
             savedAnswers.push(
-                plainToInstance(CreateMultipleAnswersDTO, savedAnswer, {
+                plainToInstance(CreateAnswerDTO, savedAnswer, {
                     excludeExtraneousValues: true,
                 }),
             );
@@ -77,9 +79,7 @@ export class Answerservice {
         return savedAnswers;
     }
 
-    async checkAnswer(
-        answers: CheckAnswerDTO[],
-    ): Promise<
+    async checkAnswer(answers: CheckAnswerDTO[]): Promise<
         {
             questionId: string;
             isCorrect: boolean;
@@ -91,7 +91,7 @@ export class Answerservice {
             const { questionId, answerId } = answerDto;
 
             const correctAnswers = await this.answerRepository.find({
-                where: { question: { id: questionId }, isCorretAnswer: true },
+                where: { question: { id: questionId }, isCorrectAnswer: true },
             });
 
             if (!correctAnswers.length) {
@@ -107,7 +107,6 @@ export class Answerservice {
             results.push({
                 questionId: questionId,
                 isCorrect: isCorrect,
-                
             });
         }
 
