@@ -35,7 +35,7 @@ export class ResponseHelper {
             statusCode,
             success: false,
             message: defaultMessage,
-            details,
+            details: error || null,
         };
     }
 }

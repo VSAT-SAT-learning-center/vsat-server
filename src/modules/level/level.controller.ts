@@ -17,11 +17,15 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { RolesGuard } from '../../common/guards/role.guard';
 import { ApiTags } from '@nestjs/swagger';
+import { BaseController } from '../base/base.controller';
+import { Level } from 'src/database/entities/level.entity';
 
-@ApiTags('Levels')
+@ApiTags('Level')
 @Controller('level')
-export class LevelController {
-    constructor(private readonly levelService: LevelService) {}
+export class LevelController extends BaseController<Level> {
+    constructor(private readonly levelService: LevelService) {
+      super(levelService, 'Level'); // Pass service and entity name to BaseController
+    }
 
     @Post()
     @UseGuards(JwtAuthGuard)
@@ -47,14 +51,14 @@ export class LevelController {
 
     @Put(':id')
     @UseGuards(JwtAuthGuard)
-    async update(
+    async updateLevel(
         @Param('id') id: string,
         @Body() levelDto: GetLevelDTO,
         @Req() req,
     ) {
         try {
             const userId = req.user.id;
-            const updateLevel = await this.levelService.update(
+            const updateLevel = await this.levelService.updateLevel(
                 id,
                 levelDto,
                 userId,

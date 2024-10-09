@@ -4,11 +4,13 @@ import { UnitService } from './unit.service';
 import { UnitController } from './unit.controller';
 import { Unit } from 'src/database/entities/unit.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
+import { LevelModule } from '../level/level.module';
+import { SectionModule } from '../section/section.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Unit])],
-  controllers: [UnitController],
-  providers: [UnitService, PaginationService],
+    imports: [TypeOrmModule.forFeature([Unit]), LevelModule, SectionModule],
+    controllers: [UnitController],
+    providers: [UnitService, PaginationService],
+    exports: [UnitService],
 })
-
 export class UnitModule {}

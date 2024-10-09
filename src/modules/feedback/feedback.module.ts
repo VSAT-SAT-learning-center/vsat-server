@@ -3,15 +3,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { FeedbackService } from './feedback.service';
 import { FeedbackController } from './feedback.controller';
 import { Feedback } from 'src/database/entities/feedback.entity';
-import { Unit } from 'src/database/entities/unit.entity';
-import { Exam } from 'src/database/entities/exam.entity';
-import { Question } from 'src/database/entities/question.entity';
-import { Account } from 'src/database/entities/account.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
+import { UnitModule } from '../unit/unit.module';
+import { ExamModule } from '../exam/exam.module';
+import { QuestionModule } from '../question/question.module';
+import { AccountModule } from '../account/account.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Feedback, Unit, Exam, Question, Account])],
+  imports: [TypeOrmModule.forFeature([Feedback]), UnitModule, ExamModule, QuestionModule, AccountModule],
   providers: [FeedbackService, PaginationService],
   controllers: [FeedbackController],
+  exports: [FeedbackService]
 })
 export class FeedbackModule {}

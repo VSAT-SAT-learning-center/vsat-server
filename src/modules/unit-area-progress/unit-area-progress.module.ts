@@ -8,8 +8,9 @@ import { UnitAreaProgressService } from './unit-area-progress.service';
 import { UnitAreaProgressController } from './unit-area-progress.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UnitAreaProgress, UnitArea, UnitProgress])],
+  imports: [TypeOrmModule.forFeature([UnitAreaProgress])],
   providers: [UnitAreaProgressService, PaginationService],
   controllers: [UnitAreaProgressController],
+  exports: [UnitAreaProgressService],
 })
 export class UnitAreaProgressModule {}

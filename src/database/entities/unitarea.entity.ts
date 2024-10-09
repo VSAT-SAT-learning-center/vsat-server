@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Unit } from './unit.entity';
+import { Lesson } from './lesson.entity';
 
 @Entity('unitarea')
 export class UnitArea {
@@ -18,7 +19,7 @@ export class UnitArea {
   @Column({ type: 'uuid', nullable: true })
   updatedby: string;
 
-  @ManyToOne(() => Unit)
+  @ManyToOne(() => Unit, (unit) => unit.unitAreas)
   @JoinColumn({ name: 'unitid' })
   unit: Unit;
 
@@ -30,4 +31,8 @@ export class UnitArea {
 
   @Column({ type: 'boolean', default: true })
   status: boolean;
+
+  //OneToMany
+  @OneToMany(() => Lesson, (lesson) => lesson.unitArea)
+  lessons: Lesson[];
 }

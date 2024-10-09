@@ -3,43 +3,46 @@ declare const module: any;
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter } from './common/exception/exception.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/exception/exception.filter';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, {
+        logger: ['log', 'error', 'warn', 'debug', 'verbose'], // Ensure all log is activated
+    });
+
     const PORT = 5000;
 
     // Enable global validation pipe
     app.useGlobalPipes(
         new ValidationPipe({
-            whitelist: true, // Strip any properties not defined in the DTO
+            //whitelist: true, // Strip any properties not defined in the DTO
             // forbidNonWhitelisted: true, // Throw an error when non-whitelisted properties are passed
             transform: true, // Automatically transform payloads to be objects typed according to their DTO classes
         }),
     );
     // Register global exception filter
-    //app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalFilters(new AllExceptionsFilter());
 
-  // Config Swagger
-  const config = new DocumentBuilder()
-    .setTitle('API Documentation')
-    .setDescription('API documentation for the project')
-    .setVersion('1.0')
-    .addBearerAuth()  //Add auth if necessary
-    .build();
+    // Config Swagger
+    const config = new DocumentBuilder()
+        .setTitle('API Documentation')
+        .setDescription('API documentation for the project')
+        .setVersion('1.0')
+        .addBearerAuth() //Add auth if necessary
+        .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);  
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
 
-  await app.listen(PORT, () => {
-    console.log("start success with port: " + PORT);
-    console.log("Swagger in: " + "http://localhost:" + PORT + "/api#/");
-  });
+    await app.listen(PORT, () => {
+        console.log('start success with port: ' + PORT);
+        console.log('Swagger in: ' + 'http://localhost:' + PORT + '/api#/');
+    });
 
-  if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose(() => app.close());
-  } 
+    if (module.hot) {
+        module.hot.accept();
+        module.hot.dispose(() => app.close());
+    }
 }
 bootstrap();
