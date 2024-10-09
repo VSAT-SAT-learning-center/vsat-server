@@ -48,12 +48,12 @@ export class LessonService extends BaseService<Lesson> {
           throw new Error('Unit Area not found');
       }
 
-      const updatedLesson = this.lessonRepository.create({
+      const updatedLesson = await this.lessonRepository.save({
           ...lesson,
           ...lessonData,
           unitArea: unitArea,
       });
 
-      return await this.lessonRepository.save(updatedLesson);
+      return updatedLesson;
   }
 }

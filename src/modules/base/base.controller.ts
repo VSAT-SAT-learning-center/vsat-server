@@ -71,7 +71,11 @@ export class BaseController<T> {
     }
 
     @Post()
-    async create(@Body() createDto: any) {
+    async create(
+        @Body() createDto: any,
+        //@Req() request: any
+    ) {
+        //const userId = request.user.id;
         const createdEntity = await this.baseService.create(createDto);
         return ResponseHelper.success(
             HttpStatus.CREATED,

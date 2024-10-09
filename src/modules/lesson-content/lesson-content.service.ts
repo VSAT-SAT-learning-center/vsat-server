@@ -76,12 +76,12 @@ export class LessonContentService extends BaseService<LessonContent> {
             throw new Error('Lesson not found');
         }
 
-        const updatedLessonContent = this.lessonContentRepository.create({
+        const updatedLessonContent = await this.lessonContentRepository.save({
             ...lessonContent,
             ...lessonContentData, // Update only the fields provided
             lesson: lesson,
         });
 
-        return await this.lessonContentRepository.save(updatedLessonContent);
+        return updatedLessonContent;
     }
 }

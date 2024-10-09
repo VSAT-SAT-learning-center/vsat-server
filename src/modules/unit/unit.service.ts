@@ -8,6 +8,7 @@ import { BaseService } from '../base/base.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { SectionService } from '../section/section.service';
 import { LevelService } from '../level/level.service';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -33,12 +34,9 @@ export class UnitService extends BaseService<Unit> {
             throw new Error('Section not found');
         }
 
-        let level = null;
-        if (levelId) {
-            level = await this.levelService.findOne(levelId);
-            if (!level) {
-                throw new Error('Level not found');
-            }
+        const level = await this.levelService.findById(levelId);
+        if (!levelId) {
+            throw new Error('Level not found');
         }
 
         const newUnit = this.unitRepository.create({
@@ -63,21 +61,35 @@ export class UnitService extends BaseService<Unit> {
             throw new Error('Section not found');
         }
 
-        let level = null;
-        if (levelId) {
-            level = await this.levelService.findOne(levelId);
-            if (!level) {
-                throw new Error('Level not found');
-            }
+        const level = await this.levelService.findById(levelId);
+        if (!levelId) {
+            throw new Error('Level not found');
         }
 
-        const updatedUnit = this.unitRepository.create({
+        const updatedUnit = this.unitRepository.save({
             ...unit,
             ...unitData,
             section: section,
             level: level,
         });
 
-        return await this.unitRepository.save(updatedUnit);
+        return updatedUnit;
+    }
+
+    async updateUnitStatus(id: string, updateStatusUnitDto: UpdateUnitDto): Promise<Unit> {
+        
+        const approveUnit = updateStatusUnitDto;
+
+        const unit = await this.findOne(id);
+        if (!unit) {
+            throw new Error('Unit not found');
+        }
+
+        const updatedUnit = await this.unitRepository.save({
+            ...unit,
+            approveUnit 
+        });
+
+        return updatedUnit;
     }
 }

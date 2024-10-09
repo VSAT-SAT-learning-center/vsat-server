@@ -55,4 +55,20 @@ export class UnitController extends BaseController<Unit> {
             SuccessMessages.update('Unit'),
         );
     }
+
+    @Patch(':id')
+    async updateUnit(
+        @Param('id') id: string,
+        @Body() updateUnitStatusDto: UpdateUnitDto,
+    ) {
+        const updatedLessonContent = await this.unitService.updateUnitStatus(
+            id,
+            updateUnitStatusDto,
+        );
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            updatedLessonContent,
+            SuccessMessages.update('Unit'),
+        );
+    }
 }

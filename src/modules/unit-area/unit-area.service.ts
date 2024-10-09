@@ -48,12 +48,12 @@ export class UnitAreaService extends BaseService<UnitArea> {
             throw new Error('Unit not found');
         }
 
-        const updatedUnitArea = this.unitAreaRepository.create({
+        const updatedUnitArea = await this.unitAreaRepository.save({
             ...unitArea,
             ...unitAreaData, // Update only the fields provided
             unit: unit,
         });
 
-        return await this.unitAreaRepository.save(updatedUnitArea);
+        return updatedUnitArea;
     }
 }

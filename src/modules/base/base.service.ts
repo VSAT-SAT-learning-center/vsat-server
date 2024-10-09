@@ -53,8 +53,11 @@ export class BaseService<T> {
     }
   }
 
-  async create(entity: DeepPartial<T>): Promise<T> {
+  async create(entity: DeepPartial<T>,
+    //userId: string
+  ): Promise<T> {
     try {
+      //(entity as any).createdby = userId;
       const newEntity = this.repository.create(entity);
       return this.repository.save(newEntity);
     } catch (error) {

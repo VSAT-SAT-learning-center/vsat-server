@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsString, IsUUID, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { BaseEntity } from 'typeorm';
 
-export class CreateUnitDto {
+export class CreateUnitDto extends BaseEntity {
   @ApiProperty({
     description: 'Section ID of the unit',
     example: '2f51716d-ca78-4536-addc-99fe09442a4d',
@@ -27,8 +30,16 @@ export class CreateUnitDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty()
-  @IsBoolean()
+  @ApiProperty({
+    enum: UnitStatus,
+    enumName: 'UnitStatus',
+    description: 'The status of the unit',
+    example: UnitStatus.DRAFT,
+    default: UnitStatus.DRAFT,
+    required: false,
+  })
+  @IsEnum(UnitStatus)
   @IsOptional()
-  status?: boolean;
+  @Transform(({ value }) => value ?? UnitStatus.DRAFT)
+  status?: UnitStatus;
 }
