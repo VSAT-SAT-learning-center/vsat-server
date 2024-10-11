@@ -80,7 +80,7 @@ export class QuestionService {
                 answers,
             );
 
-            savedQuestions.push(savedQuestion); // Thêm trực tiếp đối tượng Question thay vì DTO
+            savedQuestions.push(savedQuestion);
         }
 
         return savedQuestions;

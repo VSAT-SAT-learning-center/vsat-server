@@ -41,6 +41,7 @@ import { PaginationService } from './common/helpers/pagination.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AnswerModule } from './modules/answer/answer.module';
+import { GptModule } from './modules/gpt/gpt.module';
 
 @Module({
     imports: [
@@ -86,6 +87,7 @@ import { AnswerModule } from './modules/answer/answer.module';
         UnitLevelModule,
         UnitProgressModule,
         AnswerModule,
+        GptModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -93,7 +95,6 @@ import { AnswerModule } from './modules/answer/answer.module';
                 transport: {
                     host: 'smtp.gmail.com',
                     port: 465,
-                    // ignoreTLS: true,
                     secure: true,
                     auth: {
                         user: configService.get<string>('MAIL_USER'),
