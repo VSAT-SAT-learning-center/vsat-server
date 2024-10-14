@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { AuthDTO } from './dto/auth.dto';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -66,7 +67,12 @@ export class AuthService {
             );
         }
 
-        if (password === findAcc.password) {
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            findAcc.password,
+        );
+
+        if (isPasswordValid) {
             const accountData = {
                 id: findAcc.id,
                 username: findAcc.username,
@@ -112,7 +118,11 @@ export class AuthService {
             );
         }
 
-        if (password === findAcc.password) {
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            findAcc.password,
+        );
+        if (isPasswordValid) {
             return {
                 id: findAcc.id,
                 username: findAcc.username,

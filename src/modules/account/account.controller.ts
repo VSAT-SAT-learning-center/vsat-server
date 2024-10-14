@@ -13,7 +13,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
 import { AccountService } from './account.service';
-import { AccountDTO } from './dto/account.dto';
+import { CreateAccountDTO } from './dto/create-account.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
@@ -30,7 +30,7 @@ export class AccountController {
     ) {}
 
     @Post()
-    async save(@Body() accountDto: AccountDTO) {
+    async save(@Body() accountDto: CreateAccountDTO) {
         try {
             const saveAccount = await this.accountService.save(accountDto);
             return ResponseHelper.success(

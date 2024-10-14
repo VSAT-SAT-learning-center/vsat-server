@@ -60,7 +60,7 @@ export class Account {
     @Column({ type: 'varchar', length: 255, nullable: true })
     profilepictureurl: string;
 
-    @Column({ type: 'boolean', default: true })
+    @Column({ type: 'boolean', default: false })
     status: boolean;
 
     @Column({ type: 'varchar', length: 500, nullable: true })
