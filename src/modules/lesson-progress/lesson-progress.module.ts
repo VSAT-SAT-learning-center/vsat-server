@@ -6,10 +6,12 @@ import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
 import { LessonProgressService } from './lesson-progress.service';
 import { LessonProgressController } from './lesson-progress.controller';
+import { UnitAreaProgressModule } from '../unit-area-progress/unit-area-progress.module';
+import { LessonModule } from '../lesson/lesson.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LessonProgress, UnitAreaProgress, Lesson])],
-  providers: [LessonProgressService, PaginationService],
+  imports: [TypeOrmModule.forFeature([LessonProgress]), UnitAreaProgressModule, LessonModule],
+  providers: [LessonProgressService],
   controllers: [LessonProgressController],
   exports: [LessonProgressService]
 })
