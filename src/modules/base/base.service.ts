@@ -7,7 +7,7 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 export class BaseService<T> {
   constructor(
     protected readonly repository: Repository<T>,
-    protected readonly paginationService: PaginationService, // Inject PaginationService
+    protected readonly paginationService?: PaginationService, // Inject PaginationService
   ) {}
 
   async findAll(

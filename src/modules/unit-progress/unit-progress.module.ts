@@ -6,10 +6,13 @@ import { Unit } from 'src/database/entities/unit.entity';
 import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 import { UnitProgressService } from './unit-progress.service';
 import { UnitProgressController } from './unit-progress.controller';
+import { StudyProfileModule } from '../study-profile/study-profile.module';
+import { UnitModule } from '../unit/unit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UnitProgress, StudyProfile, Unit])],
+  imports: [TypeOrmModule.forFeature([UnitProgress]), StudyProfileModule, UnitModule],
   providers: [UnitProgressService, PaginationService],
   controllers: [UnitProgressController],
+  exports: [UnitProgressService]
 })
 export class UnitProgressModule {}
