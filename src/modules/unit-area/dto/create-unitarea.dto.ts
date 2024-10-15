@@ -26,9 +26,12 @@ export class CreateUnitAreaDto {
   @IsOptional()
   status?: boolean;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: [CreateLessonDto], // Specify the correct type here
+    description: 'List of lessons under the Unit Area',
+  })
   @ValidateNested({ each: true })
   @Type(() => CreateLessonDto)
   @IsOptional()
-  lessons: CreateLessonDto[];
+  lessons?: CreateLessonDto[];
 }

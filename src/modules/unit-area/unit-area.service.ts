@@ -7,6 +7,7 @@ import { UpdateUnitAreaDto } from './dto/update-unitarea.dto';
 import { BaseService } from '../base/base.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { UnitService } from '../unit/unit.service';
+import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -16,6 +17,17 @@ export class UnitAreaService extends BaseService<UnitArea> {
         private readonly unitService: UnitService,
     ) {
         super(unitAreaRepository);
+    }
+
+    async findAllWithLessons(
+        paginationOptions: PaginationOptionsDto,
+    ): Promise<{ data: UnitArea[]; totalItems: number; totalPages: number }> {
+        
+        //const filter = unitId ? { unit: { id: unitId } } : {};
+        //paginationOptions.filter = filter;
+        // Fetch unit areas with lessons as relation
+        paginationOptions.relations = ['lessons']; // Đảm bảo bao gồm quan hệ lessons
+        return this.findAll(paginationOptions);
     }
 
     async create(createUnitAreaDto: CreateUnitAreaDto): Promise<UnitArea> {
