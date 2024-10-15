@@ -1,17 +1,35 @@
-import { IsUUID, IsInt, IsString, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+    IsUUID,
+    IsInt,
+    IsString,
+    IsOptional,
+    IsNotEmpty,
+    Min,
+    Max,
+} from 'class-validator';
 
 export class CreateUnitProgressDto {
-  @IsUUID()
-  studyProfileId: string;
+    @ApiProperty({ description: 'ID của hồ sơ học tập' })
+    @IsUUID()
+    @IsNotEmpty()
+    studyProfileId: string;
 
-  @IsUUID()
-  unitId: string;
+    @ApiProperty({ description: 'ID của unit' })
+    @IsUUID()
+    @IsNotEmpty()
+    unitId: string;
 
-  @IsInt()
-  @IsOptional()
-  progress?: number;
+    @ApiProperty({ description: 'Progress in percentage', example: 50 })
+    @IsInt()
+    @Min(0)
+    @Max(100)
+    progress: number;
 
-  @IsString()
-  @IsOptional()
-  status?: string;
+    @ApiProperty({
+        description: 'Status of the progress',
+        example: 'in_progress',
+    })
+    @IsNotEmpty()
+    status: string;
 }

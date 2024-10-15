@@ -78,7 +78,7 @@ export class UnitService extends BaseService<Unit> {
 
     async updateUnitStatus(id: string, updateStatusUnitDto: UpdateUnitDto): Promise<Unit> {
         
-        const approveUnit = updateStatusUnitDto;
+        const updateUnit = updateStatusUnitDto;
 
         const unit = await this.findOne(id);
         if (!unit) {
@@ -87,7 +87,7 @@ export class UnitService extends BaseService<Unit> {
 
         const updatedUnit = await this.unitRepository.save({
             ...unit,
-            approveUnit 
+            updateUnit
         });
 
         return updatedUnit;

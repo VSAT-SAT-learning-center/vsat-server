@@ -7,7 +7,7 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 export class BaseService<T> {
   constructor(
     protected readonly repository: Repository<T>,
-    protected readonly paginationService: PaginationService, // Inject PaginationService
+    protected readonly paginationService?: PaginationService, // Inject PaginationService
   ) {}
 
   async findAll(
@@ -32,7 +32,6 @@ export class BaseService<T> {
       console.error('Log Error:', error);
       throw new HttpException('Failed to retrieve data', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
   }
 
   async findOne(id: string | number, relations: string[] = []): Promise<T | undefined> {
