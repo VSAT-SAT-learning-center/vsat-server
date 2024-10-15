@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { IsBoolean, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateExamDto {
@@ -8,6 +9,7 @@ export class CreateExamDto {
     example: '9ca8866b-ffb5-44fe-8cb1-8ad037bae4ae',
   })
   @IsUUID()
+  @Expose()
   examStructureId: string;
 
   @ApiProperty({
@@ -15,6 +17,7 @@ export class CreateExamDto {
     example: '49b5d7f2-edad-4b46-a5a8-02c77de6ea9a',
   })
   @IsUUID()
+  @Expose()
   examTypeId: string;
 
   @ApiProperty({
@@ -22,6 +25,7 @@ export class CreateExamDto {
     example: 'Đề thi kiểm tra Toán học',
   })
   @IsString()
+  @Expose()
   title: string;
 
   @ApiProperty({
@@ -31,6 +35,7 @@ export class CreateExamDto {
   })
   @IsString()
   @IsOptional()
+  @Expose()
   description?: string;
 
   @ApiProperty({

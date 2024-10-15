@@ -8,7 +8,7 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Quiz, Unit])],
-  providers: [QuizService, PaginationService],
+  providers: [QuizService],
   controllers: [QuizController],
 })
 export class QuizModule {}
