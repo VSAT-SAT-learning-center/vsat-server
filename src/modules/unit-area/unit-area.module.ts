@@ -9,7 +9,7 @@ import { UnitModule } from '../unit/unit.module';
 @Module({
     imports: [TypeOrmModule.forFeature([UnitArea]), UnitModule],
     controllers: [UnitAreaController],
-    providers: [UnitAreaService, PaginationService],
+    providers: [UnitAreaService],
     exports: [UnitAreaService],
 })
 export class UnitAreaModule {}

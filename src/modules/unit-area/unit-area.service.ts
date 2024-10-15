@@ -14,9 +14,8 @@ export class UnitAreaService extends BaseService<UnitArea> {
         @InjectRepository(UnitArea)
         private readonly unitAreaRepository: Repository<UnitArea>,
         private readonly unitService: UnitService,
-        paginationService: PaginationService,
     ) {
-        super(unitAreaRepository, paginationService);
+        super(unitAreaRepository);
     }
 
     async create(createUnitAreaDto: CreateUnitAreaDto): Promise<UnitArea> {
