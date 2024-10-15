@@ -16,7 +16,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         @InjectRepository(UnitProgress)
         private readonly unitProgressRepository: Repository<UnitProgress>,
         private readonly unitService: UnitService,
-        private readonly studyProfileService: StudyProfileService
+        private readonly studyProfileService: StudyProfileService,
+        private readonly unitAreaProgressService: UnitAreaProgressService,
     ) {
         super(unitProgressRepository); // Call super with repository and paginationService
     }
@@ -80,4 +81,5 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return updatedUnitProgress;
     }
 
+    
 }

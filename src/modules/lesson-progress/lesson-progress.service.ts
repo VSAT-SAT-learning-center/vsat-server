@@ -21,75 +21,50 @@ export class LessonProgressService extends BaseService<LessonProgress> {
         super(lessonProgressRepository);
     }
 
-    async updateLessonProgress(
-        unitAreaProgressId: string,
-        lessonId: string,
-        progress: number,
-    ): Promise<LessonProgress> {
-        const lesson = await this.lessonService.findOne(lessonId);
-        if (!lesson) {
-            throw new Error('Lesson not found');
-        }
-
-        const unitAreaProgress =
-            await this.unitAreaProgressService.findOne(unitAreaProgressId);
-        if (!unitAreaProgress) {
-            throw new Error('Unit Area Progress not found');
-        }
-
-        const lessonProgress = await this.lessonProgressRepository.findOne({
-            where: {
-                lesson: { id: lessonId },
-                unitAreaProgress: { id: unitAreaProgressId },
-            },
+    async updateLessonProgress(unitAreaProgressId: string, lessonId: string, progress: number): Promise<LessonProgress> {
+      // Find lesson and unit area progress
+      const lesson = await this.lessonService.findOne(lessonId);
+      const unitAreaProgress = await this.unitAreaProgressService.findOne(unitAreaProgressId);
+  
+      let lessonProgress = await this.lessonProgressRepository.findOne({
+        where: {
+          lesson: { id: lessonId },
+          unitAreaProgress: { id: unitAreaProgressId },
+        },
+      });
+  
+      if (lessonProgress) {
+        // Update existing lesson progress
+        lessonProgress.progress = progress;
+      } else {
+        // Create new lesson progress
+        lessonProgress = this.lessonProgressRepository.create({
+          lesson,
+          unitAreaProgress,
+          progress,
         });
-
-        if (lessonProgress) {
-          lessonProgress.progress = progress;
-          return this.lessonProgressRepository.save(lessonProgress);
-        } else {
-          const newProgress = this.lessonProgressRepository.create({
-            lesson: lesson,
-            unitAreaProgress: unitAreaProgress,
-            progress: progress,
-          });
-          return this.lessonProgressRepository.save(newProgress);
-        }
+      }
+  
+      return this.lessonProgressRepository.save(lessonProgress);
     }
-
-    async calculateUnitAreaProgress(
-      unitAreaProgressId: string
-    ): Promise<number> {
-      const paginationOptions: PaginationOptionsDto = {
-        filter: { unitAreaId: unitAreaProgressId },
-        page: 1,
-        pageSize: 1000,
-        sortBy: 'id',
-        sortOrder: 'ASC',
-        relations: [],
-      };
-
-      const { data: lessons } = await this.lessonService.findAll(paginationOptions);
+  
+    async calculateUnitAreaProgress(unitAreaId: string): Promise<number> {
+      const lessons = await this.lessonService.findByUnitArea(unitAreaId);
     
-      // If there are no lessons, return 0 progress
       if (lessons.length === 0) {
         return 0;
       }
     
-      // Find all progress records for lessons in the given unit area progress
       const progressData = await this.lessonProgressRepository.find({
         where: {
-          unitAreaProgress: { id: unitAreaProgressId }, // Access unitAreaProgress by its id
-          lesson: { id: In(lessons.map(l => l.id)) },   // Access lesson via its id
+          unitAreaProgress: { unitArea: { id: unitAreaId } }, // Use unitAreaId
+          lesson: { id: In(lessons.map(l => l.id)) },
         },
       });
     
-      // Calculate completed lessons (where progress is 100)
       const totalLessons = lessons.length;
       const completedLessons = progressData.filter((p) => p.progress === 100).length;
     
-      // Return the calculated progress as a percentage
       return (completedLessons / totalLessons) * 100;
     }
-    
 }

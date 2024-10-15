@@ -12,6 +12,6 @@ import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity'
 @Controller('unit-area-progress')
 export class UnitAreaProgressController extends BaseController<UnitAreaProgress> {
   constructor(unitAreaProgressService: UnitAreaProgressService) {
-    super(unitAreaProgressService, 'UnitAreaProgress'); // Pass service and entity name to BaseController
+    super(unitAreaProgressService, 'UnitAreaProgress');
   }
 }
