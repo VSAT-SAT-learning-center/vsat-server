@@ -81,5 +81,30 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return updatedUnitProgress;
     }
 
-    
+    async updateUnitProgress(
+        unitId: string,
+        studyProfileId: string,
+    ): Promise<UnitProgress> {
+        const progress =
+            await this.unitAreaProgressService.calculateUnitProgress(unitId);
+
+        let unitProgress = await this.unitProgressRepository.findOne({
+            where: {
+                unit: { id: unitId },
+                studyProfile: { id: studyProfileId },
+            },
+        });
+
+        if (unitProgress) {
+            unitProgress.progress = progress;
+        } else {
+            unitProgress = this.unitProgressRepository.create({
+                unit: { id: unitId },
+                studyProfile: { id: studyProfileId },
+                progress,
+            });
+        }
+
+        return this.unitProgressRepository.save(unitProgress);
+    }
 }
