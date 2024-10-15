@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { Lesson } from 'src/database/entities/lesson.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { BaseService } from '../base/base.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
 
@@ -14,9 +13,8 @@ export class LessonService extends BaseService<Lesson> {
         @InjectRepository(Lesson)
         private readonly lessonRepository: Repository<Lesson>,
         private readonly unitAreaService: UnitAreaService,
-        paginationService: PaginationService,
     ) {
-        super(lessonRepository, paginationService);
+        super(lessonRepository);
     }
 
     async findByUnitArea(unitAreaId: string): Promise<Lesson[]> {

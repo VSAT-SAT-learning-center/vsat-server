@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpStatus,
+    Param,
+    Patch,
+    Post,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { UnitProgress } from 'src/database/entities/unitprogress.entity';
@@ -11,13 +19,15 @@ import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
 @ApiTags('UnitProgress')
 @Controller('unit-progress')
 export class UnitProgressController extends BaseController<UnitProgress> {
-  constructor(private readonly unitProgressService: UnitProgressService) {
-    super(unitProgressService, 'UnitProgress');
-  }
+    constructor(private readonly unitProgressService: UnitProgressService) {
+        super(unitProgressService, 'UnitProgress');
+    }
 
-  @Get(':id')
+    @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unit = await this.unitProgressService.findOne(id, ['unitAreaProgresses']);
+        const unit = await this.unitProgressService.findOne(id, [
+            'unitAreaProgresses',
+        ]);
         return ResponseHelper.success(
             HttpStatus.OK,
             unit,
@@ -27,7 +37,9 @@ export class UnitProgressController extends BaseController<UnitProgress> {
 
     @Post()
     async create(@Body() createUnitProgressDto: CreateUnitProgressDto) {
-        const createdUnit = await this.unitProgressService.create(createUnitProgressDto);
+        const createdUnit = await this.unitProgressService.create(
+            createUnitProgressDto,
+        );
         return ResponseHelper.success(
             HttpStatus.CREATED,
             createdUnit,
@@ -40,11 +52,25 @@ export class UnitProgressController extends BaseController<UnitProgress> {
         @Param('id') id: string,
         @Body() updateUnitProgressDto: UpdateUnitProgressDto,
     ) {
-        const updatedUnit = await this.unitProgressService.update(id, updateUnitProgressDto);
+        const updatedUnit = await this.unitProgressService.update(
+            id,
+            updateUnitProgressDto,
+        );
         return ResponseHelper.success(
             HttpStatus.OK,
             updatedUnit,
             SuccessMessages.update('UnitProgress'),
+        );
+    }
+
+    @Patch(':unitId/:targetLearningId')
+    async updateUnitProgress(
+        @Param('unitId') unitId: string,
+        @Param('targetLearningId') targetLearningId: string,
+    ): Promise<UnitProgress> {
+        return this.unitProgressService.updateUnitProgress(
+            unitId,
+            targetLearningId,
         );
     }
 }

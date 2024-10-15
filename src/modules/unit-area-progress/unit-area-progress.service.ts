@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUnitAreaProgressDto } from './dto/create-unitareaprogress.dto';
@@ -15,6 +15,8 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
   constructor(
     @InjectRepository(UnitAreaProgress)
     private readonly unitAreaProgressRepository: Repository<UnitAreaProgress>,
+    
+    @Inject(forwardRef(() => LessonProgressService))
     private readonly lessonProgressService: LessonProgressService,
   ) {
     super(unitAreaProgressRepository);

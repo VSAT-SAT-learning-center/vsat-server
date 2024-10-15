@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
@@ -8,7 +8,6 @@ import { BaseService } from '../base/base.service';
 import { UnitService } from '../unit/unit.service';
 import { StudyProfileService } from '../study-profile/study-profile.service';
 import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
-import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
 
 @Injectable()
 export class UnitProgressService extends BaseService<UnitProgress> {
@@ -17,6 +16,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         private readonly unitProgressRepository: Repository<UnitProgress>,
         private readonly unitService: UnitService,
         private readonly studyProfileService: StudyProfileService,
+
+        @Inject(forwardRef(() => UnitAreaProgressService))
         private readonly unitAreaProgressService: UnitAreaProgressService,
     ) {
         super(unitProgressRepository); // Call super with repository and paginationService

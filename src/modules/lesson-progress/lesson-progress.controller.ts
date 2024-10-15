@@ -16,7 +16,7 @@ export class LessonProgressController extends BaseController<LessonProgress> {
   }
   
   @Patch(':unitAreaProgressId/:lessonId')
-  async updateProgress(
+  async updateLessonProgress(
     @Param('unitAreaProgressId') unitAreaProgressId: string,
     @Param('lessonId') lessonId: string,
     @Body('progress') progress: number
