@@ -7,14 +7,12 @@ export class CreateAccountDTO {
     @IsNotEmpty()
     @ApiProperty({
         description: 'ID of the lesson',
-        example: '2a5d4171-fc32-4155-834e-6d6e4ed021ef',
+        example: '2bb9ffe7-6b62-43ef-b144-5392a46068c7',
     })
     @IsUUID()
     roleId: string;
 
-    @IsNotEmpty()
     @Expose()
-    @ApiProperty()
     username: string;
 
     password: string;

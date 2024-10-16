@@ -12,6 +12,9 @@ import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Role } from 'src/database/entities/role.entity';
+import { AccountStatus } from 'src/common/enums/account-status.enum';
+import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
+import { GetAccountDTO } from './dto/get-account.dto';
 
 @Injectable()
 export class AccountService {
@@ -22,6 +25,34 @@ export class AccountService {
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
     ) {}
+
+    async generateUsername(
+        firstname: string,
+        lastname: string,
+    ): Promise<string> {
+        const baseUsername =
+            firstname.toLowerCase() +
+            lastname
+                .split(' ')
+                .map((word) => word[0].toLowerCase())
+                .join('');
+        let username = baseUsername;
+
+        let userExists = await this.accountRepository.findOne({
+            where: { username },
+        });
+        let counter = 1;
+
+        while (userExists) {
+            username = `${baseUsername}${counter}`;
+            userExists = await this.accountRepository.findOne({
+                where: { username },
+            });
+            counter++;
+        }
+
+        return username;
+    }
 
     //save
     async save(accountDTO: CreateAccountDTO): Promise<CreateAccountDTO> {
@@ -35,14 +66,19 @@ export class AccountService {
             );
         }
 
+        const generatedUsername = await this.generateUsername(
+            accountDTO.firstname,
+            accountDTO.lastname,
+        );
+
         const randomPassword = this.generateRandomPassword(8);
 
         const hashedPassword = await this.hashPassword(randomPassword);
 
-        accountDTO.password = hashedPassword;
-
         const account = await this.accountRepository.create({
             ...accountDTO,
+            password: hashedPassword,
+            username: generatedUsername,
             role: roleId,
         });
 
@@ -69,7 +105,7 @@ export class AccountService {
     async active(userId: string) {
         const findAcc = await this.accountRepository.findOneBy({ id: userId });
 
-        findAcc.status = true;
+        findAcc.status = AccountStatus.ACTIVE;
 
         return await this.accountRepository.save(findAcc);
     }
@@ -103,5 +139,82 @@ export class AccountService {
         });
 
         return 'Welcome email sent';
+    }
+
+    async saveFromFile(
+        createAccountFromFileDto: CreateAccountFromFileDTO[],
+    ): Promise<CreateAccountFromFileDTO[]> {
+        const savedAccounts: Account[] = [];
+
+        for (const account of createAccountFromFileDto) {
+            const checkRole = await this.roleRepository.findOne({
+                where: { rolename: account.role },
+            });
+
+            if (!checkRole) {
+                throw new NotFoundException(`Role ${account.role} not found`);
+            }
+
+            const generatedUsername = await this.generateUsername(
+                account.firstname,
+                account.lastname,
+            );
+
+            const randomPassword = this.generateRandomPassword(8);
+
+            const hashedPassword = await this.hashPassword(randomPassword);
+
+            account.password = hashedPassword;
+
+            const newAccount = this.accountRepository.create({
+                username: generatedUsername,
+                password: hashedPassword,
+                firstname: account.firstname,
+                lastname: account.lastname,
+                email: account.email,
+                role: checkRole,
+            });
+
+            const savedAccount = await this.accountRepository.save(newAccount);
+
+            if (!savedAccount) {
+                throw new HttpException(
+                    'Fail to save account',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            await this.sendWelComeMail(
+                account.email,
+                randomPassword,
+                account.username,
+            );
+
+            savedAccounts.push(savedAccount);
+        }
+        return plainToInstance(CreateAccountFromFileDTO, savedAccounts, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async find(page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [accounts, total] = await this.accountRepository.findAndCount({
+            relations: ['role'],
+            skip: skip,
+            take: pageSize,
+        });
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetAccountDTO, accounts, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
     }
 }

@@ -8,6 +8,7 @@ import {
     JoinColumn,
 } from 'typeorm';
 import { Role } from './role.entity';
+import { AccountStatus } from 'src/common/enums/account-status.enum';
 
 @Entity('account')
 export class Account {
@@ -60,8 +61,12 @@ export class Account {
     @Column({ type: 'varchar', length: 255, nullable: true })
     profilepictureurl: string;
 
-    @Column({ type: 'boolean', default: false })
-    status: boolean;
+    @Column({
+        type: 'enum',
+        enum: AccountStatus,
+        default: AccountStatus.INACTIVE,
+    })
+    status: AccountStatus;
 
     @Column({ type: 'varchar', length: 500, nullable: true })
     refreshToken: string;

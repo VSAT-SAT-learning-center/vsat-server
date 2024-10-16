@@ -6,6 +6,7 @@ import { AuthDTO } from './dto/auth.dto';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
+import { AccountStatus } from 'src/common/enums/account-status.enum';
 
 @Injectable()
 export class AuthService {
@@ -89,9 +90,14 @@ export class AuthService {
             findAcc.refreshToken = refreshToken;
             await this.authRepository.save(findAcc);
 
-            if (!findAcc.status) {
+            if (findAcc.status === AccountStatus.INACTIVE) {
                 const activationToken = this.createAccessToken(accountData);
                 await this.sendMail(findAcc.email, activationToken);
+            } else if (findAcc.status === AccountStatus.BANNED) {
+                throw new HttpException(
+                    'Account is not permission',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             return {
