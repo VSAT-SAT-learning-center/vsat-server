@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { Repository, DeepPartial, FindManyOptions } from 'typeorm';
@@ -42,7 +42,7 @@ export class BaseService<T> {
       });
 
       if (!entity) {
-        throw new HttpException(`${id} not found`, HttpStatus.NOT_FOUND);
+        throw new NotFoundException(`${id} not found`);
       }
 
       return entity;
