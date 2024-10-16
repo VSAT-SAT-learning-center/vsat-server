@@ -24,7 +24,7 @@ export class UnitArea {
   unit: Unit;
 
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  title: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;

@@ -18,11 +18,6 @@ export class UpdateLessonDto {
   title?: string;
 
   @ApiProperty()
-  @IsString()
-  @IsOptional()
-  content?: string;
-
-  @ApiProperty()
   @IsBoolean()
   @IsOptional()
   status?: boolean;

@@ -4,6 +4,8 @@ import { LessonService } from '../lesson/lesson.service';
 import { CreateUnitAreaDto } from '../unit-area/dto/create-unitarea.dto';
 import { UnitArea } from 'src/database/entities/unitarea.entity';
 import { UnitService } from '../unit/unit.service';
+import { UpdateUnitAreaDto } from '../unit-area/dto/update-unitarea.dto';
+import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
 
 @Injectable()
 export class LearningMaterialService {
@@ -15,7 +17,7 @@ export class LearningMaterialService {
       }
 
       async createUnitAreaWithLessons(
-        createUnitAreaDtoList: CreateUnitAreaDto[],
+        createUnitAreaDtoList: CreateLearningMaterialDto[],
       ): Promise<UnitArea[]> {
         const createdUnitAreas: UnitArea[] = [];
     
@@ -59,4 +61,69 @@ export class LearningMaterialService {
     
         return createdUnitAreas;
       }
+
+      // async updateUnitAreaWithLessons(
+      //   updateUnitAreaDtoList: UpdateUnitAreaDto[], // Chứa thông tin UnitArea và Lesson cần update
+      // ): Promise<UnitArea[]> {
+      //   const updatedUnitAreas: UnitArea[] = [];
+      
+      //   for (const updateUnitAreaDto of updateUnitAreaDtoList) {
+      //     const { unitId, lessons, ...unitAreaData } = updateUnitAreaDto;
+      
+      //     // Fetch the Unit entity
+      //     const unit = await this.unitService.findOne(unitId);
+      //     if (!unit) {
+      //       throw new NotFoundException('Unit not found');
+      //     }
+      
+      //     // Fetch the existing UnitArea entity or throw an exception if not found
+      //     const existingUnitArea = await this.unitAreaService.findOne(updateUnitAreaDto.id);
+      //     if (!existingUnitArea) {
+      //       throw new NotFoundException(`UnitArea with ID ${updateUnitAreaDto.id} not found`);
+      //     }
+      
+      //     // Ensure lessons are provided
+      //     if (!lessons || lessons.length === 0) {
+      //       throw new NotFoundException('Lessons are required when updating UnitArea');
+      //     }
+      
+      //     // Update the UnitArea entity using UnitAreaService
+      //     const updatedUnitArea = await this.unitAreaService.update(updateUnitAreaDto.id, {
+      //       ...unitAreaData,
+      //       unitId: unit.id, // Update unitId in UnitArea
+      //     });
+      
+      //     // Fetch existing lessons
+      //     const existingLessons = await this.lessonService.findByUnitAreaId(existingUnitArea.id);
+      
+      //     // Update or create associated lessons using LessonService
+      //     const updatedLessons = await Promise.all(
+      //       lessons.map(async (lessonData) => {
+      //         const existingLesson = existingLessons.find(
+      //           (lesson) => lesson.id === lessonData.id,
+      //         );
+      
+      //         if (existingLesson) {
+      //           // If lesson exists, update it
+      //           return await this.lessonService.update(existingLesson.id, lessonData);
+      //         } else {
+      //           // If lesson does not exist, create a new one
+      //           return await this.lessonService.create({
+      //             ...lessonData,
+      //             unitAreaId: existingUnitArea.id, // Pass unitAreaId for new lesson
+      //           });
+      //         }
+      //       }),
+      //     );
+      
+      //     // After updating, push the updated UnitArea to the updated list
+      //     updatedUnitAreas.push({
+      //       ...updatedUnitArea,
+      //       lessons: updatedLessons, // Attach the updated or newly created lessons to UnitArea
+      //     });
+      //   }
+      
+      //   return updatedUnitAreas;
+      // }
+      
 }

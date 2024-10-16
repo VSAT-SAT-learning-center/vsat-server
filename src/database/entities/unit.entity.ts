@@ -31,7 +31,7 @@ export class Unit {
   level: Level;
 
   @Column({ type: 'varchar', length: 100 })
-  name: string;
+  title: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;

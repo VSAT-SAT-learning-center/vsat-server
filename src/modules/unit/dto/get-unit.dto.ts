@@ -5,7 +5,7 @@ export class GetUnitDTO {
     id: string;
 
     @Expose()
-    name: string;
+    title: string;
 
     @Expose()
     description: string;
