@@ -16,16 +16,6 @@ export class CreateLearningMaterialDto {
     @IsNotEmpty()
     title: string; 
   
-    @ApiProperty()
-    @IsString()
-    @IsOptional()
-    description?: string;
-  
-    @ApiProperty()
-    @IsBoolean()
-    @IsOptional()
-    status?: boolean;
-  
     @ApiProperty({
       type: [CreateLessonDto], // Specify the correct type here
       description: 'List of lessons under the Unit Area',

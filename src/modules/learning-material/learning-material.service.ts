@@ -39,7 +39,7 @@ export class LearningMaterialService {
           const newUnitArea = await this.unitAreaService.create({
             ...unitAreaData,
             unitId: unit.id,  // Pass unitId to UnitAreaService
-            lessons,          // Pass lessons array to UnitAreaService
+            ...lessons,          // Pass lessons array to UnitAreaService
           });
     
           // Create associated Lessons using LessonService

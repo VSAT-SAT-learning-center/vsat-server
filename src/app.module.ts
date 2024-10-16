@@ -89,7 +89,7 @@ import { LearningMaterialModule } from './modules/learning-material/learning-mat
         UnitProgressModule,
         AnswerModule,
         GptModule,
-        LearningMaterialModule,
+        //LearningMaterialModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
