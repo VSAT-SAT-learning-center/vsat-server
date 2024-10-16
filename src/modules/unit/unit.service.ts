@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Unit } from 'src/database/entities/unit.entity';
 import { Repository } from 'typeorm';
@@ -28,12 +28,12 @@ export class UnitService extends BaseService<Unit> {
 
         const section = await this.sectionService.findOneById(sectionId);
         if (!section) {
-            throw new Error('Section not found');
+            throw new NotFoundException('Section not found');
         }
 
         const level = await this.levelService.findById(levelId);
         if (!levelId) {
-            throw new Error('Level not found');
+            throw new NotFoundException('Level not found');
         }
 
         const newUnit = this.unitRepository.create({

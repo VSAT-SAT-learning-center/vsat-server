@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonService } from '../lesson/lesson.service';
 import { CreateUnitAreaDto } from '../unit-area/dto/create-unitarea.dto';
@@ -25,12 +25,12 @@ export class LearningMaterialService {
           // Fetch the Unit entity
           const unit = await this.unitService.findOne(unitId);
           if (!unit) {
-            throw new Error('Unit not found');
+            throw new NotFoundException('Unit not found');
           }
     
           // Ensure lessons are provided
           if (!lessons || lessons.length === 0) {
-            throw new Error('Lessons are required when creating UnitArea');
+            throw new NotFoundException('Lessons are required when creating UnitArea');
           }
     
           // Create the UnitArea entity using UnitAreaService

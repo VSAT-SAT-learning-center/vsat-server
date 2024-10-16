@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -28,7 +28,7 @@ export class LessonService extends BaseService<Lesson> {
 
         const unitArea = await this.unitAreaService.findOne(unitAreaId);
         if (!unitArea) {
-            throw new Error('UnitArea not found');
+            throw new NotFoundException('UnitArea not found');
         }
 
         const newLesson = this.lessonRepository.create({
@@ -47,12 +47,12 @@ export class LessonService extends BaseService<Lesson> {
 
         const lesson = await this.findOne(id);
         if (!lesson) {
-            throw new Error('Lesson not found');
+            throw new NotFoundException('Lesson not found');
         }
 
         const unitArea = await this.unitAreaService.findOne(unitAreaId);
         if (!unitArea) {
-            throw new Error('Unit Area not found');
+            throw new NotFoundException('Unit Area not found');
         }
 
         const updatedLesson = await this.lessonRepository.save({
