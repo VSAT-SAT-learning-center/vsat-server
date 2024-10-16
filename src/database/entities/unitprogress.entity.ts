@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { StudyProfile } from './studyprofile.entity';
 import { Unit } from './unit.entity';
+import { UnitAreaProgress } from './unitareaprogress.entity';
 
 @Entity('unitprogress')
 export class UnitProgress {
@@ -32,4 +33,8 @@ export class UnitProgress {
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   status: string;
+
+  // One-to-many relationship
+  @OneToMany(() => UnitAreaProgress, (unitAreaProgress) => unitAreaProgress.unitProgress, { cascade: true })
+  unitAreaProgresses: UnitAreaProgress[];
 }

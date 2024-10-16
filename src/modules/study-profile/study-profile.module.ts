@@ -10,5 +10,6 @@ import { StudyProfileController } from './study-profile.controller';
   imports: [TypeOrmModule.forFeature([StudyProfile, Account])],
   providers: [StudyProfileService, PaginationService],
   controllers: [StudyProfileController],
+  exports: [StudyProfileService]
 })
 export class StudyProfileModule {}

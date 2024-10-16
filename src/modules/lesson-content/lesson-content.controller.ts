@@ -23,10 +23,20 @@ export class LessonContentController extends BaseController<LessonContent> {
         super(lessonContentService, 'LessonContent');
     }
 
+    // @Get(':id')
+    // async findByLessonId(@Param('id') id: string) {
+    //     const lessonContent =
+    //         await this.lessonContentService.findByLessonId(id);
+    //     return ResponseHelper.success(
+    //         HttpStatus.OK,
+    //         lessonContent,
+    //         SuccessMessages.get('LessonContent'),
+    //     );
+    // }
+
     @Get(':id')
-    async findByLessonId(@Param('id') id: string) {
-        const lessonContent =
-            await this.lessonContentService.findByLessonId(id);
+    async findOne(@Param('id') id: string) {
+        const lessonContent = await this.lessonContentService.findOne(id);
         return ResponseHelper.success(
             HttpStatus.OK,
             lessonContent,
