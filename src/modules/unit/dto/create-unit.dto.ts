@@ -23,7 +23,7 @@ export class CreateUnitDto extends BaseEntity {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  title: string;
 
   @ApiProperty()
   @IsString()

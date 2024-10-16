@@ -1,8 +1,8 @@
 import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
 import { ApiBody, ApiTags, getSchemaPath } from '@nestjs/swagger';
 import { LearningMaterialService } from './learning-material.service';
-import { CreateUnitAreaDto } from '../unit-area/dto/create-unitarea.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
 
 @ApiTags('LearningMaterial')
 @Controller('learning-material')
@@ -15,11 +15,11 @@ export class LearningMaterialController {
     @ApiBody({
         schema: {
           type: 'array',
-          items: { $ref: getSchemaPath(CreateUnitAreaDto) }, // Correctly reference the DTO schema
+          items: { $ref: getSchemaPath(CreateLearningMaterialDto) }, // Correctly reference the DTO schema
         },
       })
     async createLearningMaterial(
-        @Body() createUnitAreaDtoList: CreateUnitAreaDto[],
+        @Body() createUnitAreaDtoList: CreateLearningMaterialDto[],
     ) {
         const createdMaterials =
             await this.learningMaterialService.createUnitAreaWithLessons(

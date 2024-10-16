@@ -29,9 +29,6 @@ export class Lesson {
   @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column({ type: 'text', nullable: true })
-  content: string;
-
   @Column({ type: 'boolean', default: true })
   status: boolean;
 

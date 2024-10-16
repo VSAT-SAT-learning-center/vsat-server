@@ -14,7 +14,7 @@ export class CreateUnitAreaDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  name: string; 
+  title: string; 
 
   @ApiProperty()
   @IsString()
