@@ -10,7 +10,7 @@ import { SectionModule } from '../section/section.module';
 @Module({
     imports: [TypeOrmModule.forFeature([Unit]), LevelModule, SectionModule],
     controllers: [UnitController],
-    providers: [UnitService, PaginationService],
+    providers: [UnitService],
     exports: [UnitService],
 })
 export class UnitModule {}

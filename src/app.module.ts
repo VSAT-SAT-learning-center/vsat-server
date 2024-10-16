@@ -42,6 +42,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
+import { LearningMaterialModule } from './modules/learning-material/learning-material.module';
 
 @Module({
     imports: [
@@ -88,6 +89,7 @@ import { GptModule } from './modules/gpt/gpt.module';
         UnitProgressModule,
         AnswerModule,
         GptModule,
+        LearningMaterialModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

@@ -1,14 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Unit } from 'src/database/entities/unit.entity';
 import { Repository } from 'typeorm';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
 import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { SectionService } from '../section/section.service';
 import { LevelService } from '../level/level.service';
-import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -17,9 +15,8 @@ export class UnitService extends BaseService<Unit> {
         private readonly unitRepository: Repository<Unit>,
         private readonly sectionService: SectionService,
         private readonly levelService: LevelService,
-        paginationService: PaginationService,
     ) {
-        super(unitRepository, paginationService);
+        super(unitRepository);
     }
 
     // async findOneWithUnitArea(id: string): Promise<Unit> {
@@ -31,12 +28,12 @@ export class UnitService extends BaseService<Unit> {
 
         const section = await this.sectionService.findOneById(sectionId);
         if (!section) {
-            throw new Error('Section not found');
+            throw new NotFoundException('Section not found');
         }
 
         const level = await this.levelService.findById(levelId);
         if (!levelId) {
-            throw new Error('Level not found');
+            throw new NotFoundException('Level not found');
         }
 
         const newUnit = this.unitRepository.create({

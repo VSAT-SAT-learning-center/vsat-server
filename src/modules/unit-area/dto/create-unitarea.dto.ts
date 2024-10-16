@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsUUID, IsNotEmpty, IsOptional, IsBoolean, ValidateNested } from 'class-validator';
+import { CreateLessonDto } from 'src/modules/lesson/dto/create-lesson.dto';
 
 export class CreateUnitAreaDto {
   @ApiProperty({
@@ -23,4 +25,13 @@ export class CreateUnitAreaDto {
   @IsBoolean()
   @IsOptional()
   status?: boolean;
+
+  @ApiProperty({
+    type: [CreateLessonDto], // Specify the correct type here
+    description: 'List of lessons under the Unit Area',
+  })
+  @ValidateNested({ each: true })
+  @Type(() => CreateLessonDto)
+  @IsOptional()
+  lessons?: CreateLessonDto[];
 }
