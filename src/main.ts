@@ -1,9 +1,9 @@
 declare const module: any;
 
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/exception/exception.filter';
 
 async function bootstrap() {
@@ -40,7 +40,7 @@ async function bootstrap() {
 
     await app.listen(PORT, () => {
         console.log('start success with port: ' + PORT);
-        console.log('Swagger in: ' + 'http://localhost:' + PORT + '/api#/');
+        console.log('Swagger in: ' + 'http://localhost:' + PORT + '/api/v1/');
     });
 
     if (module.hot) {
