@@ -14,10 +14,12 @@ export class CreateAccountFromFileDTO {
 
     @ApiProperty()
     @Expose()
+    @IsNotEmpty()
     firstname: string;
 
     @ApiProperty()
     @Expose()
+    @IsNotEmpty()
     lastname: string;
 
     @IsNotEmpty()

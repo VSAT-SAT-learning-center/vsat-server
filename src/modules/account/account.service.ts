@@ -201,14 +201,34 @@ export class AccountService {
                     );
                 }
 
-                const formattedDate = this.formatDateString(
-                    account.dateofbirth,
-                );
-                if (new Date(formattedDate) > new Date()) {
-                    throw new HttpException(
-                        'Date of birth cannot be in the future',
-                        HttpStatus.BAD_REQUEST,
-                    );
+                let formattedDate: string | null = null;
+                if (account.dateofbirth) {
+                    const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                    const match = account.dateofbirth.match(datePattern);
+
+                    if (!match) {
+                        throw new HttpException(
+                            'Invalid date of birth format. Please use dd/MM/yyyy format.',
+                            HttpStatus.BAD_REQUEST,
+                        );
+                    }
+
+                    const day = parseInt(match[1], 10);
+                    const month = parseInt(match[2], 10) - 1;
+                    const year = parseInt(match[3], 10);
+
+                    const date = new Date(Date.UTC(year, month, day));
+
+                    formattedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
+                        .toString()
+                        .padStart(2, '0')}`;
+
+                    if (date > new Date()) {
+                        throw new HttpException(
+                            'Date of birth cannot be in the future',
+                            HttpStatus.BAD_REQUEST,
+                        );
+                    }
                 }
 
                 if (!this.isValidEmail(account.email)) {
@@ -233,7 +253,7 @@ export class AccountService {
                     lastname: account.lastname,
                     email: account.email,
                     gender: account.gender,
-                    dateofbirth: formattedDate,
+                    dateofbirth: formattedDate, // Sử dụng dateofbirth đã được định dạng
                     phonenumber: account.phonenumber,
                     role: checkRole,
                 });
