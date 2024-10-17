@@ -17,6 +17,7 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { LessonService } from '../lesson/lesson.service';
 import { CreateLearningMaterialDto } from '../learning-material/dto/create-learningmaterial.dto';
 import { UpdateLearningMaterialDto } from '../learning-material/dto/update-learningmaterial.dto';
+import { LessonType } from 'src/common/enums/lesson-type.enum';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -64,6 +65,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
                     this.lessonService.create({
                         ...lessonData,
                         unitAreaId: newUnitArea.id, // Pass unitAreaId to LessonService
+                        type: LessonType.TEXT,
                     }),
                 ),
             );
