@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { AuthDTO } from './dto/auth.dto';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
+import * as bcrypt from 'bcrypt';
+import { AccountStatus } from 'src/common/enums/account-status.enum';
 
 @Injectable()
 export class AuthService {
@@ -66,7 +68,12 @@ export class AuthService {
             );
         }
 
-        if (password === findAcc.password) {
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            findAcc.password,
+        );
+
+        if (isPasswordValid) {
             const accountData = {
                 id: findAcc.id,
                 username: findAcc.username,
@@ -83,9 +90,14 @@ export class AuthService {
             findAcc.refreshToken = refreshToken;
             await this.authRepository.save(findAcc);
 
-            if (!findAcc.status) {
+            if (findAcc.status === AccountStatus.INACTIVE) {
                 const activationToken = this.createAccessToken(accountData);
                 await this.sendMail(findAcc.email, activationToken);
+            } else if (findAcc.status === AccountStatus.BANNED) {
+                throw new HttpException(
+                    'Account is not permission',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             return {
@@ -112,7 +124,11 @@ export class AuthService {
             );
         }
 
-        if (password === findAcc.password) {
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            findAcc.password,
+        );
+        if (isPasswordValid) {
             return {
                 id: findAcc.id,
                 username: findAcc.username,
