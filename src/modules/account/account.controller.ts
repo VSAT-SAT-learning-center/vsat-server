@@ -65,13 +65,24 @@ export class AccountController {
                 SuccessMessages.create('Account'),
             );
         } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
+            if (error.code === '23505') {
+                throw new HttpException(
+                    {
+                        statusCode: HttpStatus.BAD_REQUEST,
+                        message:
+                            'Email already exists. Please use a different email.',
+                    },
+                    HttpStatus.BAD_REQUEST,
+                );
+            } else {
+                throw new HttpException(
+                    {
+                        statusCode: error.status || HttpStatus.BAD_REQUEST,
+                        message: error.message || 'An error occurred',
+                    },
+                    error.status || HttpStatus.BAD_REQUEST,
+                );
+            }
         }
     }
 

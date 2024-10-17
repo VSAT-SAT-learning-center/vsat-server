@@ -4,7 +4,7 @@ import { IsNotEmpty } from 'class-validator';
 
 export class CreateAccountFromFileDTO {
     @IsNotEmpty()
-    @ApiProperty({ example: 'Student' }) // Thêm mô tả cho Swagger
+    @ApiProperty({ example: 'Student' })
     role: string;
 
     @Expose()
@@ -24,4 +24,19 @@ export class CreateAccountFromFileDTO {
     @ApiProperty()
     @Expose()
     email: string;
+
+    @IsNotEmpty()
+    @ApiProperty()
+    @Expose()
+    gender: boolean;
+
+    @IsNotEmpty()
+    @ApiProperty()
+    @Expose()
+    dateofbirth: Date;
+
+    @IsNotEmpty()
+    @ApiProperty()
+    @Expose()
+    phonenumber: string;
 }
