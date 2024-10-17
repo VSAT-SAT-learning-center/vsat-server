@@ -22,7 +22,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
@@ -164,10 +164,29 @@ export class AccountController {
         }
     }
 
-    @Get('search')
-    async searchByName(@Query('name') name: string) {
+    @Get('/search')
+    @ApiQuery({ name: 'name', required: false })
+    @ApiQuery({ name: 'page', required: true })
+    @ApiQuery({ name: 'pageSize', required: true })
+    @ApiQuery({
+        name: 'sortOrder',
+        required: false,
+        enum: ['ASC', 'DESC'],
+        description: 'Sort order for createdat',
+    })
+    async searchByName(
+        @Query('name') name: string,
+        @Query('page') page: number = 1,
+        @Query('pageSize') pageSize: number = 10,
+        @Query('sortOrder') sortOrder: 'ASC' | 'DESC' = 'ASC',
+    ) {
         try {
-            const accounts = await this.accountService.searchByName(name);
+            const accounts = await this.accountService.searchByName(
+                name,
+                page,
+                pageSize,
+                sortOrder,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 accounts,

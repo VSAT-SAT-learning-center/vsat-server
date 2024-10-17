@@ -5,12 +5,8 @@ import { Role } from 'src/database/entities/role.entity';
 
 export class CreateAccountDTO {
     @IsNotEmpty()
-    @ApiProperty({
-        description: 'ID of the lesson',
-        example: '2bb9ffe7-6b62-43ef-b144-5392a46068c7',
-    })
-    @IsUUID()
-    roleId: string;
+    @ApiProperty({ example: 'Student' })
+    role: string;
 
     @Expose()
     username: string;

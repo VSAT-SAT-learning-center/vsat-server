@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
-import { Like, Repository } from 'typeorm';
+import { ILike, Like, Repository } from 'typeorm';
 import { CreateAccountDTO } from './dto/create-account.dto';
 import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
@@ -61,8 +61,8 @@ export class AccountService {
 
     //save
     async save(accountDTO: CreateAccountDTO): Promise<CreateAccountDTO> {
-        const roleId = await this.roleRepository.findOne({
-            where: { id: accountDTO.roleId },
+        const role = await this.roleRepository.findOne({
+            where: { rolename: accountDTO.role },
         });
 
         const email = await this.accountRepository.findOne({
@@ -92,9 +92,9 @@ export class AccountService {
             );
         }
 
-        if (!roleId) {
+        if (!role) {
             throw new NotFoundException(
-                `Unit with ID ${accountDTO.roleId} does not exist`,
+                `Role ${accountDTO.role} does not exist`,
             );
         }
 
@@ -111,7 +111,7 @@ export class AccountService {
             ...accountDTO,
             password: hashedPassword,
             username: generatedUsername,
-            role: roleId,
+            role: role,
             dateofbirth: formattedDate,
         });
 
@@ -286,16 +286,50 @@ export class AccountService {
         return updateAccount;
     }
 
-    async searchByName(name: string): Promise<GetAccountDTO[]> {
-        const account = await this.accountRepository.find({
-            where: [
-                { firstname: Like(`%${name}%`) },
-                { lastname: Like(`%${name}%`) },
-            ],
-        });
+    async searchByName(
+        name: string,
+        page: number,
+        pageSize: number,
+        sortOrder: 'ASC' | 'DESC' = 'ASC',
+    ): Promise<{
+        data: GetAccountDTO[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        const skip = (page - 1) * pageSize;
 
-        return plainToInstance(GetAccountDTO, account, {
+        let accounts: any[], total: number;
+
+        if (!name || name.trim() === '') {
+            [accounts, total] = await this.accountRepository.findAndCount({
+                skip: skip,
+                take: pageSize,
+                order: { createdat: sortOrder },
+            });
+        } else {
+            [accounts, total] = await this.accountRepository.findAndCount({
+                where: [
+                    { firstname: ILike(`%${name}%`) },
+                    { lastname: ILike(`%${name}%`) },
+                ],
+                skip: skip,
+                take: pageSize,
+                order: { createdat: sortOrder },
+            });
+        }
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        const transformedAccounts = plainToInstance(GetAccountDTO, accounts, {
             excludeExtraneousValues: true,
         });
+
+        return {
+            data: transformedAccounts as GetAccountDTO[],
+            totalItems: total,
+            totalPages: totalPages,
+            currentPage: page,
+        };
     }
 }
