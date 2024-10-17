@@ -54,6 +54,11 @@ export class AccountService {
         return username;
     }
 
+    isValidEmail(email: string): boolean {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
     //save
     async save(accountDTO: CreateAccountDTO): Promise<CreateAccountDTO> {
         const roleId = await this.roleRepository.findOne({
@@ -63,6 +68,22 @@ export class AccountService {
         const email = await this.accountRepository.findOne({
             where: { email: accountDTO.email },
         });
+
+        const formattedDate = this.formatDateString(accountDTO.dateofbirth);
+
+        if (new Date(formattedDate) > new Date()) {
+            throw new HttpException(
+                'Date of birth cannot be in the future',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (!this.isValidEmail(accountDTO.email)) {
+            throw new HttpException(
+                'Email không hợp lệ',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
 
         if (email) {
             throw new HttpException(
@@ -91,6 +112,7 @@ export class AccountService {
             password: hashedPassword,
             username: generatedUsername,
             role: roleId,
+            dateofbirth: formattedDate,
         });
 
         const saveAccount = await this.accountRepository.save(account);
@@ -152,6 +174,11 @@ export class AccountService {
         return 'Welcome email sent';
     }
 
+    formatDateString(dateString: string): string {
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month}-${day}`;
+    }
+
     async saveFromFile(
         createAccountFromFileDto: CreateAccountFromFileDTO[],
     ): Promise<CreateAccountFromFileDTO[]> {
@@ -161,9 +188,23 @@ export class AccountService {
             const checkRole = await this.roleRepository.findOne({
                 where: { rolename: account.role },
             });
-
+            const formattedDate = this.formatDateString(account.dateofbirth);
             if (!checkRole) {
                 throw new NotFoundException(`Role ${account.role} not found`);
+            }
+
+            if (new Date(formattedDate) > new Date()) {
+                throw new HttpException(
+                    'Date of birth cannot be in the future',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            if (!this.isValidEmail(account.email)) {
+                throw new HttpException(
+                    'Email không hợp lệ',
+                    HttpStatus.BAD_REQUEST,
+                );
             }
 
             const generatedUsername = await this.generateUsername(
@@ -184,7 +225,7 @@ export class AccountService {
                 lastname: account.lastname,
                 email: account.email,
                 gender: account.gender,
-                dateofbirth: account.dateofbirth,
+                dateofbirth: formattedDate,
                 phonenumber: account.phonenumber,
                 role: checkRole,
             });

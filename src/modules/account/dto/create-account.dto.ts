@@ -29,4 +29,19 @@ export class CreateAccountDTO {
     @Expose()
     @ApiProperty()
     email: string;
+
+    @IsNotEmpty()
+    @ApiProperty()
+    @Expose()
+    gender: boolean;
+
+    @IsNotEmpty()
+    @ApiProperty()
+    @Expose()
+    dateofbirth: string;
+
+    @IsNotEmpty()
+    @ApiProperty()
+    @Expose()
+    phonenumber: string;
 }
