@@ -15,9 +15,8 @@ import { UnitService } from '../unit/unit.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { LessonService } from '../lesson/lesson.service';
-import { CreateLearningMaterialDto } from '../learning-material/dto/create-learningmaterial.dto';
-import { UpdateLearningMaterialDto } from '../learning-material/dto/update-learningmaterial.dto';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
+import { CreateLearningMaterialDto } from './dto/learning-material/create-learningmaterial.dto';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
