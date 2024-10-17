@@ -4,7 +4,10 @@ import {
     Get,
     HttpException,
     HttpStatus,
+    NotFoundException,
+    Param,
     Post,
+    Put,
     Query,
     Req,
     Res,
@@ -19,8 +22,10 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
+import { AccountStatus } from 'src/common/enums/account-status.enum';
+import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
 
 @ApiTags('Accounts')
 @Controller('account')
@@ -127,6 +132,54 @@ export class AccountController {
                     message: error.message || 'Invalid or expired token',
                 },
                 error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Put('update-status/:id')
+    @ApiParam({ name: 'id', type: String, description: 'Account ID' })
+    @ApiBody({ type: UpdateAccountStatusDTO })
+    async updateStatus(
+        @Param('id') id: string,
+        @Body() updateAccountStatusDTO: UpdateAccountStatusDTO,
+    ) {
+        try {
+            const updatedAccount = await this.accountService.updateStatus(
+                id,
+                updateAccountStatusDTO.status,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                updatedAccount,
+                `Account status updated successfully.`,
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'Invalid or expired token',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('search')
+    async searchByName(@Query('name') name: string) {
+        try {
+            const accounts = await this.accountService.searchByName(name);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                accounts,
+                `Search results for name: ${name}`,
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: HttpStatus.BAD_REQUEST,
+                    message: 'An error occurred while searching',
+                },
+                HttpStatus.BAD_REQUEST,
             );
         }
     }

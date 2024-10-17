@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateAccountDTO } from './dto/create-account.dto';
 import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
@@ -230,5 +230,31 @@ export class AccountService {
             currentPage: page,
             totalItems: total,
         };
+    }
+
+    async updateStatus(id: string, status: AccountStatus) {
+        const account = await this.accountRepository.findOneBy({ id });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        account.status = status;
+
+        const updateAccount = await this.accountRepository.save(account);
+        return updateAccount;
+    }
+
+    async searchByName(name: string): Promise<GetAccountDTO[]> {
+        const account = await this.accountRepository.find({
+            where: [
+                { firstname: Like(`%${name}%`) },
+                { lastname: Like(`%${name}%`) },
+            ],
+        });
+
+        return plainToInstance(GetAccountDTO, account, {
+            excludeExtraneousValues: true,
+        });
     }
 }
