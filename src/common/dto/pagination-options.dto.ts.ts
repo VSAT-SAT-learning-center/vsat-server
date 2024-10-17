@@ -12,7 +12,7 @@ export class PaginationOptionsDto {
   @Type(() => Number)  // Đảm bảo rằng tham số 'page' sẽ được chuyển thành kiểu số
   @IsInt()
   @Min(1)
-  page?: number = 1;  // Giá trị mặc định là 1
+  page?: number;  // Giá trị mặc định là 1
 
   @ApiPropertyOptional({
     description: 'Number of items per page, minimum is 1 and maximum is 100',
@@ -23,7 +23,7 @@ export class PaginationOptionsDto {
   @IsInt()
   @Min(1)
   @Max(100)
-  pageSize?: number = 10;  // Giá trị mặc định là 10
+  pageSize?: number;  // Giá trị mặc định là 10
 
   @ApiPropertyOptional({
     description: 'Field by which to sort the results',

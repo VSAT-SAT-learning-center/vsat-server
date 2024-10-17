@@ -17,7 +17,7 @@ export class UpdateUnitDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
-  name?: string;
+  title?: string;
 
   @ApiProperty()
   @IsString()

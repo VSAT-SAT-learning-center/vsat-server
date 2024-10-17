@@ -1,11 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateLessonProgressDto } from './dto/create-lessonprogress.dto';
 import { UpdateLessonProgressDto } from './dto/update-lessonprogress.dto';
 import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
 import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
@@ -67,4 +65,64 @@ export class LessonProgressService extends BaseService<LessonProgress> {
     
       return (completedLessons / totalLessons) * 100;
     }
+
+    async create(
+      createLessonProgressDto: CreateLessonProgressDto,
+  ): Promise<LessonProgress> {
+      const { lessonId, unitAreaProgressId, ...lessonProgressData } =
+          createLessonProgressDto;
+
+      const lesson = await this.lessonService.findOne(lessonId);
+      if (!lesson) {
+          throw new NotFoundException('Lesson not found');
+      }
+
+      const unitAreaProgress =
+          await this.unitAreaProgressService.findOne(unitAreaProgressId);
+      if (!unitAreaProgress) {
+          throw new NotFoundException('UnitAreaProgress not found');
+      }
+
+      const newLessonProgress = this.lessonProgressRepository.create({
+          ...lessonProgressData,
+          unitAreaProgress: unitAreaProgress,
+          lesson: lesson,
+      });
+
+      return await this.lessonProgressRepository.save(newLessonProgress);
+  }
+
+  async update(
+      id: string,
+      updateLessonProgressDto: UpdateLessonProgressDto,
+  ): Promise<LessonProgress> {
+      const { lessonId, unitAreaProgressId, ...lessonProgressData } =
+          updateLessonProgressDto;
+
+      const lessonProgress = await this.findOne(id);
+      if (!lessonProgress) {
+          throw new NotFoundException('LessonProgress not found');
+      }
+
+      const lesson = await this.lessonService.findOne(lessonId);
+      if (!lesson) {
+          throw new NotFoundException('Lesson not found');
+      }
+
+      const unitAreaProgress =
+          await this.unitAreaProgressService.findOne(unitAreaProgressId);
+
+      if (!unitAreaProgress) {
+          throw new NotFoundException('UnitAreaProgress not found');
+      }
+
+      const updatedLessonProgress = this.lessonProgressRepository.save({
+          //...unit,
+          ...lessonProgressData,
+          unitAreaProgress: unitAreaProgress,
+          lesson: lesson,
+      
+      });
+      return updatedLessonProgress;
+  }
 }
