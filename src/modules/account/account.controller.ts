@@ -68,7 +68,6 @@ export class AccountController {
             if (error.code === '23505') {
                 throw new HttpException(
                     {
-                        statusCode: HttpStatus.BAD_REQUEST,
                         message:
                             'Email already exists. Please use a different email.',
                     },

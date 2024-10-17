@@ -60,6 +60,17 @@ export class AccountService {
             where: { id: accountDTO.roleId },
         });
 
+        const email = await this.accountRepository.findOne({
+            where: { email: accountDTO.email },
+        });
+
+        if (email) {
+            throw new HttpException(
+                `Email: ${accountDTO.email} already exist`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
         if (!roleId) {
             throw new NotFoundException(
                 `Unit with ID ${accountDTO.roleId} does not exist`,
@@ -94,7 +105,7 @@ export class AccountService {
         await this.sendWelComeMail(
             accountDTO.email,
             randomPassword,
-            accountDTO.username,
+            generatedUsername,
         );
 
         return plainToInstance(CreateAccountDTO, saveAccount, {
@@ -172,6 +183,9 @@ export class AccountService {
                 firstname: account.firstname,
                 lastname: account.lastname,
                 email: account.email,
+                gender: account.gender,
+                dateofbirth: account.dateofbirth,
+                phonenumber: account.phonenumber,
                 role: checkRole,
             });
 
@@ -187,7 +201,7 @@ export class AccountService {
             await this.sendWelComeMail(
                 account.email,
                 randomPassword,
-                account.username,
+                generatedUsername,
             );
 
             savedAccounts.push(savedAccount);

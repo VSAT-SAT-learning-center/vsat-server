@@ -33,7 +33,7 @@ export class CreateAccountFromFileDTO {
     @IsNotEmpty()
     @ApiProperty()
     @Expose()
-    dateofbirth: Date;
+    dateofbirth: string;
 
     @IsNotEmpty()
     @ApiProperty()
