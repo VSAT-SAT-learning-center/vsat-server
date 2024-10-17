@@ -8,9 +8,7 @@ import {
 } from 'class-validator';
 
 export class CreateLessonDto {
-    @IsUUID()
-    unitAreaId: string;
-
+   
     @ApiProperty()
     @IsString()
     @IsNotEmpty()

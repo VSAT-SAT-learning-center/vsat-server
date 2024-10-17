@@ -36,7 +36,7 @@ export class LevelController extends BaseController<Level> {
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveLevel,
-                SuccessMessages.create('Level'),
+                SuccessMessages.get('Level'),
             );
         } catch (error) {
             throw new HttpException(

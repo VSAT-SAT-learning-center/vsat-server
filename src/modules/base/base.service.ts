@@ -10,6 +10,18 @@ export class BaseService<T> {
     protected readonly paginationService?: PaginationService, // Inject PaginationService
   ) {}
 
+
+  async getAll(relations?: string[]): Promise<T[]> {
+    try {
+      return await this.repository.find({
+        relations, // Fetch related entities if needed
+      });
+    } catch (error) {
+      console.error('Log Error:', error);
+      throw new HttpException('Failed to retrieve data', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
   async findAll(
     paginationOptions: PaginationOptionsDto
   ): Promise<{ data: T[]; totalItems: number; totalPages: number }> {

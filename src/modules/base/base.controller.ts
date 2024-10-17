@@ -47,8 +47,28 @@ export class BaseController<T> {
         description: 'Order to sort (ASC/DESC)',
     })
     async findAll(@Query() paginationOptions: PaginationOptionsDto) {
-        const { data, totalItems, totalPages } =
-            await this.baseService.findAll(paginationOptions);
+        const { page, pageSize, relations } = paginationOptions;
+
+        // Nếu không có page và pageSize, thì gọi phương thức lấy tất cả dữ liệu (không phân trang)
+        if (!page || !pageSize) {
+            const data = await this.baseService.getAll(relations);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                data,
+                SuccessMessages.gets(this.entityName),
+            );
+        }
+
+        if(!paginationOptions.page) {
+            paginationOptions.page = 1;
+        } 
+
+        if(!paginationOptions.pageSize) {
+            paginationOptions.pageSize = 10;
+        }
+        
+        // Nếu có page và pageSize thì thực hiện phân trang
+        const { data, totalItems, totalPages } = await this.baseService.findAll(paginationOptions);
         const paging = {
             page: paginationOptions.page,
             pageSize: paginationOptions.pageSize,
