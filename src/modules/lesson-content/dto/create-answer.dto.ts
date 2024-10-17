@@ -4,7 +4,7 @@ import { IsNotEmpty, IsOptional, isString, IsString, IsUUID } from "class-valida
 export class CreateAnswerDto {
   @ApiProperty({ example: '1', description: 'ID of the answer' })
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   answerId: string;
 
   @ApiProperty({ example: '4', description: 'Text of the answer' })

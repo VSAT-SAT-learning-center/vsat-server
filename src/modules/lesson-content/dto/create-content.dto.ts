@@ -11,6 +11,7 @@ export class CreateContentDto {
 
     @ApiProperty({ type: [CreateExampleDto], description: 'Array of example objects', })
     @ValidateNested({ each: true })
+    @IsOptional()
     @Type(() => CreateExampleDto)
-    examples: CreateExampleDto[];
+    examples?: CreateExampleDto[];
 }
