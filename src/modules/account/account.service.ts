@@ -181,75 +181,97 @@ export class AccountService {
 
     async saveFromFile(
         createAccountFromFileDto: CreateAccountFromFileDTO[],
-    ): Promise<CreateAccountFromFileDTO[]> {
+    ): Promise<{
+        savedAccounts: CreateAccountFromFileDTO[];
+        errors: { account: CreateAccountFromFileDTO; message: string }[];
+    }> {
         const savedAccounts: Account[] = [];
+        const errors: { account: CreateAccountFromFileDTO; message: string }[] =
+            [];
 
         for (const account of createAccountFromFileDto) {
-            const checkRole = await this.roleRepository.findOne({
-                where: { rolename: account.role },
-            });
-            const formattedDate = this.formatDateString(account.dateofbirth);
-            if (!checkRole) {
-                throw new NotFoundException(`Role ${account.role} not found`);
-            }
+            try {
+                const checkRole = await this.roleRepository.findOne({
+                    where: { rolename: account.role },
+                });
 
-            if (new Date(formattedDate) > new Date()) {
-                throw new HttpException(
-                    'Date of birth cannot be in the future',
-                    HttpStatus.BAD_REQUEST,
+                if (!checkRole) {
+                    throw new NotFoundException(
+                        `Role ${account.role} not found`,
+                    );
+                }
+
+                const formattedDate = this.formatDateString(
+                    account.dateofbirth,
                 );
-            }
+                if (new Date(formattedDate) > new Date()) {
+                    throw new HttpException(
+                        'Date of birth cannot be in the future',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
 
-            if (!this.isValidEmail(account.email)) {
-                throw new HttpException(
-                    'Email không hợp lệ',
-                    HttpStatus.BAD_REQUEST,
+                if (!this.isValidEmail(account.email)) {
+                    throw new HttpException(
+                        'Email không hợp lệ',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                const generatedUsername = await this.generateUsername(
+                    account.firstname,
+                    account.lastname,
                 );
-            }
 
-            const generatedUsername = await this.generateUsername(
-                account.firstname,
-                account.lastname,
-            );
+                const randomPassword = this.generateRandomPassword(8);
+                const hashedPassword = await this.hashPassword(randomPassword);
 
-            const randomPassword = this.generateRandomPassword(8);
+                const newAccount = this.accountRepository.create({
+                    username: generatedUsername,
+                    password: hashedPassword,
+                    firstname: account.firstname,
+                    lastname: account.lastname,
+                    email: account.email,
+                    gender: account.gender,
+                    dateofbirth: formattedDate,
+                    phonenumber: account.phonenumber,
+                    role: checkRole,
+                });
 
-            const hashedPassword = await this.hashPassword(randomPassword);
+                const savedAccount =
+                    await this.accountRepository.save(newAccount);
+                if (!savedAccount) {
+                    throw new HttpException(
+                        'Fail to save account',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
 
-            account.password = hashedPassword;
-
-            const newAccount = this.accountRepository.create({
-                username: generatedUsername,
-                password: hashedPassword,
-                firstname: account.firstname,
-                lastname: account.lastname,
-                email: account.email,
-                gender: account.gender,
-                dateofbirth: formattedDate,
-                phonenumber: account.phonenumber,
-                role: checkRole,
-            });
-
-            const savedAccount = await this.accountRepository.save(newAccount);
-
-            if (!savedAccount) {
-                throw new HttpException(
-                    'Fail to save account',
-                    HttpStatus.BAD_REQUEST,
+                await this.sendWelComeMail(
+                    account.email,
+                    randomPassword,
+                    generatedUsername,
                 );
+
+                savedAccounts.push(savedAccount);
+            } catch (error) {
+                errors.push({
+                    account,
+                    message: error.message || 'Unknown error',
+                });
             }
-
-            await this.sendWelComeMail(
-                account.email,
-                randomPassword,
-                generatedUsername,
-            );
-
-            savedAccounts.push(savedAccount);
         }
-        return plainToInstance(CreateAccountFromFileDTO, savedAccounts, {
-            excludeExtraneousValues: true,
-        });
+
+        return {
+            savedAccounts: plainToInstance(
+                CreateAccountFromFileDTO,
+                savedAccounts,
+                {
+                    excludeExtraneousValues: true,
+                },
+            ),
+            errors,
+        };
     }
 
     async find(page: number, pageSize: number): Promise<any> {
@@ -304,6 +326,7 @@ export class AccountService {
         if (!name || name.trim() === '') {
             [accounts, total] = await this.accountRepository.findAndCount({
                 skip: skip,
+                relations: ['role'],
                 take: pageSize,
                 order: { createdat: sortOrder },
             });
@@ -313,6 +336,7 @@ export class AccountService {
                     { firstname: ILike(`%${name}%`) },
                     { lastname: ILike(`%${name}%`) },
                 ],
+                relations: ['role'],
                 skip: skip,
                 take: pageSize,
                 order: { createdat: sortOrder },
