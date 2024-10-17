@@ -36,4 +36,7 @@ export class LessonContent {
 
   @Column({ type: 'boolean', default: true })
   status: boolean;
+
+  @Column({ type: 'enum', enum: ['Definition', 'Conceptual', 'Application', 'Tips & Tricks', 'Practice'] })
+  contenttype: 'Definition' | 'Conceptual' | 'Application' | 'Tips & Tricks' | 'Practice';
 }

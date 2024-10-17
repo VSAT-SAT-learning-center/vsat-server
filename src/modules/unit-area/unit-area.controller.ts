@@ -15,10 +15,9 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { UnitArea } from 'src/database/entities/unitarea.entity';
-import { ApiBody, ApiQuery, ApiTags, getSchemaPath } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { CreateLearningMaterialDto } from '../learning-material/dto/create-learningmaterial.dto';
-import { UpdateLearningMaterialDto } from '../learning-material/dto/update-learningmaterial.dto';
+import { CreateLearningMaterialDto } from './dto/learning-material/create-learningmaterial.dto';
 
 @ApiTags('UnitAreas')
 @Controller('unit-areas')
@@ -116,23 +115,23 @@ export class UnitAreaController extends BaseController<UnitArea> {
         );
     }
 
-    @Patch('update')
-    async updateUnitAreaWithLessons(
-        @Param('id') unitAreaId: string,
-        @Body() updateUnitAreaDto: UpdateLearningMaterialDto,
-    ) {
-        const updatedUnitArea =
-            await this.unitAreaService.updateUnitAreaWithLessons(
-                unitAreaId,
-                updateUnitAreaDto,
-            );
+    // @Patch('update')
+    // async updateUnitAreaWithLessons(
+    //     @Param('id') unitAreaId: string,
+    //     @Body() updateUnitAreaDto: UpdateLearningMaterialDto,
+    // ) {
+    //     const updatedUnitArea =
+    //         await this.unitAreaService.updateUnitAreaWithLessons(
+    //             unitAreaId,
+    //             updateUnitAreaDto,
+    //         );
 
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            updatedUnitArea,
-            'UnitArea and lessons updated successfully',
-        );
-    }
+    //     return ResponseHelper.success(
+    //         HttpStatus.OK,
+    //         updatedUnitArea,
+    //         'UnitArea and lessons updated successfully',
+    //     );
+    // }
 
     @Post()
     async create(@Body() createUnitAreaDto: CreateUnitAreaDto) {
