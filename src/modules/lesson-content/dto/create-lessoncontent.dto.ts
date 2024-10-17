@@ -57,6 +57,7 @@ export class CreateLessonContentDto {
 
   @ApiProperty({ type: [CreateQuestionDto], description: 'Array of question objects',})
   @ValidateNested({ each: true })
+  @IsOptional()
   @Type(() => CreateQuestionDto)
-  question: CreateQuestionDto[];
+  question?: CreateQuestionDto[];
 }
