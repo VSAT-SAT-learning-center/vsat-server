@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsString, IsUUID, IsOptional, IsInt, IsBoolean, IsEnum } from 'class-validator';
+import { ContentType } from 'src/common/enums/content-type.enum';
 
 export class UpdateLessonContentDto {
   @ApiProperty()
@@ -32,7 +34,14 @@ export class UpdateLessonContentDto {
   @IsOptional()
   status?: boolean;
 
-  @ApiProperty({ enum: ['Definition', 'Conceptual', 'Application', 'Tips & Tricks', 'Practice'] })
-  @IsEnum(['Definition', 'Conceptual', 'Application', 'Tips & Tricks', 'Practice'])
-  contenttype: 'Definition' | 'Conceptual' | 'Application' | 'Tips & Tricks' | 'Practice';
+  @ApiProperty({
+    enum: ContentType,
+    enumName: 'ContentType',
+    example: ContentType.APPLICATION,
+    required: false,
+  })
+  @IsEnum(ContentType)
+  @IsOptional()
+  @Transform(({ value }) => value)
+  contentType: ContentType;
 }

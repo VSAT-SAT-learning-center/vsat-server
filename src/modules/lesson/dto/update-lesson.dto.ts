@@ -42,7 +42,9 @@ export class UpdateLessonDto {
     @IsOptional()
     status?: boolean;
 
+    @ApiProperty({ type: [CreateLessonContentDto], description: 'Array of lesson contents', required: false })
+    @IsOptional()
     @ValidateNested({ each: true })
     @Type(() => CreateLessonContentDto)
-    lessonContent: CreateLessonContentDto[];
+    lessonContents?: CreateLessonContentDto[];
 }

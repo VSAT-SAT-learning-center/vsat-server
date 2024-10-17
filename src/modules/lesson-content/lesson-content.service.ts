@@ -7,6 +7,7 @@ import { UpdateLessonContentDto } from './dto/update-lessoncontent.dto';
 import { BaseService } from '../base/base.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { LessonService } from '../lesson/lesson.service';
+import { Lesson } from 'src/database/entities/lesson.entity';
 
 @Injectable()
 export class LessonContentService extends BaseService<LessonContent> {
@@ -14,9 +15,32 @@ export class LessonContentService extends BaseService<LessonContent> {
         @InjectRepository(LessonContent)
         private readonly lessonContentRepository: Repository<LessonContent>,
         private readonly lessonService: LessonService,
-        paginationService: PaginationService,
     ) {
-        super(lessonContentRepository, paginationService);
+        super(lessonContentRepository);
+    }
+
+    async saveLessonContents(
+        lesson: Lesson,
+        lessonContents: CreateLessonContentDto[],
+    ): Promise<void> {
+        for (const contentDto of lessonContents) {
+            const { contentType, title, contents } = contentDto;
+
+            const lessonContent = this.lessonContentRepository.create({
+                contentType,
+                title,
+                contents,
+                lesson,
+            });
+
+            await this.lessonContentRepository.save(lessonContent);
+        }
+    }
+
+    async getLessonContentsByLesson(lesson: Lesson): Promise<LessonContent[]> {
+        return await this.lessonContentRepository.find({
+            where: { lesson },
+        });
     }
 
     async findByLessonId(lessonId: string | number): Promise<LessonContent[]> {
