@@ -17,7 +17,7 @@ import { BaseController } from '../base/base.controller';
 import { UnitArea } from 'src/database/entities/unitarea.entity';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { CreateLearningMaterialDto } from './dto/learning-material/create-learningmaterial.dto';
+import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
 
 @ApiTags('UnitAreas')
 @Controller('unit-areas')

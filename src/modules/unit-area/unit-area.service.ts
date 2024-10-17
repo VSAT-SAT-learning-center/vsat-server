@@ -10,13 +10,12 @@ import { UnitArea } from 'src/database/entities/unitarea.entity';
 import { CreateUnitAreaDto } from './dto/create-unitarea.dto';
 import { UpdateUnitAreaDto } from './dto/update-unitarea.dto';
 import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { UnitService } from '../unit/unit.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { Lesson } from 'src/database/entities/lesson.entity';
 import { LessonService } from '../lesson/lesson.service';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
-import { CreateLearningMaterialDto } from './dto/learning-material/create-learningmaterial.dto';
+import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
+import { LessonDto, UnitAreaResponseDto } from './dto/unit-area-response.dto';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -64,7 +63,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
                     this.lessonService.create({
                         ...lessonData,
                         unitAreaId: newUnitArea.id, // Pass unitAreaId to LessonService
-                        type: LessonType.TEXT
+                        type: LessonType.TEXT,
                     }),
                 ),
             );
@@ -146,18 +145,33 @@ export class UnitAreaService extends BaseService<UnitArea> {
         return this.findAll(paginationOptions);
     }
 
-    async findByUnitIdWithLessons(unitId: string): Promise<UnitArea[]> {
-      const unitAreas = await this.unitAreaRepository.find({
-        where: { unit: { id: unitId } }, // Filter by unitId
-        relations: ['unit', 'lessons'], // Load related lessons
-      });
-  
-      // If no UnitAreas found, throw an error
-      if (!unitAreas || unitAreas.length === 0) {
-        throw new NotFoundException(`No UnitAreas found for UnitId: ${unitId}`);
-      }
-  
-      return unitAreas;
+    async findByUnitIdWithLessons(unitId: string): Promise<any> {
+        const unitAreas = await this.unitAreaRepository.find({
+            where: { unit: { id: unitId } }, // Filter by unitId
+            relations: ['unit', 'lessons'], // Load related lessons
+        });
+
+        // If no UnitAreas found, throw an error
+        if (!unitAreas || unitAreas.length === 0) {
+            throw new NotFoundException(
+                `No UnitAreas found for UnitId: ${unitId}`,
+            );
+        }
+
+        // Chuyển đổi dữ liệu sang DTO
+        const transformedData: UnitAreaResponseDto[] = unitAreas.map((unitArea) => ({
+            id: unitArea.id,
+            title: unitArea.title,
+            unitid: unitArea.unit.id,  // Trả về unitid thay vì object unit
+            lessons: unitArea.lessons.map((lesson) => ({
+              id: lesson.id,
+              prerequisitelessonid: lesson.prerequisitelessonid,
+              type: lesson.type,
+              title: lesson.title,
+            })) as LessonDto[],
+          }));
+
+        return transformedData;
     }
 
     async create(createUnitAreaDto: CreateUnitAreaDto): Promise<UnitArea> {
