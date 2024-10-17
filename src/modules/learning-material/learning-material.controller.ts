@@ -11,24 +11,24 @@ export class LearningMaterialController {
         private readonly learningMaterialService: LearningMaterialService,
     ) {}
 
-    @Post('create')
-    @ApiBody({
-        schema: {
-          type: 'array',
-          items: { $ref: getSchemaPath(CreateLearningMaterialDto) }, // Correctly reference the DTO schema
-        },
-      })
-    async createLearningMaterial(
-        @Body() createUnitAreaDtoList: CreateLearningMaterialDto[],
-    ) {
-        const createdMaterials =
-            await this.learningMaterialService.createUnitAreaWithLessons(
-                createUnitAreaDtoList,
-            );
-        return ResponseHelper.success(
-            HttpStatus.CREATED,
-            createdMaterials,
-            'Learning Material created successfully',
-        );
-    }
+    // @Post('create')
+    // @ApiBody({
+    //     schema: {
+    //       type: 'array',
+    //       items: { $ref: getSchemaPath(CreateLearningMaterialDto) }, // Correctly reference the DTO schema
+    //     },
+    //   })
+    // async createLearningMaterial(
+    //     @Body() createUnitAreaDtoList: CreateLearningMaterialDto[],
+    // ) {
+    //     const createdMaterials =
+    //         await this.learningMaterialService.createUnitAreaWithLessons(
+    //             createUnitAreaDtoList,
+    //         );
+    //     return ResponseHelper.success(
+    //         HttpStatus.CREATED,
+    //         createdMaterials,
+    //         'Learning Material created successfully',
+    //     );
+    // }
 }

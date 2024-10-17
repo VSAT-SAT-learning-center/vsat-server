@@ -26,6 +26,9 @@ export class Lesson {
   @Column({ type: 'uuid', nullable: true })
   prerequisitelessonid: string;
 
+  @Column({ type: 'enum', enum: ['Text', 'Math', 'Quiz'] })
+  type: 'Text'|  'Math' | 'Quiz';
+
   @Column({ type: 'varchar', length: 255 })
   title: string;
 

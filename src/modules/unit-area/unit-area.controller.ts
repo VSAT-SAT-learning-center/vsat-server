@@ -116,23 +116,23 @@ export class UnitAreaController extends BaseController<UnitArea> {
         );
     }
 
-    @Patch('update')
-    async updateUnitAreaWithLessons(
-        @Param('id') unitAreaId: string,
-        @Body() updateUnitAreaDto: UpdateLearningMaterialDto,
-    ) {
-        const updatedUnitArea =
-            await this.unitAreaService.updateUnitAreaWithLessons(
-                unitAreaId,
-                updateUnitAreaDto,
-            );
+    // @Patch('update')
+    // async updateUnitAreaWithLessons(
+    //     @Param('id') unitAreaId: string,
+    //     @Body() updateUnitAreaDto: UpdateLearningMaterialDto,
+    // ) {
+    //     const updatedUnitArea =
+    //         await this.unitAreaService.updateUnitAreaWithLessons(
+    //             unitAreaId,
+    //             updateUnitAreaDto,
+    //         );
 
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            updatedUnitArea,
-            'UnitArea and lessons updated successfully',
-        );
-    }
+    //     return ResponseHelper.success(
+    //         HttpStatus.OK,
+    //         updatedUnitArea,
+    //         'UnitArea and lessons updated successfully',
+    //     );
+    // }
 
     @Post()
     async create(@Body() createUnitAreaDto: CreateUnitAreaDto) {

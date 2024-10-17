@@ -78,62 +78,62 @@ export class UnitAreaService extends BaseService<UnitArea> {
         return createdUnitAreas;
     }
 
-    async updateUnitAreaWithLessons(
-        id: string,
-        updateLearningMaterialDto: UpdateLearningMaterialDto,
-    ): Promise<UnitArea> {
-        const { unitId, lessons, ...unitAreaData } = updateLearningMaterialDto;
+    // async updateUnitAreaWithLessons(
+    //     id: string,
+    //     updateLearningMaterialDto: UpdateLearningMaterialDto,
+    // ): Promise<UnitArea> {
+    //     const { unitId, lessons, ...unitAreaData } = updateLearningMaterialDto;
 
-        // Find the UnitArea by id
-        const unitArea = await this.findOne(id);
-        if (!unitArea) {
-            throw new NotFoundException('UnitArea not found');
-        }
+    //     // Find the UnitArea by id
+    //     const unitArea = await this.findOne(id);
+    //     if (!unitArea) {
+    //         throw new NotFoundException('UnitArea not found');
+    //     }
 
-        if (!unitId) {
-            throw new NotFoundException('Null unitId');
-        }
+    //     if (!unitId) {
+    //         throw new NotFoundException('Null unitId');
+    //     }
 
-        const unit = await this.unitService.findOne(unitId);
-        if (!unit) {
-            throw new NotFoundException('Unit not found');
-        }
-        unitArea.unit = unit;
+    //     const unit = await this.unitService.findOne(unitId);
+    //     if (!unit) {
+    //         throw new NotFoundException('Unit not found');
+    //     }
+    //     unitArea.unit = unit;
 
-        // Update the UnitArea entity using UnitAreaService
-        const updatedUnitArea = await this.update(id, {
-            ...unitAreaData,
-            unitId: unitId,
-            lessons: lessons,
-        });
+    //     // Update the UnitArea entity using UnitAreaService
+    //     const updatedUnitArea = await this.update(id, {
+    //         ...unitAreaData,
+    //         unitId: unitId,
+    //         lessons: lessons,
+    //     });
 
-        // Optionally update lessons
-        if (lessons && lessons.length > 0) {
-            const updatedLessons = await Promise.all(
-                lessons.map(async (lessonData) => {
-                    if (lessonData.id) {
-                        // If lesson ID is provided, update the existing lesson
-                        return await this.lessonService.update(lessonData.id, {
-                            ...lessonData,
-                        });
-                    } else {
-                        // Otherwise, create a new lesson
-                        return await this.lessonService.create({
-                            ...lessonData,
-                            unitAreaId: updatedUnitArea.id,
-                            title: lessonData.title,
-                        });
-                    }
-                }),
-            );
-            return {
-                ...updatedUnitArea,
-                lessons: updatedLessons, // Attach updated lessons
-            };
-        }
+    //     // Optionally update lessons
+    //     if (lessons && lessons.length > 0) {
+    //         const updatedLessons = await Promise.all(
+    //             lessons.map(async (lessonData) => {
+    //                 if (lessonData.id) {
+    //                     // If lesson ID is provided, update the existing lesson
+    //                     return await this.lessonService.update(lessonData.id, {
+    //                         ...lessonData,
+    //                     });
+    //                 } else {
+    //                     // Otherwise, create a new lesson
+    //                     return await this.lessonService.create({
+    //                         ...lessonData,
+    //                         unitAreaId: updatedUnitArea.id,
+    //                         title: lessonData.title,
+    //                     });
+    //                 }
+    //             }),
+    //         );
+    //         return {
+    //             ...updatedUnitArea,
+    //             lessons: updatedLessons, // Attach updated lessons
+    //         };
+    //     }
 
-        return updatedUnitArea;
-    }
+    //     return updatedUnitArea;
+    // }
 
     async findAllWithLessons(
         paginationOptions: PaginationOptionsDto,

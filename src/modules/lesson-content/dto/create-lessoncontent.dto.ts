@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, IsOptional, IsNotEmpty, IsInt, IsBoolean } from 'class-validator';
+import { IsString, IsUUID, IsOptional, IsNotEmpty, IsInt, IsBoolean, IsEnum } from 'class-validator';
 
 export class CreateLessonContentDto {
   @ApiProperty({
@@ -33,4 +33,8 @@ export class CreateLessonContentDto {
   @IsBoolean()
   @IsOptional()
   status?: boolean;
+
+  @ApiProperty({ enum: ['Definition', 'Conceptual', 'Application', 'Tips & Tricks', 'Practice'] })
+  @IsEnum(['Definition', 'Conceptual', 'Application', 'Tips & Tricks', 'Practice'])
+  contenttype: 'Definition' | 'Conceptual' | 'Application' | 'Tips & Tricks' | 'Practice';
 }
