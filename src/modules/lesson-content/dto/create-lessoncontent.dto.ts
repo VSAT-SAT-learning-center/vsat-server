@@ -1,5 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, IsOptional, IsNotEmpty, IsInt, IsBoolean } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsString, IsUUID, IsOptional, IsNotEmpty, IsInt, IsBoolean, IsEnum, ValidateNested } from 'class-validator';
+import { ContentType } from 'src/common/enums/content-type.enum';
+import { CreateContentDto } from './create-content.dto';
+import { CreateQuestionDto } from './create-question.dto';
 
 export class CreateLessonContentDto {
   @ApiProperty({
@@ -33,4 +37,27 @@ export class CreateLessonContentDto {
   @IsBoolean()
   @IsOptional()
   status?: boolean;
+
+  @ApiProperty({
+    enum: ContentType,
+    enumName: 'ContentType',
+    example: ContentType.APPLICATION,
+    required: false,
+  })
+  @IsEnum(ContentType)
+  @IsOptional()
+  @Transform(({ value }) => value)
+  contentType: ContentType;
+
+  @ApiProperty({ type: [CreateContentDto], description: 'Array of content objects' })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateContentDto)
+  contents: CreateContentDto[];
+
+  @ApiProperty({ type: [CreateQuestionDto], description: 'Array of question objects',})
+  @ValidateNested({ each: true })
+  @IsOptional()
+  @Type(() => CreateQuestionDto)
+  question?: CreateQuestionDto[];
 }

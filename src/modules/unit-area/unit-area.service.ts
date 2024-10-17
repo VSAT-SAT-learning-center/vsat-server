@@ -10,13 +10,12 @@ import { UnitArea } from 'src/database/entities/unitarea.entity';
 import { CreateUnitAreaDto } from './dto/create-unitarea.dto';
 import { UpdateUnitAreaDto } from './dto/update-unitarea.dto';
 import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { UnitService } from '../unit/unit.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { Lesson } from 'src/database/entities/lesson.entity';
 import { LessonService } from '../lesson/lesson.service';
-import { CreateLearningMaterialDto } from '../learning-material/dto/create-learningmaterial.dto';
-import { UpdateLearningMaterialDto } from '../learning-material/dto/update-learningmaterial.dto';
+import { LessonType } from 'src/common/enums/lesson-type.enum';
+import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
+import { LessonDto, UnitAreaResponseDto } from './dto/unit-area-response.dto';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -64,6 +63,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
                     this.lessonService.create({
                         ...lessonData,
                         unitAreaId: newUnitArea.id, // Pass unitAreaId to LessonService
+                        type: LessonType.TEXT,
                     }),
                 ),
             );
@@ -78,62 +78,62 @@ export class UnitAreaService extends BaseService<UnitArea> {
         return createdUnitAreas;
     }
 
-    async updateUnitAreaWithLessons(
-        id: string,
-        updateLearningMaterialDto: UpdateLearningMaterialDto,
-    ): Promise<UnitArea> {
-        const { unitId, lessons, ...unitAreaData } = updateLearningMaterialDto;
+    // async updateUnitAreaWithLessons(
+    //     id: string,
+    //     updateLearningMaterialDto: UpdateLearningMaterialDto,
+    // ): Promise<UnitArea> {
+    //     const { unitId, lessons, ...unitAreaData } = updateLearningMaterialDto;
 
-        // Find the UnitArea by id
-        const unitArea = await this.findOne(id);
-        if (!unitArea) {
-            throw new NotFoundException('UnitArea not found');
-        }
+    //     // Find the UnitArea by id
+    //     const unitArea = await this.findOne(id);
+    //     if (!unitArea) {
+    //         throw new NotFoundException('UnitArea not found');
+    //     }
 
-        if (!unitId) {
-            throw new NotFoundException('Null unitId');
-        }
+    //     if (!unitId) {
+    //         throw new NotFoundException('Null unitId');
+    //     }
 
-        const unit = await this.unitService.findOne(unitId);
-        if (!unit) {
-            throw new NotFoundException('Unit not found');
-        }
-        unitArea.unit = unit;
+    //     const unit = await this.unitService.findOne(unitId);
+    //     if (!unit) {
+    //         throw new NotFoundException('Unit not found');
+    //     }
+    //     unitArea.unit = unit;
 
-        // Update the UnitArea entity using UnitAreaService
-        const updatedUnitArea = await this.update(id, {
-            ...unitAreaData,
-            unitId: unitId,
-            lessons: lessons,
-        });
+    //     // Update the UnitArea entity using UnitAreaService
+    //     const updatedUnitArea = await this.update(id, {
+    //         ...unitAreaData,
+    //         unitId: unitId,
+    //         lessons: lessons,
+    //     });
 
-        // Optionally update lessons
-        if (lessons && lessons.length > 0) {
-            const updatedLessons = await Promise.all(
-                lessons.map(async (lessonData) => {
-                    if (lessonData.id) {
-                        // If lesson ID is provided, update the existing lesson
-                        return await this.lessonService.update(lessonData.id, {
-                            ...lessonData,
-                        });
-                    } else {
-                        // Otherwise, create a new lesson
-                        return await this.lessonService.create({
-                            ...lessonData,
-                            unitAreaId: updatedUnitArea.id,
-                            title: lessonData.title,
-                        });
-                    }
-                }),
-            );
-            return {
-                ...updatedUnitArea,
-                lessons: updatedLessons, // Attach updated lessons
-            };
-        }
+    //     // Optionally update lessons
+    //     if (lessons && lessons.length > 0) {
+    //         const updatedLessons = await Promise.all(
+    //             lessons.map(async (lessonData) => {
+    //                 if (lessonData.id) {
+    //                     // If lesson ID is provided, update the existing lesson
+    //                     return await this.lessonService.update(lessonData.id, {
+    //                         ...lessonData,
+    //                     });
+    //                 } else {
+    //                     // Otherwise, create a new lesson
+    //                     return await this.lessonService.create({
+    //                         ...lessonData,
+    //                         unitAreaId: updatedUnitArea.id,
+    //                         title: lessonData.title,
+    //                     });
+    //                 }
+    //             }),
+    //         );
+    //         return {
+    //             ...updatedUnitArea,
+    //             lessons: updatedLessons, // Attach updated lessons
+    //         };
+    //     }
 
-        return updatedUnitArea;
-    }
+    //     return updatedUnitArea;
+    // }
 
     async findAllWithLessons(
         paginationOptions: PaginationOptionsDto,
@@ -145,18 +145,33 @@ export class UnitAreaService extends BaseService<UnitArea> {
         return this.findAll(paginationOptions);
     }
 
-    async findByUnitIdWithLessons(unitId: string): Promise<UnitArea[]> {
-      const unitAreas = await this.unitAreaRepository.find({
-        where: { unit: { id: unitId } }, // Filter by unitId
-        relations: ['unit', 'lessons'], // Load related lessons
-      });
-  
-      // If no UnitAreas found, throw an error
-      if (!unitAreas || unitAreas.length === 0) {
-        throw new NotFoundException(`No UnitAreas found for UnitId: ${unitId}`);
-      }
-  
-      return unitAreas;
+    async findByUnitIdWithLessons(unitId: string): Promise<any> {
+        const unitAreas = await this.unitAreaRepository.find({
+            where: { unit: { id: unitId } }, // Filter by unitId
+            relations: ['unit', 'lessons'], // Load related lessons
+        });
+
+        // If no UnitAreas found, throw an error
+        if (!unitAreas || unitAreas.length === 0) {
+            throw new NotFoundException(
+                `No UnitAreas found for UnitId: ${unitId}`,
+            );
+        }
+
+        // Chuyển đổi dữ liệu sang DTO
+        const transformedData: UnitAreaResponseDto[] = unitAreas.map((unitArea) => ({
+            id: unitArea.id,
+            title: unitArea.title,
+            unitid: unitArea.unit.id,  // Trả về unitid thay vì object unit
+            lessons: unitArea.lessons.map((lesson) => ({
+              id: lesson.id,
+              prerequisitelessonid: lesson.prerequisitelessonid,
+              type: lesson.type,
+              title: lesson.title,
+            })) as LessonDto[],
+          }));
+
+        return transformedData;
     }
 
     async create(createUnitAreaDto: CreateUnitAreaDto): Promise<UnitArea> {

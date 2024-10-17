@@ -1,30 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
-    IsString,
-    IsUUID,
+    IsEnum,
     IsNotEmpty,
     IsOptional,
-    IsBoolean,
-    IsEnum,
+    IsString,
+    IsUUID,
     ValidateNested,
 } from 'class-validator';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
 import { CreateLessonContentDto } from 'src/modules/lesson-content/dto/create-lessoncontent.dto';
 
 export class CreateLessonDto {
-    @ApiProperty({
-        example: '763e9e17-350e-4d84-bba3-1eab8c4326fa',
-    })
-    @IsUUID()
-    @IsNotEmpty()
-    unitAreaId: string;
-
-    @ApiProperty()
-    @IsUUID()
-    @IsOptional()
-    prerequisiteLessonId?: string;
-
     @ApiProperty({
         enum: LessonType,
         enumName: 'LessonType',
@@ -42,14 +29,35 @@ export class CreateLessonDto {
     @IsNotEmpty()
     title: string;
 
-    @ApiProperty()
-    @IsBoolean()
-    @IsOptional()
-    status?: boolean;
-
-    @ApiProperty({ type: [CreateLessonContentDto], description: 'Array of lesson contents', required: false })
+    @ApiProperty({
+        type: [CreateLessonContentDto],
+        description: 'Array of lesson contents',
+        required: false,
+    })
     @IsOptional()
     @ValidateNested({ each: true })
     @Type(() => CreateLessonContentDto)
     lessonContents?: CreateLessonContentDto[];
+}
+export class CreateLearningMaterialDto {
+    @ApiProperty({
+        example: '0ecf1ec5-bf42-4c51-8e74-3546f2cfd91f',
+    })
+    @IsUUID()
+    @IsNotEmpty()
+    unitId: string;
+
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    title: string;
+
+    @ApiProperty({
+        type: [CreateLessonDto], // Specify the correct type here
+        description: 'List of lessons under the Unit Area',
+    })
+    @ValidateNested({ each: true })
+    @Type(() => CreateLessonDto)
+    @IsOptional()
+    lessons?: CreateLessonDto[];
 }
