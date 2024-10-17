@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -6,6 +11,7 @@ import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { BaseService } from '../base/base.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
+import { LessonContentService } from '../lesson-content/lesson-content.service';
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
@@ -13,6 +19,9 @@ export class LessonService extends BaseService<Lesson> {
         @InjectRepository(Lesson)
         private readonly lessonRepository: Repository<Lesson>,
         private readonly unitAreaService: UnitAreaService,
+
+        @Inject(forwardRef(() => LessonContentService))
+        private readonly lessonContentService: LessonContentService,
     ) {
         super(lessonRepository);
     }
@@ -74,6 +83,43 @@ export class LessonService extends BaseService<Lesson> {
     //         relations: ['lessonContent'], // Include contents in the response
     //     });
     // }
+
+    async createLesson(updateLessonDto: UpdateLessonDto): Promise<Lesson> {
+        const { lessonId, title, type, lessonContents } = updateLessonDto;
+
+        let lesson = await this.lessonRepository.findOne({
+            where: { id: lessonId },
+        });
+
+        if (!lesson) {
+            throw new NotFoundException('Lesson not found');
+        }
+
+        lesson.title = title;
+        lesson.type = type;
+        await this.lessonRepository.save(lesson);
+
+        // Sử dụng LessonContentService để lưu lessonContents (chèn nội dung mới)
+        await this.lessonContentService.saveLessonContents(
+            lesson,
+            lessonContents,
+        );
+
+        return lesson;
+    }
+
+    async getLessonById(id: string): Promise<Lesson> {
+        const lesson = await this.lessonRepository.findOne({
+            where: { id },
+            relations: ['lessonContents'], // Tải thông tin lessonContents cùng với lesson
+          });
+        
+          if (!lesson) {
+            throw new NotFoundException('Lesson not found');
+          }
+        
+          return lesson;
+    }
 
     async findByUnitArea(unitAreaId: string): Promise<Lesson[]> {
         return this.lessonRepository.find({

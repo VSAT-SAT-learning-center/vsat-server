@@ -64,7 +64,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
                     this.lessonService.create({
                         ...lessonData,
                         unitAreaId: newUnitArea.id, // Pass unitAreaId to LessonService
-                        type: LessonType.TEXT,
+                        type: LessonType.TEXT
                     }),
                 ),
             );

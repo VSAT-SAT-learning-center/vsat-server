@@ -1,5 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Lesson } from './lesson.entity';
+import { ContentType } from 'src/common/enums/content-type.enum';
+import { Content } from './embedded-entity/content.embedded';
+import { Question } from './embedded-entity/question.embedded';
 
 @Entity('lessoncontent')
 export class LessonContent {
@@ -37,6 +40,12 @@ export class LessonContent {
   @Column({ type: 'boolean', default: true })
   status: boolean;
 
-  @Column({ type: 'enum', enum: ['Definition', 'Conceptual', 'Application', 'Tips & Tricks', 'Practice'] })
-  contenttype: 'Definition' | 'Conceptual' | 'Application' | 'Tips & Tricks' | 'Practice';
+  @Column({ type: 'enum', enum: ContentType})
+  contentType: ContentType;
+
+  @Column('jsonb')
+  contents: Content[];
+
+  @Column('jsonb', { nullable: true })
+  question: Question[];
 }
