@@ -129,31 +129,36 @@ export class LessonService extends BaseService<Lesson> {
                 id: content.id,
                 title: content.title,
                 contentType: content.contentType,
-                contents: content.contents.map((c) => ({
-                    contentId: c.contentId,
-                    text: c.text,
-                    examples: c.examples.map((e) => ({
-                        exampleId: e.exampleId,
-                        content: e.content,
-                        explain: e.explain,
-                    })),
-                })),
-                question: content.question
+                contents: Array.isArray(content.contents)
+                    ? content.contents.map((c) => ({
+                          contentId: c.contentId,
+                          text: c.text,
+                          examples: Array.isArray(c.examples)
+                              ? c.examples.map((e) => ({
+                                    exampleId: e.exampleId,
+                                    content: e.content,
+                                    explain: e.explain,
+                                }))
+                              : [],
+                      }))
+                    : [],
+                question: Array.isArray(content.question)
                     ? content.question.map((q) => ({
                           questionId: q.questionId,
                           prompt: q.prompt,
                           correctAnswer: q.correctAnswer,
                           explanation: q.explanation,
-                          answers: q.answers.map((a) => ({
-                              text: a.text,
-                              label: a.label,
-                              answerId: a.answerId,
-                          })),
+                          answers: Array.isArray(q.answers)
+                              ? q.answers.map((a) => ({
+                                    text: a.text,
+                                    label: a.label,
+                                    answerId: a.answerId,
+                                }))
+                              : [],
                       }))
                     : null,
             })),
         };
-
         return transformedLesson;
     }
 
