@@ -12,7 +12,7 @@ export class PaginationOptionsDto {
   @Type(() => Number)  // Đảm bảo rằng tham số 'page' sẽ được chuyển thành kiểu số
   @IsInt()
   @Min(1)
-  page?: number;  // Giá trị mặc định là 1
+  page?: number;
 
   @ApiPropertyOptional({
     description: 'Number of items per page, minimum is 1 and maximum is 100',
@@ -23,7 +23,7 @@ export class PaginationOptionsDto {
   @IsInt()
   @Min(1)
   @Max(100)
-  pageSize?: number;  // Giá trị mặc định là 10
+  pageSize?: number;
 
   @ApiPropertyOptional({
     description: 'Field by which to sort the results',
@@ -31,7 +31,7 @@ export class PaginationOptionsDto {
   })
   @IsOptional()
   @IsString()
-  sortBy?: string = 'id';  // Trường mặc định để sắp xếp
+  sortBy?: string;
 
   @ApiPropertyOptional({
     description: 'Sorting order, can be either ASC or DESC',
@@ -40,7 +40,7 @@ export class PaginationOptionsDto {
   })
   @IsOptional()
   @IsIn(['ASC', 'DESC'])  // Chỉ chấp nhận 'ASC' hoặc 'DESC'
-  sortOrder?: 'ASC' | 'DESC' = 'ASC';  // Giá trị mặc định là 'ASC'
+  sortOrder?: 'ASC' | 'DESC';
 
   @IsOptional()
   @IsArray()
