@@ -11,9 +11,8 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
 export class DomainService extends BaseService<Domain> {
   constructor(
     @InjectRepository(Domain)
-    domainRepository: Repository<Domain>,
-    paginationService: PaginationService,
+    domainRepository: Repository<Domain>
   ) {
-    super(domainRepository, paginationService);
+    super(domainRepository);
   }
 }
