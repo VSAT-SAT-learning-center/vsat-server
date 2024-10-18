@@ -29,54 +29,86 @@ export class UnitAreaService extends BaseService<UnitArea> {
     ) {
         super(unitAreaRepository);
     }
+    
     async createUnitAreaWithLessons(
         createUnitAreaDtoList: CreateLearningMaterialDto[],
-    ): Promise<UnitArea[]> {
-        const createdUnitAreas: UnitArea[] = [];
-
+      ): Promise<UnitArea[]> {
+        const createdOrUpdatedUnitAreas: UnitArea[] = [];
+      
         for (const createUnitAreaDto of createUnitAreaDtoList) {
-            const { unitId, lessons, ...unitAreaData } = createUnitAreaDto;
-
-            // Fetch the Unit entity
-            const unit = await this.unitService.findOne(unitId);
-            if (!unit) {
-                throw new NotFoundException('Unit not found');
-            }
-
-            // Ensure lessons are provided
-            if (!lessons || lessons.length === 0) {
-                throw new NotFoundException(
-                    'Lessons are required when creating UnitArea',
-                );
-            }
-
-            // Create the UnitArea entity using UnitAreaService
-            const newUnitArea = await this.create({
-                ...unitAreaData,
-                unitId: unit.id, // Pass unitId to UnitAreaService
-                ...lessons, // Pass lessons array to UnitAreaService
-            });
-
-            // Create associated Lessons using LessonService
-            const createdLessons = await Promise.all(
-                lessons.map((lessonData) =>
-                    this.lessonService.create({
-                        ...lessonData,
-                        unitAreaId: newUnitArea.id, // Pass unitAreaId to LessonService
-                        type: LessonType.TEXT,
-                    }),
-                ),
+          const { unitId, lessons, ...unitAreaData } = createUnitAreaDto;
+      
+          // Fetch the Unit entity
+          const unit = await this.unitService.findOne(unitId);
+          if (!unit) {
+            throw new NotFoundException('Unit not found');
+          }
+      
+          // Ensure lessons are provided
+          if (!lessons || lessons.length === 0) {
+            throw new NotFoundException(
+              'Lessons are required when creating or updating UnitArea',
             );
-
-            // After creating the lessons, you can push the saved UnitArea to the created list
-            createdUnitAreas.push({
-                ...newUnitArea,
-                lessons: createdLessons, // Attach the lessons to UnitArea
+          }
+      
+          // Check if the UnitArea already exists, otherwise create a new one
+          let unitArea = await this.unitAreaRepository.findOne({
+            where: { id: unitAreaData.id, unit: { id: unit.id } },
+          });
+      
+          if (unitArea) {
+            // Update existing UnitArea
+            unitArea = this.unitAreaRepository.merge(unitArea, unitAreaData);
+          } else {
+            // Create new UnitArea
+            unitArea = this.unitAreaRepository.create({
+              ...unitAreaData,
+              unit,
             });
+          }
+      
+          // Save the UnitArea entity
+          await this.unitAreaRepository.save(unitArea);
+      
+          // Create or update associated Lessons using LessonService
+          const lessonIds = [];
+          for (const lessonData of lessons) {
+            let lesson = await this.lessonService.findOne(lessonData.id, unitArea.id);
+      
+            if (lesson) {
+              // Update existing Lesson
+              lesson = await this.lessonService.update(lesson.id, {
+                ...lessonData,
+                unitAreaId: unitArea.id,
+              });
+            } else {
+              // Create new Lesson
+              lesson = await this.lessonService.create({
+                ...lessonData,
+                unitAreaId: unitArea.id,
+              });
+            }
+      
+            lessonIds.push(lesson.id);
+          }
+      
+          // Optionally, remove lessons that are no longer associated with the UnitArea
+          const existingLessons = await this.lessonService.findLessonsByUnitArea(
+            unitArea.id,
+          );
+          for (const existingLesson of existingLessons) {
+            if (!lessonIds.includes(existingLesson.id)) {
+              await this.lessonService.delete(existingLesson);
+            }
+          }
+      
+          // Push the saved or updated UnitArea to the final array
+          createdOrUpdatedUnitAreas.push(unitArea);
         }
-
-        return createdUnitAreas;
-    }
+      
+        return createdOrUpdatedUnitAreas;
+      }
+      
 
     // async updateUnitAreaWithLessons(
     //     id: string,

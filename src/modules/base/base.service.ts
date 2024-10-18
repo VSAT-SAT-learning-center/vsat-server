@@ -10,7 +10,7 @@ export class BaseService<T> {
         protected readonly paginationService?: PaginationService, // Inject PaginationService
     ) {}
 
-    async getAll(relations?: string[]): Promise<T[]> {
+    async getAll(relations?: string[]): Promise<any> {
         try {
             return await this.repository.find({
                 relations, // Fetch related entities if needed

@@ -157,7 +157,7 @@ export class LessonService extends BaseService<Lesson> {
         return transformedLesson;
     }
 
-    async findByUnitArea(unitAreaId: string): Promise<Lesson[]> {
+    async findLessonsByUnitArea(unitAreaId: string): Promise<Lesson[]> {
         return this.lessonRepository.find({
             where: { unitArea: { id: unitAreaId } },
         });
@@ -195,12 +195,14 @@ export class LessonService extends BaseService<Lesson> {
             throw new NotFoundException('Unit Area not found');
         }
 
-        const updatedLesson = await this.lessonRepository.save({
-            ...lesson,
-            ...lessonData,
-            unitArea: unitArea,
-        });
+        this.lessonRepository.merge(lesson, lessonData);
 
-        return updatedLesson;
+        this.lessonRepository.merge(lesson, lessonData);
+
+        return this.lessonRepository.save(lesson);
+    }
+
+    async delete(lesson: Lesson): Promise<void> {
+        await this.lessonRepository.remove(lesson);
     }
 }

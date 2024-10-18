@@ -43,7 +43,7 @@ export class LessonContent {
   @Column({ type: 'enum', enum: ContentType})
   contentType: ContentType;
 
-  @Column('jsonb')
+  @Column('jsonb', { nullable: true })
   contents: Content[];
 
   @Column('jsonb', { nullable: true })
