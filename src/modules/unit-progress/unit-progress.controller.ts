@@ -25,7 +25,7 @@ export class UnitProgressController extends BaseController<UnitProgress> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unit = await this.unitProgressService.findOne(id, [
+        const unit = await this.unitProgressService.findOneById(id, [
             'unitAreaProgresses',
         ]);
         return ResponseHelper.success(

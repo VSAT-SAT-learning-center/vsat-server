@@ -80,7 +80,7 @@ export class UnitAreaController extends BaseController<UnitArea> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unitArea = await this.unitAreaService.findOne(id, ['lessons']);
+        const unitArea = await this.unitAreaService.findOneById(id, ['lessons']);
         return ResponseHelper.success(
             HttpStatus.OK,
             unitArea,
@@ -105,7 +105,7 @@ export class UnitAreaController extends BaseController<UnitArea> {
         @Body() createUnitAreaDtoList: CreateLearningMaterialDto[],
     ) {
         const createdMaterials =
-            await this.unitAreaService.createUnitAreaWithLessons(
+            await this.unitAreaService.createOrUpdateUnitAreas(
                 createUnitAreaDtoList,
             );
         return ResponseHelper.success(

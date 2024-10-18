@@ -72,7 +72,7 @@ export class LessonContentService extends BaseService<LessonContent> {
     ): Promise<LessonContent> {
         const { lessonId, ...lessonContentData } = createLessonContentDto;
 
-        const lesson = await this.lessonService.findOne(lessonId);
+        const lesson = await this.lessonService.findOneById(lessonId);
         if (!lesson) {
             throw new Error('Lesson not found');
         }
@@ -91,12 +91,12 @@ export class LessonContentService extends BaseService<LessonContent> {
     ): Promise<LessonContent> {
         const { lessonId, ...lessonContentData } = updateLessonContentDto;
 
-        const lessonContent = await this.findOne(id);
+        const lessonContent = await this.findOneById(id);
         if (!lessonContent) {
             throw new Error('LessonContent not found');
         }
 
-        const lesson = await this.lessonService.findOne(lessonId);
+        const lesson = await this.lessonService.findOneById(lessonId);
         if (!lesson) {
             throw new Error('Lesson not found');
         }

@@ -59,7 +59,7 @@ export class BaseService<T> {
         }
     }
 
-    async findOne(
+    async findOneById(
         id: string | number,
         relations: string[] = [],
     ): Promise<T | undefined> {
@@ -113,7 +113,7 @@ export class BaseService<T> {
                 );
             }
 
-            return this.findOne(id);
+            return this.findOneById(id);
         } catch (error) {
             console.error('Log Error:', error);
             throw new HttpException(

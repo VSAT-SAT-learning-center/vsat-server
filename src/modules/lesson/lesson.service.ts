@@ -12,8 +12,8 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { BaseService } from '../base/base.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonContentService } from '../lesson-content/lesson-content.service';
-import { LessonType } from 'src/common/enums/lesson-type.enum';
 import { LessonResponseDto } from './dto/get-lesson.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
@@ -86,6 +86,21 @@ export class LessonService extends BaseService<Lesson> {
     //     });
     // }
 
+    async findOne(lessonId: string, unitAreaId: string): Promise<Lesson> {
+        return this.lessonRepository.findOne({
+            where: { id: lessonId, unitArea: { id: unitAreaId } }, // Tìm bài học theo id và unitAreaId
+        });
+    }
+
+    async findOneWithUnitAreaId(
+        lessonId: string,
+        unitAreaId: string,
+    ): Promise<Lesson> {
+        return this.lessonRepository.findOne({
+            where: { id: lessonId, unitArea: { id: unitAreaId } },
+        });
+    }
+
     async createLesson(updateLessonDto: UpdateLessonDto): Promise<Lesson> {
         const { lessonId, title, type, lessonContents } = updateLessonDto;
 
@@ -109,6 +124,70 @@ export class LessonService extends BaseService<Lesson> {
 
         return lesson;
     }
+
+    async createOrUpdateManyLessons(
+        unitAreaId: string,
+        lessons: CreateLessonDto[],
+    ): Promise<string[]> {
+        const lessonIds = [];
+
+        for (const lessonData of lessons) {
+            let lesson;
+
+            // Kiểm tra nếu lessonId là chuỗi rỗng, tạo bài học mới với UUID
+            if (!lessonData.id || lessonData.id === '') {
+                lesson = await this.create({
+                    ...lessonData,
+                    id: uuidv4(), // Tạo UUID mới cho Lesson
+                    unitAreaId,
+                });
+            } else {
+                lesson = await this.findOne(lessonData.id, unitAreaId);
+
+                if (lesson) {
+                    // Cập nhật bài học hiện có
+                    lesson = await this.update(lesson.id, {
+                        ...lessonData,
+                        unitAreaId,
+                    });
+                } else {
+                    // Tạo mới bài học nếu không tìm thấy
+                    lesson = await this.create({
+                        ...lessonData,
+                        id: lessonData.id, // Sử dụng ID được cung cấp
+                        unitAreaId,
+                    });
+                }
+            }
+
+            lessonIds.push(lesson.id);
+        }
+
+        // Xóa các bài học không còn trong danh sách
+        await this.removeMissingLessons(unitAreaId, lessonIds);
+
+        return lessonIds;
+    }
+
+    // Tìm kiếm và xóa các bài học không còn trong danh sách lessonIds
+    async removeMissingLessons(
+        unitAreaId: string,
+        lessonIds: string[],
+    ): Promise<void> {
+        const existingLessons = await this.findLessonsByUnitArea(unitAreaId);
+        for (const existingLesson of existingLessons) {
+            if (!lessonIds.includes(existingLesson.id)) {
+                await this.delete(existingLesson);
+            }
+        }
+    }
+
+    async deleteLessonsByUnitArea(unitAreaId: string): Promise<void> {
+        const lessons = await this.lessonRepository.find({
+          where: { unitArea: { id: unitAreaId } },
+        });
+        await this.lessonRepository.remove(lessons);
+      }
 
     async getLessonById(id: string): Promise<any> {
         const lesson = await this.lessonRepository.findOne({
@@ -166,7 +245,7 @@ export class LessonService extends BaseService<Lesson> {
     async create(createLessonDto: CreateLessonDto): Promise<Lesson> {
         const { unitAreaId, ...lessonData } = createLessonDto;
 
-        const unitArea = await this.unitAreaService.findOne(unitAreaId);
+        const unitArea = await this.unitAreaService.findOneById(unitAreaId);
         if (!unitArea) {
             throw new NotFoundException('UnitArea not found');
         }
@@ -185,12 +264,12 @@ export class LessonService extends BaseService<Lesson> {
     ): Promise<Lesson> {
         const { unitAreaId, ...lessonData } = updateLessonDto;
 
-        const lesson = await this.findOne(id);
+        const lesson = await this.findOneById(id);
         if (!lesson) {
             throw new NotFoundException('Lesson not found');
         }
 
-        const unitArea = await this.unitAreaService.findOne(unitAreaId);
+        const unitArea = await this.unitAreaService.findOneById(unitAreaId);
         if (!unitArea) {
             throw new NotFoundException('Unit Area not found');
         }
