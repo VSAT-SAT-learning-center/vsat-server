@@ -23,16 +23,50 @@ export class LessonContentService extends BaseService<LessonContent> {
         lessonContents: CreateLessonContentDto[],
     ): Promise<void> {
         for (const contentDto of lessonContents) {
-            const { contentType, title, contents, question } = contentDto;
-
-            const lessonContent = this.lessonContentRepository.create({
-                contentType,
-                title,
-                contents,
-                lesson,
-                question: question ? question : null,
-            });
-
+            let { id, contentType, title, contents, question } = contentDto;
+    
+            // Kiểm tra contentType có giá trị hay không
+            if (!contentType) {
+                throw new Error('Content type is required for lesson content.');
+            }
+    
+            let lessonContent;
+    
+            if (id) {
+                // Tìm kiếm nội dung bài học với ID
+                lessonContent = await this.lessonContentRepository.findOne({
+                    where: { id, lesson: { id: lesson.id } },
+                });
+    
+                if (lessonContent) {
+                    // Cập nhật nội dung nếu tìm thấy
+                    lessonContent.contentType = contentType;
+                    lessonContent.title = title;
+                    lessonContent.contents = contents;
+                    lessonContent.question = question || null;
+                } else {
+                    // Tạo mới nếu không tìm thấy nội dung với ID
+                    lessonContent = this.lessonContentRepository.create({
+                        id,
+                        contentType,
+                        title,
+                        contents,
+                        lesson,
+                        question: question || null,
+                    });
+                }
+            } else {
+                // Tạo mới LessonContent
+                lessonContent = this.lessonContentRepository.create({
+                    contentType,
+                    title,
+                    contents,
+                    lesson,
+                    question: question || null,
+                });
+            }
+    
+            // Lưu nội dung vào cơ sở dữ liệu
             await this.lessonContentRepository.save(lessonContent);
         }
     }

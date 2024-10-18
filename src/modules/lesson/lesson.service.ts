@@ -28,64 +28,6 @@ export class LessonService extends BaseService<Lesson> {
         super(lessonRepository);
     }
 
-    // async updateLessonAndInsertContent(requestData: UpdateLessonDto): Promise<Lesson> {
-    //     const { lessonId, lessonTitle, lessonContent } = requestData;
-
-    //     // Step 1: Check if lesson exists, update or create
-    //     let lesson: Lesson;
-    //     if (lessonId) {
-    //         lesson = await this.lessonRepository.findOne({ where: { id: lessonId } });
-    //         if (!lesson) {
-    //             throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
-    //         }
-    //         lesson.title = lessonTitle; // Update title if necessary
-    //     } else {
-    //         lesson = this.lessonRepository.create({ title: lessonTitle });
-    //         await this.lessonRepository.save(lesson);
-    //     }
-
-    //     // Step 2: Insert or update lesson content
-    //     for (const content of lessonContent) {
-    //         const { contendId, contentType, contentTitle, content, question } = content;
-
-    //         let lessonContentEntity: LessonContent;
-
-    //         // Check if content already exists, update it
-    //         if (contendId) {
-    //             lessonContentEntity = await this.lessonContentRepository.findOne({ where: { id: contendId } });
-    //             if (!lessonContentEntity) {
-    //                 throw new NotFoundException(`Lesson Content with ID ${contendId} not found`);
-    //             }
-    //             // Update existing content
-    //             lessonContentEntity.contentType = contentType;
-    //             lessonContentEntity.title = contentTitle;
-    //             lessonContentEntity.content = content;
-    //         } else {
-    //             // Create new content
-    //             lessonContentEntity = this.lessonContentRepository.create({
-    //                 contentType,
-    //                 title: contentTitle,
-    //                 content,
-    //                 lessonId: lesson.id, // Link to the lesson
-    //             });
-    //         }
-
-    //         // Save lesson content
-    //         await this.lessonContentRepository.save(lessonContentEntity);
-
-    //         // Handle questions if required (future implementation)
-    //         if (question) {
-    //             // Question handling logic goes here
-    //         }
-    //     }
-
-    //     // Return the updated lesson with contents
-    //     return await this.lessonRepository.findOne({
-    //         where: { id: lesson.id },
-    //         relations: ['lessonContent'], // Include contents in the response
-    //     });
-    // }
-
     async findOne(lessonId: string, unitAreaId: string): Promise<Lesson> {
         return this.lessonRepository.findOne({
             where: { id: lessonId, unitArea: { id: unitAreaId } }, // Tìm bài học theo id và unitAreaId
@@ -104,6 +46,7 @@ export class LessonService extends BaseService<Lesson> {
     async createLesson(updateLessonDto: UpdateLessonDto): Promise<Lesson> {
         const { lessonId, title, type, lessonContents } = updateLessonDto;
 
+        // Tìm Lesson theo ID
         let lesson = await this.lessonRepository.findOne({
             where: { id: lessonId },
         });
@@ -112,11 +55,12 @@ export class LessonService extends BaseService<Lesson> {
             throw new NotFoundException('Lesson not found');
         }
 
+        // Cập nhật thông tin của Lesson
         lesson.title = title;
         lesson.type = type;
         await this.lessonRepository.save(lesson);
 
-        // Sử dụng LessonContentService để lưu lessonContents (chèn nội dung mới)
+        // Gọi LessonContentService để xử lý danh sách LessonContents
         await this.lessonContentService.saveLessonContents(
             lesson,
             lessonContents,
@@ -184,10 +128,10 @@ export class LessonService extends BaseService<Lesson> {
 
     async deleteLessonsByUnitArea(unitAreaId: string): Promise<void> {
         const lessons = await this.lessonRepository.find({
-          where: { unitArea: { id: unitAreaId } },
+            where: { unitArea: { id: unitAreaId } },
         });
         await this.lessonRepository.remove(lessons);
-      }
+    }
 
     async getLessonById(id: string): Promise<any> {
         const lesson = await this.lessonRepository.findOne({

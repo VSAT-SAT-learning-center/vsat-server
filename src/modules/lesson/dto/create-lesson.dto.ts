@@ -17,7 +17,7 @@ export class CreateLessonDto {
         example: '763e9e17-350e-4d84-bba3-1eab8c4326fa',
     })
     @IsOptional()
-    @IsString()
+    @IsUUID()
     id?: string;
 
     @ApiProperty({

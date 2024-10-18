@@ -31,75 +31,83 @@ export class UnitAreaService extends BaseService<UnitArea> {
     }
 
     async createOrUpdateUnitAreas(
-      createUnitAreaDtoList: CreateLearningMaterialDto[],
+        createUnitAreaDtoList: CreateLearningMaterialDto[],
     ): Promise<UnitArea[]> {
-      const createdOrUpdatedUnitAreas: UnitArea[] = [];
-    
-      const { unitId } = createUnitAreaDtoList[0]
-      // Lấy danh sách tất cả các UnitArea hiện có của Unit
-      const existingUnitAreas = await this.unitAreaRepository.find({
-        where: { unit: { id: unitId } },
-        relations: ['lessons'], // Load cả các lesson liên quan
-      });
-    
-      // Lưu giữ các unitAreaId hiện tại để theo dõi xóa các bản ghi không còn tồn tại
-      const unitAreaIdsInRequest = createUnitAreaDtoList.map(
-        (unitArea) => unitArea.id,
-      );
-    
-      // Xử lý từng UnitArea trong danh sách được truyền lên
-      for (const createUnitAreaDto of createUnitAreaDtoList) {
-        const { unitId, lessons, ...unitAreaData } = createUnitAreaDto;
-    
-        let unitArea;
-    
-        // Kiểm tra nếu unitAreaId là chuỗi rỗng hoặc không tồn tại
-        if (!unitAreaData.id || unitAreaData.id === '') {
-          unitArea = this.unitAreaRepository.create({
-            ...unitAreaData,
-            id: uuidv4(), // Tạo UUID mới cho UnitArea
-            unit: { id: unitId },
-          });
-        } else {
-          // Tìm kiếm UnitArea hiện có trong cơ sở dữ liệu
-          unitArea = await this.unitAreaRepository.findOne({
-            where: { id: unitAreaData.id, unit: { id: unitId } },
-          });
-    
-          if (unitArea) {
-            // Cập nhật UnitArea hiện có
-            unitArea = this.unitAreaRepository.merge(unitArea, unitAreaData);
-          } else {
-            // Tạo mới UnitArea nếu không tìm thấy với ID được cung cấp
-            unitArea = this.unitAreaRepository.create({
-              ...unitAreaData,
-              id: unitAreaData.id, // Sử dụng ID được cung cấp
-              unit: { id: unitId },
-            });
-          }
+        const createdOrUpdatedUnitAreas: UnitArea[] = [];
+
+        const { unitId } = createUnitAreaDtoList[0];
+
+        // Lấy danh sách tất cả các UnitArea hiện có của Unit
+        const existingUnitAreas = await this.unitAreaRepository.find({
+            where: { unit: { id: unitId } },
+            relations: ['lessons'], // Load cả các lesson liên quan
+        });
+
+        // Lưu giữ các unitAreaId hiện tại để theo dõi xóa các bản ghi không còn tồn tại
+        const unitAreaIdsInRequest = createUnitAreaDtoList.map(
+            (unitArea) => unitArea.id,
+        );
+
+        // Xử lý từng UnitArea trong danh sách được truyền lên
+        for (const createUnitAreaDto of createUnitAreaDtoList) {
+            const { unitId, lessons, ...unitAreaData } = createUnitAreaDto;
+
+            let unitArea;
+
+            // Kiểm tra nếu unitAreaId là chuỗi rỗng hoặc không tồn tại
+            if (!unitAreaData.id) {
+                unitArea = this.unitAreaRepository.create({
+                    ...unitAreaData,
+                    unit: { id: unitId },
+                });
+            } else {
+                // Tìm kiếm UnitArea hiện có trong cơ sở dữ liệu
+                unitArea = await this.unitAreaRepository.findOne({
+                    where: { id: unitAreaData.id, unit: { id: unitId } },
+                });
+
+                if (unitArea) {
+                    // Cập nhật UnitArea hiện có
+                    unitArea = this.unitAreaRepository.merge(
+                        unitArea,
+                        unitAreaData,
+                    );
+                } else {
+                    // Tạo mới UnitArea nếu không tìm thấy với ID được cung cấp
+                    unitArea = this.unitAreaRepository.create({
+                        ...unitAreaData,
+                        id: unitAreaData.id,
+                        unit: { id: unitId },
+                    });
+                }
+            }
+
+            // Lưu UnitArea
+            await this.unitAreaRepository.save(unitArea);
+
+            // Sử dụng LessonService để xử lý lesson
+            await this.lessonService.createOrUpdateManyLessons(
+                unitArea.id,
+                lessons,
+            );
+
+            createdOrUpdatedUnitAreas.push(unitArea);
         }
-    
-        // Lưu UnitArea
-        await this.unitAreaRepository.save(unitArea);
-    
-        // Sử dụng LessonService để xử lý lesson
-        await this.lessonService.createOrUpdateManyLessons(unitArea.id, lessons);
-    
-        createdOrUpdatedUnitAreas.push(unitArea);
-      }
-    
-      // Xóa các UnitArea không còn trong danh sách truyền lên
-      for (const existingUnitArea of existingUnitAreas) {
-        if (!unitAreaIdsInRequest.includes(existingUnitArea.id)) {
-          // Xóa tất cả các bài học (lesson) liên quan trước khi xóa UnitArea
-          await this.lessonService.deleteLessonsByUnitArea(existingUnitArea.id);
-      
-          // Sau đó xóa UnitArea
-          await this.unitAreaRepository.remove(existingUnitArea);
+
+        // Xóa các UnitArea không còn trong danh sách truyền lên
+        for (const existingUnitArea of existingUnitAreas) {
+            if (!unitAreaIdsInRequest.includes(existingUnitArea.id)) {
+                // Xóa tất cả các bài học (lesson) liên quan trước khi xóa UnitArea
+                await this.lessonService.deleteLessonsByUnitArea(
+                    existingUnitArea.id,
+                );
+
+                // Sau đó xóa UnitArea
+                await this.unitAreaRepository.remove(existingUnitArea);
+            }
         }
-      }
-    
-      return createdOrUpdatedUnitAreas;
+
+        return createdOrUpdatedUnitAreas;
     }
 
     // async updateUnitAreaWithLessons(
