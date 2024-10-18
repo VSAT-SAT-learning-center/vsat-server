@@ -253,13 +253,14 @@ export class AccountService {
                     lastname: account.lastname,
                     email: account.email,
                     gender: account.gender,
-                    dateofbirth: formattedDate, // Sử dụng dateofbirth đã được định dạng
+                    dateofbirth: formattedDate,
                     phonenumber: account.phonenumber,
                     role: checkRole,
                 });
 
                 const savedAccount =
                     await this.accountRepository.save(newAccount);
+
                 if (!savedAccount) {
                     throw new HttpException(
                         'Fail to save account',
@@ -275,10 +276,23 @@ export class AccountService {
 
                 savedAccounts.push(savedAccount);
             } catch (error) {
-                errors.push({
-                    account,
-                    message: error.message || 'Unknown error',
-                });
+                if (
+                    error.code === '23505' &&
+                    error.detail &&
+                    error.detail.includes('email')
+                ) {
+                    // Kiểm tra lỗi trùng email
+                    errors.push({
+                        account,
+                        message: 'Email already exists',
+                    });
+                } else {
+                    // Các lỗi khác
+                    errors.push({
+                        account,
+                        message: error.message || 'Unknown error',
+                    });
+                }
             }
         }
 
