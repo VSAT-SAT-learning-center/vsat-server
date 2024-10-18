@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { CreateLessonContentDto } from './dto/create-lessoncontent.dto';
 import { UpdateLessonContentDto } from './dto/update-lessoncontent.dto';
 import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { LessonService } from '../lesson/lesson.service';
 import { Lesson } from 'src/database/entities/lesson.entity';
 

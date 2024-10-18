@@ -1,35 +1,43 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    ManyToOne,
+    JoinColumn,
+} from 'typeorm';
 import { StudyProfile } from './studyprofile.entity';
 import { Quiz } from './quiz.entity';
 
 @Entity('quizattempt')
 export class QuizAttempt {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdat: Date;
+    @CreateDateColumn({ type: 'timestamp' })
+    createdat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  createdby: string;
+    @Column({ type: 'uuid', nullable: true })
+    createdby: string;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedat: Date;
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  updatedby: string;
+    @Column({ type: 'uuid', nullable: true })
+    updatedby: string;
 
-  @ManyToOne(() => StudyProfile)
-  @JoinColumn({ name: 'studyprofileid' })
-  studyProfile: StudyProfile;
+    @ManyToOne(() => StudyProfile)
+    @JoinColumn({ name: 'studyprofileid' })
+    studyProfile: StudyProfile;
 
-  @ManyToOne(() => Quiz)
-  @JoinColumn({ name: 'quizid' })
-  quiz: Quiz;
+    @ManyToOne(() => Quiz)
+    @JoinColumn({ name: 'quizid' })
+    quiz: Quiz;
 
-  @Column({ type: 'timestamp', nullable: true })
-  attemptdatetime: Date;
+    @Column({ type: 'timestamp', nullable: true })
+    attemptdatetime: Date;
 
-  @Column({ type: 'int', nullable: true })
-  score: number;
+    @Column({ type: 'int', nullable: true })
+    score: number;
 }

@@ -1,4 +1,4 @@
-import { Answer } from "./answer.embedded";
+import { Answer } from './answer.embedded';
 
 // question.embedded.ts
 export class Question {
