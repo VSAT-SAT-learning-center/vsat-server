@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
-import { Repository } from 'typeorm';
+import { ILike, Like, Repository } from 'typeorm';
 import { CreateAccountDTO } from './dto/create-account.dto';
 import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
@@ -54,15 +54,47 @@ export class AccountService {
         return username;
     }
 
+    isValidEmail(email: string): boolean {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
     //save
     async save(accountDTO: CreateAccountDTO): Promise<CreateAccountDTO> {
-        const roleId = await this.roleRepository.findOne({
-            where: { id: accountDTO.roleId },
+        const role = await this.roleRepository.findOne({
+            where: { rolename: accountDTO.role },
         });
 
-        if (!roleId) {
+        const email = await this.accountRepository.findOne({
+            where: { email: accountDTO.email },
+        });
+
+        const formattedDate = this.formatDateString(accountDTO.dateofbirth);
+
+        if (new Date(formattedDate) > new Date()) {
+            throw new HttpException(
+                'Date of birth cannot be in the future',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (!this.isValidEmail(accountDTO.email)) {
+            throw new HttpException(
+                'Email không hợp lệ',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (email) {
+            throw new HttpException(
+                `Email: ${accountDTO.email} already exist`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (!role) {
             throw new NotFoundException(
-                `Unit with ID ${accountDTO.roleId} does not exist`,
+                `Role ${accountDTO.role} does not exist`,
             );
         }
 
@@ -79,7 +111,8 @@ export class AccountService {
             ...accountDTO,
             password: hashedPassword,
             username: generatedUsername,
-            role: roleId,
+            role: role,
+            dateofbirth: formattedDate,
         });
 
         const saveAccount = await this.accountRepository.save(account);
@@ -94,7 +127,7 @@ export class AccountService {
         await this.sendWelComeMail(
             accountDTO.email,
             randomPassword,
-            accountDTO.username,
+            generatedUsername,
         );
 
         return plainToInstance(CreateAccountDTO, saveAccount, {
@@ -141,60 +174,213 @@ export class AccountService {
         return 'Welcome email sent';
     }
 
+    formatDateString(dateString: string): string {
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month}-${day}`;
+    }
+
     async saveFromFile(
         createAccountFromFileDto: CreateAccountFromFileDTO[],
-    ): Promise<CreateAccountFromFileDTO[]> {
+    ): Promise<{
+        savedAccounts: CreateAccountFromFileDTO[];
+        errors: { account: CreateAccountFromFileDTO; message: string }[];
+    }> {
         const savedAccounts: Account[] = [];
+        const errors: { account: CreateAccountFromFileDTO; message: string }[] =
+            [];
+        let formattedDate: string | null = null;
+        const emailSet = new Set<string>();
 
         for (const account of createAccountFromFileDto) {
-            const checkRole = await this.roleRepository.findOne({
-                where: { rolename: account.role },
-            });
+            try {
+                if (emailSet.has(account.email)) {
+                    throw new HttpException(
+                        `Duplicate email found: ${account.email}`,
+                        HttpStatus.BAD_REQUEST,
+                    );
+                } else {
+                    emailSet.add(account.email);
+                }
 
-            if (!checkRole) {
-                throw new NotFoundException(`Role ${account.role} not found`);
+                if (!account.firstname || account.firstname.trim() === '') {
+                    throw new HttpException(
+                        'First name cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.lastname || account.lastname.trim() === '') {
+                    throw new HttpException(
+                        'Last name cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.email || account.email.trim() === '') {
+                    throw new HttpException(
+                        'Email cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.dateofbirth || account.dateofbirth.trim() === '') {
+                    throw new HttpException(
+                        'Date of birth cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.phonenumber || account.phonenumber.trim() === '') {
+                    throw new HttpException(
+                        'Phone number cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.role || account.role.trim() === '') {
+                    throw new HttpException(
+                        'Role cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (account.gender === undefined || account.gender === null) {
+                    throw new HttpException(
+                        'Gender cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                const checkRole = await this.roleRepository.findOne({
+                    where: { rolename: account.role },
+                });
+
+                if (!checkRole) {
+                    throw new NotFoundException(
+                        `Role ${account.role} not found`,
+                    );
+                }
+
+                const email = await this.accountRepository.findOne({
+                    where: { email: account.email },
+                });
+
+                if (email) {
+                    throw new HttpException(
+                        'Email is already exsist',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (account.dateofbirth) {
+                    const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                    const match = account.dateofbirth.match(datePattern);
+
+                    if (!match) {
+                        throw new HttpException(
+                            'Invalid date of birth format. Please use dd/MM/yyyy format.',
+                            HttpStatus.BAD_REQUEST,
+                        );
+                    }
+
+                    const day = parseInt(match[1], 10);
+                    const month = parseInt(match[2], 10) - 1;
+                    const year = parseInt(match[3], 10);
+
+                    const date = new Date(Date.UTC(year, month, day));
+
+                    formattedDate = `${year}-${(month + 1)
+                        .toString()
+                        .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+                    if (date > new Date()) {
+                        throw new HttpException(
+                            'Date of birth cannot be in the future',
+                            HttpStatus.BAD_REQUEST,
+                        );
+                    }
+                }
+
+                if (!this.isValidEmail(account.email)) {
+                    throw new HttpException(
+                        'Email không hợp lệ',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+            } catch (error) {
+                errors.push({
+                    account,
+                    message: error.message || 'Unknown error',
+                });
             }
-
-            const generatedUsername = await this.generateUsername(
-                account.firstname,
-                account.lastname,
-            );
-
-            const randomPassword = this.generateRandomPassword(8);
-
-            const hashedPassword = await this.hashPassword(randomPassword);
-
-            account.password = hashedPassword;
-
-            const newAccount = this.accountRepository.create({
-                username: generatedUsername,
-                password: hashedPassword,
-                firstname: account.firstname,
-                lastname: account.lastname,
-                email: account.email,
-                role: checkRole,
-            });
-
-            const savedAccount = await this.accountRepository.save(newAccount);
-
-            if (!savedAccount) {
-                throw new HttpException(
-                    'Fail to save account',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-
-            await this.sendWelComeMail(
-                account.email,
-                randomPassword,
-                account.username,
-            );
-
-            savedAccounts.push(savedAccount);
         }
-        return plainToInstance(CreateAccountFromFileDTO, savedAccounts, {
-            excludeExtraneousValues: true,
-        });
+
+        if (errors.length > 0) {
+            return {
+                savedAccounts: [],
+                errors,
+            };
+        }
+
+        for (const account of createAccountFromFileDto) {
+            try {
+                const generatedUsername = await this.generateUsername(
+                    account.firstname,
+                    account.lastname,
+                );
+
+                const randomPassword = this.generateRandomPassword(8);
+                const hashedPassword = await this.hashPassword(randomPassword);
+
+                const newAccount = this.accountRepository.create({
+                    username: generatedUsername,
+                    password: hashedPassword,
+                    firstname: account.firstname,
+                    lastname: account.lastname,
+                    email: account.email,
+                    gender: account.gender,
+                    dateofbirth: formattedDate,
+                    phonenumber: account.phonenumber,
+                    role: await this.roleRepository.findOne({
+                        where: { rolename: account.role },
+                    }),
+                });
+
+                const savedAccount =
+                    await this.accountRepository.save(newAccount);
+
+                if (!savedAccount) {
+                    throw new HttpException(
+                        'Fail to save account',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                await this.sendWelComeMail(
+                    account.email,
+                    randomPassword,
+                    generatedUsername,
+                );
+
+                savedAccounts.push(savedAccount);
+            } catch (error) {
+                errors.push({
+                    account,
+                    message: error.message || 'Unknown error',
+                });
+            }
+        }
+
+        return {
+            savedAccounts: plainToInstance(
+                CreateAccountFromFileDTO,
+                savedAccounts,
+                {
+                    excludeExtraneousValues: true,
+                },
+            ),
+            errors,
+        };
     }
 
     async find(page: number, pageSize: number): Promise<any> {
@@ -215,6 +401,68 @@ export class AccountService {
             totalPages: totalPages,
             currentPage: page,
             totalItems: total,
+        };
+    }
+
+    async updateStatus(id: string, status: AccountStatus) {
+        const account = await this.accountRepository.findOneBy({ id });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        account.status = status;
+
+        const updateAccount = await this.accountRepository.save(account);
+        return updateAccount;
+    }
+
+    async searchByName(
+        name: string,
+        page: number,
+        pageSize: number,
+        sortOrder: 'ASC' | 'DESC' = 'ASC',
+    ): Promise<{
+        data: GetAccountDTO[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        const skip = (page - 1) * pageSize;
+
+        let accounts: any[], total: number;
+
+        if (!name || name.trim() === '') {
+            [accounts, total] = await this.accountRepository.findAndCount({
+                skip: skip,
+                relations: ['role'],
+                take: pageSize,
+                order: { createdat: sortOrder },
+            });
+        } else {
+            [accounts, total] = await this.accountRepository.findAndCount({
+                where: [
+                    { firstname: ILike(`%${name}%`) },
+                    { lastname: ILike(`%${name}%`) },
+                ],
+                relations: ['role'],
+                skip: skip,
+                take: pageSize,
+                order: { createdat: sortOrder },
+            });
+        }
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        const transformedAccounts = plainToInstance(GetAccountDTO, accounts, {
+            excludeExtraneousValues: true,
+        });
+
+        return {
+            data: transformedAccounts as GetAccountDTO[],
+            totalItems: total,
+            totalPages: totalPages,
+            currentPage: page,
         };
     }
 }

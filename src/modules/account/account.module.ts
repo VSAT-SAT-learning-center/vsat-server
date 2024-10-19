@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/database/entities/role.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Account, Role])],
+    imports: [TypeOrmModule.forFeature([Role, Account])],
     controllers: [AccountController],
     providers: [AccountService, JwtService],
 })
