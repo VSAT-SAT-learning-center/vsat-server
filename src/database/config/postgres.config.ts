@@ -17,6 +17,8 @@ export class PostgresConfigService implements TypeOrmOptionsFactory {
       entities: [__dirname + '/../entities/*.entity.{ts,js}'],
       synchronize: this.configService.get<boolean>('POSTGRES_SYNC', false), // Disable in production
       logging: this.configService.get<boolean>('POSTGRES_LOGGING', true),
+      retryAttempts: this.configService.get<number>('POSTGRES_RETRY_ATTEMPTS'),
+      retryDelay: this.configService.get<number>('POSTGRES_RETRY_DELAY'),
     };
   }
 }
