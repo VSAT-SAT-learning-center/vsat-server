@@ -24,13 +24,14 @@ export class LessonContentService extends BaseService<LessonContent> {
         lessonContents: CreateLessonContentDto[],
     ): Promise<void> {
         for (const contentDto of lessonContents) {
-            const { contentType, title, contents } = contentDto;
+            const { contentType, title, contents, question } = contentDto;
 
             const lessonContent = this.lessonContentRepository.create({
                 contentType,
                 title,
                 contents,
                 lesson,
+                question: question ? question : null,
             });
 
             await this.lessonContentRepository.save(lessonContent);

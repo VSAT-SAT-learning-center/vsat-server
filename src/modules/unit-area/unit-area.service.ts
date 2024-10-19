@@ -15,7 +15,7 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { LessonService } from '../lesson/lesson.service';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
 import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
-import { LessonDto, UnitAreaResponseDto } from './dto/unit-area-response.dto';
+import { LessonDto, UnitAreaResponseDto } from './dto/get-unitarea.dto';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -63,7 +63,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
                     this.lessonService.create({
                         ...lessonData,
                         unitAreaId: newUnitArea.id, // Pass unitAreaId to LessonService
-                        type: LessonType.TEXT,
+                        type: lessonData.type,
                     }),
                 ),
             );

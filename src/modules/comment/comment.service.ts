@@ -8,9 +8,8 @@ import { Comment } from 'src/database/entities/comment.entity';
 @Injectable()
 export class CommentService extends BaseService<Comment> {
   constructor(
-    @InjectRepository(Comment) repository: Repository<Comment>, // Use protected in BaseService
-    paginationService: PaginationService,
+    @InjectRepository(Comment) repository: Repository<Comment>, 
   ) {
-    super(repository, paginationService); // Pass the correct repository and paginationService to BaseService
+    super(repository);
   }
 }

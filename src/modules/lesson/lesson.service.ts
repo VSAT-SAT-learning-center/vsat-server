@@ -12,6 +12,8 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { BaseService } from '../base/base.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonContentService } from '../lesson-content/lesson-content.service';
+import { LessonType } from 'src/common/enums/lesson-type.enum';
+import { LessonResponseDto } from './dto/get-lesson.dto';
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
@@ -108,17 +110,56 @@ export class LessonService extends BaseService<Lesson> {
         return lesson;
     }
 
-    async getLessonById(id: string): Promise<Lesson> {
+    async getLessonById(id: string): Promise<any> {
         const lesson = await this.lessonRepository.findOne({
             where: { id },
             relations: ['lessonContents'], // Tải thông tin lessonContents cùng với lesson
-          });
-        
-          if (!lesson) {
+        });
+
+        if (!lesson) {
             throw new NotFoundException('Lesson not found');
-          }
-        
-          return lesson;
+        }
+
+        const transformedLesson: LessonResponseDto = {
+            id: lesson.id,
+            prerequisitelessonid: lesson.prerequisitelessonid,
+            type: lesson.type,
+            title: lesson.title,
+            lessonContents: lesson.lessonContents.map((content) => ({
+                id: content.id,
+                title: content.title,
+                contentType: content.contentType,
+                contents: Array.isArray(content.contents)
+                    ? content.contents.map((c) => ({
+                          contentId: c.contentId,
+                          text: c.text,
+                          examples: Array.isArray(c.examples)
+                              ? c.examples.map((e) => ({
+                                    exampleId: e.exampleId,
+                                    content: e.content,
+                                    explain: e.explain,
+                                }))
+                              : [],
+                      }))
+                    : [],
+                question: Array.isArray(content.question)
+                    ? content.question.map((q) => ({
+                          questionId: q.questionId,
+                          prompt: q.prompt,
+                          correctAnswer: q.correctAnswer,
+                          explanation: q.explanation,
+                          answers: Array.isArray(q.answers)
+                              ? q.answers.map((a) => ({
+                                    text: a.text,
+                                    label: a.label,
+                                    answerId: a.answerId,
+                                }))
+                              : [],
+                      }))
+                    : null,
+            })),
+        };
+        return transformedLesson;
     }
 
     async findByUnitArea(unitAreaId: string): Promise<Lesson[]> {

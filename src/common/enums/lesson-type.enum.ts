@@ -1,5 +1,5 @@
 export enum LessonType {
     TEXT = 'Text',
-    Math = 'Math',
+    MATH = 'Math',
     QUIZ = 'Quiz'
   }

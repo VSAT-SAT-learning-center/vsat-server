@@ -9,7 +9,7 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DomainDistribution, Domain, ModuleType])],
-  providers: [DomainDistributionService, PaginationService],
+  providers: [DomainDistributionService],
   controllers: [DomainDistributionController],
 })
 export class DomainDistributionModule {}
