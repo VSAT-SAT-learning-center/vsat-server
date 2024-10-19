@@ -188,9 +188,69 @@ export class AccountService {
         const savedAccounts: Account[] = [];
         const errors: { account: CreateAccountFromFileDTO; message: string }[] =
             [];
+        let formattedDate: string | null = null;
+        const emailSet = new Set<string>();
 
         for (const account of createAccountFromFileDto) {
             try {
+                if (emailSet.has(account.email)) {
+                    throw new HttpException(
+                        `Duplicate email found: ${account.email}`,
+                        HttpStatus.BAD_REQUEST,
+                    );
+                } else {
+                    emailSet.add(account.email);
+                }
+
+                if (!account.firstname || account.firstname.trim() === '') {
+                    throw new HttpException(
+                        'First name cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.lastname || account.lastname.trim() === '') {
+                    throw new HttpException(
+                        'Last name cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.email || account.email.trim() === '') {
+                    throw new HttpException(
+                        'Email cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.dateofbirth || account.dateofbirth.trim() === '') {
+                    throw new HttpException(
+                        'Date of birth cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.phonenumber || account.phonenumber.trim() === '') {
+                    throw new HttpException(
+                        'Phone number cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!account.role || account.role.trim() === '') {
+                    throw new HttpException(
+                        'Role cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (account.gender === undefined || account.gender === null) {
+                    throw new HttpException(
+                        'Gender cannot be empty',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
                 const checkRole = await this.roleRepository.findOne({
                     where: { rolename: account.role },
                 });
@@ -201,7 +261,17 @@ export class AccountService {
                     );
                 }
 
-                let formattedDate: string | null = null;
+                const email = await this.accountRepository.findOne({
+                    where: { email: account.email },
+                });
+
+                if (email) {
+                    throw new HttpException(
+                        'Email is already exsist',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
                 if (account.dateofbirth) {
                     const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
                     const match = account.dateofbirth.match(datePattern);
@@ -219,9 +289,9 @@ export class AccountService {
 
                     const date = new Date(Date.UTC(year, month, day));
 
-                    formattedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
+                    formattedDate = `${year}-${(month + 1)
                         .toString()
-                        .padStart(2, '0')}`;
+                        .padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
                     if (date > new Date()) {
                         throw new HttpException(
@@ -237,7 +307,23 @@ export class AccountService {
                         HttpStatus.BAD_REQUEST,
                     );
                 }
+            } catch (error) {
+                errors.push({
+                    account,
+                    message: error.message || 'Unknown error',
+                });
+            }
+        }
 
+        if (errors.length > 0) {
+            return {
+                savedAccounts: [],
+                errors,
+            };
+        }
+
+        for (const account of createAccountFromFileDto) {
+            try {
                 const generatedUsername = await this.generateUsername(
                     account.firstname,
                     account.lastname,
@@ -255,7 +341,9 @@ export class AccountService {
                     gender: account.gender,
                     dateofbirth: formattedDate,
                     phonenumber: account.phonenumber,
-                    role: checkRole,
+                    role: await this.roleRepository.findOne({
+                        where: { rolename: account.role },
+                    }),
                 });
 
                 const savedAccount =
@@ -276,23 +364,10 @@ export class AccountService {
 
                 savedAccounts.push(savedAccount);
             } catch (error) {
-                if (
-                    error.code === '23505' &&
-                    error.detail &&
-                    error.detail.includes('email')
-                ) {
-                    // Kiểm tra lỗi trùng email
-                    errors.push({
-                        account,
-                        message: 'Email already exists',
-                    });
-                } else {
-                    // Các lỗi khác
-                    errors.push({
-                        account,
-                        message: error.message || 'Unknown error',
-                    });
-                }
+                errors.push({
+                    account,
+                    message: error.message || 'Unknown error',
+                });
             }
         }
 

@@ -12,6 +12,7 @@ import {
     Req,
     Res,
     UseGuards,
+    ValidationPipe,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
@@ -58,7 +59,10 @@ export class AccountController {
     @Post('createAccountFromFile')
     @ApiBody({ type: [CreateAccountFromFileDTO] })
     async createFromFile(
-        @Body() createAccountFromFileDto: CreateAccountFromFileDTO[],
+        @Body(
+            new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+        )
+        createAccountFromFileDto: CreateAccountFromFileDTO[],
     ) {
         try {
             const saveAccount = await this.accountService.saveFromFile(

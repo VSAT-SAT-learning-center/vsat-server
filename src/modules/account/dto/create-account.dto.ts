@@ -15,10 +15,12 @@ export class CreateAccountDTO {
 
     @Expose()
     @ApiProperty()
+    @IsNotEmpty()
     firstname: string;
 
     @Expose()
     @ApiProperty()
+    @IsNotEmpty()
     lastname: string;
 
     @IsNotEmpty()

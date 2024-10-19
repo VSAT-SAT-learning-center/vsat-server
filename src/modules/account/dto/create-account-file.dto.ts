@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsEmail } from 'class-validator';
 
 export class CreateAccountFromFileDTO {
     @IsNotEmpty()
@@ -14,30 +14,31 @@ export class CreateAccountFromFileDTO {
 
     @ApiProperty()
     @Expose()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'First name should not be empty' })
     firstname: string;
 
     @ApiProperty()
     @Expose()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Last name should not be empty' })
     lastname: string;
 
     @IsNotEmpty()
+    @IsEmail({}, { message: 'Email is not valid' })
     @ApiProperty()
     @Expose()
     email: string;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Gender should not be empty' })
     @ApiProperty()
     @Expose()
     gender: boolean;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Date of birth should not be empty' })
     @ApiProperty()
     @Expose()
     dateofbirth: string;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Phone number should not be empty' })
     @ApiProperty()
     @Expose()
     phonenumber: string;
