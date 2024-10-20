@@ -68,5 +68,5 @@ export class CreateLessonContentDto {
   @ValidateNested({ each: true })
   @IsOptional()
   @Type(() => CreateQuestionDto)
-  question?: CreateQuestionDto[];
+  question?: CreateQuestionDto | null;
 }

@@ -57,5 +57,5 @@ export class LessonContent {
     contents: Content[];
 
     @Column('jsonb', { nullable: true })
-    question: Question[];
+    question: Question | null;
 }

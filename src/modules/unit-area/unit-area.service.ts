@@ -14,8 +14,7 @@ import { UnitService } from '../unit/unit.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { LessonService } from '../lesson/lesson.service';
 import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
-import { LessonDto, UnitAreaResponseDto } from './dto/get-unitarea.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { UnitAreaResponseDto } from './dto/get-unitarea.dto';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -120,35 +119,47 @@ export class UnitAreaService extends BaseService<UnitArea> {
         return this.findAll(paginationOptions);
     }
 
-    async findByUnitIdWithLessons(unitId: string): Promise<any> {
-        const unitAreas = await this.unitAreaRepository.find({
-            where: { unit: { id: unitId } }, // Filter by unitId
-            relations: ['unit', 'lessons'], // Load related lessons
-        });
-
-        // If no UnitAreas found, throw an error
-        if (!unitAreas || unitAreas.length === 0) {
-            throw new NotFoundException(
-                `No UnitAreas found for UnitId: ${unitId}`,
-            );
+    async retryWithBackoff(fn: () => Promise<any>, retries: number = 3, delay: number = 1000): Promise<any> {
+        try {
+            return await fn();
+        } catch (error) {
+            if (retries === 0) {
+                throw error;
+            }
+            console.warn(`Retrying... attempts left: ${retries}`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return this.retryWithBackoff(fn, retries - 1, delay * 2); // Exponential backoff
         }
+    }
 
-        // Chuyển đổi dữ liệu sang DTO
-        const transformedData: UnitAreaResponseDto[] = unitAreas.map(
-            (unitArea) => ({
+    async findByUnitIdWithLessons(unitId: string): Promise<any> {
+        const fetchUnitAreas = async () => {
+            const unitAreas = await this.unitAreaRepository.find({
+                where: { unit: { id: unitId } }, // Filter by unitId
+                relations: ['unit', 'lessons'], // Load related lessons
+            });
+    
+            if (!unitAreas || unitAreas.length === 0) {
+                throw new NotFoundException(`No UnitAreas found for UnitId: ${unitId}`);
+            }
+    
+            const transformedData: UnitAreaResponseDto[] = unitAreas.map((unitArea) => ({
                 id: unitArea.id,
                 title: unitArea.title,
-                unitid: unitArea.unit.id, // Trả về unitid thay vì object unit
+                unitid: unitArea.unit.id,
                 lessons: unitArea.lessons.map((lesson) => ({
                     id: lesson.id,
                     prerequisitelessonid: lesson.prerequisitelessonid,
                     type: lesson.type,
                     title: lesson.title,
-                })) as LessonDto[],
-            }),
-        );
-
-        return transformedData;
+                })),
+            }));
+    
+            return transformedData;
+        };
+    
+        // Use the custom retryWithBackoff function to retry if there are issues
+        return this.retryWithBackoff(fetchUnitAreas, 3, 1000);
     }
 
     async create(createUnitAreaDto: CreateUnitAreaDto): Promise<UnitArea> {

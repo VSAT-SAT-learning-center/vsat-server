@@ -16,7 +16,7 @@ export class LessonContentDto {
     title: string;
     contentType: string;
     contents: ContentDto[];
-    question: QuestionDto[] | null;
+    question: QuestionDto | null;
 }
 
 export class ContentDto {
