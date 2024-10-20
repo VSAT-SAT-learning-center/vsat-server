@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
-    IsString,
-    IsUUID,
-    IsNotEmpty,
-    IsOptional,
     IsBoolean,
     IsEnum,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    IsUUID,
     ValidateNested,
 } from 'class-validator';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
@@ -47,7 +47,11 @@ export class CreateLessonDto {
     @IsOptional()
     status?: boolean;
 
-    @ApiProperty({ type: [CreateLessonContentDto], description: 'Array of lesson contents', required: false })
+    @ApiProperty({
+        type: [CreateLessonContentDto],
+        description: 'Array of lesson contents',
+        required: false,
+    })
     @IsOptional()
     @ValidateNested({ each: true })
     @Type(() => CreateLessonContentDto)
