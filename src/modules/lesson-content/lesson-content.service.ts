@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessonContent } from 'src/database/entities/lessoncontent.entity';
 import { Repository } from 'typeorm';
@@ -74,7 +74,7 @@ export class LessonContentService extends BaseService<LessonContent> {
 
         const lesson = await this.lessonService.findOne(lessonId);
         if (!lesson) {
-            throw new Error('Lesson not found');
+            throw new NotFoundException('Lesson not found');
         }
 
         const newLessonContent = this.lessonContentRepository.create({
@@ -93,12 +93,12 @@ export class LessonContentService extends BaseService<LessonContent> {
 
         const lessonContent = await this.findOne(id);
         if (!lessonContent) {
-            throw new Error('LessonContent not found');
+            throw new NotFoundException('LessonContent not found');
         }
 
         const lesson = await this.lessonService.findOne(lessonId);
         if (!lesson) {
-            throw new Error('Lesson not found');
+            throw new NotFoundException('Lesson not found');
         }
 
         const updatedLessonContent = await this.lessonContentRepository.save({

@@ -125,39 +125,41 @@ export class LessonService extends BaseService<Lesson> {
             prerequisitelessonid: lesson.prerequisitelessonid,
             type: lesson.type,
             title: lesson.title,
-            lessonContents: lesson.lessonContents.map((content) => ({
-                id: content.id,
-                title: content.title,
-                contentType: content.contentType,
-                contents: Array.isArray(content.contents)
-                    ? content.contents.map((c) => ({
-                          contentId: c.contentId,
-                          text: c.text,
-                          examples: Array.isArray(c.examples)
-                              ? c.examples.map((e) => ({
-                                    exampleId: e.exampleId,
-                                    content: e.content,
-                                    explain: e.explain,
-                                }))
-                              : [],
-                      }))
-                    : [],
-                question: Array.isArray(content.question)
-                    ? content.question.map((q) => ({
-                          questionId: q.questionId,
-                          prompt: q.prompt,
-                          correctAnswer: q.correctAnswer,
-                          explanation: q.explanation,
-                          answers: Array.isArray(q.answers)
-                              ? q.answers.map((a) => ({
-                                    text: a.text,
-                                    label: a.label,
-                                    answerId: a.answerId,
-                                }))
-                              : [],
-                      }))
-                    : null,
-            })),
+            lessonContents: Array.isArray(lesson.lessonContents)
+                ? lesson.lessonContents.map((content) => ({
+                      id: content.id,
+                      title: content.title,
+                      contentType: content.contentType,
+                      contents: Array.isArray(content.contents)
+                          ? content.contents.map((c) => ({
+                                contentId: c.contentId,
+                                text: c.text,
+                                examples: Array.isArray(c.examples)
+                                    ? c.examples.map((e) => ({
+                                          exampleId: e.exampleId,
+                                          content: e.content,
+                                          explain: e.explain || '', // Default to empty string if null
+                                      }))
+                                    : [], // Default to empty array if no examples
+                            }))
+                          : [], // Default to empty array if no contents
+                      question: content.question
+                          ? {
+                                questionId: content.question.questionId,
+                                prompt: content.question.prompt,
+                                correctAnswer: content.question.correctAnswer,
+                                explanation: content.question.explanation || '', // Default to empty string if null
+                                answers: Array.isArray(content.question.answers)
+                                    ? content.question.answers.map((a) => ({
+                                          text: a.text,
+                                          label: a.label,
+                                          answerId: a.answerId,
+                                      }))
+                                    : [], // Default to empty array if no answers
+                            }
+                          : null, // Default to null if no question
+                  }))
+                : [], // Default to empty array if no lessonContents
         };
         return transformedLesson;
     }
