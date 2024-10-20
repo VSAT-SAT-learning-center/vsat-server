@@ -21,8 +21,8 @@ export class LessonProgressService extends BaseService<LessonProgress> {
 
     async updateLessonProgress(unitAreaProgressId: string, lessonId: string, progress: number): Promise<LessonProgress> {
       // Find lesson and unit area progress
-      const lesson = await this.lessonService.findOne(lessonId);
-      const unitAreaProgress = await this.unitAreaProgressService.findOne(unitAreaProgressId);
+      const lesson = await this.lessonService.findOneById(lessonId);
+      const unitAreaProgress = await this.unitAreaProgressService.findOneById(unitAreaProgressId);
   
       let lessonProgress = await this.lessonProgressRepository.findOne({
         where: {
@@ -47,7 +47,7 @@ export class LessonProgressService extends BaseService<LessonProgress> {
     }
   
     async calculateUnitAreaProgress(unitAreaId: string): Promise<number> {
-      const lessons = await this.lessonService.findByUnitArea(unitAreaId);
+      const lessons = await this.lessonService.findLessonsByUnitArea(unitAreaId);
     
       if (lessons.length === 0) {
         return 0;
@@ -72,13 +72,13 @@ export class LessonProgressService extends BaseService<LessonProgress> {
       const { lessonId, unitAreaProgressId, ...lessonProgressData } =
           createLessonProgressDto;
 
-      const lesson = await this.lessonService.findOne(lessonId);
+      const lesson = await this.lessonService.findOneById(lessonId);
       if (!lesson) {
           throw new NotFoundException('Lesson not found');
       }
 
       const unitAreaProgress =
-          await this.unitAreaProgressService.findOne(unitAreaProgressId);
+          await this.unitAreaProgressService.findOneById(unitAreaProgressId);
       if (!unitAreaProgress) {
           throw new NotFoundException('UnitAreaProgress not found');
       }
@@ -99,18 +99,18 @@ export class LessonProgressService extends BaseService<LessonProgress> {
       const { lessonId, unitAreaProgressId, ...lessonProgressData } =
           updateLessonProgressDto;
 
-      const lessonProgress = await this.findOne(id);
+      const lessonProgress = await this.findOneById(id);
       if (!lessonProgress) {
           throw new NotFoundException('LessonProgress not found');
       }
 
-      const lesson = await this.lessonService.findOne(lessonId);
+      const lesson = await this.lessonService.findOneById(lessonId);
       if (!lesson) {
           throw new NotFoundException('Lesson not found');
       }
 
       const unitAreaProgress =
-          await this.unitAreaProgressService.findOne(unitAreaProgressId);
+          await this.unitAreaProgressService.findOneById(unitAreaProgressId);
 
       if (!unitAreaProgress) {
           throw new NotFoundException('UnitAreaProgress not found');

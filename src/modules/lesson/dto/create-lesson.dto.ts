@@ -16,6 +16,13 @@ export class CreateLessonDto {
     @ApiProperty({
         example: '763e9e17-350e-4d84-bba3-1eab8c4326fa',
     })
+    @IsOptional()
+    @IsUUID()
+    id?: string;
+
+    @ApiProperty({
+        example: '763e9e17-350e-4d84-bba3-1eab8c4326fa',
+    })
     @IsUUID()
     @IsNotEmpty()
     unitAreaId: string;
@@ -47,9 +54,14 @@ export class CreateLessonDto {
     @IsOptional()
     status?: boolean;
 
-    @ApiProperty({ type: [CreateLessonContentDto], description: 'Array of lesson contents', required: false })
+    @ApiProperty({
+        type: [CreateLessonContentDto],
+        description: 'Array of lesson contents',
+        required: false,
+    })
     @IsOptional()
     @ValidateNested({ each: true })
     @Type(() => CreateLessonContentDto)
     lessonContents?: CreateLessonContentDto[];
 }
+

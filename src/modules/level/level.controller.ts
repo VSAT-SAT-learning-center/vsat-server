@@ -10,6 +10,7 @@ import {
     Param,
     Post,
     Put,
+    Query,
     Req,
     UseGuards,
 } from '@nestjs/common';
@@ -19,12 +20,13 @@ import { RolesGuard } from '../../common/guards/role.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { Level } from 'src/database/entities/level.entity';
+import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 
 @ApiTags('Level')
 @Controller('level')
 export class LevelController extends BaseController<Level> {
     constructor(private readonly levelService: LevelService) {
-      super(levelService, 'Level'); // Pass service and entity name to BaseController
+        super(levelService, 'Level');
     }
 
     @Post()
@@ -80,24 +82,69 @@ export class LevelController extends BaseController<Level> {
     }
 
     @Get()
-    async find() {
-        try {
-            const level = await this.levelService.find();
+    async findAll(@Query() paginationOptions: PaginationOptionsDto) {
+        const { page, pageSize } = paginationOptions;
+
+        // Nếu không có page và pageSize, thì gọi phương thức lấy tất cả dữ liệu (không phân trang)
+        if (!page || !pageSize) {
+            const data = await this.levelService.getAll();
             return ResponseHelper.success(
                 HttpStatus.OK,
-                level,
-                SuccessMessages.create('Level'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
+                data,
+                SuccessMessages.gets("Level"),
             );
         }
+
+        if(!paginationOptions.page) {
+            paginationOptions.page = 1;
+        } 
+
+        if(!paginationOptions.pageSize) {
+            paginationOptions.pageSize = 10;
+        }
+        
+        // Nếu có page và pageSize thì thực hiện phân trang
+        const { data, totalItems, totalPages } = await this.levelService.findAll(paginationOptions);
+        const paging = {
+            page: paginationOptions.page,
+            pageSize: paginationOptions.pageSize,
+            totalItems,
+            totalPages,
+        };
+
+        const sorting = {
+            sortBy: paginationOptions.sortBy,
+            sortOrder: paginationOptions.sortOrder,
+        };
+
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            data,
+            SuccessMessages.gets("Level"),
+            paging,
+            sorting,
+        );
     }
+
+    // @Get()
+    // async find() {
+    //     try {
+    //         const level = await this.levelService.find();
+    //         return ResponseHelper.success(
+    //             HttpStatus.OK,
+    //             level,
+    //             SuccessMessages.create('Level'),
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 
     @Get(':id')
     async findById(@Param('id') id: string) {

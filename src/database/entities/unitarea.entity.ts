@@ -1,38 +1,50 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    ManyToOne,
+    JoinColumn,
+    OneToMany,
+} from 'typeorm';
 import { Unit } from './unit.entity';
 import { Lesson } from './lesson.entity';
 
 @Entity('unitarea')
 export class UnitArea {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdat: Date;
+    @CreateDateColumn({ type: 'timestamp' })
+    createdat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  createdby: string;
+    @Column({ type: 'uuid', nullable: true })
+    createdby: string;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedat: Date;
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  updatedby: string;
+    @Column({ type: 'uuid', nullable: true })
+    updatedby: string;
 
-  @ManyToOne(() => Unit, (unit) => unit.unitAreas)
-  @JoinColumn({ name: 'unitid' })
-  unit: Unit;
+    @ManyToOne(() => Unit, (unit) => unit.unitAreas)
+    @JoinColumn({ name: 'unitid' })
+    unit: Unit;
 
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
+    @Column({ type: 'varchar', length: 255 })
+    title: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+    @Column({ type: 'text', nullable: true })
+    description: string;
 
-  @Column({ type: 'boolean', default: true })
-  status: boolean;
+    @Column({ type: 'boolean', default: true })
+    status: boolean;
 
-  //OneToMany
-  @OneToMany(() => Lesson, (lesson) => lesson.unitArea)
-  lessons: Lesson[];
+    //OneToMany
+    @OneToMany(() => Lesson, (lesson) => lesson.unitArea, {
+        cascade: true,
+        onDelete: 'CASCADE',
+    })
+    lessons: Lesson[];
 }

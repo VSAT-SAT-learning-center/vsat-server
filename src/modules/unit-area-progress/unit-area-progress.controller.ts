@@ -29,7 +29,7 @@ export class UnitAreaProgressController extends BaseController<UnitAreaProgress>
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unit = await this.unitAreaProgressService.findOne(id, [
+        const unit = await this.unitAreaProgressService.findOneById(id, [
             'lessonProgresses',
         ]);
         return ResponseHelper.success(

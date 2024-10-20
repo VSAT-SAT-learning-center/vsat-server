@@ -1,11 +1,15 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessonContent } from 'src/database/entities/lessoncontent.entity';
 import { Repository } from 'typeorm';
 import { CreateLessonContentDto } from './dto/create-lessoncontent.dto';
 import { UpdateLessonContentDto } from './dto/update-lessoncontent.dto';
 import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { LessonService } from '../lesson/lesson.service';
 import { Lesson } from 'src/database/entities/lesson.entity';
 
@@ -21,19 +25,72 @@ export class LessonContentService extends BaseService<LessonContent> {
 
     async saveLessonContents(
         lesson: Lesson,
-        lessonContents: CreateLessonContentDto[],
+        lessonContentsDto: CreateLessonContentDto[],
     ): Promise<void> {
-        for (const contentDto of lessonContents) {
-            const { contentType, title, contents, question } = contentDto;
+        const existingLessonContents = lesson.lessonContents || [];
 
-            const lessonContent = this.lessonContentRepository.create({
-                contentType,
-                title,
-                contents,
-                lesson,
-                question: question ? question : null,
-            });
+        // Extract IDs of the existing contents and the incoming contents
+        const existingContentIds = existingLessonContents.map(
+            (content) => content.id,
+        );
+        const incomingContentIds = lessonContentsDto.map(
+            (contentDto) => contentDto.id,
+        );
 
+        // 1. Xóa các LessonContent đã bị xóa từ phía UI (không có trong danh sách mới)
+        for (const existingContent of existingLessonContents) {
+            if (!incomingContentIds.includes(existingContent.id)) {
+                // Xóa lesson content không còn trong danh sách mới
+                await this.lessonContentRepository.remove(existingContent);
+            }
+        }
+
+        // 2. Xử lý cập nhật và thêm mới
+        for (const contentDto of lessonContentsDto) {
+            let { id, contentType, title, contents, question } = contentDto;
+
+            // Kiểm tra contentType có giá trị hay không
+            if (!contentType) {
+                throw new Error('Content type is required for lesson content.');
+            }
+
+            let lessonContent;
+
+            if (id) {
+                // Cập nhật nội dung hiện có nếu tồn tại
+                lessonContent = await this.lessonContentRepository.findOne({
+                    where: { id, lesson: { id: lesson.id } },
+                });
+
+                if (lessonContent) {
+                    // Cập nhật nếu lesson content đã tồn tại
+                    lessonContent.contentType = contentType;
+                    lessonContent.title = title;
+                    lessonContent.contents = contents;
+                    lessonContent.question = question || null;
+                } else {
+                    // Nếu không tìm thấy ID thì tạo mới (tránh trường hợp dữ liệu sai)
+                    lessonContent = this.lessonContentRepository.create({
+                        id,
+                        contentType,
+                        title,
+                        contents,
+                        lesson,
+                        question: question || null,
+                    });
+                }
+            } else {
+                // Nếu không có ID (dữ liệu mới từ UI), tạo mới nội dung
+                lessonContent = this.lessonContentRepository.create({
+                    contentType,
+                    title,
+                    contents,
+                    lesson,
+                    question: question || null,
+                });
+            }
+
+            // Lưu nội dung vào cơ sở dữ liệu
             await this.lessonContentRepository.save(lessonContent);
         }
     }
@@ -72,7 +129,7 @@ export class LessonContentService extends BaseService<LessonContent> {
     ): Promise<LessonContent> {
         const { lessonId, ...lessonContentData } = createLessonContentDto;
 
-        const lesson = await this.lessonService.findOne(lessonId);
+        const lesson = await this.lessonService.findOneById(lessonId);
         if (!lesson) {
             throw new NotFoundException('Lesson not found');
         }
@@ -91,12 +148,12 @@ export class LessonContentService extends BaseService<LessonContent> {
     ): Promise<LessonContent> {
         const { lessonId, ...lessonContentData } = updateLessonContentDto;
 
-        const lessonContent = await this.findOne(id);
+        const lessonContent = await this.findOneById(id);
         if (!lessonContent) {
             throw new NotFoundException('LessonContent not found');
         }
 
-        const lesson = await this.lessonService.findOne(lessonId);
+        const lesson = await this.lessonService.findOneById(lessonId);
         if (!lesson) {
             throw new NotFoundException('Lesson not found');
         }

@@ -20,10 +20,6 @@ export class UnitService extends BaseService<Unit> {
         super(unitRepository);
     }
 
-    // async findOneWithUnitArea(id: string): Promise<Unit> {
-    //     return this.findOne(id, ["UnitArea"]);
-    // }
-
     async create(createUnitDto: CreateUnitDto): Promise<Unit> {
         const { sectionId, levelId, ...unitData } = createUnitDto;
 
@@ -49,7 +45,7 @@ export class UnitService extends BaseService<Unit> {
     async update(id: string, updateUnitDto: UpdateUnitDto): Promise<Unit> {
         const { sectionId, levelId, ...unitData } = updateUnitDto;
 
-        const unit = await this.findOne(id);
+        const unit = await this.findOneById(id);
         if (!unit) {
             throw new NotFoundException('Unit not found');
         }
@@ -80,7 +76,7 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<Unit> {
         const updateUnit = updateStatusUnitDto;
 
-        const unit = await this.findOne(id);
+        const unit = await this.findOneById(id);
         if (!unit) {
             throw new NotFoundException('Unit not found');
         }

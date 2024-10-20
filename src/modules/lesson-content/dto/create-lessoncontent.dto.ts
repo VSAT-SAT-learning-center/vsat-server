@@ -6,6 +6,15 @@ import { CreateContentDto } from './create-content.dto';
 import { CreateQuestionDto } from './create-question.dto';
 
 export class CreateLessonContentDto {
+
+  @ApiProperty({
+    example: '45dc7a26-e7a0-414e-b7fb-1b30d255cecf',
+    description: 'ID of the lesson content. Required for updating, leave empty for new content.',
+  })
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
   @ApiProperty({
     example: '45dc7a26-e7a0-414e-b7fb-1b30d255cecf',
   })

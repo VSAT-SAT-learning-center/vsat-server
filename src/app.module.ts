@@ -88,7 +88,6 @@ import { GptModule } from './modules/gpt/gpt.module';
         UnitProgressModule,
         AnswerModule,
         GptModule,
-        //LearningMaterialModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

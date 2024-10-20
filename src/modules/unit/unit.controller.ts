@@ -26,7 +26,7 @@ export class UnitController extends BaseController<Unit> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unit = await this.unitService.findOne(id, ['unitAreas']);
+        const unit = await this.unitService.findOneById(id, ['unitAreas']);
         return ResponseHelper.success(
             HttpStatus.OK,
             unit,

@@ -29,13 +29,13 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         const { unitId, studyProfileId, ...unitProgressData } =
             createUnitProgressDto;
 
-        const unit = await this.unitService.findOne(unitId);
+        const unit = await this.unitService.findOneById(unitId);
         if (!unit) {
             throw new NotFoundException('Unit not found');
         }
 
         const studyProfile =
-            await this.studyProfileService.findOne(studyProfileId);
+            await this.studyProfileService.findOneById(studyProfileId);
         if (!studyProfile) {
             throw new NotFoundException('StudyProfile not found');
         }
@@ -56,18 +56,18 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         const { unitId, studyProfileId, ...unitProgressData } =
             updateUnitProgressDto;
 
-        const unitProgress = await this.findOne(id);
+        const unitProgress = await this.findOneById(id);
         if (!unitProgress) {
             throw new NotFoundException('UnitProgress not found');
         }
 
-        const unit = await this.unitService.findOne(unitId);
+        const unit = await this.unitService.findOneById(unitId);
         if (!unit) {
             throw new NotFoundException('Unit not found');
         }
 
         const studyProfile =
-            await this.studyProfileService.findOne(studyProfileId);
+            await this.studyProfileService.findOneById(studyProfileId);
         if (!studyProfile) {
             throw new NotFoundException('StudyProfile not found');
         }
