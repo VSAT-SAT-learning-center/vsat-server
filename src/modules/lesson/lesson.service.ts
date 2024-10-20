@@ -49,6 +49,7 @@ export class LessonService extends BaseService<Lesson> {
         // Tìm Lesson theo ID
         let lesson = await this.lessonRepository.findOne({
             where: { id: lessonId },
+            relations: ['lessonContents'], // Include lessonContents to process them later
         });
 
         if (!lesson) {
@@ -60,7 +61,7 @@ export class LessonService extends BaseService<Lesson> {
         lesson.type = type;
         await this.lessonRepository.save(lesson);
 
-        // Gọi LessonContentService để xử lý danh sách LessonContents
+        // Gọi LessonContentService để xử lý danh sách LessonContents (thêm, xóa, cập nhật)
         await this.lessonContentService.saveLessonContents(
             lesson,
             lessonContents,
