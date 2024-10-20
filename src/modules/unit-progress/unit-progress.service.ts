@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
@@ -29,15 +29,15 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         const { unitId, studyProfileId, ...unitProgressData } =
             createUnitProgressDto;
 
-        const unit = await this.unitService.findOne(unitId);
+        const unit = await this.unitService.findOneById(unitId);
         if (!unit) {
-            throw new Error('Unit not found');
+            throw new NotFoundException('Unit not found');
         }
 
         const studyProfile =
-            await this.studyProfileService.findOne(studyProfileId);
+            await this.studyProfileService.findOneById(studyProfileId);
         if (!studyProfile) {
-            throw new Error('StudyProfile not found');
+            throw new NotFoundException('StudyProfile not found');
         }
 
         const newUnitProgress = this.unitProgressRepository.create({
@@ -56,20 +56,20 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         const { unitId, studyProfileId, ...unitProgressData } =
             updateUnitProgressDto;
 
-        const unitProgress = await this.findOne(id);
+        const unitProgress = await this.findOneById(id);
         if (!unitProgress) {
-            throw new Error('UnitProgress not found');
+            throw new NotFoundException('UnitProgress not found');
         }
 
-        const unit = await this.unitService.findOne(unitId);
+        const unit = await this.unitService.findOneById(unitId);
         if (!unit) {
-            throw new Error('Unit not found');
+            throw new NotFoundException('Unit not found');
         }
 
         const studyProfile =
-            await this.studyProfileService.findOne(studyProfileId);
+            await this.studyProfileService.findOneById(studyProfileId);
         if (!studyProfile) {
-            throw new Error('StudyProfile not found');
+            throw new NotFoundException('StudyProfile not found');
         }
 
         const updatedUnitProgress = this.unitProgressRepository.save({

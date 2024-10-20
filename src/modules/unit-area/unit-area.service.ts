@@ -13,9 +13,8 @@ import { BaseService } from '../base/base.service';
 import { UnitService } from '../unit/unit.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { LessonService } from '../lesson/lesson.service';
-import { LessonType } from 'src/common/enums/lesson-type.enum';
 import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
-import { LessonDto, UnitAreaResponseDto } from './dto/get-unitarea.dto';
+import { UnitAreaResponseDto } from './dto/get-unitarea.dto';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -29,111 +28,86 @@ export class UnitAreaService extends BaseService<UnitArea> {
     ) {
         super(unitAreaRepository);
     }
-    async createUnitAreaWithLessons(
+
+    async createOrUpdateUnitAreas(
         createUnitAreaDtoList: CreateLearningMaterialDto[],
     ): Promise<UnitArea[]> {
-        const createdUnitAreas: UnitArea[] = [];
+        const createdOrUpdatedUnitAreas: UnitArea[] = [];
 
+        const { unitId } = createUnitAreaDtoList[0];
+
+        // Lấy danh sách tất cả các UnitArea hiện có của Unit
+        const existingUnitAreas = await this.unitAreaRepository.find({
+            where: { unit: { id: unitId } },
+            relations: ['lessons'], // Load cả các lesson liên quan
+        });
+
+        // Lưu giữ các unitAreaId hiện tại để theo dõi xóa các bản ghi không còn tồn tại
+        const unitAreaIdsInRequest = createUnitAreaDtoList.map(
+            (unitArea) => unitArea.id,
+        );
+
+        // Xử lý từng UnitArea trong danh sách được truyền lên
         for (const createUnitAreaDto of createUnitAreaDtoList) {
             const { unitId, lessons, ...unitAreaData } = createUnitAreaDto;
 
-            // Fetch the Unit entity
-            const unit = await this.unitService.findOne(unitId);
-            if (!unit) {
-                throw new NotFoundException('Unit not found');
+            let unitArea;
+
+            // Kiểm tra nếu unitAreaId là chuỗi rỗng hoặc không tồn tại
+            if (!unitAreaData.id) {
+                unitArea = this.unitAreaRepository.create({
+                    ...unitAreaData,
+                    unit: { id: unitId },
+                });
+            } else {
+                // Tìm kiếm UnitArea hiện có trong cơ sở dữ liệu
+                unitArea = await this.unitAreaRepository.findOne({
+                    where: { id: unitAreaData.id, unit: { id: unitId } },
+                });
+
+                if (unitArea) {
+                    // Cập nhật UnitArea hiện có
+                    unitArea = this.unitAreaRepository.merge(
+                        unitArea,
+                        unitAreaData,
+                    );
+                } else {
+                    // Tạo mới UnitArea nếu không tìm thấy với ID được cung cấp
+                    unitArea = this.unitAreaRepository.create({
+                        ...unitAreaData,
+                        id: unitAreaData.id,
+                        unit: { id: unitId },
+                    });
+                }
             }
 
-            // Ensure lessons are provided
-            if (!lessons || lessons.length === 0) {
-                throw new NotFoundException(
-                    'Lessons are required when creating UnitArea',
-                );
-            }
+            // Lưu UnitArea
+            await this.unitAreaRepository.save(unitArea);
 
-            // Create the UnitArea entity using UnitAreaService
-            const newUnitArea = await this.create({
-                ...unitAreaData,
-                unitId: unit.id, // Pass unitId to UnitAreaService
-                ...lessons, // Pass lessons array to UnitAreaService
-            });
-
-            // Create associated Lessons using LessonService
-            const createdLessons = await Promise.all(
-                lessons.map((lessonData) =>
-                    this.lessonService.create({
-                        ...lessonData,
-                        unitAreaId: newUnitArea.id, // Pass unitAreaId to LessonService
-                        type: lessonData.type,
-                    }),
-                ),
+            // Sử dụng LessonService để xử lý lesson
+            await this.lessonService.createOrUpdateManyLessons(
+                unitArea.id,
+                lessons,
             );
 
-            // After creating the lessons, you can push the saved UnitArea to the created list
-            createdUnitAreas.push({
-                ...newUnitArea,
-                lessons: createdLessons, // Attach the lessons to UnitArea
-            });
+            createdOrUpdatedUnitAreas.push(unitArea);
         }
 
-        return createdUnitAreas;
+        // Xóa các UnitArea không còn trong danh sách truyền lên
+        for (const existingUnitArea of existingUnitAreas) {
+            if (!unitAreaIdsInRequest.includes(existingUnitArea.id)) {
+                // Xóa tất cả các bài học (lesson) liên quan trước khi xóa UnitArea
+                await this.lessonService.deleteLessonsByUnitArea(
+                    existingUnitArea.id,
+                );
+
+                // Sau đó xóa UnitArea
+                await this.unitAreaRepository.remove(existingUnitArea);
+            }
+        }
+
+        return createdOrUpdatedUnitAreas;
     }
-
-    // async updateUnitAreaWithLessons(
-    //     id: string,
-    //     updateLearningMaterialDto: UpdateLearningMaterialDto,
-    // ): Promise<UnitArea> {
-    //     const { unitId, lessons, ...unitAreaData } = updateLearningMaterialDto;
-
-    //     // Find the UnitArea by id
-    //     const unitArea = await this.findOne(id);
-    //     if (!unitArea) {
-    //         throw new NotFoundException('UnitArea not found');
-    //     }
-
-    //     if (!unitId) {
-    //         throw new NotFoundException('Null unitId');
-    //     }
-
-    //     const unit = await this.unitService.findOne(unitId);
-    //     if (!unit) {
-    //         throw new NotFoundException('Unit not found');
-    //     }
-    //     unitArea.unit = unit;
-
-    //     // Update the UnitArea entity using UnitAreaService
-    //     const updatedUnitArea = await this.update(id, {
-    //         ...unitAreaData,
-    //         unitId: unitId,
-    //         lessons: lessons,
-    //     });
-
-    //     // Optionally update lessons
-    //     if (lessons && lessons.length > 0) {
-    //         const updatedLessons = await Promise.all(
-    //             lessons.map(async (lessonData) => {
-    //                 if (lessonData.id) {
-    //                     // If lesson ID is provided, update the existing lesson
-    //                     return await this.lessonService.update(lessonData.id, {
-    //                         ...lessonData,
-    //                     });
-    //                 } else {
-    //                     // Otherwise, create a new lesson
-    //                     return await this.lessonService.create({
-    //                         ...lessonData,
-    //                         unitAreaId: updatedUnitArea.id,
-    //                         title: lessonData.title,
-    //                     });
-    //                 }
-    //             }),
-    //         );
-    //         return {
-    //             ...updatedUnitArea,
-    //             lessons: updatedLessons, // Attach updated lessons
-    //         };
-    //     }
-
-    //     return updatedUnitArea;
-    // }
 
     async findAllWithLessons(
         paginationOptions: PaginationOptionsDto,
@@ -145,39 +119,53 @@ export class UnitAreaService extends BaseService<UnitArea> {
         return this.findAll(paginationOptions);
     }
 
-    async findByUnitIdWithLessons(unitId: string): Promise<any> {
-        const unitAreas = await this.unitAreaRepository.find({
-            where: { unit: { id: unitId } }, // Filter by unitId
-            relations: ['unit', 'lessons'], // Load related lessons
-        });
-
-        // If no UnitAreas found, throw an error
-        if (!unitAreas || unitAreas.length === 0) {
-            throw new NotFoundException(
-                `No UnitAreas found for UnitId: ${unitId}`,
-            );
+    async retryWithBackoff(fn: () => Promise<any>, retries: number = 3, delay: number = 1000): Promise<any> {
+        try {
+            return await fn();
+        } catch (error) {
+            if (retries === 0) {
+                throw error;
+            }
+            console.warn(`Retrying... attempts left: ${retries}`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return this.retryWithBackoff(fn, retries - 1, delay * 2); // Exponential backoff
         }
+    }
 
-        // Chuyển đổi dữ liệu sang DTO
-        const transformedData: UnitAreaResponseDto[] = unitAreas.map((unitArea) => ({
-            id: unitArea.id,
-            title: unitArea.title,
-            unitid: unitArea.unit.id,  // Trả về unitid thay vì object unit
-            lessons: unitArea.lessons.map((lesson) => ({
-              id: lesson.id,
-              prerequisitelessonid: lesson.prerequisitelessonid,
-              type: lesson.type,
-              title: lesson.title,
-            })) as LessonDto[],
-          }));
-
-        return transformedData;
+    async findByUnitIdWithLessons(unitId: string): Promise<any> {
+        const fetchUnitAreas = async () => {
+            const unitAreas = await this.unitAreaRepository.find({
+                where: { unit: { id: unitId } }, // Filter by unitId
+                relations: ['unit', 'lessons'], // Load related lessons
+            });
+    
+            if (!unitAreas || unitAreas.length === 0) {
+                throw new NotFoundException(`No UnitAreas found for UnitId: ${unitId}`);
+            }
+    
+            const transformedData: UnitAreaResponseDto[] = unitAreas.map((unitArea) => ({
+                id: unitArea.id,
+                title: unitArea.title,
+                unitid: unitArea.unit.id,
+                lessons: unitArea.lessons.map((lesson) => ({
+                    id: lesson.id,
+                    prerequisitelessonid: lesson.prerequisitelessonid,
+                    type: lesson.type,
+                    title: lesson.title,
+                })),
+            }));
+    
+            return transformedData;
+        };
+    
+        // Use the custom retryWithBackoff function to retry if there are issues
+        return this.retryWithBackoff(fetchUnitAreas, 3, 1000);
     }
 
     async create(createUnitAreaDto: CreateUnitAreaDto): Promise<UnitArea> {
         const { unitId, ...unitAreaData } = createUnitAreaDto;
 
-        const unit = await this.unitService.findOne(unitId);
+        const unit = await this.unitService.findOneById(unitId);
         if (!unit) {
             throw new NotFoundException('Unit not found');
         }
@@ -196,12 +184,12 @@ export class UnitAreaService extends BaseService<UnitArea> {
     ): Promise<UnitArea> {
         const { unitId, ...unitAreaData } = updateUnitAreaDto;
 
-        const unitArea = await this.findOne(id);
+        const unitArea = await this.findOneById(id);
         if (!unitArea) {
             throw new NotFoundException('UnitArea not found');
         }
 
-        const unit = await this.unitService.findOne(unitId);
+        const unit = await this.unitService.findOneById(unitId);
         if (!unit) {
             throw new NotFoundException('Unit not found');
         }

@@ -36,7 +36,7 @@ export class LessonContentController extends BaseController<LessonContent> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const lessonContent = await this.lessonContentService.findOne(id);
+        const lessonContent = await this.lessonContentService.findOneById(id);
         return ResponseHelper.success(
             HttpStatus.OK,
             lessonContent,

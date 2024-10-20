@@ -10,7 +10,7 @@ export class BaseService<T> {
         protected readonly paginationService?: PaginationService, // Inject PaginationService
     ) {}
 
-    async getAll(relations?: string[]): Promise<T[]> {
+    async getAll(relations?: string[]): Promise<any> {
         try {
             return await this.repository.find({
                 relations, // Fetch related entities if needed
@@ -59,7 +59,7 @@ export class BaseService<T> {
         }
     }
 
-    async findOne(
+    async findOneById(
         id: string | number,
         relations: string[] = [],
     ): Promise<T | undefined> {
@@ -113,7 +113,7 @@ export class BaseService<T> {
                 );
             }
 
-            return this.findOne(id);
+            return this.findOneById(id);
         } catch (error) {
             console.error('Log Error:', error);
             throw new HttpException(

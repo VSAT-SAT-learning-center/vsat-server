@@ -105,8 +105,8 @@ export class BaseController<T> {
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string) {
-        const entity = await this.baseService.findOne(id);
+    async findOneById(@Param('id') id: string) {
+        const entity = await this.baseService.findOneById(id);
         if (!entity) {
             return ResponseHelper.error(
                 null,

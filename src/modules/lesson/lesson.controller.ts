@@ -48,7 +48,7 @@ export class LessonController extends BaseController<Lesson> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unit = await this.lessonService.findOne(id, ['lessonContents']);
+        const unit = await this.lessonService.findOneById(id, ['lessonContents']);
         return ResponseHelper.success(
             HttpStatus.OK,
             unit,
@@ -67,6 +67,7 @@ export class LessonController extends BaseController<Lesson> {
     }
 
     @Patch(':id')
+
     async update(
         @Param('id') id: string,
         @Body() updateLessonDto: UpdateLessonDto,

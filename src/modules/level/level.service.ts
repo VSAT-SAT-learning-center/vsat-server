@@ -4,17 +4,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Level } from 'src/database/entities/level.entity';
 import { Repository } from 'typeorm';
 import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { GetLevelDTO } from './dto/get-level.dto';
 
 @Injectable()
 export class LevelService extends BaseService<Level> {
     constructor(
-      @InjectRepository(Level)
-      private readonly levelRepository: Repository<Level>,
-      paginationService: PaginationService,
+        @InjectRepository(Level)
+        private readonly levelRepository: Repository<Level>,
     ) {
-      super(levelRepository, paginationService);
+        super(levelRepository);
     }
 
     //save
@@ -63,6 +61,23 @@ export class LevelService extends BaseService<Level> {
         return plainToInstance(GetLevelDTO, levelUpdated, {
             excludeExtraneousValues: true,
         });
+    }
+
+    async getAll(): Promise<GetLevelDTO[]> {
+        try {
+            // Fetch data từ repository
+            const level = await this.levelRepository.find();
+
+            return plainToInstance(GetLevelDTO, level, {
+                excludeExtraneousValues: true,
+            });
+        } catch (error) {
+            console.error('Log Error:', error);
+            throw new HttpException(
+                'Failed to retrieve data',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
     }
 
     //find

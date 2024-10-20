@@ -73,13 +73,13 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         const { unitAreaId, unitProgressId, ...unitAreaProgressData } =
             createUnitAreaProgressDto;
 
-        const unitArea = await this.unitAreaService.findOne(unitAreaId);
+        const unitArea = await this.unitAreaService.findOneById(unitAreaId);
         if (!unitArea) {
             throw new NotFoundException('UnitArea not found');
         }
 
         const unitProgress =
-            await this.unitProgressService.findOne(unitProgressId);
+            await this.unitProgressService.findOneById(unitProgressId);
         if (!unitProgress) {
             throw new NotFoundException('UnitProgress not found');
         }
@@ -100,18 +100,18 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         const { unitAreaId, unitProgressId, ...unitAreaProgressData } =
             updateUnitAreaProgressDto;
 
-        const unitAreaProgress = await this.findOne(id);
+        const unitAreaProgress = await this.findOneById(id);
         if (!unitAreaProgress) {
             throw new NotFoundException('UnitAreaProgress not found');
         }
 
-        const unitArea = await this.unitAreaService.findOne(unitAreaId);
+        const unitArea = await this.unitAreaService.findOneById(unitAreaId);
         if (!unitArea) {
             throw new NotFoundException('UnitArea not found');
         }
 
         const unitProgress =
-            await this.unitProgressService.findOne(unitProgressId);
+            await this.unitProgressService.findOneById(unitProgressId);
 
         if (!unitProgress) {
             throw new NotFoundException('UnitProgress not found');

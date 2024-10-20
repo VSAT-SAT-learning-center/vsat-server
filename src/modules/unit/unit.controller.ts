@@ -15,6 +15,7 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { Unit } from 'src/database/entities/unit.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { UnitResponseDto } from './dto/get-unit.dto';
 
 @ApiTags('Units')
 @Controller('units')
@@ -25,7 +26,7 @@ export class UnitController extends BaseController<Unit> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unit = await this.unitService.findOne(id, ['unitAreas']);
+        const unit = await this.unitService.findOneById(id, ['unitAreas']);
         return ResponseHelper.success(
             HttpStatus.OK,
             unit,
@@ -70,5 +71,10 @@ export class UnitController extends BaseController<Unit> {
             updatedLessonContent,
             SuccessMessages.update('Unit'),
         );
+    }
+
+    @Get(':unitId/details')
+    async getUnitDetails(@Param('unitId') unitId: string): Promise<UnitResponseDto> {
+        return await this.unitService.getUnitWithDetails(unitId);
     }
 }
