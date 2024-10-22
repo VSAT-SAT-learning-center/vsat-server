@@ -15,7 +15,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { Unit } from 'src/database/entities/unit.entity';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { UnitResponseDto } from './dto/get-unit.dto';
 
 @ApiTags('Units')
@@ -32,6 +32,18 @@ export class UnitController extends BaseController<Unit> {
             HttpStatus.OK,
             unit,
             SuccessMessages.get('Unit'),
+        );
+    }
+
+    @Post(':id/submit-learning-material') // Endpoint để submit tài liệu học tập
+    @ApiParam({ name: 'id', required: true, description: 'ID of the unit' }) // Swagger parameter
+    async submitLearningMaterial(@Param('id') unitId: string) {
+        const unit = await this.unitService.submitLearningMaterial(unitId);
+
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            unit,
+            SuccessMessages.update('Unit'),
         );
     }
 

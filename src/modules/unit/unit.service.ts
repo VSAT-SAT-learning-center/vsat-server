@@ -10,6 +10,7 @@ import { LevelService } from '../level/level.service';
 import { UnitResponseDto } from './dto/get-unit.dto';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { FeedbackService } from '../feedback/feedback.service';
+import { UpdateUnitStatusDto } from './dto/update-status-unit.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -192,7 +193,7 @@ export class UnitService extends BaseService<Unit> {
         return transformedData;
     }
 
-    async submitLearningMaterial(unitId: string): Promise<void> {
+    async submitLearningMaterial(unitId: string): Promise<Unit> {
         const unit = await this.unitRepository.findOne({
             where: { id: unitId }
         });
@@ -204,5 +205,7 @@ export class UnitService extends BaseService<Unit> {
         // Update status to indicate that the learning material has been submitted
         unit.status = UnitStatus.SUBMIT;
         await this.unitRepository.save(unit);
+
+        return unit;
     }
 }
