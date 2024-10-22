@@ -114,7 +114,6 @@ export class UnitService extends BaseService<Unit> {
         page: number = 1,
         pageSize: number = 10,
     ): Promise<PagedUnitResponseDto> {
-
         // Kiểm tra xem việc chuyển đổi có thành công không
         const skip = (page - 1) * pageSize;
 
@@ -316,128 +315,104 @@ export class UnitService extends BaseService<Unit> {
         return transformedData;
     }
 
-    async transformedData(units: any): Promise<UnitResponseDto> {
-        const transformedData = units.map((unit) => {
-            const unitAreaCount = unit.unitAreas?.length || 0;
-            const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
-                return total + (unitArea.lessons?.length || 0);
-            }, 0);
-
-            return {
-                id: unit.id,
-                title: unit.title,
-                description: unit.description,
-                createdat: unit.createdat,
-                status: unit.status,
-                unitAreas: Array.isArray(unit.unitAreas)
-                    ? unit.unitAreas.map((unitArea) => ({
-                          id: unitArea.id,
-                          title: unitArea.title,
-                          lessons: Array.isArray(unitArea.lessons)
-                              ? unitArea.lessons.map((lesson) => ({
-                                    id: lesson.id,
-                                    prerequisitelessonid:
-                                        lesson.prerequisitelessonid,
-                                    type: lesson.type,
-                                    title: lesson.title,
-                                    lessonContents: Array.isArray(
-                                        lesson.lessonContents,
-                                    )
-                                        ? lesson.lessonContents.map(
-                                              (content) => ({
-                                                  id: content.id,
-                                                  title: content.title,
-                                                  contentType:
-                                                      content.contentType,
-                                                  contents: Array.isArray(
-                                                      content.contents,
-                                                  )
-                                                      ? content.contents.map(
-                                                            (c) => ({
-                                                                contentId:
-                                                                    c.contentId,
-                                                                text: c.text,
-                                                                examples:
-                                                                    Array.isArray(
-                                                                        c.examples,
-                                                                    )
-                                                                        ? c.examples.map(
-                                                                              (
-                                                                                  e,
-                                                                              ) => ({
-                                                                                  exampleId:
-                                                                                      e.exampleId,
-                                                                                  content:
-                                                                                      e.content,
-                                                                                  explain:
-                                                                                      e.explain ||
-                                                                                      '',
-                                                                              }),
-                                                                          )
-                                                                        : [],
-                                                            }),
-                                                        )
-                                                      : [],
-                                                  question: content.question
-                                                      ? {
-                                                            questionId:
-                                                                content.question
-                                                                    .questionId,
-                                                            prompt: content
-                                                                .question
-                                                                .prompt,
-                                                            correctAnswer:
-                                                                content.question
-                                                                    .correctAnswer,
-                                                            explanation:
-                                                                content.question
-                                                                    .explanation ||
-                                                                '',
-                                                            answers:
-                                                                Array.isArray(
-                                                                    content
-                                                                        .question
-                                                                        .answers,
-                                                                )
-                                                                    ? content.question.answers.map(
-                                                                          (
-                                                                              a,
-                                                                          ) => ({
-                                                                              answerId:
-                                                                                  a.answerId,
-                                                                              text: a.text,
-                                                                              label: a.label,
-                                                                          }),
-                                                                      )
-                                                                    : [],
-                                                        }
-                                                      : null, // Handle null if no question
-                                              }),
+    async transformedData(unit: any): Promise<UnitResponseDto> {
+        const transformedData: UnitResponseDto = {
+            id: unit.id,
+            title: unit.title,
+            description: unit.description,
+            createdAt: unit.createdAt,
+            status: unit.status,
+            unitAreas: Array.isArray(unit.unitAreas)
+                ? unit.unitAreas.map((unitArea) => ({
+                      id: unitArea.id,
+                      title: unitArea.title,
+                      lessons: Array.isArray(unitArea.lessons)
+                          ? unitArea.lessons.map((lesson) => ({
+                                id: lesson.id,
+                                prerequisitelessonid:
+                                    lesson.prerequisitelessonid,
+                                type: lesson.type,
+                                title: lesson.title,
+                                lessonContents: Array.isArray(
+                                    lesson.lessonContents,
+                                )
+                                    ? lesson.lessonContents.map((content) => ({
+                                          id: content.id,
+                                          title: content.title,
+                                          contentType: content.contentType,
+                                          contents: Array.isArray(
+                                              content.contents,
                                           )
-                                        : [],
-                                }))
-                              : [],
-                      }))
-                    : [],
-                section: unit.section
-                    ? {
-                          id: unit.section.id,
-                          name: unit.section.name,
-                      }
-                    : null,
-                level: unit.level
-                    ? {
-                          id: unit.level.id,
-                          name: unit.level.name,
-                      }
-                    : null,
+                                              ? content.contents.map((c) => ({
+                                                    contentId: c.contentId,
+                                                    text: c.text,
+                                                    examples: Array.isArray(
+                                                        c.examples,
+                                                    )
+                                                        ? c.examples.map(
+                                                              (e) => ({
+                                                                  exampleId:
+                                                                      e.exampleId,
+                                                                  content:
+                                                                      e.content,
+                                                                  explain:
+                                                                      e.explain ||
+                                                                      '',
+                                                              }),
+                                                          )
+                                                        : [],
+                                                }))
+                                              : [],
+                                          question: content.question
+                                              ? {
+                                                    questionId:
+                                                        content.question
+                                                            .questionId,
+                                                    prompt: content.question
+                                                        .prompt,
+                                                    correctAnswer:
+                                                        content.question
+                                                            .correctAnswer,
+                                                    explanation:
+                                                        content.question
+                                                            .explanation || '',
+                                                    answers: Array.isArray(
+                                                        content.question
+                                                            .answers,
+                                                    )
+                                                        ? content.question.answers.map(
+                                                              (a) => ({
+                                                                  answerId:
+                                                                      a.answerId,
+                                                                  text: a.text,
+                                                                  label: a.label,
+                                                              }),
+                                                          )
+                                                        : [],
+                                                }
+                                              : null, // Handle null if no question
+                                      }))
+                                    : [],
+                            }))
+                          : [],
+                  }))
+                : [],
+            section: unit.section
+                ? {
+                      id: unit.section.id,
+                      name: unit.section.name,
+                  }
+                : null,
+            level: unit.level
+                ? {
+                      id: unit.level.id,
+                      name: unit.level.name,
+                  }
+                : null,
+            unitAreaCount: unit.unitAreaCount,
+            lessonCount: unit.lessonCount
+        };
 
-                // Include counts for unitAreas and lessons
-                unitAreaCount,
-                lessonCount,
-            };
-        });
-
-        return transformedData;
+        return await transformedData;
     }
 }
