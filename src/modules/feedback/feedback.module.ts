@@ -8,11 +8,21 @@ import { UnitModule } from '../unit/unit.module';
 import { ExamModule } from '../exam/exam.module';
 import { QuestionModule } from '../question/question.module';
 import { AccountModule } from '../account/account.module';
+import { UnitAreaModule } from '../unit-area/unit-area.module';
+import { LessonModule } from '../lesson/lesson.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Feedback]), UnitModule, ExamModule, QuestionModule, AccountModule],
-  providers: [FeedbackService, PaginationService],
-  controllers: [FeedbackController],
-  exports: [FeedbackService]
+    imports: [
+        TypeOrmModule.forFeature([Feedback]),
+        UnitModule,
+        UnitAreaModule,
+        LessonModule,
+        // ExamModule,
+        // QuestionModule,
+        // AccountModule,
+    ],
+    providers: [FeedbackService],
+    controllers: [FeedbackController],
+    exports: [FeedbackService],
 })
 export class FeedbackModule {}
