@@ -9,8 +9,6 @@ import { SectionService } from '../section/section.service';
 import { LevelService } from '../level/level.service';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
-import { FeedbackService } from '../feedback/feedback.service';
-import { UpdateUnitStatusDto } from './dto/update-status-unit.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -109,14 +107,13 @@ export class UnitService extends BaseService<Unit> {
             return [];
         }
 
-        return this.transformedData(units);
+        return this.transformedListData(units);
     }
 
     async getPendingUnitWithDetails(
         page: number = 1,
         pageSize: number = 10,
     ): Promise<PagedUnitResponseDto> {
-
         // Kiểm tra xem việc chuyển đổi có thành công không
         const skip = (page - 1) * pageSize;
 
@@ -149,14 +146,51 @@ export class UnitService extends BaseService<Unit> {
         const totalPages = Math.ceil(totalCount / pageSize);
 
         return {
-            data: await this.transformedData(units),
+            data: await this.transformedListData(units),
             totalItems: totalCount,
             totalPages,
             currentPage: page,
         };
     }
 
-    async transformedData(units: any): Promise<UnitResponseDto[]> {
+    async getUnitWithDetails(unitId: string): Promise<UnitResponseDto> {
+        // Fetch the Unit along with related UnitAreas, Lessons, and LessonContents
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+        });
+
+        // If the unit is not found, throw an error
+        if (!unit) {
+            throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
+        }
+
+        return this.transformedData(unit);
+    }
+
+    async submitLearningMaterial(unitId: string): Promise<Unit> {
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId },
+        });
+
+        if (!unit) {
+            throw new Error('Unit not found');
+        }
+
+        // Update status to indicate that the learning material has been submitted
+        unit.status = UnitStatus.PENDING;
+        await this.unitRepository.save(unit);
+
+        return unit;
+    }
+
+    async transformedListData(units: any): Promise<UnitResponseDto[]> {
         const transformedData = units.map((unit) => {
             const unitAreaCount = unit.unitAreas?.length || 0;
             const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
@@ -168,6 +202,7 @@ export class UnitService extends BaseService<Unit> {
                 title: unit.title,
                 description: unit.description,
                 createdat: unit.createdat,
+                status: unit.status,
                 unitAreas: Array.isArray(unit.unitAreas)
                     ? unit.unitAreas.map((unitArea) => ({
                           id: unitArea.id,
@@ -280,35 +315,13 @@ export class UnitService extends BaseService<Unit> {
         return transformedData;
     }
 
-    async getUnitWithDetails(unitId: string): Promise<UnitResponseDto> {
-        // Fetch the Unit along with related UnitAreas, Lessons, and LessonContents
-        const unit = await this.unitRepository.findOne({
-            where: { id: unitId },
-            relations: [
-                'section',
-                'level',
-                'unitAreas',
-                'unitAreas.lessons',
-                'unitAreas.lessons.lessonContents',
-            ],
-        });
-
-        // If the unit is not found, throw an error
-        if (!unit) {
-            throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
-        }
-
-        const unitAreaCount = unit.unitAreas?.length || 0;
-        const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
-            return total + (unitArea.lessons?.length || 0);
-        }, 0);
-
-        // Transform the data into the DTO structure
+    async transformedData(unit: any): Promise<UnitResponseDto> {
         const transformedData: UnitResponseDto = {
             id: unit.id,
             title: unit.title,
             description: unit.description,
-            createdAt: unit.createdat,
+            createdAt: unit.createdAt,
+            status: unit.status,
             unitAreas: Array.isArray(unit.unitAreas)
                 ? unit.unitAreas.map((unitArea) => ({
                       id: unitArea.id,
@@ -396,28 +409,10 @@ export class UnitService extends BaseService<Unit> {
                       name: unit.level.name,
                   }
                 : null,
-
-            // Include counts for unitAreas and lessons
-            unitAreaCount,
-            lessonCount,
+            unitAreaCount: unit.unitAreaCount,
+            lessonCount: unit.lessonCount
         };
 
-        return transformedData;
-    }
-
-    async submitLearningMaterial(unitId: string): Promise<Unit> {
-        const unit = await this.unitRepository.findOne({
-            where: { id: unitId },
-        });
-
-        if (!unit) {
-            throw new Error('Unit not found');
-        }
-
-        // Update status to indicate that the learning material has been submitted
-        unit.status = UnitStatus.PENDING;
-        await this.unitRepository.save(unit);
-
-        return unit;
+        return await transformedData;
     }
 }

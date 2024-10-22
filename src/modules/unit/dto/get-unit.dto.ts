@@ -2,6 +2,7 @@ import { Expose } from 'class-transformer';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ContentType } from 'src/common/enums/content-type.enum';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 export class GetUnitDTO {
     @Expose()
@@ -76,6 +77,7 @@ export class UnitResponseDto {
     createdAt: Date;
     title: string;
     description: string;
+    status?: UnitStatus;
     section: SectionDto;
     level: LevelDto;
     unitAreaCount: number;
