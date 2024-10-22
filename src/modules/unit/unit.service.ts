@@ -9,8 +9,6 @@ import { SectionService } from '../section/section.service';
 import { LevelService } from '../level/level.service';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
-import { FeedbackService } from '../feedback/feedback.service';
-import { UpdateUnitStatusDto } from './dto/update-status-unit.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -109,7 +107,7 @@ export class UnitService extends BaseService<Unit> {
             return [];
         }
 
-        return this.transformedData(units);
+        return this.transformedListData(units);
     }
 
     async getPendingUnitWithDetails(
@@ -149,14 +147,51 @@ export class UnitService extends BaseService<Unit> {
         const totalPages = Math.ceil(totalCount / pageSize);
 
         return {
-            data: await this.transformedData(units),
+            data: await this.transformedListData(units),
             totalItems: totalCount,
             totalPages,
             currentPage: page,
         };
     }
 
-    async transformedData(units: any): Promise<UnitResponseDto[]> {
+    async getUnitWithDetails(unitId: string): Promise<UnitResponseDto> {
+        // Fetch the Unit along with related UnitAreas, Lessons, and LessonContents
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+        });
+
+        // If the unit is not found, throw an error
+        if (!unit) {
+            throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
+        }
+
+        return this.transformedData(unit);
+    }
+
+    async submitLearningMaterial(unitId: string): Promise<Unit> {
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId },
+        });
+
+        if (!unit) {
+            throw new Error('Unit not found');
+        }
+
+        // Update status to indicate that the learning material has been submitted
+        unit.status = UnitStatus.PENDING;
+        await this.unitRepository.save(unit);
+
+        return unit;
+    }
+
+    async transformedListData(units: any): Promise<UnitResponseDto[]> {
         const transformedData = units.map((unit) => {
             const unitAreaCount = unit.unitAreas?.length || 0;
             const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
@@ -168,6 +203,7 @@ export class UnitService extends BaseService<Unit> {
                 title: unit.title,
                 description: unit.description,
                 createdat: unit.createdat,
+                status: unit.status,
                 unitAreas: Array.isArray(unit.unitAreas)
                     ? unit.unitAreas.map((unitArea) => ({
                           id: unitArea.id,
@@ -280,144 +316,128 @@ export class UnitService extends BaseService<Unit> {
         return transformedData;
     }
 
-    async getUnitWithDetails(unitId: string): Promise<UnitResponseDto> {
-        // Fetch the Unit along with related UnitAreas, Lessons, and LessonContents
-        const unit = await this.unitRepository.findOne({
-            where: { id: unitId },
-            relations: [
-                'section',
-                'level',
-                'unitAreas',
-                'unitAreas.lessons',
-                'unitAreas.lessons.lessonContents',
-            ],
-        });
+    async transformedData(units: any): Promise<UnitResponseDto> {
+        const transformedData = units.map((unit) => {
+            const unitAreaCount = unit.unitAreas?.length || 0;
+            const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
+                return total + (unitArea.lessons?.length || 0);
+            }, 0);
 
-        // If the unit is not found, throw an error
-        if (!unit) {
-            throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
-        }
-
-        const unitAreaCount = unit.unitAreas?.length || 0;
-        const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
-            return total + (unitArea.lessons?.length || 0);
-        }, 0);
-
-        // Transform the data into the DTO structure
-        const transformedData: UnitResponseDto = {
-            id: unit.id,
-            title: unit.title,
-            description: unit.description,
-            createdAt: unit.createdat,
-            unitAreas: Array.isArray(unit.unitAreas)
-                ? unit.unitAreas.map((unitArea) => ({
-                      id: unitArea.id,
-                      title: unitArea.title,
-                      lessons: Array.isArray(unitArea.lessons)
-                          ? unitArea.lessons.map((lesson) => ({
-                                id: lesson.id,
-                                prerequisitelessonid:
-                                    lesson.prerequisitelessonid,
-                                type: lesson.type,
-                                title: lesson.title,
-                                lessonContents: Array.isArray(
-                                    lesson.lessonContents,
-                                )
-                                    ? lesson.lessonContents.map((content) => ({
-                                          id: content.id,
-                                          title: content.title,
-                                          contentType: content.contentType,
-                                          contents: Array.isArray(
-                                              content.contents,
+            return {
+                id: unit.id,
+                title: unit.title,
+                description: unit.description,
+                createdat: unit.createdat,
+                status: unit.status,
+                unitAreas: Array.isArray(unit.unitAreas)
+                    ? unit.unitAreas.map((unitArea) => ({
+                          id: unitArea.id,
+                          title: unitArea.title,
+                          lessons: Array.isArray(unitArea.lessons)
+                              ? unitArea.lessons.map((lesson) => ({
+                                    id: lesson.id,
+                                    prerequisitelessonid:
+                                        lesson.prerequisitelessonid,
+                                    type: lesson.type,
+                                    title: lesson.title,
+                                    lessonContents: Array.isArray(
+                                        lesson.lessonContents,
+                                    )
+                                        ? lesson.lessonContents.map(
+                                              (content) => ({
+                                                  id: content.id,
+                                                  title: content.title,
+                                                  contentType:
+                                                      content.contentType,
+                                                  contents: Array.isArray(
+                                                      content.contents,
+                                                  )
+                                                      ? content.contents.map(
+                                                            (c) => ({
+                                                                contentId:
+                                                                    c.contentId,
+                                                                text: c.text,
+                                                                examples:
+                                                                    Array.isArray(
+                                                                        c.examples,
+                                                                    )
+                                                                        ? c.examples.map(
+                                                                              (
+                                                                                  e,
+                                                                              ) => ({
+                                                                                  exampleId:
+                                                                                      e.exampleId,
+                                                                                  content:
+                                                                                      e.content,
+                                                                                  explain:
+                                                                                      e.explain ||
+                                                                                      '',
+                                                                              }),
+                                                                          )
+                                                                        : [],
+                                                            }),
+                                                        )
+                                                      : [],
+                                                  question: content.question
+                                                      ? {
+                                                            questionId:
+                                                                content.question
+                                                                    .questionId,
+                                                            prompt: content
+                                                                .question
+                                                                .prompt,
+                                                            correctAnswer:
+                                                                content.question
+                                                                    .correctAnswer,
+                                                            explanation:
+                                                                content.question
+                                                                    .explanation ||
+                                                                '',
+                                                            answers:
+                                                                Array.isArray(
+                                                                    content
+                                                                        .question
+                                                                        .answers,
+                                                                )
+                                                                    ? content.question.answers.map(
+                                                                          (
+                                                                              a,
+                                                                          ) => ({
+                                                                              answerId:
+                                                                                  a.answerId,
+                                                                              text: a.text,
+                                                                              label: a.label,
+                                                                          }),
+                                                                      )
+                                                                    : [],
+                                                        }
+                                                      : null, // Handle null if no question
+                                              }),
                                           )
-                                              ? content.contents.map((c) => ({
-                                                    contentId: c.contentId,
-                                                    text: c.text,
-                                                    examples: Array.isArray(
-                                                        c.examples,
-                                                    )
-                                                        ? c.examples.map(
-                                                              (e) => ({
-                                                                  exampleId:
-                                                                      e.exampleId,
-                                                                  content:
-                                                                      e.content,
-                                                                  explain:
-                                                                      e.explain ||
-                                                                      '',
-                                                              }),
-                                                          )
-                                                        : [],
-                                                }))
-                                              : [],
-                                          question: content.question
-                                              ? {
-                                                    questionId:
-                                                        content.question
-                                                            .questionId,
-                                                    prompt: content.question
-                                                        .prompt,
-                                                    correctAnswer:
-                                                        content.question
-                                                            .correctAnswer,
-                                                    explanation:
-                                                        content.question
-                                                            .explanation || '',
-                                                    answers: Array.isArray(
-                                                        content.question
-                                                            .answers,
-                                                    )
-                                                        ? content.question.answers.map(
-                                                              (a) => ({
-                                                                  answerId:
-                                                                      a.answerId,
-                                                                  text: a.text,
-                                                                  label: a.label,
-                                                              }),
-                                                          )
-                                                        : [],
-                                                }
-                                              : null, // Handle null if no question
-                                      }))
-                                    : [],
-                            }))
-                          : [],
-                  }))
-                : [],
-            section: unit.section
-                ? {
-                      id: unit.section.id,
-                      name: unit.section.name,
-                  }
-                : null,
-            level: unit.level
-                ? {
-                      id: unit.level.id,
-                      name: unit.level.name,
-                  }
-                : null,
+                                        : [],
+                                }))
+                              : [],
+                      }))
+                    : [],
+                section: unit.section
+                    ? {
+                          id: unit.section.id,
+                          name: unit.section.name,
+                      }
+                    : null,
+                level: unit.level
+                    ? {
+                          id: unit.level.id,
+                          name: unit.level.name,
+                      }
+                    : null,
 
-            // Include counts for unitAreas and lessons
-            unitAreaCount,
-            lessonCount,
-        };
+                // Include counts for unitAreas and lessons
+                unitAreaCount,
+                lessonCount,
+            };
+        });
 
         return transformedData;
-    }
-
-    async submitLearningMaterial(unitId: string): Promise<Unit> {
-        const unit = await this.unitRepository.findOne({
-            where: { id: unitId },
-        });
-
-        if (!unit) {
-            throw new Error('Unit not found');
-        }
-
-        // Update status to indicate that the learning material has been submitted
-        unit.status = UnitStatus.PENDING;
-        await this.unitRepository.save(unit);
-
-        return unit;
     }
 }
