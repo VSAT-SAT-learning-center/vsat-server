@@ -1,6 +1,6 @@
 export enum UnitStatus {
     APPROVED = 'Approved',
-    SUBMIT = 'Submit',
+    PENDING = 'Pending',
     REJECTED = 'Rejected',
     DRAFT = 'Draft',
   }
