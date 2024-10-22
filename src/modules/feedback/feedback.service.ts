@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
@@ -18,9 +18,10 @@ export class FeedbackService extends BaseService<Feedback> {
     constructor(
         @InjectRepository(Feedback)
         private readonly feedbackRepository: Repository<Feedback>,
-        private readonly unitService: UnitService,
-        private readonly unitAreaService: UnitAreaService,
         private readonly lessonService: LessonService,
+
+        @Inject(forwardRef(() => UnitService))
+        private readonly unitService: UnitService,
     ) {
         super(feedbackRepository);
     }

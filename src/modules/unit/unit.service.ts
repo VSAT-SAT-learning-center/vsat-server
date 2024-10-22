@@ -9,6 +9,7 @@ import { SectionService } from '../section/section.service';
 import { LevelService } from '../level/level.service';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { FeedbackService } from '../feedback/feedback.service';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -17,6 +18,8 @@ export class UnitService extends BaseService<Unit> {
         private readonly unitRepository: Repository<Unit>,
         private readonly sectionService: SectionService,
         private readonly levelService: LevelService,
+
+        private readonly feedbackService: FeedbackService
     ) {
         super(unitRepository);
     }

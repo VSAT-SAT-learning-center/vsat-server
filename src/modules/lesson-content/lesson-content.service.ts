@@ -3,6 +3,8 @@ import {
     HttpStatus,
     Injectable,
     NotFoundException,
+    forwardRef,
+    Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessonContent } from 'src/database/entities/lessoncontent.entity';
@@ -18,6 +20,8 @@ export class LessonContentService extends BaseService<LessonContent> {
     constructor(
         @InjectRepository(LessonContent)
         private readonly lessonContentRepository: Repository<LessonContent>,
+
+        @Inject(forwardRef(() => LessonService))
         private readonly lessonService: LessonService,
     ) {
         super(lessonContentRepository);
