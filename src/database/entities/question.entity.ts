@@ -56,17 +56,14 @@ export class Question {
     @Column({ type: 'text', nullable: true })
     content: string;
 
-    @Column({ type: 'int', nullable: true })
-    correctoption: number;
-
-    @Column({ type: 'text', nullable: true })
-    correctanswer: string;
-
     @Column({ type: 'text', nullable: true })
     explain: string;
 
     @Column({ type: 'int', nullable: true })
     sort: number;
+
+    @Column({ type: 'boolean', nullable: true })
+    IsSingleChoiceQuestion: boolean;
 
     @Column({
         type: 'enum',

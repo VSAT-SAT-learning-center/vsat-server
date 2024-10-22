@@ -39,10 +39,18 @@ export class ExamQuestionService {
                 HttpStatus.NOT_FOUND,
             );
         }
-        
+
         const savedExam = await this.examService.createExam(exam);
 
-        const savedQuestions = await this.questionService.save(question);
+        const { savedQuestions, errors } =
+            await this.questionService.save(question);
+
+        if (errors.length > 0) {
+            throw new HttpException(
+                `Failed to save some questions: ${errors.map((e) => e.message).join(', ')}`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
 
         const savedExamQuestions: ExamQuestion[] = [];
 

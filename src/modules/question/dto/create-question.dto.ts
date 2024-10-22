@@ -86,17 +86,6 @@ export class CreateQuestionDTO extends BaseDTO {
     content: string;
 
     @Expose()
-    @IsNotEmpty()
-    @ApiProperty()
-    correctoption: number;
-
-    @Expose()
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    correctanswer: string;
-
-    @Expose()
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
