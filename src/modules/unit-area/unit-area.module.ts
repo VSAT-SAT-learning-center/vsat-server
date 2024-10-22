@@ -7,9 +7,11 @@ import { UnitModule } from '../unit/unit.module';
 import { LessonModule } from '../lesson/lesson.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UnitArea]), 
-    UnitModule, 
-    forwardRef(() => LessonModule)],
+    imports: [
+        TypeOrmModule.forFeature([UnitArea]),
+        UnitModule,
+        forwardRef(() => LessonModule),
+    ],
     controllers: [UnitAreaController],
     providers: [UnitAreaService],
     exports: [UnitAreaService],

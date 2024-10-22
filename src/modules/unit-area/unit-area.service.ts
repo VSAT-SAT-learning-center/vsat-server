@@ -15,6 +15,7 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { LessonService } from '../lesson/lesson.service';
 import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
 import { UnitAreaResponseDto } from './dto/get-unitarea.dto';
+import { UpdateUnitAreaStatusDto } from './dto/update-status-unitarea.dto';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -199,6 +200,24 @@ export class UnitAreaService extends BaseService<UnitArea> {
             ...unitAreaData, // Update only the fields provided
             unit: unit,
         });
+
+        return updatedUnitArea;
+    }
+
+    async updateUnitAreaStatus(
+        id: string,
+        updateStatusUnitAreaDto: UpdateUnitAreaStatusDto,
+    ): Promise<UnitArea> {
+        const updateUnitArea = updateStatusUnitAreaDto;
+
+        const unitArea = await this.findOneById(id);
+        if (!unitArea) {
+            throw new NotFoundException('UnitArea not found');
+        }
+
+        unitArea.status = updateUnitArea.status;
+
+        const updatedUnitArea = await this.unitAreaRepository.save(unitArea);
 
         return updatedUnitArea;
     }
