@@ -1,6 +1,6 @@
 export enum UnitStatus {
-    CONFIRM = 'Confirm',
-    PENDING = 'Pending',
-    REJECT = 'Reject',
+    APPROVED = 'Approved',
+    SUBMIT = 'Submit',
+    REJECTED = 'Rejected',
     DRAFT = 'Draft',
   }

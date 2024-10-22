@@ -8,6 +8,8 @@ import { BaseService } from '../base/base.service';
 import { SectionService } from '../section/section.service';
 import { LevelService } from '../level/level.service';
 import { UnitResponseDto } from './dto/get-unit.dto';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { FeedbackService } from '../feedback/feedback.service';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -99,59 +101,108 @@ export class UnitService extends BaseService<Unit> {
                 'unitAreas.lessons.lessonContents',
             ],
         });
-    
+
         // If the unit is not found, throw an error
         if (!unit) {
             throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
         }
-    
+
         // Transform the data into the DTO structure
         const transformedData: UnitResponseDto = {
             id: unit.id,
             title: unit.title,
             description: unit.description,
-            unitAreas: Array.isArray(unit.unitAreas) ? unit.unitAreas.map((unitArea) => ({
-                id: unitArea.id,
-                title: unitArea.title,
-                lessons: Array.isArray(unitArea.lessons) ? unitArea.lessons.map((lesson) => ({
-                    id: lesson.id,
-                    prerequisitelessonid: lesson.prerequisitelessonid,
-                    type: lesson.type,
-                    title: lesson.title,
-                    lessonContents: Array.isArray(lesson.lessonContents) ? lesson.lessonContents.map((content) => ({
-                        id: content.id,
-                        title: content.title,
-                        contentType: content.contentType,
-                        contents: Array.isArray(content.contents) ? content.contents.map((c) => ({
-                            contentId: c.contentId,
-                            text: c.text,
-                            examples: Array.isArray(c.examples) ? c.examples.map((e) => ({
-                                exampleId: e.exampleId,
-                                content: e.content,
-                                explain: e.explain || '',
-                            })) : [],
-                        })) : [],
-                        question: content.question
-                            ? {
-                                questionId: content.question.questionId,
-                                prompt: content.question.prompt,
-                                correctAnswer: content.question.correctAnswer,
-                                explanation: content.question.explanation || '',
-                                answers: Array.isArray(content.question.answers) ? content.question.answers.map(
-                                    (a) => ({
-                                        answerId: a.answerId,
-                                        text: a.text,
-                                        label: a.label,
-                                    }),
-                                ) : [],
-                            }
-                            : null, // Handle null if no question
-                    })) : [],
-                })) : [],
-            })) : [],
+            unitAreas: Array.isArray(unit.unitAreas)
+                ? unit.unitAreas.map((unitArea) => ({
+                      id: unitArea.id,
+                      title: unitArea.title,
+                      lessons: Array.isArray(unitArea.lessons)
+                          ? unitArea.lessons.map((lesson) => ({
+                                id: lesson.id,
+                                prerequisitelessonid:
+                                    lesson.prerequisitelessonid,
+                                type: lesson.type,
+                                title: lesson.title,
+                                lessonContents: Array.isArray(
+                                    lesson.lessonContents,
+                                )
+                                    ? lesson.lessonContents.map((content) => ({
+                                          id: content.id,
+                                          title: content.title,
+                                          contentType: content.contentType,
+                                          contents: Array.isArray(
+                                              content.contents,
+                                          )
+                                              ? content.contents.map((c) => ({
+                                                    contentId: c.contentId,
+                                                    text: c.text,
+                                                    examples: Array.isArray(
+                                                        c.examples,
+                                                    )
+                                                        ? c.examples.map(
+                                                              (e) => ({
+                                                                  exampleId:
+                                                                      e.exampleId,
+                                                                  content:
+                                                                      e.content,
+                                                                  explain:
+                                                                      e.explain ||
+                                                                      '',
+                                                              }),
+                                                          )
+                                                        : [],
+                                                }))
+                                              : [],
+                                          question: content.question
+                                              ? {
+                                                    questionId:
+                                                        content.question
+                                                            .questionId,
+                                                    prompt: content.question
+                                                        .prompt,
+                                                    correctAnswer:
+                                                        content.question
+                                                            .correctAnswer,
+                                                    explanation:
+                                                        content.question
+                                                            .explanation || '',
+                                                    answers: Array.isArray(
+                                                        content.question
+                                                            .answers,
+                                                    )
+                                                        ? content.question.answers.map(
+                                                              (a) => ({
+                                                                  answerId:
+                                                                      a.answerId,
+                                                                  text: a.text,
+                                                                  label: a.label,
+                                                              }),
+                                                          )
+                                                        : [],
+                                                }
+                                              : null, // Handle null if no question
+                                      }))
+                                    : [],
+                            }))
+                          : [],
+                  }))
+                : [],
         };
-    
+
         return transformedData;
     }
-    
+
+    async submitLearningMaterial(unitId: string): Promise<void> {
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId }
+        });
+
+        if (!unit) {
+            throw new Error('Unit not found');
+        }
+
+        // Update status to indicate that the learning material has been submitted
+        unit.status = UnitStatus.SUBMIT;
+        await this.unitRepository.save(unit);
+    }
 }

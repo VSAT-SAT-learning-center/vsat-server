@@ -6,9 +6,14 @@ import { Unit } from 'src/database/entities/unit.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { LevelModule } from '../level/level.module';
 import { SectionModule } from '../section/section.module';
+import { FeedbackModule } from '../feedback/feedback.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Unit]), LevelModule, SectionModule],
+    imports: [
+        TypeOrmModule.forFeature([Unit]),
+        LevelModule,
+        SectionModule
+    ],
     controllers: [UnitController],
     providers: [UnitService],
     exports: [UnitService],

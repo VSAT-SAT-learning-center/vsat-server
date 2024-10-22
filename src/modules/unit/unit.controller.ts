@@ -6,6 +6,7 @@ import {
     Param,
     Patch,
     HttpStatus,
+    Put,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -57,7 +58,7 @@ export class UnitController extends BaseController<Unit> {
         );
     }
 
-    @Patch(':id')
+    @Put(':id')
     async updateUnit(
         @Param('id') id: string,
         @Body() updateUnitStatusDto: UpdateUnitDto,
