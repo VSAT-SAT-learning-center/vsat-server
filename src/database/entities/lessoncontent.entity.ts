@@ -47,9 +47,6 @@ export class LessonContent {
     @Column({ type: 'int', nullable: true })
     sort: number;
 
-    @Column({ type: 'boolean', default: true })
-    status: boolean;
-
     @Column({ type: 'enum', enum: ContentType })
     contentType: ContentType;
 

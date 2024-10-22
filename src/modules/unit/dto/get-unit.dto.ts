@@ -1,6 +1,8 @@
 import { Expose } from 'class-transformer';
+import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ContentType } from 'src/common/enums/content-type.enum';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 export class GetUnitDTO {
     @Expose()
@@ -55,6 +57,15 @@ export class LessonDto {
     lessonContents: LessonContentDto[];
 }
 
+export class SectionDto {
+    id: string;
+    name: string;
+}
+
+export class LevelDto {
+    id: string;
+    name: string;
+}
 export class UnitAreaDto {
     id: string;
     title: string;
@@ -63,7 +74,21 @@ export class UnitAreaDto {
 
 export class UnitResponseDto {
     id: string;
+    createdAt: Date;
     title: string;
     description: string;
+    status?: UnitStatus;
+    section: SectionDto;
+    level: LevelDto;
+    unitAreaCount: number;
+    lessonCount: number;
     unitAreas: UnitAreaDto[];
+    pagingOption?: PaginationOptionsDto;
+}
+
+export class PagedUnitResponseDto {
+    data: UnitResponseDto[];
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
 }

@@ -14,6 +14,7 @@ import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonContentService } from '../lesson-content/lesson-content.service';
 import { LessonResponseDto } from './dto/get-lesson.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { UpdateLessonStatusDto } from './dto/update-status-lesson.dto';
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
@@ -208,6 +209,24 @@ export class LessonService extends BaseService<Lesson> {
         });
 
         return await this.lessonRepository.save(newLesson);
+    }
+
+    async updateLessonStatus(
+        id: string,
+        updateStatusLessonDto: UpdateLessonStatusDto,
+    ): Promise<Lesson> {
+        const updateLesson = updateStatusLessonDto;
+
+        const lesson = await this.findOneById(id);
+        if (!lesson) {
+            throw new NotFoundException('Lesson not found');
+        }
+
+        lesson.status = updateLesson.status;
+
+        const updatedLesson = await this.lessonRepository.save(lesson);
+
+        return updatedLesson;
     }
 
     async update(

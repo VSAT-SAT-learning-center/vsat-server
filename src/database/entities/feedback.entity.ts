@@ -11,6 +11,9 @@ import { Unit } from './unit.entity';
 import { Exam } from './exam.entity';
 import { Question } from './question.entity';
 import { Account } from './account.entity';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
+import { UnitArea } from './unitarea.entity';
+import { Lesson } from './lesson.entity';
 
 @Entity('feedback')
 export class Feedback {
@@ -29,22 +32,37 @@ export class Feedback {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => Unit)
+    @ManyToOne(() => Unit, { nullable: true })
     @JoinColumn({ name: 'unitid' })
     unit: Unit;
 
-    @ManyToOne(() => Exam)
+    @ManyToOne(() => UnitArea, { nullable: true })
+    @JoinColumn({ name: 'unitareaid' })
+    unitArea: Unit;
+
+    @ManyToOne(() => Lesson, { nullable: true })
+    @JoinColumn({ name: 'lessonid' })
+    lesson: Unit;
+
+    @ManyToOne(() => Exam, { nullable: true })
     @JoinColumn({ name: 'examid' })
     exam: Exam;
 
-    @ManyToOne(() => Question)
+    @ManyToOne(() => Question, { nullable: true })
     @JoinColumn({ name: 'questionid' })
     question: Question;
 
     @ManyToOne(() => Account)
     @JoinColumn({ name: 'accountid' })
-    account: Account;
+    accountFrom: Account;
+
+    @ManyToOne(() => Account, { nullable: true })
+    @JoinColumn({ name: 'accountid' })
+    accountTo: Account;
 
     @Column({ type: 'text', nullable: true })
     content: string;
+
+    @Column({ type: 'enum', enum: FeedbackStatus })
+    status: FeedbackStatus;
 }
