@@ -61,7 +61,7 @@ export class UnitController extends BaseController<Unit> {
         );
     }
 
-    @Post(':id/submit-learning-material') // Endpoint để submit tài liệu học tập
+    @Post(':id/submit')
     @ApiParam({ name: 'id', required: true, description: 'ID of the unit' }) // Swagger parameter
     async submitLearningMaterial(@Param('id') unitId: string) {
         const unit = await this.unitService.submitLearningMaterial(unitId);
