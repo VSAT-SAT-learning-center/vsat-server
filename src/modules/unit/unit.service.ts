@@ -167,6 +167,7 @@ export class UnitService extends BaseService<Unit> {
                 id: unit.id,
                 title: unit.title,
                 description: unit.description,
+                createdat: unit.createdat,
                 unitAreas: Array.isArray(unit.unitAreas)
                     ? unit.unitAreas.map((unitArea) => ({
                           id: unitArea.id,
@@ -307,6 +308,7 @@ export class UnitService extends BaseService<Unit> {
             id: unit.id,
             title: unit.title,
             description: unit.description,
+            createdAt: unit.createdat,
             unitAreas: Array.isArray(unit.unitAreas)
                 ? unit.unitAreas.map((unitArea) => ({
                       id: unitArea.id,

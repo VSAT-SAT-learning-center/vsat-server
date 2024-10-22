@@ -73,6 +73,7 @@ export class UnitAreaDto {
 
 export class UnitResponseDto {
     id: string;
+    createdAt: Date;
     title: string;
     description: string;
     section: SectionDto;
