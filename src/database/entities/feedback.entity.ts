@@ -14,6 +14,7 @@ import { Account } from './account.entity';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { UnitArea } from './unitarea.entity';
 import { Lesson } from './lesson.entity';
+import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
 
 @Entity('feedback')
 export class Feedback {
@@ -65,4 +66,7 @@ export class Feedback {
 
     @Column({ type: 'enum', enum: FeedbackStatus })
     status: FeedbackStatus;
+
+    @Column({ type: 'enum', enum: FeedbackReason })
+    reason: FeedbackReason;
 }
