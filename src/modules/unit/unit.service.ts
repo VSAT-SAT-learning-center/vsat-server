@@ -20,7 +20,7 @@ export class UnitService extends BaseService<Unit> {
         private readonly sectionService: SectionService,
         private readonly levelService: LevelService,
 
-        private readonly feedbackService: FeedbackService
+        private readonly feedbackService: FeedbackService,
     ) {
         super(unitRepository);
     }
@@ -75,10 +75,7 @@ export class UnitService extends BaseService<Unit> {
         return updatedUnit;
     }
 
-    async updateUnitStatus(
-        id: string,
-        updateStatusUnitDto: UpdateUnitDto,
-    ): Promise<Unit> {
+    async updateUnitStatus(id: string, updateStatusUnitDto: UpdateUnitDto) {
         const updateUnit = updateStatusUnitDto;
 
         const unit = await this.findOneById(id);
@@ -86,12 +83,12 @@ export class UnitService extends BaseService<Unit> {
             throw new NotFoundException('Unit not found');
         }
 
-        const updatedUnit = await this.unitRepository.save({
+        await this.unitRepository.save({
             ...unit,
             ...updateUnit,
         });
 
-        return updatedUnit;
+        return updateUnit;
     }
 
     async getAllUnitsWithDetails(): Promise<UnitResponseDto[]> {
@@ -118,7 +115,6 @@ export class UnitService extends BaseService<Unit> {
         page: number = 1,
         pageSize: number = 10,
     ): Promise<PagedUnitResponseDto> {
-        
         const skip = (page - 1) * pageSize;
 
         // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
@@ -157,12 +153,10 @@ export class UnitService extends BaseService<Unit> {
         };
     }
 
-
     async getApproveUnitWithDetails(
         page: number = 1,
         pageSize: number = 10,
     ): Promise<PagedUnitResponseDto> {
-        
         const skip = (page - 1) * pageSize;
 
         // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
@@ -205,7 +199,6 @@ export class UnitService extends BaseService<Unit> {
         page: number = 1,
         pageSize: number = 10,
     ): Promise<PagedUnitResponseDto> {
-
         const skip = (page - 1) * pageSize;
 
         // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
@@ -281,7 +274,7 @@ export class UnitService extends BaseService<Unit> {
         this.feedbackService.create({
             unit: unit,
             status: FeedbackStatus.PENDING,
-        })
+        });
 
         return unit;
     }
@@ -506,7 +499,7 @@ export class UnitService extends BaseService<Unit> {
                   }
                 : null,
             unitAreaCount: unit.unitAreaCount,
-            lessonCount: unit.lessonCount
+            lessonCount: unit.lessonCount,
         };
 
         return await transformedData;

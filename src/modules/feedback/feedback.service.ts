@@ -17,6 +17,9 @@ import { LessonService } from '../lesson/lesson.service';
 import { FeedbackDto, UnitFeedbackDto } from './dto/get-feedback.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { NotificationsGateway } from '../nofitication/nofitication.gateway';
+import { CreateFeedbackUnitDto } from './dto/create-feedback-unit.dto';
+import { AccountService } from '../account/account.service';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -24,6 +27,8 @@ export class FeedbackService extends BaseService<Feedback> {
         @InjectRepository(Feedback)
         private readonly feedbackRepository: Repository<Feedback>,
         private readonly lessonService: LessonService,
+        private readonly notificationsGateway: NotificationsGateway,
+        private readonly accountService: AccountService,    
 
         @Inject(forwardRef(() => UnitService))
         private readonly unitService: UnitService,
@@ -90,11 +95,11 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // If any lesson or unit area is rejected, throw an error
-        if (anyRejected) {
-            throw new Error(
-                'Cannot approve learning material with rejected parts',
-            );
-        }
+        // if (anyRejected) {
+        //     throw new Error(
+        //         'Cannot approve learning material with rejected parts',
+        //     );
+        // }
 
         // Approve all lessons by setting their status to true
         for (const lessonFeedback of unitFeedback.lessonsFeedback) {
@@ -118,5 +123,21 @@ export class FeedbackService extends BaseService<Feedback> {
             content: 'Approved',
             status: FeedbackStatus.APPROVED,
         });
+    }
+
+    async submitFeedback(createFeedbackDto: CreateFeedbackUnitDto): Promise<Feedback> {
+        const feedback = this.feedbackRepository.create(createFeedbackDto);
+        await this.feedbackRepository.save(feedback);
+
+        // Notify managers when feedback is submitted
+        // const managers = await this.accountService.findManagers(); // Get manager users
+        // managers.forEach((manager) => {
+        //     this.notificationsGateway.sendNotificationToUser(
+        //         manager.id,
+        //         `New feedback submitted for unit ${createFeedbackDto.unitId}`,
+        //     );
+        // });
+
+        return feedback;
     }
 }
