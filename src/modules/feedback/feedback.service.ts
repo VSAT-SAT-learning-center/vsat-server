@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateFeedbackDto } from './dto/update-feedback.dto';
@@ -9,7 +14,7 @@ import { BaseService } from '../base/base.service';
 import { UnitService } from '../unit/unit.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonService } from '../lesson/lesson.service';
-import { FeedbackDto, UnitFeedbackDto } from './dto/feedback.dto';
+import { FeedbackDto, UnitFeedbackDto } from './dto/get-feedback.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
@@ -18,127 +23,100 @@ export class FeedbackService extends BaseService<Feedback> {
     constructor(
         @InjectRepository(Feedback)
         private readonly feedbackRepository: Repository<Feedback>,
-        private readonly unitService: UnitService,
-        private readonly unitAreaService: UnitAreaService,
         private readonly lessonService: LessonService,
+
+        @Inject(forwardRef(() => UnitService))
+        private readonly unitService: UnitService,
     ) {
         super(feedbackRepository);
     }
-
-    // async createFeedbackForUnit(createFeedbackDto: CreateFeedbackDto): Promise<Feedback> {
-    //   const { unitId, accountId, content } = createFeedbackDto;
-
-    //   const unit = await this.unitService.findOne(unitId);
-    //   if (!unit) {
-    //     throw new NotFoundException('Unit not found');
-    //   }
-
-    //   const feedback = this.feedbackRepository.save({
-    //     unit: unit,
-    //     accountId,
-    //     content,
-    //   });
-
-    //   return this.feedbackRepository.save(feedback);
-    // }
 
     async approveOrRejectLearningMaterial(
         feedbackDto: FeedbackDto,
         action: 'approve' | 'reject',
     ): Promise<void> {
         if (action === 'reject') {
-            await this.handleReject(feedbackDto); // Call rejection handler
+            await this.handleReject(feedbackDto);
         } else if (action === 'approve') {
             await this.handleApprove(feedbackDto);
         }
     }
 
     private async handleReject(feedbackDto: FeedbackDto): Promise<void> {
-        const { unitFeedback, unitAreasFeedback, lessonsFeedback } =
-            feedbackDto;
+        const { unitFeedback } = feedbackDto;
 
-        // Loop through each unit area and mark rejected ones as false
-        for (const unitAreaFeedback of unitAreasFeedback) {
-            const { unitAreaId, isApproved, content } = unitAreaFeedback;
+        // Loop through each unit area and lessons inside the unit
 
-            if (!isApproved) {
-                // Mark unit area as rejected
-                await this.unitAreaService.updateUnitAreaStatus(unitAreaId, {
-                    status: false,
-                });
+        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
+            const { lessonId, isRejected, content, reason } = lessonFeedback;
 
-                // Create feedback entry for rejected unit area
-                await this.feedbackRepository.save({
-                    unitArea: { id: unitAreaId },
-                    content,
-                    status: FeedbackStatus.REJECTED,
-                });
-            }
-        }
-
-        // Loop through each lesson and mark rejected ones as false
-        for (const lessonFeedback of lessonsFeedback) {
-            const { lessonId, isApproved, content } = lessonFeedback;
-
-            if (!isApproved) {
+            if (isRejected) {
                 // Mark lesson as rejected
                 await this.lessonService.updateLessonStatus(lessonId, {
-                    status: false, // Set status to false for rejected parts
+                    status: false, // Set status to false for rejected lessons
                 });
 
                 // Create feedback entry for rejected lesson
                 await this.feedbackRepository.save({
                     lesson: { id: lessonId },
                     content,
+                    reason,
                     status: FeedbackStatus.REJECTED,
                 });
             }
         }
 
+        // Create feedback entry for the unit
         await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
-            content: unitFeedback.content,
+            content: 'Rejected due to lesson or unit area issues',
             status: FeedbackStatus.REJECTED,
         });
 
+        // Mark the entire unit as rejected
         await this.unitService.updateUnitStatus(unitFeedback.unitId, {
             status: UnitStatus.REJECTED,
         });
     }
 
     private async handleApprove(feedbackDto: FeedbackDto): Promise<void> {
-        const { unitFeedback, unitAreasFeedback, lessonsFeedback } =
-            feedbackDto;
+        const { unitFeedback } = feedbackDto;
         let anyRejected = false;
 
-        // Ensure no rejected parts exist before approving
-        for (const unitAreaFeedback of unitAreasFeedback) {
-            if (!unitAreaFeedback.isApproved) {
+        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
+            if (lessonFeedback.isRejected) {
                 anyRejected = true;
             }
         }
 
-        for (const lessonFeedback of lessonsFeedback) {
-            if (!lessonFeedback.isApproved) {
-                anyRejected = true;
-            }
-        }
-
+        // If any lesson or unit area is rejected, throw an error
         if (anyRejected) {
             throw new Error(
                 'Cannot approve learning material with rejected parts',
             );
         }
 
-        await this.feedbackRepository.save({
-            unit: { id: unitFeedback.unitId },
-            content: unitFeedback.content,
-            status: FeedbackStatus.APPROVED,
-        });
+        // Approve all lessons by setting their status to true
+        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
+            // Update each lesson's status to true
+            await this.lessonService.updateLessonStatus(
+                lessonFeedback.lessonId,
+                {
+                    status: true, // Set status to true for approved lessons
+                },
+            );
+        }
 
-        // Mark unit as approved
+        // Mark the entire unit as approved
         await this.unitService.updateUnitStatus(unitFeedback.unitId, {
             status: UnitStatus.APPROVED,
+        });
+
+        // Create feedback entry for the approved unit
+        await this.feedbackRepository.save({
+            unit: { id: unitFeedback.unitId },
+            content: 'Approved',
+            status: FeedbackStatus.APPROVED,
         });
     }
 }
