@@ -10,6 +10,7 @@ import { LevelService } from '../level/level.service';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { FeedbackService } from '../feedback/feedback.service';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -117,12 +118,99 @@ export class UnitService extends BaseService<Unit> {
         page: number = 1,
         pageSize: number = 10,
     ): Promise<PagedUnitResponseDto> {
-        // Kiểm tra xem việc chuyển đổi có thành công không
+        
         const skip = (page - 1) * pageSize;
 
         // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.PENDING },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
+        });
+
+        // If no units are found, return an empty array
+        if (!units || units.length === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+
+    async getApproveUnitWithDetails(
+        page: number = 1,
+        pageSize: number = 10,
+    ): Promise<PagedUnitResponseDto> {
+        
+        const skip = (page - 1) * pageSize;
+
+        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.APPROVED },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
+        });
+
+        // If no units are found, return an empty array
+        if (!units || units.length === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getRejectUnitWithDetails(
+        page: number = 1,
+        pageSize: number = 10,
+    ): Promise<PagedUnitResponseDto> {
+
+        const skip = (page - 1) * pageSize;
+
+        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.REJECTED },
             relations: [
                 'section',
                 'level',
@@ -189,6 +277,11 @@ export class UnitService extends BaseService<Unit> {
         // Update status to indicate that the learning material has been submitted
         unit.status = UnitStatus.PENDING;
         await this.unitRepository.save(unit);
+
+        this.feedbackService.create({
+            unit: unit,
+            status: FeedbackStatus.PENDING,
+        })
 
         return unit;
     }
