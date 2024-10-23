@@ -12,7 +12,8 @@ import { FeedbackModule } from '../feedback/feedback.module';
     imports: [
         TypeOrmModule.forFeature([Unit]),
         LevelModule,
-        SectionModule
+        SectionModule,
+        FeedbackModule,
     ],
     controllers: [UnitController],
     providers: [UnitService],

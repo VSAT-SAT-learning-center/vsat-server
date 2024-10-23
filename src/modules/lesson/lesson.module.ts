@@ -5,11 +5,13 @@ import { LessonController } from './lesson.controller';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { UnitAreaModule } from '../unit-area/unit-area.module';
 import { LessonContentModule } from '../lesson-content/lesson-content.module';
+import { FeedbackModule } from '../feedback/feedback.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Lesson]),
         UnitAreaModule,
+        forwardRef(() => FeedbackModule),
         forwardRef(() => LessonContentModule),
     ],
     providers: [LessonService],
