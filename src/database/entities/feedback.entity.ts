@@ -67,6 +67,6 @@ export class Feedback {
     @Column({ type: 'enum', enum: FeedbackStatus })
     status: FeedbackStatus;
 
-    @Column({ type: 'enum', enum: FeedbackReason })
+    @Column({ type: 'enum', enum: FeedbackReason, nullable: true })
     reason: FeedbackReason;
 }
