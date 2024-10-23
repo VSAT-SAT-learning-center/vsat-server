@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateExamAttemptDetailDto } from './dto/create-examattemptdetail.dto';
@@ -29,7 +29,7 @@ export class ExamAttemptDetailService {
     ) {}
 
     async check(
-        checkExamAttemptDetails: CheckExamAttemptDetail[], // Nhận một mảng CheckExamAttemptDetail
+        checkExamAttemptDetails: CheckExamAttemptDetail[],
     ): Promise<CheckExamAttemptDetail[]> {
         const results: CheckExamAttemptDetail[] = [];
 
@@ -59,13 +59,25 @@ export class ExamAttemptDetailService {
                     (answer) =>
                         answer.label === checkExamAttemptDetail.studentanswer,
                 );
-                checkExamAttemptDetail.isCorrect = !!correctAnswer;
+
+                if (!correctAnswer.isCorrectAnswer) {
+                    checkExamAttemptDetail.isCorrect = false;
+                } else if (correctAnswer.isCorrectAnswer) {
+                    checkExamAttemptDetail.isCorrect = true;
+                }
             } else if (question.IsSingleChoiceQuestion === false) {
                 const correctAnswer = answers.find(
                     (answer) =>
                         answer.text === checkExamAttemptDetail.studentanswer,
                 );
-                checkExamAttemptDetail.isCorrect = !!correctAnswer;
+
+                console.log(correctAnswer);
+
+                if (correctAnswer) {
+                    checkExamAttemptDetail.isCorrect = true;
+                } else {
+                    checkExamAttemptDetail.isCorrect = false;
+                }
             }
 
             const examAttemptDetailEntity =

@@ -53,7 +53,6 @@ class LessonIdDTO {
     id: string;
 }
 
-
 export class CreateQuestionDTO extends BaseDTO {
     @Expose()
     @ValidateNested()
@@ -101,4 +100,9 @@ export class CreateQuestionDTO extends BaseDTO {
     @ValidateNested({ each: true })
     @Type(() => CreateAnswerDTO)
     answers: CreateAnswerDTO[];
+
+    @Expose()
+    @ApiProperty()
+    @IsBoolean()
+    IsSingleChoiceQuestion: boolean;
 }

@@ -77,6 +77,13 @@ export class QuestionService {
                     throw new NotFoundException('Lesson is not found');
                 }
 
+                if (!createQuestionDto.IsSingleChoiceQuestion === null) {
+                    throw new HttpException(
+                        'IsSingleChoiceQuestion is null',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
                 const newQuestion = this.questionRepository.create({
                     ...createQuestionDto,
                     unit: foundUnit,
