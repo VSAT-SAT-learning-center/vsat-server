@@ -36,54 +36,83 @@ export class QuestionService {
         private readonly answerService: Answerservice,
     ) {}
 
-    async save(
-        createQuestionDtoArray: CreateQuestionDTO[],
-    ): Promise<Question[]> {
+    async save(createQuestionDtoArray: CreateQuestionDTO[]): Promise<{
+        savedQuestions: Question[];
+        errors: { question: CreateQuestionDTO; message: string }[];
+    }> {
         const savedQuestions: Question[] = [];
+        const errors: { question: CreateQuestionDTO; message: string }[] = [];
 
         for (const createQuestionDto of createQuestionDtoArray) {
-            const { level, unit, skill, lesson, answers } = createQuestionDto;
+            try {
+                const { level, unit, skill, lesson, answers } =
+                    createQuestionDto;
 
-            const foundUnit = await this.unitRepository.findOne({
-                where: { id: unit.id },
-            });
-            const foundLevel = await this.levelRepository.findOne({
-                where: { id: level.id },
-            });
-            const foundSkill = await this.skillRepository.findOne({
-                where: { id: skill.id },
-            });
-            const foundLesson = await this.lessonRepository.findOne({
-                where: { id: lesson.id },
-            });
+                const foundUnit = await this.unitRepository.findOne({
+                    where: { id: unit.id },
+                });
+                const foundLevel = await this.levelRepository.findOne({
+                    where: { id: level.id },
+                });
+                const foundSkill = await this.skillRepository.findOne({
+                    where: { id: skill.id },
+                });
+                const foundLesson = await this.lessonRepository.findOne({
+                    where: { id: lesson.id },
+                });
 
-            if (!foundUnit || !foundLevel || !foundSkill || !foundLesson) {
-                throw new HttpException(
-                    'Some relations not found',
-                    HttpStatus.BAD_REQUEST,
+                if (!foundUnit) {
+                    throw new NotFoundException('Unit is not found');
+                }
+
+                if (!foundLevel) {
+                    throw new NotFoundException('Level is not found');
+                }
+
+                if (!foundSkill) {
+                    throw new NotFoundException('Skill is not found');
+                }
+
+                if (!foundLesson) {
+                    throw new NotFoundException('Lesson is not found');
+                }
+
+                if (!createQuestionDto.IsSingleChoiceQuestion === null) {
+                    throw new HttpException(
+                        'IsSingleChoiceQuestion is null',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                const newQuestion = this.questionRepository.create({
+                    ...createQuestionDto,
+                    unit: foundUnit,
+                    level: foundLevel,
+                    skill: foundSkill,
+                    lesson: foundLesson,
+                });
+
+                const savedQuestion =
+                    await this.questionRepository.save(newQuestion);
+
+                await this.answerService.createMultipleAnswers(
+                    savedQuestion.id,
+                    answers,
                 );
+
+                savedQuestions.push(savedQuestion);
+            } catch (error) {
+                errors.push({
+                    question: createQuestionDto,
+                    message: error.message || 'Unknown error',
+                });
             }
-
-            const newQuestion = this.questionRepository.create({
-                ...createQuestionDto,
-                unit: foundUnit,
-                level: foundLevel,
-                skill: foundSkill,
-                lesson: foundLesson,
-            });
-
-            const savedQuestion =
-                await this.questionRepository.save(newQuestion);
-
-            await this.answerService.createMultipleAnswers(
-                savedQuestion.id,
-                answers,
-            );
-
-            savedQuestions.push(savedQuestion);
         }
 
-        return savedQuestions;
+        return {
+            savedQuestions,
+            errors,
+        };
     }
 
     async getAll(page: number, pageSize: number): Promise<any> {

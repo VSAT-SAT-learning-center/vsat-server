@@ -7,13 +7,16 @@ import {
     ManyToOne,
     JoinColumn,
 } from 'typeorm';
-import { ExamAttempt } from './examattempt.entity';
-import { Question } from './question.entity';
+import { QuizQuestion } from './quizquestion.entity';
 
-@Entity('examattemptdetail')
-export class ExamAttemptDetail {
+@Entity('quizanswer')
+export class QuizAnswer {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @ManyToOne(() => QuizQuestion)
+    @JoinColumn({ name: 'quizquestionid' })
+    quizquestion: QuizQuestion;
 
     @CreateDateColumn({ type: 'timestamp' })
     createdat: Date;
@@ -27,17 +30,12 @@ export class ExamAttemptDetail {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => ExamAttempt)
-    @JoinColumn({ name: 'examattemptid' })
-    examAttempt: ExamAttempt;
-
-    @ManyToOne(() => Question)
-    @JoinColumn({ name: 'questionid' })
-    question: Question;
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    label: string;
 
     @Column({ type: 'text', nullable: true })
-    studentAnswer: string;
+    text: string;
 
     @Column({ type: 'boolean', default: false })
-    iscorrect: boolean;
+    iscorrectanswer: boolean;
 }

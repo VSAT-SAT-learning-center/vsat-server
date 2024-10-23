@@ -1,9 +1,11 @@
 import {
     Column,
+    CreateDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 import { Question } from './question.entity';
 
@@ -24,4 +26,16 @@ export class Answer {
 
     @Column({ type: 'boolean', nullable: true })
     isCorrectAnswer: boolean;
+
+    @CreateDateColumn({ type: 'timestamp' })
+    createdat: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    createdby: string;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedat: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    updatedby: string;
 }

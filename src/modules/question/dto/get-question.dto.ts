@@ -38,4 +38,7 @@ export class GetQuestionDTO {
 
     @Expose()
     sort: number;
+
+    @Expose()
+    IsSingleChoiceQuestion: boolean;
 }
