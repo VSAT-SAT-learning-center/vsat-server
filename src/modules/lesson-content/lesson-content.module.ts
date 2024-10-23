@@ -12,7 +12,7 @@ import { LessonModule } from '../lesson/lesson.module';
         forwardRef(() => LessonModule),
     ],
     controllers: [LessonContentController],
-    providers: [LessonContentService, PaginationService],
+    providers: [LessonContentService],
     exports: [LessonContentService],
 })
 export class LessonContentModule {}
