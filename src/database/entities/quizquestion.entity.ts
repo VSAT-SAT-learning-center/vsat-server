@@ -39,24 +39,6 @@ export class QuizQuestion {
     content: string;
 
     @Column({ type: 'text', nullable: true })
-    answer1: string;
-
-    @Column({ type: 'text', nullable: true })
-    answer2: string;
-
-    @Column({ type: 'text', nullable: true })
-    answer3: string;
-
-    @Column({ type: 'text', nullable: true })
-    answer4: string;
-
-    @Column({ type: 'int', nullable: true })
-    correctoption: number;
-
-    @Column({ type: 'text', nullable: true })
-    correctanswer: string;
-
-    @Column({ type: 'text', nullable: true })
     explain: string;
 
     @Column({ type: 'int', nullable: true })

@@ -18,5 +18,6 @@ export class GetQuestionWithAnswerDTO {
     @Type(() => GetAnswerDTO)
     answers: GetAnswerDTO[];
 
-    
+    @Expose()
+    IsSingleChoiceQuestion: boolean;
 }
