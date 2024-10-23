@@ -22,6 +22,8 @@ export class UnitAreaService extends BaseService<UnitArea> {
     constructor(
         @InjectRepository(UnitArea)
         private readonly unitAreaRepository: Repository<UnitArea>,
+
+        @Inject(forwardRef(() => UnitService))
         private readonly unitService: UnitService,
 
         @Inject(forwardRef(() => LessonService))

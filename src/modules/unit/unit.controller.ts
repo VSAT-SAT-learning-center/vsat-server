@@ -27,7 +27,7 @@ export class UnitController extends BaseController<Unit> {
     }
 
     @Get('/pending')
-    async getUnitPendingDetails(
+    async getPendingUnitWithDetails(
         @Query('page') page: number = 1,
         @Query('pageSize') pageSize: number = 10,
     ) {
@@ -46,6 +46,54 @@ export class UnitController extends BaseController<Unit> {
         return ResponseHelper.success(
             HttpStatus.OK,
             pendingUnits,
+            SuccessMessages.get('PendingUnit'),
+        );
+    }
+
+    @Get('/approve')
+    async getApproveUnitWithDetails(
+        @Query('page') page: number = 1,
+        @Query('pageSize') pageSize: number = 10,
+    ) {
+        if ((page = null)) {
+            page = 1;
+        }
+        if ((pageSize = null)) {
+            pageSize = 10;
+        }
+
+        const approveUnits = await this.unitService.getApproveUnitWithDetails(
+            page,
+            pageSize,
+        );
+
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            approveUnits,
+            SuccessMessages.get('PendingUnit'),
+        );
+    }
+
+    @Get('/reject')
+    async getUnitPendingDetails(
+        @Query('page') page: number = 1,
+        @Query('pageSize') pageSize: number = 10,
+    ) {
+        if ((page = null)) {
+            page = 1;
+        }
+        if ((pageSize = null)) {
+            pageSize = 10;
+        }
+
+        const rejectUnits = await this.unitService.getRejectUnitWithDetails(
+            page,
+            pageSize,
+        );
+
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            rejectUnits,
             SuccessMessages.get('PendingUnit'),
         );
     }

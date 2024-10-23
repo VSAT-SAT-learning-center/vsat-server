@@ -9,7 +9,7 @@ import { LessonModule } from '../lesson/lesson.module';
 @Module({
     imports: [
         TypeOrmModule.forFeature([UnitArea]),
-        UnitModule,
+        forwardRef(() => UnitModule),
         forwardRef(() => LessonModule),
     ],
     controllers: [UnitAreaController],
