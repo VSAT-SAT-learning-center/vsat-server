@@ -30,8 +30,8 @@ export class UnitFeedbackDto {
     @ApiProperty({ example: '0ecf1ec5-bf42-4c51-8e74-3546f2cfd91f' })
     unitId: string;
 
-    @ApiProperty({ type: [UnitAreaFeedbackDto] })
-    unitAreasFeedback: UnitAreaFeedbackDto[];
+    @ApiProperty({ type: [LessonFeedbackDto] })
+    lessonsFeedback: LessonFeedbackDto[];
 }
 
 
