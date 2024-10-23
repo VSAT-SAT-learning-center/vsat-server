@@ -46,25 +46,23 @@ export class FeedbackService extends BaseService<Feedback> {
         const { unitFeedback } = feedbackDto;
 
         // Loop through each unit area and lessons inside the unit
-        for (const unitAreaFeedback of unitFeedback.unitAreasFeedback) {
-            for (const lessonFeedback of unitAreaFeedback.lessonsFeedback) {
-                const { lessonId, isRejected, content, reason } =
-                    lessonFeedback;
 
-                if (isRejected) {
-                    // Mark lesson as rejected
-                    await this.lessonService.updateLessonStatus(lessonId, {
-                        status: false, // Set status to false for rejected lessons
-                    });
+        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
+            const { lessonId, isRejected, content, reason } = lessonFeedback;
 
-                    // Create feedback entry for rejected lesson
-                    await this.feedbackRepository.save({
-                        lesson: { id: lessonId },
-                        content,
-                        reason,
-                        status: FeedbackStatus.REJECTED,
-                    });
-                }
+            if (isRejected) {
+                // Mark lesson as rejected
+                await this.lessonService.updateLessonStatus(lessonId, {
+                    status: false, // Set status to false for rejected lessons
+                });
+
+                // Create feedback entry for rejected lesson
+                await this.feedbackRepository.save({
+                    lesson: { id: lessonId },
+                    content,
+                    reason,
+                    status: FeedbackStatus.REJECTED,
+                });
             }
         }
 
@@ -85,12 +83,9 @@ export class FeedbackService extends BaseService<Feedback> {
         const { unitFeedback } = feedbackDto;
         let anyRejected = false;
 
-        // Loop through unit areas and lessons to ensure nothing is rejected
-        for (const unitAreaFeedback of unitFeedback.unitAreasFeedback) {
-            for (const lessonFeedback of unitAreaFeedback.lessonsFeedback) {
-                if (lessonFeedback.isRejected) {
-                    anyRejected = true;
-                }
+        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
+            if (lessonFeedback.isRejected) {
+                anyRejected = true;
             }
         }
 
@@ -102,16 +97,14 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Approve all lessons by setting their status to true
-        for (const unitAreaFeedback of unitFeedback.unitAreasFeedback) {
-            for (const lessonFeedback of unitAreaFeedback.lessonsFeedback) {
-                // Update each lesson's status to true
-                await this.lessonService.updateLessonStatus(
-                    lessonFeedback.lessonId,
-                    {
-                        status: true, // Set status to true for approved lessons
-                    },
-                );
-            }
+        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
+            // Update each lesson's status to true
+            await this.lessonService.updateLessonStatus(
+                lessonFeedback.lessonId,
+                {
+                    status: true, // Set status to true for approved lessons
+                },
+            );
         }
 
         // Mark the entire unit as approved
