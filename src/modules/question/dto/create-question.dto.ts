@@ -53,7 +53,6 @@ class LessonIdDTO {
     id: string;
 }
 
-
 export class CreateQuestionDTO extends BaseDTO {
     @Expose()
     @ValidateNested()
@@ -86,17 +85,6 @@ export class CreateQuestionDTO extends BaseDTO {
     content: string;
 
     @Expose()
-    @IsNotEmpty()
-    @ApiProperty()
-    correctoption: number;
-
-    @Expose()
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    correctanswer: string;
-
-    @Expose()
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
@@ -112,4 +100,9 @@ export class CreateQuestionDTO extends BaseDTO {
     @ValidateNested({ each: true })
     @Type(() => CreateAnswerDTO)
     answers: CreateAnswerDTO[];
+
+    @Expose()
+    @ApiProperty()
+    @IsBoolean()
+    IsSingleChoiceQuestion: boolean;
 }

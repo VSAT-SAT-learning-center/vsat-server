@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Repository } from 'typeorm';
@@ -58,6 +63,27 @@ export class Answerservice {
             if (!question) {
                 throw new NotFoundException(
                     `Question with ID ${questionId} not found`,
+                );
+            }
+
+            if (!label) {
+                throw new HttpException(
+                    `Lable should not empty`,
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            if (!text) {
+                throw new HttpException(
+                    `Text should not empty`,
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            if (isCorrectAnswer === undefined || isCorrectAnswer === null) {
+                throw new HttpException(
+                    `isCorrectAnswer should not empty`,
+                    HttpStatus.BAD_REQUEST,
                 );
             }
 
