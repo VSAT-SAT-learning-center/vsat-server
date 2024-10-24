@@ -10,7 +10,6 @@ import {
     ValidateNested,
 } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
-import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { CreateAnswerDTO } from 'src/modules/answer/dto/create-answer.dto';
 
 class UnitIdDTO {
