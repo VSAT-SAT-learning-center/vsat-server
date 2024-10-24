@@ -88,7 +88,7 @@ export class UnitService extends BaseService<Unit> {
 
         const updatedUnit = await this.unitRepository.save({
             ...unit,
-            updateUnit,
+            ...updateUnit,
         });
 
         return updatedUnit;
