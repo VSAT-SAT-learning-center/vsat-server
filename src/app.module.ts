@@ -43,6 +43,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
 import { NofiticationModule } from './modules/nofitication/nofitication.module';
+import { NotificationsGateway } from './modules/nofitication/nofitication.gateway';
 
 @Module({
     imports: [
@@ -118,6 +119,7 @@ import { NofiticationModule } from './modules/nofitication/nofitication.module';
             inject: [ConfigService],
         }),
     ],
+    providers: [NotificationsGateway]
     // providers: [PaginationService],
     // exports: [PaginationService]
 })

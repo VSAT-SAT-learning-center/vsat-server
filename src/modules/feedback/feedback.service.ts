@@ -129,14 +129,14 @@ export class FeedbackService extends BaseService<Feedback> {
         const feedback = this.feedbackRepository.create(createFeedbackDto);
         await this.feedbackRepository.save(feedback);
 
-        // Notify managers when feedback is submitted
-        // const managers = await this.accountService.findManagers(); // Get manager users
-        // managers.forEach((manager) => {
-        //     this.notificationsGateway.sendNotificationToUser(
-        //         manager.id,
-        //         `New feedback submitted for unit ${createFeedbackDto.unitId}`,
-        //     );
-        // });
+        //Notify managers when feedback is submitted
+        const managers = await this.accountService.findManagers(); // Get manager users
+        managers.forEach((manager) => {
+            this.notificationsGateway.sendNotificationToUser(
+                manager.id,
+                `New feedback submitted for unit ${createFeedbackDto.unitId}`,
+            );
+        });
 
         return feedback;
     }

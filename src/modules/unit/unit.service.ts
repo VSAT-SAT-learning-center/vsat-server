@@ -271,9 +271,11 @@ export class UnitService extends BaseService<Unit> {
         unit.status = UnitStatus.PENDING;
         await this.unitRepository.save(unit);
 
-        this.feedbackService.create({
-            unit: unit,
+        this.feedbackService.submitFeedback({
+            unitId: unitId,
             status: FeedbackStatus.PENDING,
+            content: 'Learning material submitted',
+            accountFromId: unit.createdby,
         });
 
         return unit;

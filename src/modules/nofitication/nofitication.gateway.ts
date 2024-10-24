@@ -8,7 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ namespace: '/notifications' })
+@WebSocketGateway(3001, { namespace: '/notifications', cors: { origin: '*' } })
 export class NotificationsGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -19,19 +19,9 @@ export class NotificationsGateway
         console.log('WebSocket server initialized');
     }
 
-    typescript;
-    CopyInsert;
     handleConnection(client: Socket) {
-        const userId = client.handshake.query.userId;
-        if (Array.isArray(userId)) {
-            // Handle the case where userId is an array
-            console.error('Multiple user IDs received');
-            return;
-        }
-        if (userId) {
-            this.users.set(userId, client);
-            console.log(`User connected: ${userId}`);
-        }
+        console.log('Client connected: ' + client.id);
+        // The userId will be registered later via the 'registerUser' event
     }
 
     handleDisconnect(client: Socket) {
@@ -42,6 +32,27 @@ export class NotificationsGateway
             this.users.delete(userId);
             console.log(`User disconnected: ${userId}`);
         }
+    }
+
+    // Handle the 'registerUser' event to store the userId
+    @SubscribeMessage('registerUser')
+    handleRegisterUser(client: Socket, data: { userId: string }) {
+        const { userId } = data;
+        if (!userId) {
+            console.error('Missing userId in registration');
+            return;
+        }
+
+        if (this.users.has(userId)) {
+            console.log(`User ${userId} is already connected. Replacing old connection.`);
+            const existingSocket = this.users.get(userId);
+            if (existingSocket) {
+                existingSocket.disconnect(); // Disconnect the old connection
+            }
+        }
+
+        this.users.set(userId, client);
+        console.log(`User registered: ${userId}`);
     }
 
     // Function to send notification to a specific user
@@ -57,15 +68,13 @@ export class NotificationsGateway
 
     // Broadcast notification to all users
     broadcastNotification(message: string) {
+        console.log('Broadcasting notification...: ' + message);
         this.server.emit('notification', message);
     }
 
     // Handle incoming notifications between users
     @SubscribeMessage('sendToUser')
-    handleSendToUser(
-        client: Socket,
-        data: { userId: string; message: string },
-    ) {
+    handleSendToUser(client: Socket, data: { userId: string; message: string }) {
         const { userId, message } = data;
         this.sendNotificationToUser(userId, message);
     }

@@ -5,15 +5,18 @@ import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 export class CreateFeedbackUnitDto {
   @ApiProperty({ description: 'ID của Unit liên quan đến feedback' })
   @IsUUID()
-  unitId: string;
+  @IsOptional()
+  unitId?: string;
 
   @ApiProperty({ description: 'ID của Exam liên quan đến feedback' })
   @IsUUID()
-  examId: string;
+  @IsOptional()
+  examId?: string;
 
   @ApiProperty({ description: 'ID của Question liên quan đến feedback' })
   @IsUUID()
-  questionId: string;
+  @IsOptional()
+  questionId?: string;
 
   @ApiProperty({ description: 'ID của tài khoản gửi feedback' })
   @IsUUID()
@@ -21,7 +24,8 @@ export class CreateFeedbackUnitDto {
 
   @ApiProperty({ description: 'ID của tài khoản nhận feedback' })
   @IsUUID()
-  accountToId: string;
+  @IsOptional()
+  accountToId?: string;
 
   @ApiProperty({ description: 'Nội dung của feedback', required: false })
   @IsString()
