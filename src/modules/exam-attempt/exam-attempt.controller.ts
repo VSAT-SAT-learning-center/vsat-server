@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put, HttpStatus } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    Query,
+    Put,
+    HttpStatus,
+} from '@nestjs/common';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
 import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
 import { ExamAttemptService } from './exam-attempt.service';
@@ -10,8 +20,6 @@ import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('ExamAttempts')
 @Controller('exam-attempts')
-export class ExamAttemptController extends BaseController<ExamAttempt> {
-  constructor(examAttemptService: ExamAttemptService) {
-    super(examAttemptService, 'ExamAttempt');
-  }
+export class ExamAttemptController {
+    constructor(private readonly examAttemptService: ExamAttemptService) {}
 }

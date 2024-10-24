@@ -1,5 +1,5 @@
 export enum QuestionStatus {
-    SUBMIT = 'Submit',
+    PENDING = 'Pending',
     REJECT = 'Reject',
     APPROVED = 'Approved',
 }
