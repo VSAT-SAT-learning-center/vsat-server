@@ -4,9 +4,7 @@ import {
     IsArray,
     IsBoolean,
     IsNotEmpty,
-    IsNumber,
     IsString,
-    IsUUID,
     ValidateNested,
 } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
@@ -49,5 +47,5 @@ export class CreateQuestionDTO extends BaseDTO {
     @Expose()
     @ApiProperty()
     @IsBoolean()
-    IsSingleChoiceQuestion: boolean;
+    isSingleChoiceQuestion: boolean;
 }

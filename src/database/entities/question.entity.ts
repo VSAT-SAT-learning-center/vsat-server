@@ -1,21 +1,19 @@
+import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import {
-    Entity,
-    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    UpdateDateColumn,
-    ManyToOne,
+    Entity,
     JoinColumn,
-    Unique,
+    ManyToOne,
     OneToMany,
+    PrimaryGeneratedColumn,
+    Unique,
+    UpdateDateColumn,
 } from 'typeorm';
-import { Unit } from './unit.entity';
-import { Level } from './level.entity';
-import { Skill } from './skill.entity';
-import { Lesson } from './lesson.entity';
-import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { Answer } from './anwser.entity';
+import { Level } from './level.entity';
 import { Section } from './section.entity';
+import { Skill } from './skill.entity';
 
 @Entity('question')
 @Unique(['content'])
@@ -60,7 +58,7 @@ export class Question {
     sort: number;
 
     @Column({ type: 'boolean', nullable: true })
-    IsSingleChoiceQuestion: boolean;
+    isSingleChoiceQuestion: boolean;
 
     @Column({
         type: 'enum',

@@ -1,5 +1,3 @@
-import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { QuestionService } from './question.service';
 import {
     Body,
     Controller,
@@ -11,14 +9,16 @@ import {
     Put,
     Query,
 } from '@nestjs/common';
-import { CreateQuestionDTO } from './dto/create-question.dto';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { CreateQuestionDTO } from './dto/create-question.dto';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { QuestionService } from './question.service';
 
 @ApiTags('Questions')
-@Controller('question')
+@Controller('questions')
 export class QuestionController {
     constructor(private readonly questionService: QuestionService) {}
 
