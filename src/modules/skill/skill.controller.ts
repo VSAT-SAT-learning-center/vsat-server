@@ -7,11 +7,17 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { Skill } from 'src/database/entities/skill.entity';
 import { BaseController } from '../base/base.controller';
 import { ApiTags } from '@nestjs/swagger';
+import { SkillDto } from './dto/skill.dto';
 
 @ApiTags('Skills')
 @Controller('skills')
 export class SkillController extends BaseController<Skill> {
-  constructor(skillService: SkillService) {
+  constructor(private readonly skillService: SkillService) {
     super(skillService, 'Skill');
+  }
+
+  @Get('domain/:domainId')
+  async getSkillsByDomainId(@Param('domainId') domainId: string): Promise<SkillDto[]> {
+    return this.skillService.getSkillsByDomainId(domainId);
   }
 }

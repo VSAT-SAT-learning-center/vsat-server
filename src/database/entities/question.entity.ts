@@ -15,6 +15,7 @@ import { Skill } from './skill.entity';
 import { Lesson } from './lesson.entity';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { Answer } from './anwser.entity';
+import { Section } from './section.entity';
 
 @Entity('question')
 @Unique(['content'])
@@ -34,10 +35,6 @@ export class Question {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => Unit)
-    @JoinColumn({ name: 'unitid' })
-    unit: Unit;
-
     @ManyToOne(() => Level)
     @JoinColumn({ name: 'levelid' })
     level: Level;
@@ -46,9 +43,9 @@ export class Question {
     @JoinColumn({ name: 'skillid' })
     skill: Skill;
 
-    @ManyToOne(() => Lesson)
-    @JoinColumn({ name: 'lessonid' })
-    lesson: Lesson;
+    @ManyToOne(() => Section)
+    @JoinColumn({ name: 'sectionid' })
+    section: Section;
 
     @OneToMany(() => Answer, (answer) => answer.question)
     answers: Answer[];
@@ -68,7 +65,7 @@ export class Question {
     @Column({
         type: 'enum',
         enum: QuestionStatus,
-        default: QuestionStatus.SUBMIT,
+        default: QuestionStatus.PENDING,
     })
     status: QuestionStatus;
 }
