@@ -9,9 +9,12 @@ import { Skill } from 'src/database/entities/skill.entity';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { Answerservice } from '../answer/answer.service';
 import { Answer } from 'src/database/entities/anwser.entity';
+import { Section } from 'src/database/entities/section.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Question, Level, Unit, Skill, Lesson, Answer])],
+    imports: [
+        TypeOrmModule.forFeature([Question, Section, Level, Skill, Answer]),
+    ],
     providers: [QuestionService, Answerservice],
     controllers: [QuestionController],
 })

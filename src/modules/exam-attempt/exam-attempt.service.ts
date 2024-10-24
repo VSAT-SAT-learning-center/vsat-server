@@ -9,12 +9,11 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 
 @Injectable()
-export class ExamAttemptService extends BaseService<ExamAttempt> {
-  constructor(
-    @InjectRepository(ExamAttempt)
-    examAttemptRepository: Repository<ExamAttempt>,
-    paginationService: PaginationService,
-  ) {
-    super(examAttemptRepository, paginationService);
-  }
+export class ExamAttemptService {
+    constructor(
+        @InjectRepository(ExamAttempt)
+        private readonly examAttemptRepository: Repository<ExamAttempt>,
+    ) {}
+
+    
 }
