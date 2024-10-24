@@ -7,13 +7,13 @@ import {
     Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Lesson } from 'src/database/entities/lesson.entity';
 import { LessonContent } from 'src/database/entities/lessoncontent.entity';
 import { Repository } from 'typeorm';
-import { CreateLessonContentDto } from './dto/create-lessoncontent.dto';
-import { UpdateLessonContentDto } from './dto/update-lessoncontent.dto';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
-import { Lesson } from 'src/database/entities/lesson.entity';
+import { CreateLessonContentDto } from './dto/create-lessoncontent.dto';
+import { UpdateLessonContentDto } from './dto/update-lessoncontent.dto';
 
 @Injectable()
 export class LessonContentService extends BaseService<LessonContent> {

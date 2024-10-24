@@ -79,7 +79,7 @@ export class QuestionService {
                     throw new NotFoundException('Section is not found');
                 }
 
-                if (!createQuestionDto.IsSingleChoiceQuestion === null) {
+                if (!createQuestionDto.isSingleChoiceQuestion === null) {
                     throw new HttpException(
                         'IsSingleChoiceQuestion is null',
                         HttpStatus.BAD_REQUEST,

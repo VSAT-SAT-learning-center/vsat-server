@@ -4,13 +4,10 @@ import {
     IsArray,
     IsBoolean,
     IsNotEmpty,
-    IsNumber,
     IsString,
-    IsUUID,
     ValidateNested,
 } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
-import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { CreateAnswerDTO } from 'src/modules/answer/dto/create-answer.dto';
 
 export class CreateQuestionDTO extends BaseDTO {
@@ -50,5 +47,5 @@ export class CreateQuestionDTO extends BaseDTO {
     @Expose()
     @ApiProperty()
     @IsBoolean()
-    IsSingleChoiceQuestion: boolean;
+    isSingleChoiceQuestion: boolean;
 }
