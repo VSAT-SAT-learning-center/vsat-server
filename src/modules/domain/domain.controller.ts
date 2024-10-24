@@ -5,11 +5,17 @@ import { UpdateDomainDto } from './dto/update-domain.dto';
 import { BaseController } from '../base/base.controller';
 import { ApiTags } from '@nestjs/swagger';
 import { Domain } from 'src/database/entities/domain.entity';
+import { DomainDto } from './dto/domain.dto';
 
 @ApiTags('Domains')
 @Controller('domains')
 export class DomainController extends BaseController<Domain> {
-  constructor(domainService: DomainService) {
+  constructor(private readonly domainService: DomainService) {
     super(domainService, 'Domain');
+  }
+
+  @Get('section/:sectionId')
+  async getDomainsBySectionId(@Param('sectionId') sectionId: string): Promise<DomainDto[]> {
+    return this.domainService.getDomainsBySectionId(sectionId);
   }
 }
