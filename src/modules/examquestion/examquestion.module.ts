@@ -16,6 +16,7 @@ import { Answerservice } from '../answer/answer.service';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamType } from 'src/database/entities/examtype.entity';
+import { Section } from 'src/database/entities/section.entity';
 
 @Module({
     imports: [
@@ -24,13 +25,12 @@ import { ExamType } from 'src/database/entities/examtype.entity';
             Question,
             Answer,
             Exam,
-            Unit,
             Skill,
-            Lesson,
+            Section,
             Level,
             ModuleType,
             ExamStructure,
-            ExamType
+            ExamType,
         ]),
     ],
     controllers: [ExamQuestionController],

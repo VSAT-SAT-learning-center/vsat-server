@@ -10,29 +10,27 @@ import { Question } from 'src/database/entities/question.entity';
 import { Repository } from 'typeorm';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
-import { Unit } from 'src/database/entities/unit.entity';
 import { Level } from 'src/database/entities/level.entity';
 import { Skill } from 'src/database/entities/skill.entity';
-import { Lesson } from 'src/database/entities/lesson.entity';
 import { GetQuestionDTO } from './dto/get-question.dto';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 import { Answerservice } from '../answer/answer.service';
+import { Section } from 'src/database/entities/section.entity';
 
 @Injectable()
 export class QuestionService {
     constructor(
+        @InjectRepository(Section)
+        private readonly sectionRepository: Repository<Section>,
         @InjectRepository(Question)
         private readonly questionRepository: Repository<Question>,
-        @InjectRepository(Unit)
-        private readonly unitRepository: Repository<Unit>,
         @InjectRepository(Level)
         private readonly levelRepository: Repository<Level>,
         @InjectRepository(Skill)
         private readonly skillRepository: Repository<Skill>,
-        @InjectRepository(Lesson)
-        private readonly lessonRepository: Repository<Lesson>,
+
         private readonly answerService: Answerservice,
     ) {}
 
@@ -45,24 +43,28 @@ export class QuestionService {
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { level, unit, skill, lesson, answers } =
+                const { levelId, skillId, sectionId, answers, content } =
                     createQuestionDto;
 
-                const foundUnit = await this.unitRepository.findOne({
-                    where: { id: unit.id },
-                });
                 const foundLevel = await this.levelRepository.findOne({
-                    where: { id: level.id },
+                    where: { id: levelId },
                 });
                 const foundSkill = await this.skillRepository.findOne({
-                    where: { id: skill.id },
+                    where: { id: skillId },
                 });
-                const foundLesson = await this.lessonRepository.findOne({
-                    where: { id: lesson.id },
+                const foundSection = await this.sectionRepository.findOne({
+                    where: { id: sectionId },
                 });
 
-                if (!foundUnit) {
-                    throw new NotFoundException('Unit is not found');
+                const existingQuestion = await this.questionRepository.findOne({
+                    where: { content },
+                });
+
+                if (existingQuestion) {
+                    throw new HttpException(
+                        `Content ${content} is already exsist`,
+                        HttpStatus.CONFLICT,
+                    );
                 }
 
                 if (!foundLevel) {
@@ -73,8 +75,8 @@ export class QuestionService {
                     throw new NotFoundException('Skill is not found');
                 }
 
-                if (!foundLesson) {
-                    throw new NotFoundException('Lesson is not found');
+                if (!foundSection) {
+                    throw new NotFoundException('Section is not found');
                 }
 
                 if (!createQuestionDto.IsSingleChoiceQuestion === null) {
@@ -86,10 +88,9 @@ export class QuestionService {
 
                 const newQuestion = this.questionRepository.create({
                     ...createQuestionDto,
-                    unit: foundUnit,
                     level: foundLevel,
                     skill: foundSkill,
-                    lesson: foundLesson,
+                    section: foundSection,
                 });
 
                 const savedQuestion =
@@ -155,22 +156,19 @@ export class QuestionService {
         id: string,
         updateQuestionDto: UpdateQuestionDTO,
     ): Promise<UpdateQuestionDTO> {
-        const { level, unit, skill, lesson } = updateQuestionDto;
+        const { levelId, skillId, secionId } = updateQuestionDto;
 
-        const foundUnit = await this.unitRepository.findOne({
-            where: { id: unit.id },
-        });
         const foundLevel = await this.levelRepository.findOne({
-            where: { id: level.id },
+            where: { id: levelId },
         });
         const foundSkill = await this.skillRepository.findOne({
-            where: { id: skill.id },
+            where: { id: skillId },
         });
-        const foundLesson = await this.lessonRepository.findOne({
-            where: { id: lesson.id },
+        const foundSeciton = await this.sectionRepository.findOne({
+            where: { id: secionId },
         });
 
-        if (!foundUnit || !foundLevel || !foundSkill || !foundLesson) {
+        if (!foundLevel || !foundSkill || !foundSeciton) {
             throw new HttpException(
                 'Some relations not found',
                 HttpStatus.BAD_REQUEST,
@@ -191,10 +189,9 @@ export class QuestionService {
 
         Object.assign(question, {
             ...updateQuestionDto,
-            unit: foundUnit,
             level: foundLevel,
             skill: foundSkill,
-            lesson: foundLesson,
+            section: secionId,
         });
 
         const updatedQuestion = await this.questionRepository.save(question);

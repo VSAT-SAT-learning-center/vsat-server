@@ -9,70 +9,21 @@ import {
 } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
 
-class UnitIdDTO {
-    @ApiProperty({
-        description: 'ID of the unit',
-        example: '123e4567-e89b-12d3-a456-426614174000',
-    })
-    @IsUUID()
-    @IsNotEmpty()
-    id: string;
-}
-
-class LevelIdDTO {
-    @ApiProperty({
-        description: 'ID of the level',
-        example: '123e4567-e89b-12d3-a456-426614174000',
-    })
-    @IsUUID()
-    @IsNotEmpty()
-    id: string;
-}
-
-class SkillIdDTO {
-    @ApiProperty({
-        description: 'ID of the skill',
-        example: '123e4567-e89b-12d3-a456-426614174000',
-    })
-    @IsUUID()
-    @IsNotEmpty()
-    id: string;
-}
-
-class LessonIdDTO {
-    @ApiProperty({
-        description: 'ID of the lesson',
-        example: '123e4567-e89b-12d3-a456-426614174000',
-    })
-    @IsUUID()
-    @IsNotEmpty()
-    id: string;
-}
-
 export class UpdateQuestionDTO extends BaseDTO {
     @Expose()
     @ValidateNested()
-    @Type(() => UnitIdDTO)
-    @ApiProperty({ type: UnitIdDTO })
-    unit: UnitIdDTO;
+    @ApiProperty({ example: ''})
+    levelId: string;
 
     @Expose()
     @ValidateNested()
-    @Type(() => LevelIdDTO)
-    @ApiProperty({ type: LevelIdDTO })
-    level: LevelIdDTO;
+    @ApiProperty({ example: ''})
+    skillId: string;
 
     @Expose()
     @ValidateNested()
-    @Type(() => SkillIdDTO)
-    @ApiProperty({ type: SkillIdDTO })
-    skill: SkillIdDTO;
-
-    @Expose()
-    @ValidateNested()
-    @Type(() => LessonIdDTO)
-    @ApiProperty({ type: LessonIdDTO })
-    lesson: LessonIdDTO;
+    @ApiProperty({ example: ''})
+    secionId: string;
 
     @Expose()
     @IsString()
