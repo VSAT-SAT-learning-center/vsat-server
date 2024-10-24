@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    ConflictException,
     HttpException,
     HttpStatus,
     Injectable,
@@ -18,6 +19,7 @@ import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 import { Answerservice } from '../answer/answer.service';
 import { Section } from 'src/database/entities/section.entity';
+import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 
 @Injectable()
 export class QuestionService {
@@ -34,26 +36,26 @@ export class QuestionService {
         private readonly answerService: Answerservice,
     ) {}
 
-    async save(createQuestionDtoArray: CreateQuestionDTO[]): Promise<{
+    async save(createQuestionDtoArray: CreateQuestionFileDto[]): Promise<{
         savedQuestions: Question[];
-        errors: { question: CreateQuestionDTO; message: string }[];
+        errors: { question: CreateQuestionFileDto; message: string }[];
     }> {
         const savedQuestions: Question[] = [];
-        const errors: { question: CreateQuestionDTO; message: string }[] = [];
+        const errors: { question: CreateQuestionFileDto; message: string }[] = [];
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { levelId, skillId, sectionId, answers, content } =
+                const { level, skill, section, answers, content } =
                     createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
-                    where: { id: levelId },
+                    where: { name: level },
                 });
                 const foundSkill = await this.skillRepository.findOne({
-                    where: { id: skillId },
+                    where: { content: skill },
                 });
                 const foundSection = await this.sectionRepository.findOne({
-                    where: { id: sectionId },
+                    where: { name: section },
                 });
 
                 const existingQuestion = await this.questionRepository.findOne({
@@ -114,6 +116,47 @@ export class QuestionService {
             savedQuestions,
             errors,
         };
+    }
+
+    async saveManual(createQuestionDto: CreateQuestionDTO): Promise<Question> {
+        const { levelId, skillId, sectionId, answers, content } = createQuestionDto;
+    
+        const foundLevel = await this.levelRepository.findOne({ where: { id: levelId } });
+        if (!foundLevel) {
+            throw new NotFoundException('Level not found');
+        }
+    
+        const foundSkill = await this.skillRepository.findOne({ where: { id: skillId } });
+        if (!foundSkill) {
+            throw new NotFoundException('Skill not found');
+        }
+    
+        const foundSection = await this.sectionRepository.findOne({ where: { id: sectionId } });
+        if (!foundSection) {
+            throw new NotFoundException('Section not found');
+        }
+    
+        const existingQuestion = await this.questionRepository.findOne({ where: { content } });
+        if (existingQuestion) {
+            throw new ConflictException(`Content '${content}' already exists`);
+        }
+    
+        if (createQuestionDto.isSingleChoiceQuestion === null) {
+            throw new HttpException('isSingleChoiceQuestion cannot be null', HttpStatus.BAD_REQUEST);
+        }
+    
+        const newQuestion = this.questionRepository.create({
+            ...createQuestionDto,
+            level: foundLevel,
+            skill: foundSkill,
+            section: foundSection,
+        });
+    
+        const savedQuestion = await this.questionRepository.save(newQuestion);
+    
+        await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
+    
+        return savedQuestion;
     }
 
     async getAll(page: number, pageSize: number): Promise<any> {
