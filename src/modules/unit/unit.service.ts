@@ -11,6 +11,7 @@ import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { FeedbackService } from '../feedback/feedback.service';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
+import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -91,9 +92,14 @@ export class UnitService extends BaseService<Unit> {
         return updateUnit;
     }
 
-    async getAllUnitsWithDetails(): Promise<UnitResponseDto[]> {
+    async getAllUnitsWithDetails(
+        page: number = 1,
+        pageSize: number = 10,
+    ): Promise<PagedUnitResponseDto> {
+        const skip = (page - 1) * pageSize;
+
         // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
-        const units = await this.unitRepository.find({
+        const [units, totalCount] = await this.unitRepository.findAndCount({
             relations: [
                 'section',
                 'level',
@@ -101,14 +107,266 @@ export class UnitService extends BaseService<Unit> {
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
             ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
         });
 
         // If no units are found, return an empty array
         if (!units || units.length === 0) {
-            return [];
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getAllUnitsWithDetailsByUserId(
+        page: number = 1,
+        pageSize: number = 10,
+        filters: GetUnitsByUserIdDto,
+    ): Promise<PagedUnitResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        const whereClause: any = { createdby: filters.userId };
+
+        if (filters.name) {
+            whereClause.name = filters.name; 
         }
 
-        return this.transformedListData(units);
+        if (filters.status !== undefined) {
+            whereClause.status = filters.status;
+        }
+
+        if (filters.createdAt) {
+            whereClause.createdat = filters.createdAt; 
+        }
+
+        if (filters.sectionId) {
+            whereClause.section = { id: filters.sectionId };
+        }
+
+        if (filters.levelId) {
+            whereClause.level = { id: filters.levelId };
+        }
+        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: whereClause,
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
+        });
+
+        // If no units are found, return an empty array
+        if (!units || units.length === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getPendingUnitWithDetailsByUserId(
+        page: number = 1,
+        pageSize: number = 10,
+        userId: string,
+    ): Promise<PagedUnitResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.PENDING, createdby: userId },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
+        });
+
+        // If no units are found, return an empty array
+        if (!units || units.length === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getApproveUnitWithDetailsByUserId(
+        page: number = 1,
+        pageSize: number = 10,
+        userId: string,
+    ): Promise<PagedUnitResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.APPROVED, createdby: userId },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
+        });
+
+        // If no units are found, return an empty array
+        if (!units || units.length === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getRejectUnitWithDetailsByUserId(
+        page: number = 1,
+        pageSize: number = 10,
+        userId: string,
+    ): Promise<PagedUnitResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.REJECTED, createdby: userId },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
+        });
+
+        // If no units are found, return an empty array
+        if (!units || units.length === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getDraftUnitWithDetailsByUserId(
+        page: number = 1,
+        pageSize: number = 10,
+        userId: string,
+    ): Promise<PagedUnitResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.DRAFT, createdby: userId },
+            relations: [
+                'section',
+                'level',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+            ],
+            order: {
+                createdat: 'DESC',
+            },
+            skip,
+            take: pageSize,
+        });
+
+        // If no units are found, return an empty array
+        if (!units || units.length === 0) {
+            return {
+                data: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListData(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
     }
 
     async getPendingUnitWithDetails(
@@ -271,7 +529,7 @@ export class UnitService extends BaseService<Unit> {
         unit.status = UnitStatus.PENDING;
         await this.unitRepository.save(unit);
 
-        this.feedbackService.submitFeedback({
+        this.feedbackService.submitLearningMaterial({
             unitId: unitId,
             status: FeedbackStatus.PENDING,
             content: 'Learning material submitted',
