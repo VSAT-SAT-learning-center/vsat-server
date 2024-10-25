@@ -63,7 +63,7 @@ export class Question {
     @Column({
         type: 'enum',
         enum: QuestionStatus,
-        default: QuestionStatus.PENDING,
+        default: QuestionStatus.DRAFT,
     })
     status: QuestionStatus;
 }
