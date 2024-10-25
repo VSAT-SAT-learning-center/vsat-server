@@ -16,18 +16,46 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 
 @ApiTags('Questions')
-@Controller('question')
+@Controller('questions')
 export class QuestionController {
     constructor(private readonly questionService: QuestionService) {}
 
-    @Post()
-    @ApiBody({ type: [CreateQuestionDTO] })
-    async save(@Body() createQuestionDto: CreateQuestionDTO[]) {
+    @Post('import-file')
+    @ApiBody({ type: [CreateQuestionFileDto] })
+    async save(@Body() createQuestionDto: CreateQuestionFileDto[]) {
         try {
             const saveQuestion =
                 await this.questionService.save(createQuestionDto);
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                saveQuestion,
+                SuccessMessages.create('Question'),
+            );
+        } catch (error) {
+            if (error.code === '23505') {
+                throw new HttpException(
+                    'Question content already exists',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post()
+    async saveManual(@Body() createQuestionDto: CreateQuestionDTO) {
+        try {
+            const saveQuestion =
+                await this.questionService.saveManual(createQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,

@@ -5,6 +5,7 @@ import { Exam } from 'src/database/entities/exam.entity';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { CreateExamDto } from 'src/modules/exam/dto/create-exam.dto';
+import { CreateQuestionFileDto } from 'src/modules/question/dto/create-question-file.dto';
 import { CreateQuestionDTO } from 'src/modules/question/dto/create-question.dto';
 
 export class CreateExamQuestionDTO {
@@ -29,9 +30,9 @@ export class CreateExamQuestionDTO {
     @Type(() => CreateExamDto)
     exam: CreateExamDto;
 
-    @ApiProperty({ type: [CreateQuestionDTO] })
+    @ApiProperty({ type: [CreateQuestionFileDto] })
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => CreateQuestionDTO)
-    question: CreateQuestionDTO[];
+    @Type(() => CreateQuestionFileDto)
+    question: CreateQuestionFileDto[];
 }

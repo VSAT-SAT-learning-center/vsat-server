@@ -1,16 +1,11 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateExamAttemptDetailDto } from './dto/create-examattemptdetail.dto';
-import { UpdateExamAttemptDetailDto } from './dto/update-examattemptdetail.dto';
-import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { CheckExamAttemptDetail } from './dto/check-examattemptdetail';
-import { ExamAttempt } from 'src/database/entities/examattempt.entity';
-import { Question } from 'src/database/entities/question.entity';
 import { Answer } from 'src/database/entities/anwser.entity';
+import { ExamAttempt } from 'src/database/entities/examattempt.entity';
+import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
+import { Question } from 'src/database/entities/question.entity';
+import { Repository } from 'typeorm';
+import { CheckExamAttemptDetail } from './dto/check-examattemptdetail';
 
 @Injectable()
 export class ExamAttemptDetailService {
@@ -54,7 +49,7 @@ export class ExamAttemptDetailService {
                 where: { question: { id: checkExamAttemptDetail.questionid } },
             });
 
-            if (question.IsSingleChoiceQuestion === true) {
+            if (question.isSingleChoiceQuestion === true) {
                 const correctAnswer = answers.find(
                     (answer) =>
                         answer.label === checkExamAttemptDetail.studentanswer,
@@ -65,7 +60,7 @@ export class ExamAttemptDetailService {
                 } else if (correctAnswer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = true;
                 }
-            } else if (question.IsSingleChoiceQuestion === false) {
+            } else if (question.isSingleChoiceQuestion === false) {
                 const correctAnswer = answers.find(
                     (answer) =>
                         answer.text === checkExamAttemptDetail.studentanswer,
