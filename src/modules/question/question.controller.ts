@@ -7,6 +7,7 @@ import {
     HttpException,
     HttpStatus,
     Param,
+    Patch,
     Post,
     Put,
     Query,
@@ -183,6 +184,29 @@ export class QuestionController {
                 HttpStatus.OK,
                 questions,
                 SuccessMessages.get('Question'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Patch('publish')
+    @ApiBody({ schema: { type: 'object', properties: { questionIds: { type: 'array', items: { type: 'string' } } } } })
+    async publishQuestions(@Body() body: { questionIds: string[] }) {
+        try {
+            const { questionIds } = body;
+
+            await this.questionService.publish(questionIds);
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                SuccessMessages.update('Questions'),
             );
         } catch (error) {
             throw new HttpException(

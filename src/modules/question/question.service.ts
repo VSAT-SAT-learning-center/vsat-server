@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from 'src/database/entities/question.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
 import { Level } from 'src/database/entities/level.entity';
@@ -41,7 +41,8 @@ export class QuestionService {
         errors: { question: CreateQuestionFileDto; message: string }[];
     }> {
         const savedQuestions: Question[] = [];
-        const errors: { question: CreateQuestionFileDto; message: string }[] = [];
+        const errors: { question: CreateQuestionFileDto; message: string }[] =
+            [];
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
@@ -119,43 +120,58 @@ export class QuestionService {
     }
 
     async saveManual(createQuestionDto: CreateQuestionDTO): Promise<Question> {
-        const { levelId, skillId, sectionId, answers, content } = createQuestionDto;
-    
-        const foundLevel = await this.levelRepository.findOne({ where: { id: levelId } });
+        const { levelId, skillId, sectionId, answers, content } =
+            createQuestionDto;
+
+        const foundLevel = await this.levelRepository.findOne({
+            where: { id: levelId },
+        });
         if (!foundLevel) {
             throw new NotFoundException('Level not found');
         }
-    
-        const foundSkill = await this.skillRepository.findOne({ where: { id: skillId } });
+
+        const foundSkill = await this.skillRepository.findOne({
+            where: { id: skillId },
+        });
         if (!foundSkill) {
             throw new NotFoundException('Skill not found');
         }
-    
-        const foundSection = await this.sectionRepository.findOne({ where: { id: sectionId } });
+
+        const foundSection = await this.sectionRepository.findOne({
+            where: { id: sectionId },
+        });
         if (!foundSection) {
             throw new NotFoundException('Section not found');
         }
-    
-        const existingQuestion = await this.questionRepository.findOne({ where: { content } });
+
+        const existingQuestion = await this.questionRepository.findOne({
+            where: { content },
+        });
         if (existingQuestion) {
             throw new ConflictException(`Content '${content}' already exists`);
         }
-    
+
         if (createQuestionDto.isSingleChoiceQuestion === null) {
-            throw new HttpException('isSingleChoiceQuestion cannot be null', HttpStatus.BAD_REQUEST);
+            throw new HttpException(
+                'isSingleChoiceQuestion cannot be null',
+                HttpStatus.BAD_REQUEST,
+            );
         }
-    
+
         const newQuestion = this.questionRepository.create({
             ...createQuestionDto,
             level: foundLevel,
             skill: foundSkill,
             section: foundSection,
         });
-    
+
         const savedQuestion = await this.questionRepository.save(newQuestion);
-    
-        await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
-    
+
+        await this.answerService.createMultipleAnswers(
+            savedQuestion.id,
+            answers,
+        );
+
         return savedQuestion;
     }
 
@@ -263,5 +279,21 @@ export class QuestionService {
             currentPage: page,
             totalItems: total,
         };
+    }
+
+    async publish(questionIds: string[]): Promise<void> {
+        const questions = await this.questionRepository.find({
+            where: { id: In(questionIds) },
+        });
+    
+        if (questions.length === 0) {
+            throw new NotFoundException('Question is not found');
+        }
+    
+        for (const question of questions) {
+            question.status = QuestionStatus.PENDING;
+        }
+    
+        await this.questionRepository.save(questions);
     }
 }
