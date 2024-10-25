@@ -17,6 +17,9 @@ import { LessonService } from '../lesson/lesson.service';
 import { FeedbackDto, UnitFeedbackDto } from './dto/get-feedback.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { CreateFeedbackUnitDto } from './dto/create-feedback-unit.dto';
+import { AccountService } from '../account/account.service';
+import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -24,6 +27,8 @@ export class FeedbackService extends BaseService<Feedback> {
         @InjectRepository(Feedback)
         private readonly feedbackRepository: Repository<Feedback>,
         private readonly lessonService: LessonService,
+        private readonly feeddbacksGateway: FeedbacksGateway,
+        private readonly accountService: AccountService,    
 
         @Inject(forwardRef(() => UnitService))
         private readonly unitService: UnitService,
@@ -36,13 +41,13 @@ export class FeedbackService extends BaseService<Feedback> {
         action: 'approve' | 'reject',
     ): Promise<void> {
         if (action === 'reject') {
-            await this.handleReject(feedbackDto);
+            await this.rejectLearningMaterial(feedbackDto);
         } else if (action === 'approve') {
-            await this.handleApprove(feedbackDto);
+            await this.approveLearningMaterial(feedbackDto);
         }
     }
 
-    private async handleReject(feedbackDto: FeedbackDto): Promise<void> {
+    private async rejectLearningMaterial(feedbackDto: FeedbackDto): Promise<void> {
         const { unitFeedback } = feedbackDto;
 
         // Loop through each unit area and lessons inside the unit
@@ -79,7 +84,7 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    private async handleApprove(feedbackDto: FeedbackDto): Promise<void> {
+    private async approveLearningMaterial(feedbackDto: FeedbackDto): Promise<void> {
         const { unitFeedback } = feedbackDto;
         let anyRejected = false;
 
@@ -90,11 +95,11 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // If any lesson or unit area is rejected, throw an error
-        if (anyRejected) {
-            throw new Error(
-                'Cannot approve learning material with rejected parts',
-            );
-        }
+        // if (anyRejected) {
+        //     throw new Error(
+        //         'Cannot approve learning material with rejected parts',
+        //     );
+        // }
 
         // Approve all lessons by setting their status to true
         for (const lessonFeedback of unitFeedback.lessonsFeedback) {
@@ -118,5 +123,22 @@ export class FeedbackService extends BaseService<Feedback> {
             content: 'Approved',
             status: FeedbackStatus.APPROVED,
         });
+    }
+
+    async submitLearningMaterial(createFeedbackDto: CreateFeedbackUnitDto): Promise<Feedback> {
+        const feedback = this.feedbackRepository.create(createFeedbackDto);
+        await this.feedbackRepository.save(feedback);
+
+        //Notify managers when feedback is submitted
+        const managers = await this.accountService.findManagers(); // Get manager users
+        managers.forEach((manager) => {
+            console.log("sending notification to manager: ", manager.firstname);
+            this.feeddbacksGateway.sendNotificationToUser(
+                manager.id,
+                `New learning material was submitted`,
+            );
+        });
+
+        return feedback;
     }
 }

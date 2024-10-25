@@ -465,4 +465,9 @@ export class AccountService {
             currentPage: page,
         };
     }
+
+    async findManagers(): Promise<Account[]> {
+        return await this.accountRepository.find({
+            where: { role: { rolename: 'Manager' } },});
+    }
 }
