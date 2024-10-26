@@ -80,12 +80,13 @@ export class QuestionController {
     }
 
     @Get()
-    async getAll(
+    async getAllWithStatus(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
+        @Query('status') status? : QuestionStatus
     ) {
         try {
-            const questions = await this.questionService.getAll(page, pageSize);
+            const questions = await this.questionService.getAllWithStatus(page, pageSize, status);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
