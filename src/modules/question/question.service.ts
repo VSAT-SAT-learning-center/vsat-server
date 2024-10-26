@@ -175,13 +175,18 @@ export class QuestionService {
         return savedQuestion;
     }
 
-    async getAll(page: number, pageSize: number): Promise<any> {
+    async getAllWithStatus(
+        page: number,
+        pageSize: number,
+        status: QuestionStatus,
+    ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
         const [questions, total] = await this.questionRepository.findAndCount({
-            relations: ['unit', 'level', 'skill', 'lesson'],
+            relations: ['section', 'level', 'skill'],
             skip: skip,
             take: pageSize,
+            where: { status },
         });
 
         const totalPages = Math.ceil(total / pageSize);
@@ -285,15 +290,15 @@ export class QuestionService {
         const questions = await this.questionRepository.find({
             where: { id: In(questionIds) },
         });
-    
+
         if (questions.length === 0) {
             throw new NotFoundException('Question is not found');
         }
-    
+
         for (const question of questions) {
             question.status = QuestionStatus.PENDING;
         }
-    
+
         await this.questionRepository.save(questions);
     }
 }
