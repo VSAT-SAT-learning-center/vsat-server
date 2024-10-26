@@ -54,11 +54,11 @@ export class Feedback {
     question: Question;
 
     @ManyToOne(() => Account)
-    @JoinColumn({ name: 'accountid' })
+    @JoinColumn({ name: 'accountfromid' })
     accountFrom: Account;
 
     @ManyToOne(() => Account, { nullable: true })
-    @JoinColumn({ name: 'accountid' })
+    @JoinColumn({ name: 'accounttoid' }) 
     accountTo: Account;
 
     @Column({ type: 'text', nullable: true })
@@ -69,4 +69,7 @@ export class Feedback {
 
     @Column({ type: 'enum', enum: FeedbackReason, nullable: true })
     reason: FeedbackReason;
+
+    @Column({ type: 'boolean', default: false })
+    isRead: boolean;
 }

@@ -47,7 +47,4 @@ export class PaginationOptionsDto {
   @IsString({ each: true })
   relations?: string[] = []; //// Trường quan hệ tùy chọn để bao gồm các thực thể liên quan
 
-  @IsOptional()
-  @IsObject() 
-  filter?: any; // Điều kiện để dynamic filtering
 }
