@@ -20,6 +20,7 @@ import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 import { Answerservice } from '../answer/answer.service';
 import { Section } from 'src/database/entities/section.entity';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
+import { Answer } from 'src/database/entities/anwser.entity';
 
 @Injectable()
 export class QuestionService {
@@ -32,6 +33,8 @@ export class QuestionService {
         private readonly levelRepository: Repository<Level>,
         @InjectRepository(Skill)
         private readonly skillRepository: Repository<Skill>,
+        @InjectRepository(Answer)
+        private readonly answerRepository: Repository<Answer>,
 
         private readonly answerService: Answerservice,
     ) {}
@@ -147,6 +150,7 @@ export class QuestionService {
         const existingQuestion = await this.questionRepository.findOne({
             where: { content },
         });
+
         if (existingQuestion) {
             throw new ConflictException(`Content '${content}' already exists`);
         }
@@ -183,7 +187,7 @@ export class QuestionService {
         const skip = (page - 1) * pageSize;
 
         const [questions, total] = await this.questionRepository.findAndCount({
-            relations: ['section', 'level', 'skill', "answers"],
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
             skip: skip,
             take: pageSize,
             where: { status },
@@ -219,11 +223,12 @@ export class QuestionService {
         return true;
     }
 
-    async updateQuestionNotApproved(
+    async updateQuestion(
         id: string,
         updateQuestionDto: UpdateQuestionDTO,
-    ): Promise<UpdateQuestionDTO> {
-        const { levelId, skillId, secionId } = updateQuestionDto;
+    ): Promise<Question> {
+        const { levelId, skillId, sectionId, answers, content } =
+            updateQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
             where: { id: levelId },
@@ -231,25 +236,62 @@ export class QuestionService {
         const foundSkill = await this.skillRepository.findOne({
             where: { id: skillId },
         });
-        const foundSeciton = await this.sectionRepository.findOne({
-            where: { id: secionId },
+        const foundSection = await this.sectionRepository.findOne({
+            where: { id: sectionId },
         });
 
-        if (!foundLevel || !foundSkill || !foundSeciton) {
+        const existingQuestion = await this.questionRepository.findOne({
+            where: { content },
+        });
+
+        if (existingQuestion && existingQuestion.id !== id) {
             throw new HttpException(
-                'Some relations not found',
+                `Content '${content}' already exists with a different question.`,
+                HttpStatus.CONFLICT,
+            );
+        }
+
+        if (!foundLevel) {
+            throw new NotFoundException('Level is not found');
+        }
+
+        if (!foundSkill) {
+            throw new NotFoundException('Skill is not found');
+        }
+
+        if (!foundSection) {
+            throw new NotFoundException('Section is not found');
+        }
+
+        if (!updateQuestionDto.isSingleChoiceQuestion === null) {
+            throw new HttpException(
+                'IsSingleChoiceQuestion is null',
                 HttpStatus.BAD_REQUEST,
             );
         }
-        const question = await this.questionRepository.findOneBy({ id });
+
+        const question = await this.questionRepository.findOne({
+            where: { id },
+            relations: ['answers'],
+        });
 
         if (!question) {
-            throw new NotFoundException('Not found question');
+            throw new NotFoundException('Question not found');
         }
 
         if (question.status === QuestionStatus.APPROVED) {
             throw new HttpException(
-                'Cannot update an approved question because approved',
+                'Cannot update question because it is already Approved',
+                HttpStatus.BAD_REQUEST,
+            );
+        } else if (question.status === QuestionStatus.PENDING) {
+            throw new HttpException(
+                'Cannot update question because it is already Pending',
+                HttpStatus.BAD_REQUEST,
+            );
+        } else if (question.isActive === true) {
+            throw new HttpException(
+                'Cannot update question because it is already IsActive',
                 HttpStatus.BAD_REQUEST,
             );
         }
@@ -258,14 +300,42 @@ export class QuestionService {
             ...updateQuestionDto,
             level: foundLevel,
             skill: foundSkill,
-            section: secionId,
+            section: foundSection,
         });
+
+        for (const answerDto of answers) {
+            if (!answerDto.id) {
+                const newAnswer = this.answerRepository.create({
+                    ...answerDto,
+                    question,
+                });
+                await this.answerRepository.save(newAnswer);
+            } else {
+                const existingAnswer = question.answers.find(
+                    (answer) => answer.id === answerDto.id,
+                );
+
+                if (existingAnswer) {
+                    Object.assign(existingAnswer, answerDto);
+                    await this.answerRepository.save(existingAnswer);
+                } else {
+                    const newAnswer = this.answerRepository.create({
+                        ...answerDto,
+                        question,
+                    });
+                    await this.answerRepository.save(newAnswer);
+                }
+            }
+        }
 
         const updatedQuestion = await this.questionRepository.save(question);
 
-        return plainToInstance(UpdateQuestionDTO, updatedQuestion, {
-            excludeExtraneousValues: true,
+        const questionWithAnswers = await this.questionRepository.findOne({
+            where: { id: updatedQuestion.id },
+            relations: ['answers'],
         });
+
+        return questionWithAnswers;
     }
 
     async getQuestionWithAnswer(page: number, pageSize: number): Promise<any> {
