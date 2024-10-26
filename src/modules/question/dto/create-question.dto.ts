@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
+import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { CreateAnswerDTO } from 'src/modules/answer/dto/create-answer.dto';
 
 export class CreateQuestionDTO extends BaseDTO {
@@ -38,4 +39,7 @@ export class CreateQuestionDTO extends BaseDTO {
     @ApiProperty()
     @IsBoolean()
     isSingleChoiceQuestion: boolean;
+
+    @Expose()
+    status: QuestionStatus
 }
