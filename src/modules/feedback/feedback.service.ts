@@ -28,7 +28,7 @@ export class FeedbackService extends BaseService<Feedback> {
         private readonly feedbackRepository: Repository<Feedback>,
         private readonly lessonService: LessonService,
         private readonly feeddbacksGateway: FeedbacksGateway,
-        private readonly accountService: AccountService,    
+        private readonly accountService: AccountService,
 
         @Inject(forwardRef(() => UnitService))
         private readonly unitService: UnitService,
@@ -47,7 +47,9 @@ export class FeedbackService extends BaseService<Feedback> {
         }
     }
 
-    private async rejectLearningMaterial(feedbackDto: FeedbackDto): Promise<void> {
+    private async rejectLearningMaterial(
+        feedbackDto: FeedbackDto,
+    ): Promise<void> {
         const { unitFeedback } = feedbackDto;
 
         // Loop through each unit area and lessons inside the unit
@@ -84,7 +86,9 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    private async approveLearningMaterial(feedbackDto: FeedbackDto): Promise<void> {
+    private async approveLearningMaterial(
+        feedbackDto: FeedbackDto,
+    ): Promise<void> {
         const { unitFeedback } = feedbackDto;
         let anyRejected = false;
 
@@ -125,20 +129,69 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    async submitLearningMaterial(createFeedbackDto: CreateFeedbackUnitDto): Promise<Feedback> {
-        const feedback = this.feedbackRepository.create(createFeedbackDto);
-        await this.feedbackRepository.save(feedback);
+    async submitLearningMaterial(
+        createFeedbackDto: CreateFeedbackUnitDto,
+    ): Promise<
+        { feedbackId: string; accountFrom: string; accountTo: string }[]
+    > {
+        const feedbackList: {
+            feedbackId: string;
+            accountFrom: string;
+            accountTo: string;
+        }[] = [];
 
         //Notify managers when feedback is submitted
-        const managers = await this.accountService.findManagers(); // Get manager users
+        const managers = await this.accountService.findManagers();
+
+        
+        const accountFrom = await this.accountService.findOneById(createFeedbackDto.accountFromId);
+
+        if(accountFrom === null){
+            throw new NotFoundException('Account not found');
+        }
+        
         managers.forEach((manager) => {
-            console.log("sending notification to manager: ", manager.firstname);
+            createFeedbackDto.accountFrom = accountFrom;
+            createFeedbackDto.accountTo = manager;
+            const feedback = this.feedbackRepository.create(createFeedbackDto);
+            this.feedbackRepository.save(feedback);
+
+            // Store feedback details in the list
+            feedbackList.push({
+                feedbackId: feedback.id,
+                accountFrom: feedback.accountFrom.id,
+                accountTo: feedback.accountTo.id,
+            });
+
+            console.log('sending notification to manager: ', manager.firstname);
             this.feeddbacksGateway.sendNotificationToUser(
                 manager.id,
                 `New learning material was submitted`,
             );
         });
 
-        return feedback;
+        return feedbackList;
+    }
+
+    async getFeedbackByUserId(userId: string): Promise<Feedback[]> {
+        return this.feedbackRepository.find({
+            where: [{ accountTo: { id: userId } }],
+            relations: ['unit', 'exam', 'question'],
+            order: { createdat: 'DESC' },
+        });
+    }
+
+    async markAsRead(feedbackId: string): Promise<Feedback> {
+        const feedback = await this.feedbackRepository.findOne({
+            where: { id: feedbackId },
+        });
+
+        if (!feedback) {
+            throw new NotFoundException('Feedback not found');
+        }
+
+        feedback.isRead = true;
+
+        return this.feedbackRepository.save(feedback);
     }
 }

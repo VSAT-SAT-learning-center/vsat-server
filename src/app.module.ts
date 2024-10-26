@@ -37,12 +37,10 @@ import { TargetLearningModule } from './modules/target-learning/target-learning.
 import { UnitAreaProgressModule } from './modules/unit-area-progress/unit-area-progress.module';
 import { UnitProgressModule } from './modules/unit-progress/unit-progress.module';
 import { UnitLevelModule } from './modules/unit-level/unit-level.module';
-import { PaginationService } from './common/helpers/pagination.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
-import { NofiticationModule } from './modules/nofitication/nofitication.module';
 import { NotificationsGateway } from './modules/nofitication/nofitication.gateway';
 
 @Module({
@@ -90,7 +88,6 @@ import { NotificationsGateway } from './modules/nofitication/nofitication.gatewa
         UnitProgressModule,
         AnswerModule,
         GptModule,
-        NofiticationModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

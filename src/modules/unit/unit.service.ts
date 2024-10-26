@@ -524,13 +524,13 @@ export class UnitService extends BaseService<Unit> {
         if (!unit) {
             throw new Error('Unit not found');
         }
-
+        
         // Update status to indicate that the learning material has been submitted
         unit.status = UnitStatus.PENDING;
         await this.unitRepository.save(unit);
 
         this.feedbackService.submitLearningMaterial({
-            unitId: unitId,
+            unit: unit,
             status: FeedbackStatus.PENDING,
             content: 'Learning material submitted',
             accountFromId: unit.createdby,

@@ -50,13 +50,19 @@ export class FeedbacksGateway
         }
     }
 
+    sendNotificationToMultipleUsers(userIds: string[], message: string) {
+        userIds.forEach((userId) => {
+            this.sendNotificationToUser(userId, message);
+        });
+    }
+
     // Broadcast to all connected users
     broadcastNotification(message: string) {
         console.log('Broadcasting feedback notification...');
         this.server.emit('feedbackNotification', message);
     }
 
-    // For testing purpose: register user
+    // Testing purpose
     @SubscribeMessage('registerUser')
     handleRegisterUser(client: Socket, data: { userId: string }) {
         const { userId } = data;
@@ -64,6 +70,12 @@ export class FeedbacksGateway
             this.users.set(userId, client);
             console.log(`User registered: ${userId}`);
         }
+    }
+
+    @SubscribeMessage('sendToMultipleUsers')
+    handleSendToMultipleUsers(client: Socket, data: { userIds: string[]; message: string }) {
+        const { userIds, message } = data;
+        this.sendNotificationToMultipleUsers(userIds, message);
     }
 
     // For testing: broadcast feedback notification to all

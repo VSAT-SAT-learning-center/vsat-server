@@ -15,16 +15,19 @@ import { Role } from 'src/database/entities/role.entity';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
 import { GetAccountDTO } from './dto/get-account.dto';
+import { BaseService } from '../base/base.service';
 
 @Injectable()
-export class AccountService {
+export class AccountService extends BaseService<Account> {
     constructor(
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
         private readonly mailerService: MailerService,
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
-    ) {}
+    ) {
+        super(accountRepository);
+    }
 
     async generateUsername(
         firstname: string,
@@ -468,6 +471,7 @@ export class AccountService {
 
     async findManagers(): Promise<Account[]> {
         return await this.accountRepository.find({
-            where: { role: { rolename: 'Manager' } },});
+            where: { role: { rolename: 'Manager' } },
+        });
     }
 }
