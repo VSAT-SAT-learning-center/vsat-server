@@ -27,12 +27,11 @@ export class BaseService<T> {
     async findAll(
         paginationOptions: PaginationOptionsDto,
     ): Promise<{ data: T[]; totalItems: number; totalPages: number }> {
-        const { filter, page, pageSize, sortBy, sortOrder, relations } =
+        const { page, pageSize, sortBy, sortOrder, relations } =
             paginationOptions;
 
         try {
             const findOptions: FindManyOptions<T> = {
-                where: filter,
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 relations, // Fetch related entities
