@@ -183,7 +183,7 @@ export class QuestionService {
         const skip = (page - 1) * pageSize;
 
         const [questions, total] = await this.questionRepository.findAndCount({
-            relations: ['section', 'level', 'skill'],
+            relations: ['section', 'level', 'skill', "answers"],
             skip: skip,
             take: pageSize,
             where: { status },
