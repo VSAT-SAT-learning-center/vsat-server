@@ -187,6 +187,9 @@ export class QuestionService {
             skip: skip,
             take: pageSize,
             where: { status },
+            order: {
+                createdat: 'DESC',
+            },
         });
 
         const totalPages = Math.ceil(total / pageSize);
