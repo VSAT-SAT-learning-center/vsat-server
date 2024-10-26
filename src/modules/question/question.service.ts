@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from 'src/database/entities/question.entity';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
 import { Level } from 'src/database/entities/level.entity';
@@ -329,6 +329,16 @@ export class QuestionService {
         }
 
         const updatedQuestion = await this.questionRepository.save(question);
+
+        const answersToDelete = await this.answerRepository.find({
+            where: { question: IsNull() },
+        });
+
+        if (answersToDelete.length > 0) {
+            for (const answer of answersToDelete) {
+                await this.answerRepository.remove(answer);
+            }
+        }
 
         const questionWithAnswers = await this.questionRepository.findOne({
             where: { id: updatedQuestion.id },
