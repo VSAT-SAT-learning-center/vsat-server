@@ -33,7 +33,6 @@ export class CreateUnitDto extends BaseEntity {
   @ApiProperty({
     enum: UnitStatus,
     enumName: 'UnitStatus',
-    description: 'The status of the unit',
     example: UnitStatus.DRAFT,
     default: UnitStatus.DRAFT,
     required: false,

@@ -6,9 +6,12 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { UnitArea } from './unitarea.entity';
 import { UnitProgress } from './unitprogress.entity';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
+import { LessonProgress } from './lessonprogress.entity';
 
 @Entity('unitareaprogress')
 export class UnitAreaProgress {
@@ -38,6 +41,9 @@ export class UnitAreaProgress {
     @Column({ type: 'int', nullable: true })
     progress: number;
 
-    @Column({ type: 'varchar', length: 20, nullable: true })
-    status: string;
+    @Column({ type: 'enum', enum: ProgressStatus, default: ProgressStatus.NOT_STARTED, nullable: true })
+    status: ProgressStatus;
+
+    @OneToMany(() => LessonProgress, (lessonProgresses) => lessonProgresses.unitAreaProgress, { cascade: true })
+    lessonProgresses: LessonProgress[];
 }

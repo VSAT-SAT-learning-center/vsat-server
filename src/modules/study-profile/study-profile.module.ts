@@ -7,9 +7,9 @@ import { StudyProfileService } from './study-profile.service';
 import { StudyProfileController } from './study-profile.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([StudyProfile, Account])],
-  providers: [StudyProfileService, PaginationService],
-  controllers: [StudyProfileController],
-  exports: [StudyProfileService]
+    imports: [TypeOrmModule.forFeature([StudyProfile, Account])],
+    providers: [StudyProfileService],
+    controllers: [StudyProfileController],
+    exports: [StudyProfileService],
 })
 export class StudyProfileModule {}

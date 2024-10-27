@@ -164,6 +164,7 @@ export class UnitController extends BaseController<Unit> {
     }
 
     @Get(':unitId/details')
+
     async getUnitDetails(
         @Param('unitId') unitId: string,
     ): Promise<UnitResponseDto> {

@@ -9,8 +9,16 @@ import { TargetLearningService } from './target-learning.service';
 import { TargetLearningController } from './target-learning.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TargetLearning, Level, Section, StudyProfile])],
-  providers: [TargetLearningService, PaginationService],
-  controllers: [TargetLearningController],
+    imports: [
+        TypeOrmModule.forFeature([
+            TargetLearning,
+            Level,
+            Section,
+            StudyProfile,
+        ]),
+    ],
+    providers: [TargetLearningService, PaginationService],
+    controllers: [TargetLearningController],
+    exports: [TargetLearningService],
 })
 export class TargetLearningModule {}

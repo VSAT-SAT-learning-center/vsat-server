@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
     IsUUID,
     IsInt,
@@ -7,29 +8,36 @@ import {
     IsNotEmpty,
     Min,
     Max,
+    IsEnum,
 } from 'class-validator';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 
 export class CreateUnitProgressDto {
-    @ApiProperty({ description: 'ID của hồ sơ học tập' })
+    @ApiProperty()
     @IsUUID()
     @IsNotEmpty()
-    studyProfileId: string;
+    targetLearningId: string;
 
-    @ApiProperty({ description: 'ID của unit' })
+    @ApiProperty()
     @IsUUID()
     @IsNotEmpty()
     unitId: string;
 
-    @ApiProperty({ description: 'Progress in percentage', example: 50 })
+    @ApiProperty()
     @IsInt()
     @Min(0)
     @Max(100)
     progress: number;
 
     @ApiProperty({
-        description: 'Status of the progress',
-        example: 'in_progress',
+        enum: ProgressStatus,
+        enumName: 'UnitStatus',
+        example: ProgressStatus.NOT_STARTED,
+        default: ProgressStatus.NOT_STARTED,
+        required: false,
     })
-    @IsNotEmpty()
-    status: string;
+    @IsEnum(ProgressStatus)
+    @IsOptional()
+    @Transform(({ value }) => value ?? ProgressStatus.NOT_STARTED)
+    status: ProgressStatus;
 }

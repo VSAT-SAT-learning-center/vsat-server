@@ -11,6 +11,8 @@ import {
 import { StudyProfile } from './studyprofile.entity';
 import { Unit } from './unit.entity';
 import { UnitAreaProgress } from './unitareaprogress.entity';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
+import { TargetLearning } from './targetlearning.entity';
 
 @Entity('unitprogress')
 export class UnitProgress {
@@ -29,9 +31,9 @@ export class UnitProgress {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => StudyProfile)
-    @JoinColumn({ name: 'studyprofileid' })
-    studyProfile: StudyProfile;
+    @ManyToOne(() => TargetLearning)
+    @JoinColumn({ name: 'targetlearningid' })
+    targetLearning: TargetLearning;
 
     @ManyToOne(() => Unit)
     @JoinColumn({ name: 'unitid' })
@@ -40,8 +42,13 @@ export class UnitProgress {
     @Column({ type: 'int', nullable: true })
     progress: number;
 
-    @Column({ type: 'varchar', length: 20, nullable: true })
-    status: string;
+    @Column({
+        type: 'enum',
+        enum: ProgressStatus,
+        default: ProgressStatus.NOT_STARTED,
+        nullable: true,
+    })
+    status: ProgressStatus;
 
     // One-to-many relationship
     @OneToMany(

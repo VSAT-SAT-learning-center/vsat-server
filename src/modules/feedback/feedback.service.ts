@@ -20,6 +20,7 @@ import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { CreateFeedbackUnitDto } from './dto/create-feedback-unit.dto';
 import { AccountService } from '../account/account.service';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
+import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -167,6 +168,7 @@ export class FeedbackService extends BaseService<Feedback> {
             this.feeddbacksGateway.sendNotificationToUser(
                 manager.id,
                 `New learning material was submitted`,
+                FeedbackEventType.UNIT_FEEDBACK
             );
         });
 

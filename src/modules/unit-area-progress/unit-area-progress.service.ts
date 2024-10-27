@@ -1,15 +1,20 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUnitAreaProgressDto } from './dto/create-unitareaprogress.dto';
 import { UpdateUnitAreaProgressDto } from './dto/update-unitareaprogress.dto';
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 import { UnitProgressService } from '../unit-progress/unit-progress.service';
 import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
+import { LessonService } from '../lesson/lesson.service';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 //
 @Injectable()
 export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
@@ -17,8 +22,11 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         @InjectRepository(UnitAreaProgress)
         private readonly unitAreaProgressRepository: Repository<UnitAreaProgress>,
         private readonly unitAreaService: UnitAreaService,
+        @Inject(forwardRef(() => UnitProgressService))
         private readonly unitProgressService: UnitProgressService,
-      
+        @Inject(forwardRef(() => LessonService))
+        private readonly lessonService: LessonService,
+
         @Inject(forwardRef(() => LessonProgressService))
         private readonly lessonProgressService: LessonProgressService,
     ) {
@@ -122,9 +130,91 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
             ...unitAreaProgressData,
             unitProgress: unitProgress,
             unitArea: unitArea,
-        
         });
-        return updatedUnitAreaProgress
+        return updatedUnitAreaProgress;
+    }
+
+    async updateUnitAreaProgressNow(
+        unitAreaId: string,
+        unitAreaProgressId: string,
+    ) {
+        // Lấy UnitAreaProgress dựa trên UnitAreaId và targetLearningId
+        const unitAreaProgress = await this.unitAreaProgressRepository.findOne({
+            where: {
+                id :unitAreaProgressId
+            },
+            relations: ['unitArea', 'unitProgress'],
+        });
+
+        if (!unitAreaProgress) {
+            throw new NotFoundException('UnitArea progress not found');
+        }
+
+        // Lấy tổng số bài học thuộc UnitArea
+        const totalLessons = (
+            await this.lessonService.findByUnitAreaId(unitAreaId)
+        ).length;
+
+        if (totalLessons === 0) {
+            throw new NotFoundException('No lessons found for this UnitArea');
+        }
+
+        // Lấy tất cả bài học đã có tiến trình (LessonProgress)
+        const lessonProgresses =
+            await this.lessonProgressService.getLessonProgressesByUnitAreaProgress(
+                unitAreaProgress.id,
+            );
+
+        // Tính số lượng bài học đã hoàn thành
+        const completedLessons = lessonProgresses.filter(
+            (lessonProgress) =>
+                lessonProgress.status === ProgressStatus.COMPLETED,
+        ).length;
+
+        // Cập nhật phần trăm hoàn thành cho UnitArea
+        const progressPercentage = (completedLessons / totalLessons) * 100;
+        unitAreaProgress.progress = progressPercentage;
+
+        // Nếu tất cả các bài học trong UnitArea đã hoàn thành, cập nhật trạng thái thành "COMPLETED"
+        if (completedLessons === totalLessons) {
+            unitAreaProgress.status = ProgressStatus.COMPLETED;
+        } else {
+            unitAreaProgress.status = ProgressStatus.PROGRESSING;
+        }
+
+        await this.unitAreaProgressRepository.save(unitAreaProgress);
+
+        return unitAreaProgress.unitProgress.id; // Trả về UnitProgressId để cập nhật UnitProgress
+    }
+
+    async startUnitAreaProgress(
+        targetLearningId: string,
+        unitAreaId: string,
+        unitProgressId: string,
+    ) {
+        // Kiểm tra xem đã có UnitAreaProgress chưa
+        let unitAreaProgress = await this.unitAreaProgressRepository.findOne({
+            where: {
+                unitArea: { id: unitAreaId },
+                unitProgress: {
+                    id: unitProgressId,
+                    targetLearning: { id: targetLearningId },
+                },
+            },
+        });
+
+        if (!unitAreaProgress) {
+            // Insert UnitAreaProgress mới nếu chưa có
+            unitAreaProgress = this.unitAreaProgressRepository.create({
+                unitArea: { id: unitAreaId },
+                unitProgress: { id: unitProgressId },
+                progress: 0,
+                status: ProgressStatus.NOT_STARTED,
+            });
+
+            await this.unitAreaProgressRepository.save(unitAreaProgress);
+        }
+
+        return unitAreaProgress;
     }
 }
-

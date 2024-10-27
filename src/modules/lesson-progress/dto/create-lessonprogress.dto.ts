@@ -1,17 +1,31 @@
-import { IsUUID, IsInt, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsUUID, IsInt, IsOptional, IsString, IsEnum } from 'class-validator';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 
 export class CreateLessonProgressDto {
-  @IsUUID()
-  unitAreaProgressId: string;
+    @IsUUID()
+    @ApiProperty()
+    unitAreaProgressId: string;
 
-  @IsUUID()
-  lessonId: string;
+    @IsUUID()
+    @ApiProperty()
+    lessonId: string;
 
-  @IsInt()
-  @IsOptional()
-  progress?: number;
+    @IsInt()
+    @IsOptional()
+    @ApiProperty()
+    progress?: number;
 
-  @IsString()
-  @IsOptional()
-  status?: string;
+    @ApiProperty({
+        enum: ProgressStatus,
+        enumName: 'UnitStatus',
+        example: ProgressStatus.NOT_STARTED,
+        default: ProgressStatus.NOT_STARTED,
+        required: false,
+    })
+    @IsEnum(ProgressStatus)
+    @IsOptional()
+    @Transform(({ value }) => value ?? ProgressStatus.NOT_STARTED)
+    status?: ProgressStatus;
 }

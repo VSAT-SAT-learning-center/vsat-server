@@ -9,11 +9,13 @@ import { UnitAreaProgressModule } from '../unit-area-progress/unit-area-progress
 import { LessonModule } from '../lesson/lesson.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LessonProgress]), 
-  LessonModule,
-  forwardRef(() => UnitAreaProgressModule)],
-  providers: [LessonProgressService],
-  controllers: [LessonProgressController],
-  exports: [LessonProgressService]
+    imports: [
+        TypeOrmModule.forFeature([LessonProgress]),
+        forwardRef(() => LessonModule),
+        forwardRef(() => UnitAreaProgressModule),
+    ],
+    providers: [LessonProgressService],
+    controllers: [LessonProgressController],
+    exports: [LessonProgressService],
 })
 export class LessonProgressModule {}
