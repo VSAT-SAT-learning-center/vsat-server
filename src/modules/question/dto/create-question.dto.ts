@@ -8,6 +8,7 @@ import {
     ValidateNested,
 } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
+import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { CreateAnswerDTO } from 'src/modules/answer/dto/create-answer.dto';
 
 export class CreateQuestionDTO extends BaseDTO {
@@ -44,4 +45,7 @@ export class CreateQuestionDTO extends BaseDTO {
     @ApiProperty()
     @IsBoolean()
     isSingleChoiceQuestion: boolean;
+
+    @Expose()
+    status: QuestionStatus
 }
