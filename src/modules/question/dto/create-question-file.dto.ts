@@ -8,9 +8,10 @@ import {
     ValidateNested,
 } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
+import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { CreateAnswerDTO } from 'src/modules/answer/dto/create-answer.dto';
 
-export class CreateQuestionFileDto {
+export class CreateQuestionFileDto extends BaseDTO {
     @Expose()
     @ValidateNested()
     @ApiProperty({ example: 'Foundation' })
@@ -48,4 +49,7 @@ export class CreateQuestionFileDto {
     @ApiProperty()
     @IsBoolean()
     isSingleChoiceQuestion: boolean;
+
+    @Expose()
+    status: QuestionStatus;
 }

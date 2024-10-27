@@ -80,12 +80,13 @@ export class QuestionController {
     }
 
     @Get()
-    async getAll(
+    async getAllWithStatus(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
+        @Query('status') status? : QuestionStatus
     ) {
         try {
-            const questions = await this.questionService.getAll(page, pageSize);
+            const questions = await this.questionService.getAllWithStatus(page, pageSize, status);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
@@ -142,21 +143,21 @@ export class QuestionController {
         }
     }
 
-    @Put('updateNotApprove/:id')
-    async updateNotApproved(
+    @Put('updateQuestion/:id')
+    async updateQuestion(
         @Param('id') id: string,
         @Body() updateQuestionDto: UpdateQuestionDTO,
     ) {
         try {
             const question =
-                await this.questionService.updateQuestionNotApproved(
+                await this.questionService.updateQuestion(
                     id,
                     updateQuestionDto,
                 );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
-                SuccessMessages.get('Question'),
+                SuccessMessages.update('Question'),
             );
         } catch (error) {
             throw new HttpException(

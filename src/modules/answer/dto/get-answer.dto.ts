@@ -10,5 +10,6 @@ export class GetAnswerDTO {
     @Expose()
     text: string;
 
-    
+    @Expose()
+    isCorrectAnswer: boolean
 }

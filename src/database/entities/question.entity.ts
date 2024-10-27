@@ -66,4 +66,7 @@ export class Question {
         default: QuestionStatus.DRAFT,
     })
     status: QuestionStatus;
+
+    @Column({ type: 'boolean', nullable: true })
+    isActive: boolean;
 }
