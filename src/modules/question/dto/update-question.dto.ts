@@ -54,8 +54,8 @@ export class UpdateQuestionDTO{
     content: string;
 
     @Expose()
-    @IsString()
-    @IsNotEmpty()
+    // @IsString()
+    // @IsNotEmpty()
     @ApiProperty()
     explain: string;
 
