@@ -1,14 +1,49 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class AnswerDTO {
+    @ApiProperty({
+        example: 'A',
+    })
+    @IsString()
+    @IsNotEmpty()
+    label: string;
+
+    @ApiProperty({
+        example: '32/3 square units',
+    })
+    @IsString()
+    @IsNotEmpty()
+    text: string;
+
+    @ApiProperty({
+        example: true,
+    })
+    @IsNotEmpty()
+    isCorrectAnswer: boolean;
+}
 
 export class CompleteInputDTO {
     @ApiProperty({
         example:
-            'Câu hỏi: Nếu x = 5 và y = 10, thì tổng của x và y là bao nhiêu? Đáp án: 15',
+            'Find the area bounded by the curve y = x^2 and the line y = 4 in the first quadrant.',
     })
     @IsString()
     @IsNotEmpty()
-    message: string;
+    content: string;
+
+    @ApiProperty({
+        type: [AnswerDTO],
+        description: 'A list of possible answers with only one being correct',
+    })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => AnswerDTO)
+    answers: AnswerDTO[];
+
+    @ApiProperty()
+    explain: string;
 }
 
 export class CompleteOutputDTO {

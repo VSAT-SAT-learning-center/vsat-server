@@ -10,11 +10,13 @@ import { BaseService } from '../base/base.service';
 
 @Injectable()
 export class StudyProfileService extends BaseService<StudyProfile> {
-  constructor(
-    @InjectRepository(StudyProfile)
-    studyProfileRepository: Repository<StudyProfile>,
-    paginationService: PaginationService,
-  ) {
-    super(studyProfileRepository, paginationService);
-  }
+    constructor(
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
+        paginationService: PaginationService,
+    ) {
+        super(studyProfileRepository, paginationService);
+    }
+
+    
 }
