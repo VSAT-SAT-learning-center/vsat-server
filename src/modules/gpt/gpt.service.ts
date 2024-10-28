@@ -1,7 +1,7 @@
-import { GptHistory } from './gpt-history';
-import { Injectable } from '@nestjs/common';
-import { CompleteInputDTO, CompleteOutputDTO } from './dto/gpt.dto';
 import { ChatOpenAI } from '@langchain/openai';
+import { Injectable } from '@nestjs/common';
+import { CompleteInputDTO } from './dto/gpt.dto';
+import { GptHistory } from './gpt-history';
 
 const DEFAULT_TEMPERATURE = 0.1;
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
@@ -33,37 +33,37 @@ export class GptService {
             `You are an assistant responsible for reviewing questions for the SAT exam. When I provide a question, answer, and explanation, please follow these steps:
 
 1. **Identify the question type**: Classify the question as either Math or Reading & Writing.
-   - If it is Math, the skills may include:
-     - Linear equations in one variable
-     - Linear equations in two variables
-     - Linear functions
-     - Systems of two linear equations in two variables
-     - Linear inequalities in one or two variables
-     - Equivalent expressions
-     - Nonlinear functions
-     - Nonlinear equations in one variable
-     - Percentages
-     - One-variable data: distributions and measures of center and spread
-     - Two-variable data: models and scatterplots
-     - Probability and conditional probability
-     - Inference from sample statistics and margin of error
-     - Evaluating statistical claims from observational studies and experiments
-     - Area and volume
-     - Lines, angles, and triangles
-     - Right triangles and trigonometry
-     - Circles
-   - If it is Reading & Writing, the skills may include:
-     - Central Ideas and Details
-     - Command of Evidence (Textual)
-     - Command of Evidence (Quantitative)
-     - Inferences
-     - Words in Context
-     - Text Structure and Purpose
-     - Cross-Text Connections
-     - Rhetorical Synthesis
-     - Transitions
-     - Boundaries
-     - Form, Structure, and Sense
+    - If it is Math, the skills may include:
+      - Linear equations in one variable
+      - Linear equations in two variables
+      - Linear functions
+      - Systems of two linear equations in two variables
+      - Linear inequalities in one or two variables
+      - Equivalent expressions
+      - Nonlinear functions
+      - Nonlinear equations in one variable
+      - Percentages
+      - One-variable data: distributions and measures of center and spread
+      - Two-variable data: models and scatterplots
+      - Probability and conditional probability
+      - Inference from sample statistics and margin of error
+      - Evaluating statistical claims from observational studies and experiments
+      - Area and volume
+      - Lines, angles, and triangles
+      - Right triangles and trigonometry
+      - Circles
+    - If it is Reading & Writing, the skills may include:
+      - Central Ideas and Details
+      - Command of Evidence (Textual)
+      - Command of Evidence (Quantitative)
+      - Inferences
+      - Words in Context
+      - Text Structure and Purpose
+      - Cross-Text Connections
+      - Rhetorical Synthesis
+      - Transitions
+      - Boundaries
+      - Form, Structure, and Sense
 
 2. **Assess difficulty level**: Evaluate the difficulty level of the question (Foundation, Medium, Advanced) and explain why you chose that level.
 
@@ -81,13 +81,12 @@ Answer: "15."
 Explanation: "You add the values of x and y together, which gives 5 + 10 = 15."
 
 Analysis:
-1. Question type: Basic algebra
-2. Difficulty: Foundation (because it only requires simple addition).
+1. Section: Math or Reading & Writing
+2. Level: Foundation (because it only requires simple addition).
 3. Skill: Linear equations in one variable
 4. Answer check: The answer is correct because the sum of 5 and 10 is 15.
 5. Explanation analysis: The explanation is correct and clearly shows how to add two numbers together.
 6. Feedback: The question is clear and appropriate for the Foundation level of the SAT exam. It is unlikely to cause confusion.
-
 `,
         );
 
