@@ -23,5 +23,4 @@ export class LessonProgressController extends BaseController<LessonProgress> {
   ): Promise<LessonProgress> {
     return this.lessonProgressService.updateLessonProgress(unitAreaProgressId, lessonId, progress);
   }
-  
 }

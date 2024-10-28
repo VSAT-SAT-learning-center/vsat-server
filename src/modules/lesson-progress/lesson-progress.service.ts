@@ -222,4 +222,48 @@ export class LessonProgressService extends BaseService<LessonProgress> {
 
         return lessonProgress;
     }
+
+    // Lấy các bài học đã hoàn thành gần đây theo targetLearningId
+    async getRecentCompletedLessons(
+        targetLearningId: string,
+        limit: number = 5,
+    ) {
+        return await this.lessonProgressRepository.find({
+            where: {
+                unitAreaProgress: {
+                    unitProgress: {
+                        targetLearning: { id: targetLearningId },
+                    },
+                },
+                status: ProgressStatus.COMPLETED,
+            },
+            relations: ['lesson', 'unitAreaProgress.unitProgress.unit'],
+            order: {
+                updatedat: 'DESC', // Sắp xếp theo thời gian cập nhật gần nhất
+            },
+            take: limit, // Giới hạn số lượng bài học trả về
+        });
+    }
+
+    // Lấy các bài học đang học gần đây theo targetLearningId
+    async getRecentProgressingLessons(
+        targetLearningId: string,
+        limit: number = 5,
+    ) {
+        return await this.lessonProgressRepository.find({
+            where: {
+                unitAreaProgress: {
+                    unitProgress: {
+                        targetLearning: { id: targetLearningId },
+                    },
+                },
+                status: ProgressStatus.PROGRESSING, // Lọc theo trạng thái Progressing
+            },
+            relations: ['lesson', 'unitAreaProgress.unitProgress.unit'],
+            order: {
+                updatedat: 'DESC', // Sắp xếp theo thời gian cập nhật gần nhất
+            },
+            take: limit, // Giới hạn số lượng bài học trả về
+        });
+    }
 }

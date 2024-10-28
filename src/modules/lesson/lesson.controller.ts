@@ -6,6 +6,7 @@ import {
     Patch,
     HttpStatus,
     Get,
+    Query,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -17,11 +18,15 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { StartLessonProgressDto } from './dto/start-lesson-progress.dto';
 import { CompleteLessonProgressDto } from './dto/complete-lesson-progress.dto';
+import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
 
 @ApiTags('Lessons')
 @Controller('lessons')
 export class LessonController extends BaseController<Lesson> {
-    constructor(private readonly lessonService: LessonService) {
+    constructor(
+        private readonly lessonService: LessonService,
+        private readonly lessonProgressService: LessonProgressService,
+    ) {
         super(lessonService, 'Lesson');
     }
 
@@ -112,7 +117,6 @@ export class LessonController extends BaseController<Lesson> {
         @Param('lessonId') lessonId: string,
         @Body() lessonProgressDto: CompleteLessonProgressDto,
     ) {
-        
         // Gọi service để cập nhật tiến trình khi học sinh hoàn thành bài học
         const result = await this.lessonService.completeLessonProgress(
             lessonId,
@@ -123,6 +127,42 @@ export class LessonController extends BaseController<Lesson> {
             statusCode: HttpStatus.CREATED,
             message: 'Lesson completed and progress updated successfully',
             data: result,
+        };
+    }
+
+    @Get('recent')
+    async getRecentCompletedLessons(
+        @Query('targetLearningId') targetLearningId: string,
+        @Query('limit') limit: number = 5,
+    ) {
+        // Gọi service để lấy danh sách các bài học gần đây
+        const recentLessons =
+            await this.lessonProgressService.getRecentCompletedLessons(
+                targetLearningId,
+                limit,
+            );
+
+        return {
+            message: 'Recent completed lessons retrieved successfully',
+            recentLessons,
+        };
+    }
+
+    @Get('recent/progressing')
+    async getRecentProgressingLessons(
+        @Query('targetLearningId') targetLearningId: string,
+        @Query('limit') limit: number = 5,
+    ) {
+        // Gọi service để lấy danh sách các bài học đang học gần đây
+        const recentLessons =
+            await this.lessonProgressService.getRecentProgressingLessons(
+                targetLearningId,
+                limit,
+            );
+
+        return {
+            message: 'Recent progressing lessons retrieved successfully',
+            recentLessons,
         };
     }
 }
