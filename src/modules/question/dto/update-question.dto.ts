@@ -45,7 +45,7 @@ export class UpdateQuestionDTO{
 
     @Expose()
     @ApiProperty({ example: '19bd7c73-9fe2-4e8b-b13d-bed8694f24dd' })
-    sectionId: string;
+    sectionId: string;  
 
     @Expose()
     @IsString()
