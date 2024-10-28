@@ -12,6 +12,7 @@ import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { FeedbackService } from '../feedback/feedback.service';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
+import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -763,5 +764,40 @@ export class UnitService extends BaseService<Unit> {
         };
 
         return await transformedData;
+    }
+
+    async approveOrRejectLearningMaterial(
+        feedbackDto: LearningMaterialFeedbackDto,
+        action: 'approve' | 'reject',
+    ): Promise<void> {
+        if (action === 'reject') {
+            await this.rejectLearningMaterial(feedbackDto);
+        } else if (action === 'approve') {
+            await this.approveLearningMaterial(feedbackDto);
+        }
+    }
+
+    private async rejectLearningMaterial(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<void> {
+        
+        const { unit } = await this.feedbackService.rejectLearningMaterialFeedback(feedbackDto);
+
+        // Mark the entire unit as rejected
+        await this.updateUnitStatus(unit.id, {
+            status: UnitStatus.REJECTED,
+        });
+    }
+
+    private async approveLearningMaterial(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<void> {
+
+        const { unit } = await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
+
+        // Mark the entire unit as approved
+        await this.updateUnitStatus(unit.id, {
+            status: UnitStatus.APPROVED,
+        }); 
     }
 }

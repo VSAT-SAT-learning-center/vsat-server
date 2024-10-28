@@ -14,10 +14,8 @@ import { FeedbacksGateway } from '../nofitication/feedback.gateway';
     imports: [
         TypeOrmModule.forFeature([Feedback]),
         // ExamModule,
-        // QuestionModule,
         AccountModule,
         forwardRef(() => LessonModule),
-        forwardRef(() => UnitModule),
     ],
     providers: [FeedbackService, FeedbacksGateway],
     controllers: [FeedbackController],

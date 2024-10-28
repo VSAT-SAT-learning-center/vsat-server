@@ -4,9 +4,6 @@ import {
     Post,
     Body,
     Param,
-    Delete,
-    Query,
-    Put,
     HttpStatus,
     BadRequestException,
     Patch,
@@ -15,9 +12,10 @@ import { FeedbackService } from './feedback.service';
 import { BaseController } from '../base/base.controller';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
-import { FeedbackDto } from './dto/get-feedback.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
+import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
+import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
@@ -26,27 +24,27 @@ export class FeedbackController extends BaseController<Feedback> {
         super(feedbackService, 'Feedback');
     }
 
-    @Post('/censor/:action')
-    async approveOrRejectLearningMaterial(
-        @Param('action') action: 'approve' | 'reject', // Accept 'approve' or 'reject' action
-        @Body() feedbackDto: FeedbackDto, // The DTO that includes feedback
-    ) {
-        if (action !== 'approve' && action !== 'reject') {
-            throw new BadRequestException(
-                'Invalid action. Use "approve" or "reject".',
-            );
-        }
-        const feedbacks = this.feedbackService.approveOrRejectLearningMaterial(
-            feedbackDto,
-            action,
-        );
+    // @Post('/censor/:action')
+    // async approveOrRejectLearningMaterial(
+    //     @Param('action') action: 'approve' | 'reject',
+    //     @Body() feedbackDto: LearningMaterialFeedbackDto,
+    // ) {
+    //     if (action !== 'approve' && action !== 'reject') {
+    //         throw new BadRequestException(
+    //             'Invalid action. Use "approve" or "reject".',
+    //         );
+    //     }
+    //     const feedbacks = this.feedbackService.approveOrRejectLearningMaterial(
+    //         feedbackDto,
+    //         action,
+    //     );
 
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            feedbacks,
-            SuccessMessages.update('Feedback'),
-        );
-    }
+    //     return ResponseHelper.success(
+    //         HttpStatus.OK,
+    //         feedbacks,
+    //         SuccessMessages.update('Feedback'),
+    //     );
+    // }
 
     @Get('user/:userId')
     async getFeedbackByUserId(@Param('userId') userId: string) {

@@ -35,7 +35,7 @@ export class UnitFeedbackDto {
 }
 
 
-export class FeedbackDto {
+export class LearningMaterialFeedbackDto {
     @ApiProperty({ type: UnitFeedbackDto })
     unitFeedback: UnitFeedbackDto;
 }

@@ -6,21 +6,16 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UpdateFeedbackDto } from './dto/update-feedback.dto';
 import { Feedback } from 'src/database/entities/feedback.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
-import { UnitService } from '../unit/unit.service';
-import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonService } from '../lesson/lesson.service';
-import { FeedbackDto, UnitFeedbackDto } from './dto/get-feedback.dto';
-import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
-import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
 import { CreateFeedbackUnitDto } from './dto/create-feedback-unit.dto';
 import { AccountService } from '../account/account.service';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { QuestionFeedbackDto } from './dto/question-feedback.dto';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -30,27 +25,13 @@ export class FeedbackService extends BaseService<Feedback> {
         private readonly lessonService: LessonService,
         private readonly feeddbacksGateway: FeedbacksGateway,
         private readonly accountService: AccountService,
-
-        @Inject(forwardRef(() => UnitService))
-        private readonly unitService: UnitService,
     ) {
         super(feedbackRepository);
     }
 
-    async approveOrRejectLearningMaterial(
-        feedbackDto: FeedbackDto,
-        action: 'approve' | 'reject',
-    ): Promise<void> {
-        if (action === 'reject') {
-            await this.rejectLearningMaterial(feedbackDto);
-        } else if (action === 'approve') {
-            await this.approveLearningMaterial(feedbackDto);
-        }
-    }
-
-    private async rejectLearningMaterial(
-        feedbackDto: FeedbackDto,
-    ): Promise<void> {
+    async rejectLearningMaterialFeedback(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<Feedback> {
         const { unitFeedback } = feedbackDto;
 
         // Loop through each unit area and lessons inside the unit
@@ -75,36 +56,17 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Create feedback entry for the unit
-        await this.feedbackRepository.save({
+        return await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
             content: 'Rejected due to lesson or unit area issues',
             status: FeedbackStatus.REJECTED,
         });
-
-        // Mark the entire unit as rejected
-        await this.unitService.updateUnitStatus(unitFeedback.unitId, {
-            status: UnitStatus.REJECTED,
-        });
     }
 
-    private async approveLearningMaterial(
-        feedbackDto: FeedbackDto,
-    ): Promise<void> {
+    async approveLearningMaterialFeedback(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<Feedback> {
         const { unitFeedback } = feedbackDto;
-        let anyRejected = false;
-
-        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
-            if (lessonFeedback.isRejected) {
-                anyRejected = true;
-            }
-        }
-
-        // If any lesson or unit area is rejected, throw an error
-        // if (anyRejected) {
-        //     throw new Error(
-        //         'Cannot approve learning material with rejected parts',
-        //     );
-        // }
 
         // Approve all lessons by setting their status to true
         for (const lessonFeedback of unitFeedback.lessonsFeedback) {
@@ -117,13 +79,8 @@ export class FeedbackService extends BaseService<Feedback> {
             );
         }
 
-        // Mark the entire unit as approved
-        await this.unitService.updateUnitStatus(unitFeedback.unitId, {
-            status: UnitStatus.APPROVED,
-        });
-
         // Create feedback entry for the approved unit
-        await this.feedbackRepository.save({
+        return await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
             content: 'Approved',
             status: FeedbackStatus.APPROVED,
@@ -144,13 +101,14 @@ export class FeedbackService extends BaseService<Feedback> {
         //Notify managers when feedback is submitted
         const managers = await this.accountService.findManagers();
 
-        
-        const accountFrom = await this.accountService.findOneById(createFeedbackDto.accountFromId);
+        const accountFrom = await this.accountService.findOneById(
+            createFeedbackDto.accountFromId,
+        );
 
-        if(accountFrom === null){
+        if (accountFrom === null) {
             throw new NotFoundException('Account not found');
         }
-        
+
         managers.forEach((manager) => {
             createFeedbackDto.accountFrom = accountFrom;
             createFeedbackDto.accountTo = manager;
@@ -168,18 +126,35 @@ export class FeedbackService extends BaseService<Feedback> {
             this.feeddbacksGateway.sendNotificationToUser(
                 manager.id,
                 `New learning material was submitted`,
-                FeedbackEventType.UNIT_FEEDBACK
+                FeedbackEventType.UNIT_FEEDBACK,
             );
         });
 
         return feedbackList;
     }
 
-    async getFeedbackByUserId(userId: string): Promise<Feedback[]> {
-        return this.feedbackRepository.find({
-            where: [{ accountTo: { id: userId } }],
-            relations: ['unit', 'exam', 'question'],
-            order: { createdat: 'DESC' },
+    async rejectQuestionFeedback(
+        feedbackDto: QuestionFeedbackDto,
+    ): Promise<void> {
+        const { questionId, content, reason } = feedbackDto;
+
+        await this.feedbackRepository.save({
+            content,
+            reason,
+            status: FeedbackStatus.REJECTED,
+            question: { id: questionId },
+        });
+    }
+
+    async approveQuestionFeedback(
+        feedbackDto: QuestionFeedbackDto,
+    ): Promise<void> {
+        const { questionId, content } = feedbackDto;
+
+        await this.feedbackRepository.save({
+            question: { id: questionId },
+            content,
+            status: FeedbackStatus.APPROVED,
         });
     }
 
@@ -195,5 +170,13 @@ export class FeedbackService extends BaseService<Feedback> {
         feedback.isRead = true;
 
         return this.feedbackRepository.save(feedback);
+    }
+
+    async getFeedbackByUserId(userId: string): Promise<Feedback[]> {
+        return this.feedbackRepository.find({
+            where: [{ accountTo: { id: userId } }],
+            relations: ['unit', 'exam', 'question'],
+            order: { createdat: 'DESC' },
+        });
     }
 }

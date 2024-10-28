@@ -1,6 +1,7 @@
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
@@ -18,6 +19,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
+import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 
 @ApiTags('Questions')
 @Controller('questions')
@@ -218,5 +220,27 @@ export class QuestionController {
                 error.status || HttpStatus.BAD_REQUEST,
             );
         }
+    }
+
+    @Post('censor/:action')
+    async approveOrRejectQuestion(
+        @Param('action') action: 'approve' | 'reject',
+        @Body() feedbackDto: QuestionFeedbackDto,
+    ) {
+        if (action !== 'approve' && action !== 'reject') {
+            throw new BadRequestException(
+                'Invalid action. Use "approve" or "reject".',
+            );
+        }
+        const feedbacks = this.questionService.approveOrRejectQuestion(
+            feedbackDto,
+            action,
+        );
+
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            feedbacks,
+            SuccessMessages.update('Feedback'),
+        );
     }
 }

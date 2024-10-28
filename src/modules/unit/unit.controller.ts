@@ -10,6 +10,7 @@ import {
     Query,
     DefaultValuePipe,
     ParseIntPipe,
+    BadRequestException,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -21,12 +22,35 @@ import { Unit } from 'src/database/entities/unit.entity';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
+import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
 
 @ApiTags('Units')
 @Controller('units')
 export class UnitController extends BaseController<Unit> {
     constructor(private readonly unitService: UnitService) {
         super(unitService, 'Unit');
+    }
+
+    @Post('/censor/:action')
+    async approveOrRejectLearningMaterial(
+        @Param('action') action: 'approve' | 'reject',
+        @Body() feedbackDto: LearningMaterialFeedbackDto,
+    ) {
+        if (action !== 'approve' && action !== 'reject') {
+            throw new BadRequestException(
+                'Invalid action. Use "approve" or "reject".',
+            );
+        }
+        const feedbacks = this.unitService.approveOrRejectLearningMaterial(
+            feedbackDto,
+            action,
+        );
+
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            feedbacks,
+            SuccessMessages.update('Feedback'),
+        );
     }
 
     @Get('/pending')

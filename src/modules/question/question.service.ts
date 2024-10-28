@@ -1,8 +1,10 @@
 import {
     BadRequestException,
     ConflictException,
+    forwardRef,
     HttpException,
     HttpStatus,
+    Inject,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -21,6 +23,8 @@ import { Answerservice } from '../answer/answer.service';
 import { Section } from 'src/database/entities/section.entity';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { Answer } from 'src/database/entities/anwser.entity';
+import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
+import { FeedbackService } from '../feedback/feedback.service';
 
 @Injectable()
 export class QuestionService {
@@ -35,9 +39,49 @@ export class QuestionService {
         private readonly skillRepository: Repository<Skill>,
         @InjectRepository(Answer)
         private readonly answerRepository: Repository<Answer>,
-
         private readonly answerService: Answerservice,
+
+        @Inject(forwardRef(() => FeedbackService))
+        private readonly feedbackService: FeedbackService,
     ) {}
+
+    async approveOrRejectQuestion(
+        feedbackDto: QuestionFeedbackDto,
+        action: 'approve' | 'reject',
+    ): Promise<void> {
+        if (action === 'reject') {
+            await this.rejectQuestion(feedbackDto);
+        } else if (action === 'approve') {
+            await this.approveQuestion(feedbackDto);
+        }
+    }
+
+    async rejectQuestion(
+        feedbackDto: QuestionFeedbackDto,
+    ): Promise<void> {
+        const { questionId } = feedbackDto;
+
+        await this.updateStatus(
+            questionId,
+            QuestionStatus.REJECT,
+        );
+
+        this.feedbackService.rejectQuestionFeedback(feedbackDto);
+    }
+
+    async approveQuestion(
+        feedbackDto: QuestionFeedbackDto,
+    ): Promise<void> {
+        const { questionId } = feedbackDto;
+
+        await this.updateStatus(
+            questionId,
+            QuestionStatus.APPROVED,
+        );
+
+        this.feedbackService.approveQuestionFeedback(feedbackDto);
+
+    }
 
     async save(createQuestionDtoArray: CreateQuestionFileDto[]): Promise<{
         savedQuestions: Question[];
