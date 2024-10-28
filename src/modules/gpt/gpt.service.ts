@@ -1,7 +1,7 @@
-import { GptHistory } from './gpt-history';
-import { Injectable } from '@nestjs/common';
-import { CompleteInputDTO, CompleteOutputDTO } from './dto/gpt.dto';
 import { ChatOpenAI } from '@langchain/openai';
+import { Injectable } from '@nestjs/common';
+import { CompleteInputDTO } from './dto/gpt.dto';
+import { GptHistory } from './gpt-history';
 
 const DEFAULT_TEMPERATURE = 0.3;
 const DEFAULT_MODEL = 'gpt-4o';
