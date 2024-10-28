@@ -1,14 +1,14 @@
-import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
-import { GptService } from './gpt.service';
-import { CompleteInputDTO } from './dto/gpt.dto';
+import { Body, Controller, Post, ValidationPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { CompleteInputDTO } from './dto/gpt.dto';
+import { GptService } from './gpt.service';
 
-@ApiTags('gpt')
-@Controller('gpt')
+@ApiTags('GPT')
+@Controller('gpts')
 export class GptController {
     constructor(private readonly gptService: GptService) {}
 
-    @Post()
+    @Post('censor-question')
     getChatCompleteMsg(
         @Body(new ValidationPipe({ transform: true }))
         data: CompleteInputDTO,
