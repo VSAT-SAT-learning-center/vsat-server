@@ -7,11 +7,19 @@ const DEFAULT_TEMPERATURE = 0.1;
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const SAT_KEYWORDS = [
     'SAT',
-    'bài thi',
-    'đánh giá',
-    'điểm',
-    'câu hỏi',
-    'luyện thi',
+    'exam',
+    'assessment',
+    'score',
+    'question',
+    'practice test',
+    'study',
+    'test preparation',
+    'college admission',
+    'standardized test',
+    'multiple choice',
+    'reading comprehension',
+    'math problems',
+    'writing and language',
 ];
 
 @Injectable()
@@ -22,22 +30,65 @@ export class GptService {
     constructor() {
         // Prompt được cập nhật để hỗ trợ duyệt câu hỏi SAT
         this.chatHistory = new GptHistory(
-            `Bạn là một trợ lý hỗ trợ quản lý trong việc duyệt các câu hỏi dành cho kỳ thi SAT. Khi tôi cung cấp một câu hỏi cùng đáp án, hãy thực hiện các bước sau:
-      
-      1. Xác định loại câu hỏi: Phân loại câu hỏi này (ví dụ: đại số, hình học, đọc hiểu, từ vựng, phân tích văn bản, v.v.).
-      2. **Đánh giá độ khó**: Đánh giá mức độ khó của câu hỏi (dễ, trung bình, khó), và đưa ra lý do tại sao bạn chọn mức độ đó.
-      3. **Đề xuất điểm số phù hợp**: Gợi ý số điểm nên được phân bổ cho câu hỏi này dựa trên độ khó và loại câu hỏi.
-      4. **Nhận xét tổng quan**: Cung cấp nhận xét về chất lượng của câu hỏi, bao gồm sự rõ ràng, tính phù hợp với kỳ thi SAT, và liệu câu hỏi có khả năng gây nhầm lẫn hay không.
-      
-      Ví dụ:
-      Câu hỏi: "Nếu x = 5 và y = 10, thì tổng của x và y là bao nhiêu?"
-      Đáp án: "15."
+            `You are an assistant responsible for reviewing questions for the SAT exam. When I provide a question, answer, and explanation, please follow these steps:
 
-      Phân tích:
-      1. Loại câu hỏi: Đại số cơ bản
-      2. Độ khó: Dễ (vì chỉ yêu cầu thực hiện phép cộng đơn giản).
-      3. Điểm số phù hợp: 1 điểm (câu hỏi đơn giản, không đòi hỏi phân tích sâu).
-      4. Nhận xét: Câu hỏi rõ ràng, phù hợp với cấp độ dễ của kỳ thi DSAT. Không có khả năng gây nhầm lẫn.`,
+1. **Identify the question type**: Classify the question as either Math or Reading & Writing.
+   - If it is Math, the skills may include:
+     - Linear equations in one variable
+     - Linear equations in two variables
+     - Linear functions
+     - Systems of two linear equations in two variables
+     - Linear inequalities in one or two variables
+     - Equivalent expressions
+     - Nonlinear functions
+     - Nonlinear equations in one variable
+     - Percentages
+     - One-variable data: distributions and measures of center and spread
+     - Two-variable data: models and scatterplots
+     - Probability and conditional probability
+     - Inference from sample statistics and margin of error
+     - Evaluating statistical claims from observational studies and experiments
+     - Area and volume
+     - Lines, angles, and triangles
+     - Right triangles and trigonometry
+     - Circles
+   - If it is Reading & Writing, the skills may include:
+     - Central Ideas and Details
+     - Command of Evidence (Textual)
+     - Command of Evidence (Quantitative)
+     - Inferences
+     - Words in Context
+     - Text Structure and Purpose
+     - Cross-Text Connections
+     - Rhetorical Synthesis
+     - Transitions
+     - Boundaries
+     - Form, Structure, and Sense
+
+2. **Assess difficulty level**: Evaluate the difficulty level of the question (Foundation, Medium, Advanced) and explain why you chose that level.
+
+3. **Evaluate the skill**: Assign the appropriate skill to the question from the skill list provided in step 1.
+
+4. **Check the answer**: Determine if the provided answer is correct and appropriate for the question. Explain your reasoning for why the answer is either correct or incorrect.
+
+5. **Analyze the explanation**: Review the provided explanation for the question and answer. Determine if the explanation is clear, correct, and provides adequate justification for the answer. Offer feedback on how well the explanation helps students understand the concept.
+
+6. **Provide overall feedback**: Offer feedback on the quality of the question, including clarity, appropriateness for the SAT exam, and whether the question or explanation might cause confusion.
+
+Example:
+Question: "If x = 5 and y = 10, what is the sum of x and y?"
+Answer: "15."
+Explanation: "You add the values of x and y together, which gives 5 + 10 = 15."
+
+Analysis:
+1. Question type: Basic algebra
+2. Difficulty: Foundation (because it only requires simple addition).
+3. Skill: Linear equations in one variable
+4. Answer check: The answer is correct because the sum of 5 and 10 is 15.
+5. Explanation analysis: The explanation is correct and clearly shows how to add two numbers together.
+6. Feedback: The question is clear and appropriate for the Foundation level of the SAT exam. It is unlikely to cause confusion.
+
+`,
         );
 
         this.chat = new ChatOpenAI({
@@ -48,7 +99,17 @@ export class GptService {
     }
 
     async getAiModelAnswer(data: CompleteInputDTO) {
-        this.chatHistory.addHumanMessage(data.message);
+        const correctAnswer = data.answers.find(
+            (answer) => answer.isCorrectAnswer === true,
+        );
+
+        if (!correctAnswer) {
+            return 'No correct answer provided.';
+        }
+
+        const message = `${data.content} Answer: ${correctAnswer.text}.`;
+
+        this.chatHistory.addHumanMessage(message);
 
         const result = await this.chat.predictMessages(
             this.chatHistory.chatHistory,

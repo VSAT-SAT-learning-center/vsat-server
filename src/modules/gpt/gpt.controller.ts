@@ -4,7 +4,7 @@ import { CompleteInputDTO } from './dto/gpt.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('gpt')
-@Controller('gpt')
+@Controller('question')
 export class GptController {
     constructor(private readonly gptService: GptService) {}
 

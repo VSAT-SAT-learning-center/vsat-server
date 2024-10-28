@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put, HttpStatus } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    Query,
+    Put,
+    HttpStatus,
+} from '@nestjs/common';
 import { CreateStudyProfileDto } from './dto/create-studyprofile.dto';
 import { UpdateStudyProfileDto } from './dto/update-studyprofile.dto';
 import { StudyProfileService } from './study-profile.service';
@@ -11,7 +21,9 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('StudyProfiles')
 @Controller('study-profiles')
 export class StudyProfileController extends BaseController<StudyProfile> {
-  constructor(studyProfileService: StudyProfileService) {
-    super(studyProfileService, 'StudyProfile');
-  }
+    constructor(private readonly studyProfileService: StudyProfileService) {
+        super(studyProfileService, 'StudyProfile');
+    }
+
+   
 }
