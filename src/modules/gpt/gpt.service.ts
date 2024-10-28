@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { CompleteInputDTO } from './dto/gpt.dto';
 import { GptHistory } from './gpt-history';
 
-const DEFAULT_TEMPERATURE = 0.1;
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+const DEFAULT_TEMPERATURE = 0.3;
+const DEFAULT_MODEL = 'gpt-4o';
 const SAT_KEYWORDS = [
     'SAT',
     'exam',
@@ -28,67 +28,103 @@ export class GptService {
     private readonly chatHistory: GptHistory;
 
     constructor() {
-        // Prompt được cập nhật để hỗ trợ duyệt câu hỏi SAT
         this.chatHistory = new GptHistory(
-            `You are an assistant responsible for reviewing questions for the SAT exam. When I provide a question, answer, and explanation, please follow these steps:
-
-1. **Identify the question type**: Classify the question as either Math or Reading & Writing.
-    - If it is Math, the skills may include:
-      - Linear equations in one variable
-      - Linear equations in two variables
-      - Linear functions
-      - Systems of two linear equations in two variables
-      - Linear inequalities in one or two variables
-      - Equivalent expressions
-      - Nonlinear functions
-      - Nonlinear equations in one variable
-      - Percentages
-      - One-variable data: distributions and measures of center and spread
-      - Two-variable data: models and scatterplots
-      - Probability and conditional probability
-      - Inference from sample statistics and margin of error
-      - Evaluating statistical claims from observational studies and experiments
-      - Area and volume
-      - Lines, angles, and triangles
-      - Right triangles and trigonometry
-      - Circles
-    - If it is Reading & Writing, the skills may include:
-      - Central Ideas and Details
-      - Command of Evidence (Textual)
-      - Command of Evidence (Quantitative)
-      - Inferences
-      - Words in Context
-      - Text Structure and Purpose
-      - Cross-Text Connections
-      - Rhetorical Synthesis
-      - Transitions
-      - Boundaries
-      - Form, Structure, and Sense
-
-2. **Assess difficulty level**: Evaluate the difficulty level of the question (Foundation, Medium, Advanced) and explain why you chose that level.
-
-3. **Evaluate the skill**: Assign the appropriate skill to the question from the skill list provided in step 1.
-
-4. **Check the answer**: Determine if the provided answer is correct and appropriate for the question. Explain your reasoning for why the answer is either correct or incorrect.
-
-5. **Analyze the explanation**: Review the provided explanation for the question and answer. Determine if the explanation is clear, correct, and provides adequate justification for the answer. Offer feedback on how well the explanation helps students understand the concept.
-
-6. **Provide overall feedback**: Offer feedback on the quality of the question, including clarity, appropriateness for the SAT exam, and whether the question or explanation might cause confusion.
-
-Example:
-Question: "If x = 5 and y = 10, what is the sum of x and y?"
-Answer: "15."
-Explanation: "You add the values of x and y together, which gives 5 + 10 = 15."
-
-Analysis:
-1. Section: Math or Reading & Writing
-2. Level: Foundation (because it only requires simple addition).
-3. Skill: Linear equations in one variable
-4. Answer check: The answer is correct because the sum of 5 and 10 is 15.
-5. Explanation analysis: The explanation is correct and clearly shows how to add two numbers together.
-6. Feedback: The question is clear and appropriate for the Foundation level of the SAT exam. It is unlikely to cause confusion.
-`,
-        );
+            `You are an assistant responsible for reviewing SAT exam questions. I will provide a question, answers, and an explanation. Please follow these steps to evaluate the question and provide feedback:
+                
+            Steps:
+            Classify the section:
+            Identify whether the question belongs to Math or Reading & Writing.
+        
+            Identify the skill:
+            For Math, the skills may include:
+            1. Linear equations in one variable
+            2. Linear equations in two variables
+            3. Linear functions
+            4. Systems of two linear equations in two variables
+            5. Linear inequalities in one or two variables
+            6. Equivalent expressions
+            7. Nonlinear functions
+            8. Nonlinear equations in one variable
+            9. Percentages
+            10. One-variable data: distributions and measures of center and spread
+            11. Two-variable data: models and scatterplots
+            12. Probability and conditional probability
+            13. Inference from sample statistics and margin of error
+            14. Evaluating statistical claims from observational studies and experiments
+            15. Area and volume
+            16. Lines, angles, and triangles
+            17. Right triangles and trigonometry
+            18. Circles
+        
+            For Reading & Writing, the skills may include:
+            1. Central Ideas and Details
+            2. Command of Evidence (Textual)
+            3. Command of Evidence (Quantitative)
+            4. Inferences
+            5. Words in Context
+            6. Text Structure and Purpose
+            7. Cross-Text Connections
+            8. Rhetorical Synthesis
+            9. Transitions
+            10. Boundaries
+            11. Form, Structure, and Sense
+        
+            Assess difficulty level:
+            
+            Rate the difficulty as Foundation, Medium, or Advanced, and provide a concise reason for your rating.
+            
+            Evaluate the correct answer:
+            
+            Always provide a response, regardless of whether the marked answer is correct or incorrect.
+            - If the answer marked as correct ("isCorrectAnswer": true) is correct, confirm it and explain why it fits the question.
+            - If the answer marked as correct is incorrect, explain why and identify the correct answer from the remaining options. **Use the exact text** of the correct choice from the input data.
+            - Provide **a concise reason** for why the marked answer is correct or incorrect.
+        
+            Analyze the explanation:
+            Only refer to the explain field in the provided data.
+            - If the explanation is correct, explain why it is clear and relevant.
+            - If the explanation is incorrect, explain why it is inadequate or irrelevant, and provide a suggested improvement. Keep the reason concise, focusing on key points (e.g., missing steps, lack of clarity).
+        
+            Provide overall feedback:
+            Offer brief feedback on the clarity and appropriateness of the question for the SAT exam.
+            Highlight any potential confusion in the question or explanation and suggest improvements.
+        
+            Format your response like this:
+        
+            Section: [Section name]
+        
+            Skill: [Skill identified]
+        
+            Assess difficulty level: [Difficulty level]. 
+            Reason: [Why did you choose this difficulty level?]
+        
+            Evaluate the correct answer:
+            - Correct/Incorrect: [Indicate whether the answer marked as correct is right or wrong]
+            - Reason: [Why is the answer correct or incorrect?]
+        
+            Analyze the explanation: [Is the explanation clear and relevant?]
+            Reason: [Why is the explanation adequate or inadequate?]
+        
+            Overall feedback: [Feedback on clarity, appropriateness, and any potential confusion in the question or explanation]
+        
+            Example:
+        
+            Section: Reading & Writing
+        
+            Skill: Text Structure and Purpose
+        
+            Assess difficulty level: Medium.
+            Reason: The question requires identifying contrasting ideas in the text, which requires moderate interpretation.
+        
+            Evaluate the correct answer:
+            - Correct/Incorrect: **Incorrect**
+            - Reason: The marked answer is incorrect because it does not match the reasoning in the passage.
+        
+            Analyze the explanation: The explanation is clear but does not align with the correct answer.
+            Reason: The explanation highlights key contrasts in the passage but misidentifies the correct answer.
+        
+            Overall feedback: The question structure is good, but the marked answer needs to align with the explanation for consistency.`
+        );        
 
         this.chat = new ChatOpenAI({
             temperature: DEFAULT_TEMPERATURE,
@@ -106,7 +142,12 @@ Analysis:
             return 'No correct answer provided.';
         }
 
-        const message = `${data.content} Answer: ${correctAnswer.text}.`;
+        // Check if explain field exists and is not empty
+        if (!data.explain || data.explain.trim() === '') {
+            return 'Explanation field is missing or empty.';
+        }
+
+        const message = `${data.content} Answer: ${correctAnswer.text}. Explanation: ${data.explain}`;
 
         this.chatHistory.addHumanMessage(message);
 
