@@ -10,8 +10,13 @@ import { BaseService } from '../base/base.service';
 export class StudyProfileService extends BaseService<StudyProfile> {
   constructor(
     @InjectRepository(StudyProfile)
-    studyProfileRepository: Repository<StudyProfile>,
+    private readonly studyProfileRepository: Repository<StudyProfile>,
   ) {
     super(studyProfileRepository);
   }
+
+  async suggestedRoute(){
+    
+  }
+
 }
