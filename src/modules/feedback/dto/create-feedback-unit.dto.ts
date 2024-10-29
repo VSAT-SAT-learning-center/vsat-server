@@ -8,38 +8,44 @@ import { Unit } from 'src/database/entities/unit.entity';
 
 
 export class CreateFeedbackUnitDto {
-  @ApiProperty({ description: 'ID của Unit liên quan đến feedback' })
+  @ApiProperty()
   @IsUUID()
   @IsOptional()
   unitId?: string;
 
-  @ApiProperty({ description: 'ID của Exam liên quan đến feedback' })
+  @ApiProperty()
   @IsUUID()
   @IsOptional()
   examId?: string;
 
-  @ApiProperty({ description: 'ID của Question liên quan đến feedback' })
+  @ApiProperty()
   @IsUUID()
   @IsOptional()
   questionId?: string;
 
-  @ApiProperty({ description: 'ID của tài khoản gửi feedback' })
+  @ApiProperty()
   @IsUUID()
   accountFromId: string;
 
-  @ApiProperty({ description: 'ID của tài khoản nhận feedback' })
+  @ApiProperty()
   @IsUUID()
   @IsOptional()
   accountToId?: string;
 
-  @ApiProperty({ description: 'Nội dung của feedback', required: false })
+  @ApiProperty()
   @IsString()
   @IsOptional()
   content?: string;
 
-  @ApiProperty({ enum: FeedbackStatus, description: 'Trạng thái của feedback' })
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  reason?: string;
+
+  @ApiProperty({ enum: FeedbackStatus })
   @IsEnum(FeedbackStatus)
-  status: FeedbackStatus;
+  @IsOptional()
+  status?: FeedbackStatus;
 
   @IsOptional()
   unit?: Unit;
