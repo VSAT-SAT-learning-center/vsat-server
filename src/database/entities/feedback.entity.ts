@@ -66,7 +66,7 @@ export class Feedback {
     @Column({ type: 'enum', enum: FeedbackStatus })
     status: FeedbackStatus;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'text', nullable: true }) 
     reason: string;
 
     @Column({ type: 'boolean', default: false })
