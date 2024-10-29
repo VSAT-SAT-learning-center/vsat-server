@@ -41,7 +41,6 @@ export class QuestionService {
         @InjectRepository(Answer)
         private readonly answerRepository: Repository<Answer>,
         private readonly answerService: Answerservice,
-
         @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
     ) {}

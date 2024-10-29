@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'; // Importing the ApiProperty decorator
 import { IsOptional } from 'class-validator';
-import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
-
 
 export class LessonFeedbackDto {
     @ApiProperty({ example: '0ecf1ec5-bf42-4c51-8e74-3546f2cfd91f' })
@@ -12,8 +10,6 @@ export class LessonFeedbackDto {
 
     @ApiProperty({ example: 'The content of the feedback for the lesson' })
     content: string;
-
-    @ApiProperty({ example: FeedbackReason.COMPLEX_EXPLANATION })
     @IsOptional()
     reason?: string;
 }
@@ -33,7 +29,6 @@ export class UnitFeedbackDto {
     @ApiProperty({ type: [LessonFeedbackDto] })
     lessonsFeedback: LessonFeedbackDto[];
 }
-
 
 export class LearningMaterialFeedbackDto {
     @ApiProperty({ type: UnitFeedbackDto })

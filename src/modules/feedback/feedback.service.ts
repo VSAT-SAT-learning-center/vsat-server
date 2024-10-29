@@ -1,22 +1,16 @@
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { Feedback } from 'src/database/entities/feedback.entity';
+import { Repository } from 'typeorm';
+import { AccountService } from '../account/account.service';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
-import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
-import { CreateFeedbackUnitDto } from './dto/create-feedback-unit.dto';
-import { AccountService } from '../account/account.service';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
-import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { CreateFeedbackUnitDto } from './dto/create-feedback-unit.dto';
+import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
 import { QuestionFeedbackDto } from './dto/question-feedback.dto';
-import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
-import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -33,7 +27,7 @@ export class FeedbackService extends BaseService<Feedback> {
     async rejectLearningMaterialFeedback(
         feedbackDto: LearningMaterialFeedbackDto,
     ): Promise<Feedback> {
-        const { unitFeedback, accountFromId, accountToId  } = feedbackDto;
+        const { unitFeedback, accountFromId, accountToId } = feedbackDto;
 
         // Loop through each unit area and lessons inside the unit
 
@@ -140,7 +134,8 @@ export class FeedbackService extends BaseService<Feedback> {
     async rejectQuestionFeedback(
         feedbackDto: QuestionFeedbackDto,
     ): Promise<Feedback> {
-        const { questionId, content, reason, accountFromId, accountToId } = feedbackDto;
+        const { questionId, content, reason, accountFromId, accountToId } =
+            feedbackDto;
 
         return await this.feedbackRepository.save({
             accountFrom: { id: accountFromId },

@@ -1,20 +1,19 @@
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import {
-    Entity,
-    PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    UpdateDateColumn,
-    ManyToOne,
+    Entity,
     JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
-import { Unit } from './unit.entity';
-import { Exam } from './exam.entity';
-import { Question } from './question.entity';
 import { Account } from './account.entity';
-import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
-import { UnitArea } from './unitarea.entity';
+import { Exam } from './exam.entity';
 import { Lesson } from './lesson.entity';
-import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
+import { Question } from './question.entity';
+import { Unit } from './unit.entity';
+import { UnitArea } from './unitarea.entity';
 
 @Entity('feedback')
 export class Feedback {
@@ -58,7 +57,7 @@ export class Feedback {
     accountFrom: Account;
 
     @ManyToOne(() => Account, { nullable: true })
-    @JoinColumn({ name: 'accounttoid' }) 
+    @JoinColumn({ name: 'accounttoid' })
     accountTo: Account;
 
     @Column({ type: 'text', nullable: true })
