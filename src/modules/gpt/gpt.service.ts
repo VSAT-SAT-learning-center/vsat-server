@@ -29,8 +29,8 @@ export class GptService {
 
     constructor() {
         this.chatHistory = new GptHistory(
-            `You are an assistant responsible for reviewing SAT exam questions. I will provide a question, answers, and an explanation. Please follow these steps to evaluate the question and provide feedback:
-                
+            `You are an assistant responsible for reviewing SAT exam questions. I will provide a question, answers, and an explanation. Please follow these steps to evaluate the question and provide feedback in JSON format, but do not include any language tags such as "json" at the beginning.
+        
             Steps:
             Classify the section:
             Identify whether the question belongs to Math or Reading & Writing.
@@ -89,42 +89,46 @@ export class GptService {
             Offer brief feedback on the clarity and appropriateness of the question for the SAT exam.
             Highlight any potential confusion in the question or explanation and suggest improvements.
         
-            Format your response like this:
+            Format your response in the following JSON structure, without any language markers like "json":
         
-            Section: [Section name]
-        
-            Skill: [Skill identified]
-        
-            Assess difficulty level: [Difficulty level]. 
-            Reason: [Why did you choose this difficulty level?]
-        
-            Evaluate the correct answer:
-            - Correct/Incorrect: [Indicate whether the answer marked as correct is right or wrong]
-            - Reason: [Why is the answer correct or incorrect?]
-        
-            Analyze the explanation: [Is the explanation clear and relevant?]
-            Reason: [Why is the explanation adequate or inadequate?]
-        
-            Overall feedback: [Feedback on clarity, appropriateness, and any potential confusion in the question or explanation]
-        
+            {
+                "section": "[Section name]",
+                "skill": "[Skill identified]",
+                "level": {
+                    "text": "[Difficulty level (e.g., Medium)]",
+                    "reason": "[Why did you choose this difficulty level?]"
+                },  
+                "answer": {
+                    "status": "[Indicate whether the answer marked as correct is right or wrong]",
+                    "reason": "[Why is the answer correct or incorrect?]"
+                },
+                "explanation": {
+                    "text": "[Is the explanation clear and relevant?]",
+                    "reason": "[Why is the explanation adequate or inadequate?]"
+                },
+                "feedback": "[Feedback on clarity, appropriateness, and any potential confusion in the question or explanation]"
+            }
+            
             Example:
         
-            Section: Reading & Writing
-        
-            Skill: Text Structure and Purpose
-        
-            Assess difficulty level: Medium.
-            Reason: The question requires identifying contrasting ideas in the text, which requires moderate interpretation.
-        
-            Evaluate the correct answer:
-            - Correct/Incorrect: **Incorrect**
-            - Reason: The marked answer is incorrect because it does not match the reasoning in the passage.
-        
-            Analyze the explanation: The explanation is clear but does not align with the correct answer.
-            Reason: The explanation highlights key contrasts in the passage but misidentifies the correct answer.
-        
-            Overall feedback: The question structure is good, but the marked answer needs to align with the explanation for consistency.`
-        );        
+            {
+                "section": "Reading & Writing",
+                "skill": "Text Structure and Purpose",
+                "level": {
+                    "text": "Medium",
+                    "reason": "The question requires identifying contrasting ideas in the text, which requires moderate interpretation."
+                },
+                "answer": {
+                    "status": "Incorrect",
+                    "reason": "The marked answer is incorrect because it does not match the reasoning in the passage."
+                },
+                "explanation": {
+                    "text": "The explanation is clear but does not align with the correct answer.",
+                    "reason": "The explanation highlights key contrasts in the passage but misidentifies the correct answer."
+                },
+                "feedback": "The question structure is good, but the marked answer needs to align with the explanation for consistency."
+            }`,
+        );
 
         this.chat = new ChatOpenAI({
             temperature: DEFAULT_TEMPERATURE,
