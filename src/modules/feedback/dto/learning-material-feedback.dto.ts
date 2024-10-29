@@ -38,4 +38,10 @@ export class UnitFeedbackDto {
 export class LearningMaterialFeedbackDto {
     @ApiProperty({ type: UnitFeedbackDto })
     unitFeedback: UnitFeedbackDto;
+
+    @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
+    accountFromId: string;
+
+    @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
+    accountToId?: string;
 }

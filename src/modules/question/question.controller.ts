@@ -85,10 +85,14 @@ export class QuestionController {
     async getAllWithStatus(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
-        @Query('status') status? : QuestionStatus
+        @Query('status') status?: QuestionStatus,
     ) {
         try {
-            const questions = await this.questionService.getAllWithStatus(page, pageSize, status);
+            const questions = await this.questionService.getAllWithStatus(
+                page,
+                pageSize,
+                status,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
@@ -151,11 +155,10 @@ export class QuestionController {
         @Body() updateQuestionDto: UpdateQuestionDTO,
     ) {
         try {
-            const question =
-                await this.questionService.updateQuestion(
-                    id,
-                    updateQuestionDto,
-                );
+            const question = await this.questionService.updateQuestion(
+                id,
+                updateQuestionDto,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
@@ -200,7 +203,14 @@ export class QuestionController {
     }
 
     @Patch('publish')
-    @ApiBody({ schema: { type: 'object', properties: { questionIds: { type: 'array', items: { type: 'string' } } } } })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                questionIds: { type: 'array', items: { type: 'string' } },
+            },
+        },
+    })
     async publishQuestions(@Body() body: { questionIds: string[] }) {
         try {
             const { questionIds } = body;
@@ -232,15 +242,24 @@ export class QuestionController {
                 'Invalid action. Use "approve" or "reject".',
             );
         }
-        const feedbacks = this.questionService.approveOrRejectQuestion(
-            feedbackDto,
-            action,
-        );
+        
+        try {
+            const feedbacks = this.questionService.approveOrRejectQuestion(
+                feedbackDto,
+                action,
+            );
 
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            feedbacks,
-            SuccessMessages.update('Feedback'),
-        );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                feedbacks,
+                SuccessMessages.update('Feedback'),
+            );
+        } catch (error) {
+            return ResponseHelper.error(
+                error,
+                HttpStatus.BAD_REQUEST,
+                'Error when updating Feedback',
+            );
+        }
     }
 }

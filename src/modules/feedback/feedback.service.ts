@@ -32,7 +32,7 @@ export class FeedbackService extends BaseService<Feedback> {
     async rejectLearningMaterialFeedback(
         feedbackDto: LearningMaterialFeedbackDto,
     ): Promise<Feedback> {
-        const { unitFeedback } = feedbackDto;
+        const { unitFeedback, accountFromId, accountToId  } = feedbackDto;
 
         // Loop through each unit area and lessons inside the unit
 
@@ -47,6 +47,8 @@ export class FeedbackService extends BaseService<Feedback> {
 
                 // Create feedback entry for rejected lesson
                 await this.feedbackRepository.save({
+                    accountFrom: { id: accountFromId },
+                    accountTo: { id: accountToId },
                     lesson: { id: lessonId },
                     content,
                     reason,
@@ -58,7 +60,7 @@ export class FeedbackService extends BaseService<Feedback> {
         // Create feedback entry for the unit
         return await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
-            content: 'Rejected due to lesson or unit area issues',
+            content: 'Rejected due to lesson issues',
             status: FeedbackStatus.REJECTED,
         });
     }
@@ -135,10 +137,12 @@ export class FeedbackService extends BaseService<Feedback> {
 
     async rejectQuestionFeedback(
         feedbackDto: QuestionFeedbackDto,
-    ): Promise<void> {
-        const { questionId, content, reason } = feedbackDto;
+    ): Promise<Feedback> {
+        const { questionId, content, reason, accountFromId, accountToId } = feedbackDto;
 
-        await this.feedbackRepository.save({
+        return await this.feedbackRepository.save({
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
             content,
             reason,
             status: FeedbackStatus.REJECTED,

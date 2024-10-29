@@ -41,16 +41,24 @@ export class UnitController extends BaseController<Unit> {
                 'Invalid action. Use "approve" or "reject".',
             );
         }
-        const feedbacks = this.unitService.approveOrRejectLearningMaterial(
-            feedbackDto,
-            action,
-        );
+        try {
+            const feedbacks = this.unitService.approveOrRejectLearningMaterial(
+                feedbackDto,
+                action,
+            );
 
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            feedbacks,
-            SuccessMessages.update('Feedback'),
-        );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                feedbacks,
+                SuccessMessages.update('Feedback'),
+            );
+        } catch (error) {
+            return ResponseHelper.error(
+                error,
+                HttpStatus.BAD_REQUEST,
+                'Error when updating Feedback',
+            );
+        }
     }
 
     @Get('/pending')
@@ -188,7 +196,6 @@ export class UnitController extends BaseController<Unit> {
     }
 
     @Get(':unitId/details')
-
     async getUnitDetails(
         @Param('unitId') unitId: string,
     ): Promise<UnitResponseDto> {

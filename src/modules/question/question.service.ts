@@ -25,6 +25,7 @@ import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FeedbackService } from '../feedback/feedback.service';
+import { Feedback } from 'src/database/entities/feedback.entity';
 
 @Injectable()
 export class QuestionService {
@@ -48,17 +49,18 @@ export class QuestionService {
     async approveOrRejectQuestion(
         feedbackDto: QuestionFeedbackDto,
         action: 'approve' | 'reject',
-    ): Promise<void> {
+    ): Promise<Feedback> {
         if (action === 'reject') {
-            await this.rejectQuestion(feedbackDto);
+            return await this.rejectQuestion(feedbackDto);
         } else if (action === 'approve') {
             await this.approveQuestion(feedbackDto);
+            return;
         }
     }
 
     async rejectQuestion(
         feedbackDto: QuestionFeedbackDto,
-    ): Promise<void> {
+    ): Promise<Feedback> {
         const { questionId } = feedbackDto;
 
         await this.updateStatus(
@@ -66,7 +68,7 @@ export class QuestionService {
             QuestionStatus.REJECT,
         );
 
-        this.feedbackService.rejectQuestionFeedback(feedbackDto);
+        return await this.feedbackService.rejectQuestionFeedback(feedbackDto);
     }
 
     async approveQuestion(
@@ -79,7 +81,7 @@ export class QuestionService {
             QuestionStatus.APPROVED,
         );
 
-        this.feedbackService.approveQuestionFeedback(feedbackDto);
+        //this.feedbackService.approveQuestionFeedback(feedbackDto);
 
     }
 
