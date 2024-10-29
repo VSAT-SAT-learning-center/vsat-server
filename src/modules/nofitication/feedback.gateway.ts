@@ -1,3 +1,4 @@
+import { UnauthorizedException } from '@nestjs/common';
 import {
     WebSocketGateway,
     WebSocketServer,
@@ -7,6 +8,8 @@ import {
     SubscribeMessage,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { Feedback } from 'src/database/entities/feedback.entity';
 
 @WebSocketGateway(3001, { namespace: '/feedbacks', cors: { origin: '*' } })
 export class FeedbacksGateway
@@ -16,16 +19,36 @@ export class FeedbacksGateway
     private users: Map<string, Socket> = new Map(); // Store active users
 
     afterInit(server: Server) {
-        console.log('WebSocket server initialized for feedbacks');
+        console.log('WebSocket server initialized');
     }
 
     handleConnection(client: Socket) {
-        console.log('Client connected: ' + client.id);
-        const userId = client.handshake.query.userId;
-        if (userId) {
-            this.users.set(userId as string, client);
-            console.log(`User connected: ${userId}`);
+        try {
+            const token = client.handshake.query.token as string;
+            if (!token) {
+                throw new UnauthorizedException('No token provided');
+            }
+
+            console.log('Client connected: ' + client.id);
+            const userId = client.handshake.query.userId;
+            if (userId) {
+                this.users.set(userId as string, client);
+                console.log(`User connected: ${userId}`);
+            }
+
+            // // Verify the token using JWT service
+            // const payload = this.jwtService.verify(token);
+            // if (payload) {
+            //     // Store authenticated user
+            //     this.users.set(payload.userId, client);
+            //     console.log(`User authenticated and connected: ${payload.userId}`);
+            // }
+        } catch (error) {
+            console.log('Authentication failed:', error.message);
+            client.disconnect();
         }
+
+        // The userId will be registered later via the 'registerUser' event
     }
 
     handleDisconnect(client: Socket) {
@@ -39,48 +62,117 @@ export class FeedbacksGateway
         }
     }
 
-    // Send notification to specific user
-    sendNotificationToUser(userId: string, message: string) {
+    // Function to send notification to a specific user
+    sendNotificationToUser(
+        userId: string,
+        message: string,
+        eventType: FeedbackEventType,
+    ) {
         const userSocket = this.users.get(userId);
         if (userSocket) {
-            userSocket.emit('feedbackNotification', message);
+            this.handleEmitSocket({
+                data: message,
+                event: 'feedbackNotification',
+                eventType: eventType,
+                to: userSocket.id,
+            });
             console.log(`Notification sent to user: ${userId}`);
         } else {
             console.log(`User not connected: ${userId}`);
         }
     }
 
-    sendNotificationToMultipleUsers(userIds: string[], message: string) {
+    sendNotificationToMultipleUsers(
+        userIds: string[],
+        message: string,
+        eventType: FeedbackEventType,
+    ) {
         userIds.forEach((userId) => {
-            this.sendNotificationToUser(userId, message);
+            this.sendNotificationToUser(userId, message, eventType);
         });
     }
 
-    // Broadcast to all connected users
+    // Broadcast notification to all users
     broadcastNotification(message: string) {
         console.log('Broadcasting feedback notification...');
-        this.server.emit('feedbackNotification', message);
+        this.handleEmitSocket({
+            data: message,
+            event: 'feedbackNotification',
+        });
     }
 
-    // Testing purpose
-    @SubscribeMessage('registerUser')
-    handleRegisterUser(client: Socket, data: { userId: string }) {
-        const { userId } = data;
-        if (userId) {
-            this.users.set(userId, client);
-            console.log(`User registered: ${userId}`);
+    handleEmitSocket({
+        data,
+        event,
+        eventType,
+        to,
+    }: {
+        data: any;
+        event: any;
+        eventType?: any;
+        to?: any;
+    }) {
+        const payload = {
+            eventType: eventType,
+            data: data
+        };
+        
+        if (to) {
+            this.server.to(to).emit(event, payload);
+        } else {
+            this.server.emit(event, payload);
         }
     }
 
-    @SubscribeMessage('sendToMultipleUsers')
-    handleSendToMultipleUsers(client: Socket, data: { userIds: string[]; message: string }) {
-        const { userIds, message } = data;
-        this.sendNotificationToMultipleUsers(userIds, message);
+    feedbackEvent(feedback: Feedback): string {
+        if (feedback.unit) {
+            return FeedbackEventType.UNIT_FEEDBACK;
+        }
+
+        if (feedback.exam) {
+            return FeedbackEventType.EXAM_FEEDBACK;
+        }
+
+        if (feedback.question) {
+            return FeedbackEventType.QUESTION_FEEDBACK;
+        }
+        if (feedback.lesson) {
+            return FeedbackEventType.LESSON_FEEDBACK;
+        }
+
+        return null;
     }
 
-    // For testing: broadcast feedback notification to all
-    @SubscribeMessage('broadcastFeedback')
-    handleBroadcastFeedback(client: Socket, message: string) {
+    // Handle incoming notifications between users
+    @SubscribeMessage('sendToUser')
+    handleSendToUser(
+        client: Socket,
+        data: {
+            userId: string;
+            message: string;
+            eventType?: FeedbackEventType;
+        },
+    ) {
+        const { userId, message, eventType } = data;
+        this.sendNotificationToUser(userId, message, eventType);
+    }
+
+    @SubscribeMessage('sendToMultipleUsers')
+    handleSendToMultipleUsers(
+        client: Socket,
+        data: {
+            userIds: string[];
+            message: string;
+            eventType?: FeedbackEventType;
+        },
+    ) {
+        const { userIds, message, eventType } = data;
+        this.sendNotificationToMultipleUsers(userIds, message, eventType);
+    }
+
+    // Allow users to broadcast notifications to all users
+    @SubscribeMessage('broadcast')
+    handleBroadcast(client: Socket, message: string) {
         this.broadcastNotification(message);
     }
 }

@@ -12,6 +12,7 @@ import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { FeedbackService } from '../feedback/feedback.service';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
+import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -143,7 +144,7 @@ export class UnitService extends BaseService<Unit> {
         const whereClause: any = { createdby: filters.userId };
 
         if (filters.name) {
-            whereClause.name = filters.name; 
+            whereClause.name = filters.name;
         }
 
         if (filters.status !== undefined) {
@@ -151,7 +152,7 @@ export class UnitService extends BaseService<Unit> {
         }
 
         if (filters.createdAt) {
-            whereClause.createdat = filters.createdAt; 
+            whereClause.createdat = filters.createdAt;
         }
 
         if (filters.sectionId) {
@@ -516,29 +517,6 @@ export class UnitService extends BaseService<Unit> {
         return this.transformedData(unit);
     }
 
-    async submitLearningMaterial(unitId: string): Promise<Unit> {
-        const unit = await this.unitRepository.findOne({
-            where: { id: unitId },
-        });
-
-        if (!unit) {
-            throw new Error('Unit not found');
-        }
-        
-        // Update status to indicate that the learning material has been submitted
-        unit.status = UnitStatus.PENDING;
-        await this.unitRepository.save(unit);
-
-        this.feedbackService.submitLearningMaterial({
-            unit: unit,
-            status: FeedbackStatus.PENDING,
-            content: 'Learning material submitted',
-            accountFromId: unit.createdby,
-        });
-
-        return unit;
-    }
-
     async transformedListData(units: any): Promise<UnitResponseDto[]> {
         const transformedData = units.map((unit) => {
             const unitAreaCount = unit.unitAreas?.length || 0;
@@ -763,5 +741,70 @@ export class UnitService extends BaseService<Unit> {
         };
 
         return await transformedData;
+    }
+
+    async submitLearningMaterial(unitId: string): Promise<Unit> {
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId },
+        });
+
+        if (!unit) {
+            throw new Error('Unit not found');
+        }
+
+        // Update status to indicate that the learning material has been submitted
+        unit.status = UnitStatus.PENDING;
+        await this.unitRepository.save(unit);
+
+        this.feedbackService.submitLearningMaterial({
+            unit: unit,
+            status: FeedbackStatus.PENDING,
+            content: 'Learning material submitted',
+            accountFromId: unit.createdby,
+        });
+
+        return unit;
+    }
+
+    async approveOrRejectLearningMaterial(
+        feedbackDto: LearningMaterialFeedbackDto,
+        action: 'approve' | 'reject',
+    ): Promise<void> {
+        if (action === 'reject') {
+            await this.rejectLearningMaterial(feedbackDto);
+        } else if (action === 'approve') {
+            await this.approveLearningMaterial(feedbackDto);
+        }
+    }
+
+    private async rejectLearningMaterial(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<void> {
+        const unit = await this.unitRepository.findOneBy({
+            id: feedbackDto.unitFeedback.unitId,
+        });
+        //Set user will be feedback
+        feedbackDto.accountToId = unit.createdby;
+
+        await this.feedbackService.rejectLearningMaterialFeedback(feedbackDto);
+
+        // Mark the entire unit as rejected
+        await this.updateUnitStatus(unit.id, {
+            status: UnitStatus.REJECTED,
+        });
+    }
+
+    private async approveLearningMaterial(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<void> {
+        // const { unit } =
+        //     await this.feedbackService.approveLearningMaterialFeedback(
+        //         feedbackDto,
+        //     );
+
+        // Mark the entire unit as approved
+        await this.updateUnitStatus(feedbackDto.unitFeedback.unitId, {
+            status: UnitStatus.APPROVED,
+        });
     }
 }

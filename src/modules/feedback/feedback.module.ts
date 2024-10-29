@@ -7,19 +7,15 @@ import { UnitModule } from '../unit/unit.module';
 import { ExamModule } from '../exam/exam.module';
 import { QuestionModule } from '../question/question.module';
 import { AccountModule } from '../account/account.module';
-import { UnitAreaModule } from '../unit-area/unit-area.module';
 import { LessonModule } from '../lesson/lesson.module';
-import { NotificationsGateway } from '../nofitication/nofitication.gateway';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Feedback]),
         // ExamModule,
-        // QuestionModule,
         AccountModule,
         forwardRef(() => LessonModule),
-        forwardRef(() => UnitModule),
     ],
     providers: [FeedbackService, FeedbacksGateway],
     controllers: [FeedbackController],

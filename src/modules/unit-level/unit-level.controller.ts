@@ -11,7 +11,7 @@ import { UnitLevel } from 'src/database/entities/unitlevel.entity';
 @ApiTags('UnitLevels')
 @Controller('unit-levels')
 export class UnitLevelController extends BaseController<UnitLevel> {
-  constructor(unitLevelService: UnitLevelService) {
+  constructor(private readonly unitLevelService: UnitLevelService) {
     super(unitLevelService, 'UnitLevel');
   }
 }

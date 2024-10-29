@@ -17,6 +17,7 @@ import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamType } from 'src/database/entities/examtype.entity';
 import { Section } from 'src/database/entities/section.entity';
+import { FeedbackModule } from '../feedback/feedback.module';
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { Section } from 'src/database/entities/section.entity';
             ExamStructure,
             ExamType,
         ]),
+        FeedbackModule
     ],
     controllers: [ExamQuestionController],
     providers: [

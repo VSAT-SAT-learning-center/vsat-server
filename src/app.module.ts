@@ -41,7 +41,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
-import { NotificationsGateway } from './modules/nofitication/nofitication.gateway';
+import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
 
 @Module({
     imports: [
@@ -116,7 +116,7 @@ import { NotificationsGateway } from './modules/nofitication/nofitication.gatewa
             inject: [ConfigService],
         }),
     ],
-    providers: [NotificationsGateway]
+    providers: [FeedbacksGateway]
     // providers: [PaginationService],
     // exports: [PaginationService]
 })

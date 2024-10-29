@@ -6,12 +6,14 @@ import { UnitAreaProgressController } from './unit-area-progress.controller';
 import { LessonProgressModule } from '../lesson-progress/lesson-progress.module';
 import { UnitAreaModule } from '../unit-area/unit-area.module';
 import { UnitProgressModule } from '../unit-progress/unit-progress.module';
+import { LessonModule } from '../lesson/lesson.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([UnitAreaProgress]),
         UnitAreaModule,
-        UnitProgressModule,
+        forwardRef(() => LessonModule),
+        forwardRef(() => UnitProgressModule),
         forwardRef(() => LessonProgressModule),
     ],
 

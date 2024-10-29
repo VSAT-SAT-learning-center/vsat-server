@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateLessonProgressDto } from './dto/create-lessonprogress.dto';
@@ -7,122 +12,258 @@ import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
 import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
+import { UpdateLessonProgressStatusDto } from './dto/update-lessonprogress-status.dto';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 
 @Injectable()
 export class LessonProgressService extends BaseService<LessonProgress> {
     constructor(
         @InjectRepository(LessonProgress)
         private readonly lessonProgressRepository: Repository<LessonProgress>,
+        @Inject(forwardRef(() => UnitAreaProgressService))
         private readonly unitAreaProgressService: UnitAreaProgressService,
+        @Inject(forwardRef(() => LessonService))
         private readonly lessonService: LessonService,
     ) {
         super(lessonProgressRepository);
     }
 
-    async updateLessonProgress(unitAreaProgressId: string, lessonId: string, progress: number): Promise<LessonProgress> {
-      // Find lesson and unit area progress
-      const lesson = await this.lessonService.findOneById(lessonId);
-      const unitAreaProgress = await this.unitAreaProgressService.findOneById(unitAreaProgressId);
-  
-      let lessonProgress = await this.lessonProgressRepository.findOne({
-        where: {
-          lesson: { id: lessonId },
-          unitAreaProgress: { id: unitAreaProgressId },
-        },
-      });
-  
-      if (lessonProgress) {
-        // Update existing lesson progress
-        lessonProgress.progress = progress;
-      } else {
-        // Create new lesson progress
-        lessonProgress = this.lessonProgressRepository.create({
-          lesson,
-          unitAreaProgress,
-          progress,
+    async updateLessonProgress(
+        unitAreaProgressId: string,
+        lessonId: string,
+        progress: number,
+    ): Promise<LessonProgress> {
+        // Find lesson and unit area progress
+        const lesson = await this.lessonService.findOneById(lessonId);
+        const unitAreaProgress =
+            await this.unitAreaProgressService.findOneById(unitAreaProgressId);
+
+        let lessonProgress = await this.lessonProgressRepository.findOne({
+            where: {
+                lesson: { id: lessonId },
+                unitAreaProgress: { id: unitAreaProgressId },
+            },
         });
-      }
-  
-      return this.lessonProgressRepository.save(lessonProgress);
+
+        if (lessonProgress) {
+            // Update existing lesson progress
+            lessonProgress.progress = progress;
+        } else {
+            // Create new lesson progress
+            lessonProgress = this.lessonProgressRepository.create({
+                lesson,
+                unitAreaProgress,
+                progress,
+            });
+        }
+
+        return this.lessonProgressRepository.save(lessonProgress);
     }
-  
+
     async calculateUnitAreaProgress(unitAreaId: string): Promise<number> {
-      const lessons = await this.lessonService.findLessonsByUnitArea(unitAreaId);
-    
-      if (lessons.length === 0) {
-        return 0;
-      }
-    
-      const progressData = await this.lessonProgressRepository.find({
-        where: {
-          unitAreaProgress: { unitArea: { id: unitAreaId } }, // Use unitAreaId
-          lesson: { id: In(lessons.map(l => l.id)) },
-        },
-      });
-    
-      const totalLessons = lessons.length;
-      const completedLessons = progressData.filter((p) => p.progress === 100).length;
-    
-      return (completedLessons / totalLessons) * 100;
+        const lessons =
+            await this.lessonService.findLessonsByUnitArea(unitAreaId);
+
+        if (lessons.length === 0) {
+            return 0;
+        }
+
+        const progressData = await this.lessonProgressRepository.find({
+            where: {
+                unitAreaProgress: { unitArea: { id: unitAreaId } }, // Use unitAreaId
+                lesson: { id: In(lessons.map((l) => l.id)) },
+            },
+        });
+
+        const totalLessons = lessons.length;
+        const completedLessons = progressData.filter(
+            (p) => p.progress === 100,
+        ).length;
+
+        return (completedLessons / totalLessons) * 100;
     }
 
     async create(
-      createLessonProgressDto: CreateLessonProgressDto,
-  ): Promise<LessonProgress> {
-      const { lessonId, unitAreaProgressId, ...lessonProgressData } =
-          createLessonProgressDto;
+        createLessonProgressDto: CreateLessonProgressDto,
+    ): Promise<LessonProgress> {
+        const { lessonId, unitAreaProgressId, ...lessonProgressData } =
+            createLessonProgressDto;
 
-      const lesson = await this.lessonService.findOneById(lessonId);
-      if (!lesson) {
-          throw new NotFoundException('Lesson not found');
-      }
+        const lesson = await this.lessonService.findOneById(lessonId);
+        if (!lesson) {
+            throw new NotFoundException('Lesson not found');
+        }
 
-      const unitAreaProgress =
-          await this.unitAreaProgressService.findOneById(unitAreaProgressId);
-      if (!unitAreaProgress) {
-          throw new NotFoundException('UnitAreaProgress not found');
-      }
+        const unitAreaProgress =
+            await this.unitAreaProgressService.findOneById(unitAreaProgressId);
+        if (!unitAreaProgress) {
+            throw new NotFoundException('UnitAreaProgress not found');
+        }
 
-      const newLessonProgress = this.lessonProgressRepository.create({
-          ...lessonProgressData,
-          unitAreaProgress: unitAreaProgress,
-          lesson: lesson,
-      });
+        const newLessonProgress = this.lessonProgressRepository.create({
+            ...lessonProgressData,
+            unitAreaProgress: unitAreaProgress,
+            lesson: lesson,
+        });
 
-      return await this.lessonProgressRepository.save(newLessonProgress);
-  }
+        return await this.lessonProgressRepository.save(newLessonProgress);
+    }
 
-  async update(
-      id: string,
-      updateLessonProgressDto: UpdateLessonProgressDto,
-  ): Promise<LessonProgress> {
-      const { lessonId, unitAreaProgressId, ...lessonProgressData } =
-          updateLessonProgressDto;
+    async updateLessonProgressStatus(
+        id: string,
+        updateLessonProgressStatusDto: UpdateLessonProgressStatusDto,
+    ) {
+        const updateLessonProgress = updateLessonProgressStatusDto;
 
-      const lessonProgress = await this.findOneById(id);
-      if (!lessonProgress) {
-          throw new NotFoundException('LessonProgress not found');
-      }
+        const lessonProgress = await this.findOneById(id);
+        if (!lessonProgress) {
+            throw new NotFoundException('lessonProgress not found');
+        }
 
-      const lesson = await this.lessonService.findOneById(lessonId);
-      if (!lesson) {
-          throw new NotFoundException('Lesson not found');
-      }
+        await this.lessonProgressRepository.save({
+            ...lessonProgress,
+            ...updateLessonProgress,
+        });
 
-      const unitAreaProgress =
-          await this.unitAreaProgressService.findOneById(unitAreaProgressId);
+        return lessonProgress;
+    }
 
-      if (!unitAreaProgress) {
-          throw new NotFoundException('UnitAreaProgress not found');
-      }
+    async update(
+        id: string,
+        updateLessonProgressDto: UpdateLessonProgressDto,
+    ): Promise<LessonProgress> {
+        const { lessonId, unitAreaProgressId, ...lessonProgressData } =
+            updateLessonProgressDto;
 
-      const updatedLessonProgress = this.lessonProgressRepository.save({
-          //...unit,
-          ...lessonProgressData,
-          unitAreaProgress: unitAreaProgress,
-          lesson: lesson,
-      
-      });
-      return updatedLessonProgress;
-  }
+        const lessonProgress = await this.findOneById(id);
+        if (!lessonProgress) {
+            throw new NotFoundException('LessonProgress not found');
+        }
+
+        const lesson = await this.lessonService.findOneById(lessonId);
+        if (!lesson) {
+            throw new NotFoundException('Lesson not found');
+        }
+
+        const unitAreaProgress =
+            await this.unitAreaProgressService.findOneById(unitAreaProgressId);
+
+        if (!unitAreaProgress) {
+            throw new NotFoundException('UnitAreaProgress not found');
+        }
+
+        const updatedLessonProgress = this.lessonProgressRepository.save({
+            //...unit,
+            ...lessonProgressData,
+            unitAreaProgress: unitAreaProgress,
+            lesson: lesson,
+        });
+        return updatedLessonProgress;
+    }
+
+    async getLessonProgressesByUnitAreaProgress(
+        unitAreaProgressId: string,
+    ): Promise<LessonProgress[]> {
+        return this.lessonProgressRepository.find({
+            where: { unitAreaProgress: { id: unitAreaProgressId } },
+        });
+    }
+
+    async startLessonProgress(
+        lessonId: string,
+        unitAreaProgressId: string,
+        targetLearningId: string,
+    ) {
+        // Kiểm tra xem đã có LessonProgress chưa
+        let lessonProgress = await this.lessonProgressRepository.findOne({
+            where: {
+                lesson: { id: lessonId },
+                unitAreaProgress: { id: unitAreaProgressId },
+            },
+        });
+
+        if (!lessonProgress) {
+            // Insert LessonProgress mới nếu chưa có
+            lessonProgress = this.lessonProgressRepository.create({
+                lesson: { id: lessonId },
+                unitAreaProgress: { id: unitAreaProgressId },
+                targetLearning: { id: targetLearningId },
+                progress: 0,
+                status: ProgressStatus.PROGRESSING,
+            });
+
+            await this.lessonProgressRepository.save(lessonProgress);
+        }
+
+        return lessonProgress;
+    }
+
+    async completeLessonProgressNow(
+        lessonId: string,
+        targetLearningId: string,
+    ) {
+        const lessonProgress = await this.lessonProgressRepository.findOne({
+            where: {
+                lesson: { id: lessonId },
+                targetLearning: { id: targetLearningId },
+            },
+            relations: ['unitAreaProgress'],
+        });
+
+        if (!lessonProgress) {
+            throw new NotFoundException('Lesson progress not found');
+        }
+
+        // Cập nhật trạng thái hoàn thành
+        lessonProgress.progress = 100;
+        lessonProgress.status = ProgressStatus.COMPLETED;
+
+        await this.lessonProgressRepository.save(lessonProgress);
+
+        return lessonProgress;
+    }
+
+    // Lấy các bài học đã hoàn thành gần đây theo targetLearningId
+    async getRecentCompletedLessons(
+        targetLearningId: string,
+        limit: number = 5,
+    ) {
+        return await this.lessonProgressRepository.find({
+            where: {
+                unitAreaProgress: {
+                    unitProgress: {
+                        targetLearning: { id: targetLearningId },
+                    },
+                },
+                status: ProgressStatus.COMPLETED,
+            },
+            relations: ['lesson', 'unitAreaProgress.unitProgress.unit'],
+            order: {
+                updatedat: 'DESC', // Sắp xếp theo thời gian cập nhật gần nhất
+            },
+            take: limit, // Giới hạn số lượng bài học trả về
+        });
+    }
+
+    // Lấy các bài học đang học gần đây theo targetLearningId
+    async getRecentProgressingLessons(
+        targetLearningId: string,
+        limit: number = 5,
+    ) {
+        return await this.lessonProgressRepository.find({
+            where: {
+                unitAreaProgress: {
+                    unitProgress: {
+                        targetLearning: { id: targetLearningId },
+                    },
+                },
+                status: ProgressStatus.PROGRESSING, // Lọc theo trạng thái Progressing
+            },
+            relations: ['lesson', 'unitAreaProgress.unitProgress.unit'],
+            order: {
+                updatedat: 'DESC', // Sắp xếp theo thời gian cập nhật gần nhất
+            },
+            take: limit, // Giới hạn số lượng bài học trả về
+        });
+    }
 }

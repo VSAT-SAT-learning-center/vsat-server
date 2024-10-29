@@ -1,6 +1,7 @@
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
@@ -18,6 +19,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
+import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 
 @ApiTags('Questions')
 @Controller('questions')
@@ -83,10 +85,14 @@ export class QuestionController {
     async getAllWithStatus(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
-        @Query('status') status? : QuestionStatus
+        @Query('status') status?: QuestionStatus,
     ) {
         try {
-            const questions = await this.questionService.getAllWithStatus(page, pageSize, status);
+            const questions = await this.questionService.getAllWithStatus(
+                page,
+                pageSize,
+                status,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
@@ -149,11 +155,10 @@ export class QuestionController {
         @Body() updateQuestionDto: UpdateQuestionDTO,
     ) {
         try {
-            const question =
-                await this.questionService.updateQuestion(
-                    id,
-                    updateQuestionDto,
-                );
+            const question = await this.questionService.updateQuestion(
+                id,
+                updateQuestionDto,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
@@ -198,7 +203,14 @@ export class QuestionController {
     }
 
     @Patch('publish')
-    @ApiBody({ schema: { type: 'object', properties: { questionIds: { type: 'array', items: { type: 'string' } } } } })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                questionIds: { type: 'array', items: { type: 'string' } },
+            },
+        },
+    })
     async publishQuestions(@Body() body: { questionIds: string[] }) {
         try {
             const { questionIds } = body;
@@ -216,6 +228,37 @@ export class QuestionController {
                     message: error.message || 'An error occurred',
                 },
                 error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('censor/:action')
+    async approveOrRejectQuestion(
+        @Param('action') action: 'approve' | 'reject',
+        @Body() feedbackDto: QuestionFeedbackDto,
+    ) {
+        if (action !== 'approve' && action !== 'reject') {
+            throw new BadRequestException(
+                'Invalid action. Use "approve" or "reject".',
+            );
+        }
+        
+        try {
+            const feedbacks = this.questionService.approveOrRejectQuestion(
+                feedbackDto,
+                action,
+            );
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                feedbacks,
+                SuccessMessages.update('Feedback'),
+            );
+        } catch (error) {
+            return ResponseHelper.error(
+                error,
+                HttpStatus.BAD_REQUEST,
+                'Error when updating Feedback',
             );
         }
     }

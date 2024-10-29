@@ -39,7 +39,7 @@ async function bootstrap() {
     app.enableCors();
 
     await app.listen(PORT, () => {
-        console.log('start success with port: ' + PORT);
+        console.log('Start success with port: ' + PORT);
         console.log('Swagger in: ' + 'http://localhost:' + PORT + '/api/');
     });
 

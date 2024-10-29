@@ -9,6 +9,8 @@ import {
 } from 'typeorm';
 import { UnitAreaProgress } from './unitareaprogress.entity';
 import { Lesson } from './lesson.entity';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
+import { TargetLearning } from './targetlearning.entity';
 
 @Entity('lessonprogress')
 export class LessonProgress {
@@ -31,6 +33,10 @@ export class LessonProgress {
     @JoinColumn({ name: 'unitareaprogressid' })
     unitAreaProgress: UnitAreaProgress;
 
+    @ManyToOne(() => TargetLearning)
+    @JoinColumn({ name: 'targetlearningid' })
+    targetLearning: TargetLearning;
+
     @ManyToOne(() => Lesson)
     @JoinColumn({ name: 'lessonid' })
     lesson: Lesson;
@@ -38,6 +44,6 @@ export class LessonProgress {
     @Column({ type: 'int', nullable: true })
     progress: number;
 
-    @Column({ type: 'varchar', length: 20, nullable: true })
-    status: string;
+    @Column({ type: 'enum', enum: ProgressStatus, default: ProgressStatus.NOT_STARTED, nullable: true })
+    status: ProgressStatus;
 }

@@ -135,7 +135,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
         }
     }
 
-    async findByUnitIdWithLessons(unitId: string): Promise<any> {
+    async findByUnitIdWithLessons(unitId: string): Promise<UnitAreaResponseDto[]> {
         const fetchUnitAreas = async () => {
             const unitAreas = await this.unitAreaRepository.find({
                 where: { unit: { id: unitId } }, // Filter by unitId

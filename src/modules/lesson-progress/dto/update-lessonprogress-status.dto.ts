@@ -1,31 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import {
-    IsUUID,
-    IsInt,
-    IsString,
-    IsOptional,
-    Min,
-    Max,
-    IsEnum,
-} from 'class-validator';
+import { IsUUID, IsInt, IsOptional, IsString, IsEnum } from 'class-validator';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 
-export class UpdateUnitProgressDto {
-    @ApiProperty({ description: 'des', example: 'String' })
+export class UpdateLessonProgressStatusDto {
     @IsUUID()
     @IsOptional()
+    @ApiProperty()
     targetLearningId?: string;
 
-    @ApiProperty({ description: 'des', example: 'String' })
     @IsUUID()
     @IsOptional()
-    unitId?: string;
+    @ApiProperty()
+    unitAreaProgressId?: string;
 
-    @ApiProperty({ description: 'Progress in percentage', example: 50 })
+    @IsUUID()
+    @IsOptional()
+    @ApiProperty()
+    lessonId?: string;
+
     @IsInt()
-    @Min(0)
-    @Max(100)
+    @IsOptional()
+    @ApiProperty()
     progress?: number;
 
     @ApiProperty({
