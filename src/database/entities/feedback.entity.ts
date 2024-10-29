@@ -38,11 +38,11 @@ export class Feedback {
 
     @ManyToOne(() => UnitArea, { nullable: true })
     @JoinColumn({ name: 'unitareaid' })
-    unitArea: Unit;
+    unitArea: UnitArea;
 
     @ManyToOne(() => Lesson, { nullable: true })
     @JoinColumn({ name: 'lessonid' })
-    lesson: Unit;
+    lesson: Lesson;
 
     @ManyToOne(() => Exam, { nullable: true })
     @JoinColumn({ name: 'examid' })
