@@ -9,23 +9,23 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Question } from 'src/database/entities/question.entity';
-import { In, IsNull, Repository } from 'typeorm';
-import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
-import { Level } from 'src/database/entities/level.entity';
-import { Skill } from 'src/database/entities/skill.entity';
-import { GetQuestionDTO } from './dto/get-question.dto';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
-import { UpdateQuestionDTO } from './dto/update-question.dto';
-import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
-import { Answerservice } from '../answer/answer.service';
-import { Section } from 'src/database/entities/section.entity';
-import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { Answer } from 'src/database/entities/anwser.entity';
+import { Feedback } from 'src/database/entities/feedback.entity';
+import { Level } from 'src/database/entities/level.entity';
+import { Question } from 'src/database/entities/question.entity';
+import { Section } from 'src/database/entities/section.entity';
+import { Skill } from 'src/database/entities/skill.entity';
+import { In, IsNull, Repository } from 'typeorm';
+import { Answerservice } from '../answer/answer.service';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FeedbackService } from '../feedback/feedback.service';
-import { Feedback } from 'src/database/entities/feedback.entity';
+import { CreateQuestionFileDto } from './dto/create-question-file.dto';
+import { CreateQuestionDTO } from './dto/create-question.dto';
+import { GetQuestionDTO } from './dto/get-question.dto';
+import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
+import { UpdateQuestionDTO } from './dto/update-question.dto';
 
 @Injectable()
 export class QuestionService {
@@ -58,31 +58,20 @@ export class QuestionService {
         }
     }
 
-    async rejectQuestion(
-        feedbackDto: QuestionFeedbackDto,
-    ): Promise<Feedback> {
+    async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId } = feedbackDto;
 
-        await this.updateStatus(
-            questionId,
-            QuestionStatus.REJECT,
-        );
+        await this.updateStatus(questionId, QuestionStatus.REJECT);
 
         return await this.feedbackService.rejectQuestionFeedback(feedbackDto);
     }
 
-    async approveQuestion(
-        feedbackDto: QuestionFeedbackDto,
-    ): Promise<void> {
+    async approveQuestion(feedbackDto: QuestionFeedbackDto): Promise<void> {
         const { questionId } = feedbackDto;
 
-        await this.updateStatus(
-            questionId,
-            QuestionStatus.APPROVED,
-        );
+        await this.updateStatus(questionId, QuestionStatus.APPROVED);
 
         //this.feedbackService.approveQuestionFeedback(feedbackDto);
-
     }
 
     async save(createQuestionDtoArray: CreateQuestionFileDto[]): Promise<{
