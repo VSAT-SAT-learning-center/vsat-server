@@ -50,6 +50,7 @@ export class FeedbackService extends BaseService<Feedback> {
                     accountFrom: { id: accountFromId },
                     accountTo: { id: accountToId },
                     lesson: { id: lessonId },
+                    unit: { id: unitFeedback.unitId },
                     content,
                     reason,
                     status: FeedbackStatus.REJECTED,
