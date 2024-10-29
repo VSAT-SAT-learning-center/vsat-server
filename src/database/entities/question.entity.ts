@@ -16,7 +16,6 @@ import { Section } from './section.entity';
 import { Skill } from './skill.entity';
 
 @Entity('question')
-@Unique(['content'])
 export class Question {
     @PrimaryGeneratedColumn('uuid')
     id: string;

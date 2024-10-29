@@ -41,7 +41,7 @@ export class UnitController extends BaseController<Unit> {
                 'Invalid action. Use "approve" or "reject".',
             );
         }
-        
+
         try {
             const feedbacks = this.unitService.approveOrRejectLearningMaterial(
                 feedbackDto,
@@ -62,75 +62,51 @@ export class UnitController extends BaseController<Unit> {
         }
     }
 
-    @Get('/pending')
-    async getPendingUnitWithDetails(
+    @Get('/:status')
+    async getUnitsWithDetails(
+        @Param('status') status: string,
         @Query('page') page: number = 1,
         @Query('pageSize') pageSize: number = 10,
     ) {
-        if ((page = null)) {
+        if (!page) {
             page = 1;
         }
-        if ((pageSize = null)) {
+        if (!pageSize) {
             pageSize = 10;
         }
 
-        const pendingUnits = await this.unitService.getPendingUnitWithDetails(
-            page,
-            pageSize,
-        );
+        let units;
+
+        // Check the status route parameter and call the appropriate service method
+        if (status === 'pending') {
+            units = await this.unitService.getPendingUnitWithDetails(
+                page,
+                pageSize,
+            );
+        } else if (status === 'approve') {
+            units = await this.unitService.getApproveUnitWithDetails(
+                page,
+                pageSize,
+            );
+        } else if (status === 'reject') {
+            units = await this.unitService.getRejectUnitWithDetails(
+                page,
+                pageSize,
+            );
+        } else {
+            return ResponseHelper.error(
+                null,
+                HttpStatus.BAD_REQUEST,
+                'Invalid status parameter. Must be "pending", "approve", or "reject".',
+            );
+        }
 
         return ResponseHelper.success(
             HttpStatus.OK,
-            pendingUnits,
-            SuccessMessages.get('PendingUnit'),
-        );
-    }
-
-    @Get('/approve')
-    async getApproveUnitWithDetails(
-        @Query('page') page: number = 1,
-        @Query('pageSize') pageSize: number = 10,
-    ) {
-        if ((page = null)) {
-            page = 1;
-        }
-        if ((pageSize = null)) {
-            pageSize = 10;
-        }
-
-        const approveUnits = await this.unitService.getApproveUnitWithDetails(
-            page,
-            pageSize,
-        );
-
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            approveUnits,
-            SuccessMessages.get('PendingUnit'),
-        );
-    }
-
-    @Get('/reject')
-    async getUnitPendingDetails(
-        @Query('page') page: number = 1,
-        @Query('pageSize') pageSize: number = 10,
-    ) {
-        if ((page = null)) {
-            page = 1;
-        }
-        if ((pageSize = null)) {
-            pageSize = 10;
-        }
-
-        const rejectUnits = await this.unitService.getRejectUnitWithDetails(
-            page,
-            pageSize,
-        );
-
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            rejectUnits,
-            SuccessMessages.get('PendingUnit'),
+            units,
+            SuccessMessages.get(
+                `${status.charAt(0).toUpperCase() + status.slice(1)}Unit`,
+            ),
         );
     }
 
