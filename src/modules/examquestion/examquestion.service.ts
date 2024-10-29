@@ -43,7 +43,7 @@ export class ExamQuestionService {
         const savedExam = await this.examService.createExam(exam);
 
         const { savedQuestions, errors } =
-            await this.questionService.save(question);
+            await this.questionService.saveExamQuestion(question);
 
         if (errors.length > 0) {
             throw new HttpException(
