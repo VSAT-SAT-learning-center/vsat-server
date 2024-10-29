@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'; // Importing the ApiProperty decorator
+import { IsOptional } from 'class-validator';
 import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
-import { FeedbackStatus } from 'src/common/enums/feedback-status.enum'; // Ensure the path is correct
-import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 
 export class LessonFeedbackDto {
@@ -15,7 +14,8 @@ export class LessonFeedbackDto {
     content: string;
 
     @ApiProperty({ enum: FeedbackReason, example: FeedbackReason.COMPLEX_EXPLANATION })
-    reason: FeedbackReason;
+    @IsOptional()
+    reason?: FeedbackReason;
 }
 
 export class UnitAreaFeedbackDto {

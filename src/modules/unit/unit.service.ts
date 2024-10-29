@@ -783,6 +783,10 @@ export class UnitService extends BaseService<Unit> {
         const unit = await this.unitRepository.findOneBy({
             id: feedbackDto.unitFeedback.unitId,
         });
+        
+        if(unit === null) {
+            throw new NotFoundException('Unit not found');
+        }
         //Set user will be feedback
         feedbackDto.accountToId = unit.createdby;
 
