@@ -14,9 +14,4 @@ export class StudyProfileService extends BaseService<StudyProfile> {
   ) {
     super(studyProfileRepository);
   }
-
-  async suggestedRoute(){
-    
-  }
-
 }
