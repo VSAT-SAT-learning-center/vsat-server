@@ -10,10 +10,8 @@ export class QuestionFeedbackDto {
     content: string;
 
     @ApiProperty({
-        enum: FeedbackReason,
         example: FeedbackReason.COMPLEX_EXPLANATION,
     })
-    
     @IsOptional()
     reason?: string;
 

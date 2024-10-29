@@ -39,11 +39,11 @@ export class Feedback {
 
     @ManyToOne(() => UnitArea, { nullable: true })
     @JoinColumn({ name: 'unitareaid' })
-    unitArea: Unit;
+    unitArea: UnitArea;
 
     @ManyToOne(() => Lesson, { nullable: true })
     @JoinColumn({ name: 'lessonid' })
-    lesson: Unit;
+    lesson: Lesson;
 
     @ManyToOne(() => Exam, { nullable: true })
     @JoinColumn({ name: 'examid' })
@@ -67,7 +67,7 @@ export class Feedback {
     @Column({ type: 'enum', enum: FeedbackStatus })
     status: FeedbackStatus;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'enum', enum: FeedbackReason, nullable: true })
     reason: string;
 
     @Column({ type: 'boolean', default: false })

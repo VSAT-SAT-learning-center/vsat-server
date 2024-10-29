@@ -244,7 +244,7 @@ export class QuestionController {
         }
         
         try {
-            const feedbacks = this.questionService.approveOrRejectQuestion(
+            const feedbacks = await this.questionService.approveOrRejectQuestion(
                 feedbackDto,
                 action,
             );
