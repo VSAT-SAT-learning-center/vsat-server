@@ -13,9 +13,9 @@ export class LessonFeedbackDto {
     @ApiProperty({ example: 'The content of the feedback for the lesson' })
     content: string;
 
-    @ApiProperty({ enum: FeedbackReason, example: FeedbackReason.COMPLEX_EXPLANATION })
+    @ApiProperty({ example: FeedbackReason.COMPLEX_EXPLANATION })
     @IsOptional()
-    reason?: FeedbackReason;
+    reason?: string;
 }
 
 export class UnitAreaFeedbackDto {

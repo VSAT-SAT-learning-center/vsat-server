@@ -16,6 +16,7 @@ import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
+import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
