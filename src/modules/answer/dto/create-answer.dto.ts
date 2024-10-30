@@ -1,5 +1,6 @@
 import {
     IsArray,
+    IsBoolean,
     IsNotEmpty,
     IsOptional,
     IsUUID,
@@ -10,24 +11,22 @@ import { Type } from 'class-transformer';
 
 export class CreateAnswerDTO {
     @ApiProperty({
-        description: 'Nhãn của câu trả lời',
         example: 'A',
     })
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Label should not be empty' })
     label: string;
 
     @ApiProperty({
-        description: 'Nội dung của câu trả lời',
         example: '2',
     })
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Answer should not be empty' })
     text: string;
 
     @ApiProperty({
-        description: 'Xác định câu trả lời có đúng hay không',
         example: true,
     })
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Correct answer should not be empty' })
+    @IsBoolean()
     isCorrectAnswer: boolean;
 }
 

@@ -28,6 +28,8 @@ import { FeedbackService } from '../feedback/feedback.service';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
 import sanitizeHtml from 'sanitize-html';
+import { validate } from 'class-validator';
+import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
 
 @Injectable()
 export class QuestionService {
@@ -65,7 +67,7 @@ export class QuestionService {
             allowedTags: [], // Loại bỏ tất cả các thẻ HTML
             allowedAttributes: {}, // Không cho phép thuộc tính nào
         });
-    
+
         return strippedContent.replace(/\s+/g, ' ').trim(); // Xóa các khoảng trắng thừa
     }
 
@@ -95,8 +97,14 @@ export class QuestionService {
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { level, skill, section, answers, content, plainContent } =
-                    createQuestionDto;
+                const {
+                    level,
+                    skill,
+                    section,
+                    answers,
+                    content,
+                    plainContent,
+                } = createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { name: level },
@@ -108,12 +116,34 @@ export class QuestionService {
                     where: { name: section },
                 });
 
+                if (!answers || answers.length === 0) {
+                    throw new Error('Answers array is empty');
+                }
+
+                for (const answer of answers) {
+                    const answerInstance = plainToInstance(
+                        CreateAnswerDTO,
+                        answer,
+                    );
+
+                    const validationErrors = await validate(answerInstance);
+
+                    if (validationErrors.length > 0) {
+                        const validationMessages = validationErrors
+                            .map((err) =>
+                                Object.values(err.constraints).join(', '),
+                            )
+                            .join('; ');
+                        throw new Error(validationMessages);
+                    }
+                }
+
                 const normalizedContent = this.normalizeContent(content);
-            
+
                 const existingQuestion = await this.questionRepository.findOne({
                     where: { plainContent: normalizedContent },
                 });
-        
+
                 if (existingQuestion) {
                     throw new HttpException(
                         `Question already exists`,
@@ -133,7 +163,7 @@ export class QuestionService {
                     throw new NotFoundException('Section is not found');
                 }
 
-                if (!createQuestionDto.isSingleChoiceQuestion === null) {
+                if (createQuestionDto.isSingleChoiceQuestion === null) {
                     throw new HttpException(
                         'IsSingleChoiceQuestion is null',
                         HttpStatus.BAD_REQUEST,
@@ -145,7 +175,7 @@ export class QuestionService {
                     level: foundLevel,
                     skill: foundSkill,
                     section: foundSection,
-                    plainContent: normalizedContent
+                    plainContent: normalizedContent,
                 });
 
                 const savedQuestion =
@@ -196,6 +226,23 @@ export class QuestionService {
             throw new NotFoundException('Section not found');
         }
 
+        if (!answers || answers.length === 0) {
+            throw new Error('Answers array is empty');
+        }
+
+        for (const answer of answers) {
+            const answerInstance = plainToInstance(CreateAnswerDTO, answer);
+
+            const validationErrors = await validate(answerInstance);
+
+            if (validationErrors.length > 0) {
+                const validationMessages = validationErrors
+                    .map((err) => Object.values(err.constraints).join(', '))
+                    .join('; ');
+                throw new Error(validationMessages);
+            }
+        }
+
         const normalizedContent = this.normalizeContent(content);
 
         const existingQuestion = await this.questionRepository.findOne({
@@ -221,7 +268,7 @@ export class QuestionService {
             level: foundLevel,
             skill: foundSkill,
             section: foundSection,
-            plainContent: normalizedContent
+            plainContent: normalizedContent,
         });
 
         const savedQuestion = await this.questionRepository.save(newQuestion);
