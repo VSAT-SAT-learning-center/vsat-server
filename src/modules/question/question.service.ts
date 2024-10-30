@@ -440,7 +440,7 @@ export class QuestionService {
 
         if (existingQuestion && existingQuestion.id !== id) {
             throw new HttpException(
-                `Content '${content}' already exists with a different question.`,
+                `Question is already exists !`,
                 HttpStatus.CONFLICT,
             );
         }
@@ -457,13 +457,6 @@ export class QuestionService {
             throw new NotFoundException('Section is not found');
         }
 
-        if (!updateQuestionDto.isSingleChoiceQuestion === null) {
-            throw new HttpException(
-                'IsSingleChoiceQuestion is null',
-                HttpStatus.BAD_REQUEST,
-            );
-        }
-
         const question = await this.questionRepository.findOne({
             where: { id },
             relations: ['answers'],
@@ -472,6 +465,8 @@ export class QuestionService {
         if (!question) {
             throw new NotFoundException('Question not found');
         }
+
+       
 
         if (question.status === QuestionStatus.APPROVED) {
             throw new HttpException(
@@ -483,11 +478,8 @@ export class QuestionService {
                 'Cannot update question because it is already Pending',
                 HttpStatus.BAD_REQUEST,
             );
-        } else if (question.isActive === true) {
-            throw new HttpException(
-                'Cannot update question because it is already IsActive',
-                HttpStatus.BAD_REQUEST,
-            );
+        }else if (question.status === QuestionStatus.REJECT) {
+            question.status = QuestionStatus.PENDING;
         }
 
         Object.assign(question, {
@@ -495,6 +487,7 @@ export class QuestionService {
             level: foundLevel,
             skill: foundSkill,
             section: foundSection,
+            status: question.status,
         });
 
         for (const answerDto of answers) {
