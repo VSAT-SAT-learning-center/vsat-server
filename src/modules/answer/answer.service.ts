@@ -75,7 +75,7 @@ export class Answerservice {
 
             if (!text) {
                 throw new HttpException(
-                    `Text should not empty`,
+                    `Answer should not empty`,
                     HttpStatus.BAD_REQUEST,
                 );
             }

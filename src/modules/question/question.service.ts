@@ -9,10 +9,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
-import sanitizeHtml from 'sanitize-html';
-import { QuestionStatus } from 'src/common/enums/question-status.enum';
-import { Answer } from 'src/database/entities/anwser.entity';
-import { Feedback } from 'src/database/entities/feedback.entity';
 import { Level } from 'src/database/entities/level.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { Section } from 'src/database/entities/section.entity';
@@ -22,11 +18,9 @@ import { Answerservice } from '../answer/answer.service';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FeedbackService } from '../feedback/feedback.service';
 import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
-import { CreateQuestionFileDto } from './dto/create-question-file.dto';
-import { CreateQuestionDTO } from './dto/create-question.dto';
-import { GetQuestionDTO } from './dto/get-question.dto';
-import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
-import { UpdateQuestionDTO } from './dto/update-question.dto';
+import sanitizeHtml from 'sanitize-html';
+import { validate } from 'class-validator';
+import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
 
 @Injectable()
 export class QuestionService {
@@ -111,6 +105,28 @@ export class QuestionService {
                 const foundSection = await this.sectionRepository.findOne({
                     where: { name: section },
                 });
+
+                if (!answers || answers.length === 0) {
+                    throw new Error('Answers array is empty');
+                }
+
+                for (const answer of answers) {
+                    const answerInstance = plainToInstance(
+                        CreateAnswerDTO,
+                        answer,
+                    );
+
+                    const validationErrors = await validate(answerInstance);
+
+                    if (validationErrors.length > 0) {
+                        const validationMessages = validationErrors
+                            .map((err) =>
+                                Object.values(err.constraints).join(', '),
+                            )
+                            .join('; ');
+                        throw new Error(validationMessages);
+                    }
+                }
 
                 const normalizedContent = this.normalizeContent(content);
 
@@ -198,6 +214,23 @@ export class QuestionService {
         });
         if (!foundSection) {
             throw new NotFoundException('Section not found');
+        }
+
+        if (!answers || answers.length === 0) {
+            throw new Error('Answers array is empty');
+        }
+
+        for (const answer of answers) {
+            const answerInstance = plainToInstance(CreateAnswerDTO, answer);
+
+            const validationErrors = await validate(answerInstance);
+
+            if (validationErrors.length > 0) {
+                const validationMessages = validationErrors
+                    .map((err) => Object.values(err.constraints).join(', '))
+                    .join('; ');
+                throw new Error(validationMessages);
+            }
         }
 
         const normalizedContent = this.normalizeContent(content);

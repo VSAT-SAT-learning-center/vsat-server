@@ -25,7 +25,7 @@ export class CreateQuestionDTO extends BaseDTO {
     content: string;
 
     plainContent: string;
-
+    
     @Expose()
     @IsString()
     @IsNotEmpty()
