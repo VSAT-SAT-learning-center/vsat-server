@@ -15,4 +15,5 @@ export class QuizQuestionService extends BaseService<QuizQuestion> {
   ) {
     super(quizQuestionRepository, paginationService);
   }
+
 }

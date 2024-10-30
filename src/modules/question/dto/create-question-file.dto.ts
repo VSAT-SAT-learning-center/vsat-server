@@ -35,6 +35,11 @@ export class CreateQuestionFileDto extends BaseDTO {
 
     @Expose()
     @IsString()
+    @ApiProperty()
+    plainContent: string;
+
+    @Expose()
+    @IsString()
     @IsNotEmpty()
     @ApiProperty()
     explain: string;
