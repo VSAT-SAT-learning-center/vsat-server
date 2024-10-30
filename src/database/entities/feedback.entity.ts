@@ -58,7 +58,7 @@ export class Feedback {
     accountFrom: Account;
 
     @ManyToOne(() => Account, { nullable: true })
-    @JoinColumn({ name: 'accounttoid' }) 
+    @JoinColumn({ name: 'accounttoid' })
     accountTo: Account;
 
     @Column({ type: 'text', nullable: true })
@@ -70,3 +70,4 @@ export class Feedback {
     @Column({ type: 'text', nullable: true })
     reason: string;
 }
+

@@ -5,27 +5,32 @@ import {
     IsBoolean,
     IsNotEmpty,
     IsString,
+    IsUUID,
     ValidateNested,
 } from 'class-validator';
 import { BaseDTO } from 'src/common/dto/base.dto';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { CreateAnswerDTO } from 'src/modules/answer/dto/create-answer.dto';
 
-export class CreateQuestionFileDto extends BaseDTO {
+export class CreateQuestionExamDto extends BaseDTO {
+    
     @Expose()
     @ValidateNested()
-    @ApiProperty({ example: 'Foundation' })
-    level: string;
+    @ApiProperty({ example: '9ff028de-d3c4-475e-9f52-1fc596c8e710' })
+    @IsUUID()
+    levelId: string;
 
     @Expose()
     @ValidateNested()
-    @ApiProperty({ example: 'Area and volume' })
-    skill: string;
+    @ApiProperty({ example: '18610c2e-19f0-429e-8ee3-092e7760dadb' })
+    @IsUUID()
+    skillId: string;
 
     @Expose()
     @ValidateNested()
-    @ApiProperty({ example: 'Math' })
-    section: string;
+    @ApiProperty({ example: '19bd7c73-9fe2-4e8b-b13d-bed8694f24dd' })
+    @IsUUID()
+    sectionId: string;
 
     @Expose()
     @IsString()
@@ -34,13 +39,8 @@ export class CreateQuestionFileDto extends BaseDTO {
     content: string;
 
     @Expose()
-    @IsString()
-    @ApiProperty()
-    plainContent: string;
-
-    @Expose()
-    @IsString()
-    @IsNotEmpty()
+    // @IsString()
+    // @IsNotEmpty()
     @ApiProperty()
     explain: string;
 

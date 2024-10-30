@@ -42,6 +42,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
 import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
+import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
 
 @Module({
     imports: [
@@ -88,6 +89,7 @@ import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
         UnitProgressModule,
         AnswerModule,
         GptModule,
+        QuizAnswerModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

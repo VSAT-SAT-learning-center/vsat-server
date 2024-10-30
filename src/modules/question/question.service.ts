@@ -26,6 +26,10 @@ import { Answer } from 'src/database/entities/anwser.entity';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FeedbackService } from '../feedback/feedback.service';
 import { Feedback } from 'src/database/entities/feedback.entity';
+import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
+import sanitizeHtml from 'sanitize-html';
+import { validate } from 'class-validator';
+import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
 
 @Injectable()
 export class QuestionService {
@@ -58,31 +62,29 @@ export class QuestionService {
         }
     }
 
-    async rejectQuestion(
-        feedbackDto: QuestionFeedbackDto,
-    ): Promise<Feedback> {
+    normalizeContent(content: string): string {
+        const strippedContent = sanitizeHtml(content, {
+            allowedTags: [], // Loại bỏ tất cả các thẻ HTML
+            allowedAttributes: {}, // Không cho phép thuộc tính nào
+        });
+
+        return strippedContent.replace(/\s+/g, ' ').trim(); // Xóa các khoảng trắng thừa
+    }
+
+    async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId } = feedbackDto;
 
-        await this.updateStatus(
-            questionId,
-            QuestionStatus.REJECT,
-        );
+        await this.updateStatus(questionId, QuestionStatus.REJECT);
 
         return await this.feedbackService.rejectQuestionFeedback(feedbackDto);
     }
 
-    async approveQuestion(
-        feedbackDto: QuestionFeedbackDto,
-    ): Promise<void> {
+    async approveQuestion(feedbackDto: QuestionFeedbackDto): Promise<void> {
         const { questionId } = feedbackDto;
 
-        await this.updateStatus(
-            questionId,
-            QuestionStatus.APPROVED,
-        );
+        await this.updateStatus(questionId, QuestionStatus.APPROVED);
 
         //this.feedbackService.approveQuestionFeedback(feedbackDto);
-
     }
 
     async save(createQuestionDtoArray: CreateQuestionFileDto[]): Promise<{
@@ -95,8 +97,14 @@ export class QuestionService {
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { level, skill, section, answers, content } =
-                    createQuestionDto;
+                const {
+                    level,
+                    skill,
+                    section,
+                    answers,
+                    content,
+                    plainContent,
+                } = createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { name: level },
@@ -106,6 +114,196 @@ export class QuestionService {
                 });
                 const foundSection = await this.sectionRepository.findOne({
                     where: { name: section },
+                });
+
+                if (!answers || answers.length === 0) {
+                    throw new Error('Answers array is empty');
+                }
+
+                for (const answer of answers) {
+                    const answerInstance = plainToInstance(
+                        CreateAnswerDTO,
+                        answer,
+                    );
+
+                    const validationErrors = await validate(answerInstance);
+
+                    if (validationErrors.length > 0) {
+                        const validationMessages = validationErrors
+                            .map((err) =>
+                                Object.values(err.constraints).join(', '),
+                            )
+                            .join('; ');
+                        throw new Error(validationMessages);
+                    }
+                }
+
+                const normalizedContent = this.normalizeContent(content);
+
+                const existingQuestion = await this.questionRepository.findOne({
+                    where: { plainContent: normalizedContent },
+                });
+
+                if (existingQuestion) {
+                    throw new HttpException(
+                        `Question already exists`,
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                if (!foundLevel) {
+                    throw new NotFoundException('Level is not found');
+                }
+
+                if (!foundSkill) {
+                    throw new NotFoundException('Skill is not found');
+                }
+
+                if (!foundSection) {
+                    throw new NotFoundException('Section is not found');
+                }
+
+                if (createQuestionDto.isSingleChoiceQuestion === null) {
+                    throw new HttpException(
+                        'IsSingleChoiceQuestion is null',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                const newQuestion = this.questionRepository.create({
+                    ...createQuestionDto,
+                    level: foundLevel,
+                    skill: foundSkill,
+                    section: foundSection,
+                    plainContent: normalizedContent,
+                });
+
+                const savedQuestion =
+                    await this.questionRepository.save(newQuestion);
+
+                await this.answerService.createMultipleAnswers(
+                    savedQuestion.id,
+                    answers,
+                );
+
+                savedQuestions.push(savedQuestion);
+            } catch (error) {
+                errors.push({
+                    question: createQuestionDto,
+                    message: error.message || 'Unknown error',
+                });
+            }
+        }
+
+        return {
+            savedQuestions,
+            errors,
+        };
+    }
+
+    async saveManual(createQuestionDto: CreateQuestionDTO): Promise<Question> {
+        const { levelId, skillId, sectionId, answers, content, plainContent } =
+            createQuestionDto;
+
+        const foundLevel = await this.levelRepository.findOne({
+            where: { id: levelId },
+        });
+        if (!foundLevel) {
+            throw new NotFoundException('Level not found');
+        }
+
+        const foundSkill = await this.skillRepository.findOne({
+            where: { id: skillId },
+        });
+        if (!foundSkill) {
+            throw new NotFoundException('Skill not found');
+        }
+
+        const foundSection = await this.sectionRepository.findOne({
+            where: { id: sectionId },
+        });
+        if (!foundSection) {
+            throw new NotFoundException('Section not found');
+        }
+
+        if (!answers || answers.length === 0) {
+            throw new Error('Answers array is empty');
+        }
+
+        for (const answer of answers) {
+            const answerInstance = plainToInstance(CreateAnswerDTO, answer);
+
+            const validationErrors = await validate(answerInstance);
+
+            if (validationErrors.length > 0) {
+                const validationMessages = validationErrors
+                    .map((err) => Object.values(err.constraints).join(', '))
+                    .join('; ');
+                throw new Error(validationMessages);
+            }
+        }
+
+        const normalizedContent = this.normalizeContent(content);
+
+        const existingQuestion = await this.questionRepository.findOne({
+            where: { plainContent: normalizedContent },
+        });
+
+        if (existingQuestion) {
+            throw new HttpException(
+                `Question already exists`,
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (createQuestionDto.isSingleChoiceQuestion === null) {
+            throw new HttpException(
+                'isSingleChoiceQuestion cannot be null',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        const newQuestion = this.questionRepository.create({
+            ...createQuestionDto,
+            level: foundLevel,
+            skill: foundSkill,
+            section: foundSection,
+            plainContent: normalizedContent,
+        });
+
+        const savedQuestion = await this.questionRepository.save(newQuestion);
+
+        await this.answerService.createMultipleAnswers(
+            savedQuestion.id,
+            answers,
+        );
+
+        return savedQuestion;
+    }
+
+    async saveExamQuestion(
+        createQuestionDtoArray: CreateQuestionExamDto[],
+    ): Promise<{
+        savedQuestions: Question[];
+        errors: { question: CreateQuestionExamDto; message: string }[];
+    }> {
+        const savedQuestions: Question[] = [];
+        const errors: { question: CreateQuestionExamDto; message: string }[] =
+            [];
+
+        for (const createQuestionDto of createQuestionDtoArray) {
+            try {
+                const { levelId, skillId, sectionId, answers, content } =
+                    createQuestionDto;
+
+                const foundLevel = await this.levelRepository.findOne({
+                    where: { id: levelId },
+                });
+                const foundSkill = await this.skillRepository.findOne({
+                    where: { id: skillId },
+                });
+                const foundSection = await this.sectionRepository.findOne({
+                    where: { id: sectionId },
                 });
 
                 const existingQuestion = await this.questionRepository.findOne({
@@ -168,63 +366,6 @@ export class QuestionService {
         };
     }
 
-    async saveManual(createQuestionDto: CreateQuestionDTO): Promise<Question> {
-        const { levelId, skillId, sectionId, answers, content } =
-            createQuestionDto;
-
-        const foundLevel = await this.levelRepository.findOne({
-            where: { id: levelId },
-        });
-        if (!foundLevel) {
-            throw new NotFoundException('Level not found');
-        }
-
-        const foundSkill = await this.skillRepository.findOne({
-            where: { id: skillId },
-        });
-        if (!foundSkill) {
-            throw new NotFoundException('Skill not found');
-        }
-
-        const foundSection = await this.sectionRepository.findOne({
-            where: { id: sectionId },
-        });
-        if (!foundSection) {
-            throw new NotFoundException('Section not found');
-        }
-
-        const existingQuestion = await this.questionRepository.findOne({
-            where: { content },
-        });
-
-        if (existingQuestion) {
-            throw new ConflictException(`Content '${content}' already exists`);
-        }
-
-        if (createQuestionDto.isSingleChoiceQuestion === null) {
-            throw new HttpException(
-                'isSingleChoiceQuestion cannot be null',
-                HttpStatus.BAD_REQUEST,
-            );
-        }
-
-        const newQuestion = this.questionRepository.create({
-            ...createQuestionDto,
-            level: foundLevel,
-            skill: foundSkill,
-            section: foundSection,
-        });
-
-        const savedQuestion = await this.questionRepository.save(newQuestion);
-
-        await this.answerService.createMultipleAnswers(
-            savedQuestion.id,
-            answers,
-        );
-
-        return savedQuestion;
-    }
-
     async getAllWithStatus(
         page: number,
         pageSize: number,
@@ -238,7 +379,7 @@ export class QuestionService {
             take: pageSize,
             where: { status },
             order: {
-                createdat: 'DESC',
+                updatedat: 'DESC',
             },
         });
 

@@ -14,7 +14,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { CheckAnswerDTO } from './dto/check-answer.dto';
 
 @ApiTags('Answers')
-@Controller('Answer')
+@Controller('answer')
 export class AnswerController {
     constructor(private readonly answerService: Answerservice) {}
 
