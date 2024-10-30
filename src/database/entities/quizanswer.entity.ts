@@ -37,5 +37,5 @@ export class QuizAnswer {
     text: string;
 
     @Column({ type: 'boolean', default: false })
-    iscorrectanswer: boolean;
+    isCorrectAnswer: boolean;
 }

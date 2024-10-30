@@ -6,13 +6,39 @@ import { UpdateExamStructureDto } from './dto/update-examstructure.dto';
 import { BaseService } from '../base/base.service';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
+import { plainToInstance } from 'class-transformer';
+import { GetExamStructureDto } from './dto/get-examstructure.dto';
 
 @Injectable()
-export class ExamStructureService extends BaseService<ExamStructure> {
-  constructor(
-    @InjectRepository(ExamStructure) repository: Repository<ExamStructure>, // Inject repository for ExamStructure
-    paginationService: PaginationService,
-  ) {
-    super(repository, paginationService); // Pass repository and paginationService to BaseService
-  }
+export class ExamStructureService {
+    constructor(
+        @InjectRepository(ExamStructure)
+        private readonly repository: Repository<ExamStructure>,
+    ) {}
+
+    async save(
+        createExamStructure: CreateExamStructureDto,
+    ): Promise<CreateExamStructureDto> {
+        const savedExamstructure = this.repository.save(createExamStructure);
+        return plainToInstance(CreateExamStructureDto, savedExamstructure, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async get(page: number, pageSize: number): Promise<any> {
+        const [result, total] = await this.repository.findAndCount({
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+            order: { createdat: 'DESC' },
+        });
+
+        const data = plainToInstance(GetExamStructureDto, result, {
+            excludeExtraneousValues: true,
+        });
+
+        return {
+            data,
+            total,
+        };
+    }
 }
