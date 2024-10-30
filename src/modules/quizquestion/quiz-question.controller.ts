@@ -82,11 +82,11 @@ export class QuizQuestionController {
             },
         },
     })
-    async publishQuestions(@Body() body: { questionIds: string[] }) {
+    async publishQuestions(@Body() body: { quizQuestionIds: string[] }) {
         try {
-            const { questionIds } = body;
+            const { quizQuestionIds } = body;
 
-            await this.quizQuestionService.publish(questionIds);
+            await this.quizQuestionService.publish(quizQuestionIds);
 
             return ResponseHelper.success(
                 HttpStatus.OK,
