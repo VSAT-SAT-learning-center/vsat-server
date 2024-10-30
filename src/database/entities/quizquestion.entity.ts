@@ -13,7 +13,7 @@ import { Quiz } from './quiz.entity';
 import { Level } from './level.entity';
 import { Section } from './section.entity';
 import { QuizAnswer } from './quizanswer.entity';
-import { QuizStatus } from 'src/common/enums/quiz.status.enum';
+import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 
 @Entity('quizquestion')
 export class QuizQuestion {
@@ -58,10 +58,10 @@ export class QuizQuestion {
 
     @Column({
         type: 'enum',
-        enum: QuizStatus,
-        default: QuizStatus.DRAFT,
+        enum: QuizQuestionStatus,
+        default: QuizQuestionStatus.DRAFT,
     })
-    status: QuizStatus;
+    status: QuizQuestionStatus;
 
     @Column({ type: 'boolean', nullable: true })
     isSingleChoiceQuestion: boolean;
