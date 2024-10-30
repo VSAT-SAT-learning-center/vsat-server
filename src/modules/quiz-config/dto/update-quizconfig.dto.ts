@@ -1,6 +1,6 @@
 import { IsUUID, IsOptional } from 'class-validator';
 
-export class UpdateQuizSkillDto {
+export class UpdateQuizConfigDto {
   @IsUUID()
   @IsOptional()
   quizId?: string;

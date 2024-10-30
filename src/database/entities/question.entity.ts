@@ -69,6 +69,9 @@ export class Question {
     })
     status: QuestionStatus;
 
-    @Column({ type: 'boolean', nullable: true })
+    @Column({ type: 'int', nullable: true })
+    countfeedback: number;
+
+    @Column({ type: 'boolean', default: true })
     isActive: boolean;
 }

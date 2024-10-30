@@ -7,6 +7,7 @@ import {
     HttpStatus,
     BadRequestException,
     Patch,
+    HttpException,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { BaseController } from '../base/base.controller';
@@ -30,5 +31,32 @@ export class FeedbackController extends BaseController<Feedback> {
             feedback,
             SuccessMessages.gets('Feedback'),
         );
+    }
+
+    @Get('question/:userId')
+    async getQuestionFeedbackByUserId(
+        @Param('userId') userId: string,
+        @Param('questionId') questionId: string,
+    ) {
+        try {
+            const feedback = await this.feedbackService.getQuestionFeedbackUserId(
+                userId,
+                questionId,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                feedback,
+                SuccessMessages.gets('Feedback'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+        
     }
 }

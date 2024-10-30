@@ -404,6 +404,13 @@ export class QuestionService {
             throw new NotFoundException('Question not found');
         }
 
+        if (status === QuestionStatus.REJECT) {
+            if (question.countfeedback == 3) {
+                question.isActive = false;
+            }
+            question.countfeedback = question.countfeedback + 1;
+        }
+
         question.status = status;
 
         await this.questionRepository.save(question);
