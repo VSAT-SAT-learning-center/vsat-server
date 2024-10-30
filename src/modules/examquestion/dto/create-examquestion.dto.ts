@@ -5,6 +5,7 @@ import { Exam } from 'src/database/entities/exam.entity';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { CreateExamDto } from 'src/modules/exam/dto/create-exam.dto';
+import { CreateQuestionExamDto } from 'src/modules/question/dto/create-question-exam.dto';
 import { CreateQuestionFileDto } from 'src/modules/question/dto/create-question-file.dto';
 import { CreateQuestionDTO } from 'src/modules/question/dto/create-question.dto';
 
@@ -17,22 +18,14 @@ export class CreateExamQuestionDTO {
     @IsUUID()
     moduleTypeId: string;
 
-    @ApiProperty({
-        description: 'Trạng thái của đề thi (true/false)',
-        example: true,
-    })
-    @Expose()
-    @IsBoolean()
-    status: boolean;
-
     @ApiProperty({ type: CreateExamDto })
     @ValidateNested()
     @Type(() => CreateExamDto)
     exam: CreateExamDto;
 
-    @ApiProperty({ type: [CreateQuestionFileDto] })
+    @ApiProperty({ type: [CreateQuestionExamDto] })
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => CreateQuestionFileDto)
-    question: CreateQuestionFileDto[];
+    @Type(() => CreateQuestionExamDto)
+    question: CreateQuestionExamDto[];
 }

@@ -47,7 +47,6 @@ export class ExamService {
         const newExam = this.examRepository.create({
             title: createExamDto.title,
             description: createExamDto.description,
-            status: createExamDto.status,
             examStructure,
             examType,
         });

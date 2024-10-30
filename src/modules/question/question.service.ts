@@ -26,6 +26,7 @@ import { CreateQuestionDTO } from './dto/create-question.dto';
 import { GetQuestionDTO } from './dto/get-question.dto';
 import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
 
 @Injectable()
 export class QuestionService {
@@ -102,8 +103,8 @@ export class QuestionService {
 
                 if (existingQuestion) {
                     throw new HttpException(
-                        `Content ${content} is already exsist`,
-                        HttpStatus.CONFLICT,
+                        `Question already exists`,
+                        HttpStatus.BAD_REQUEST,
                     );
                 }
 
@@ -186,7 +187,10 @@ export class QuestionService {
         });
 
         if (existingQuestion) {
-            throw new ConflictException(`Content '${content}' already exists`);
+            throw new HttpException(
+                `Question already exists`,
+                HttpStatus.BAD_REQUEST,
+            );
         }
 
         if (createQuestionDto.isSingleChoiceQuestion === null) {
@@ -213,6 +217,91 @@ export class QuestionService {
         return savedQuestion;
     }
 
+    async saveExamQuestion(
+        createQuestionDtoArray: CreateQuestionExamDto[],
+    ): Promise<{
+        savedQuestions: Question[];
+        errors: { question: CreateQuestionExamDto; message: string }[];
+    }> {
+        const savedQuestions: Question[] = [];
+        const errors: { question: CreateQuestionExamDto; message: string }[] =
+            [];
+
+        for (const createQuestionDto of createQuestionDtoArray) {
+            try {
+                const { levelId, skillId, sectionId, answers, content } =
+                    createQuestionDto;
+
+                const foundLevel = await this.levelRepository.findOne({
+                    where: { id: levelId },
+                });
+                const foundSkill = await this.skillRepository.findOne({
+                    where: { id: skillId },
+                });
+                const foundSection = await this.sectionRepository.findOne({
+                    where: { id: sectionId },
+                });
+
+                const existingQuestion = await this.questionRepository.findOne({
+                    where: { content },
+                });
+
+                if (existingQuestion) {
+                    throw new HttpException(
+                        `Content ${content} is already exsist`,
+                        HttpStatus.CONFLICT,
+                    );
+                }
+
+                if (!foundLevel) {
+                    throw new NotFoundException('Level is not found');
+                }
+
+                if (!foundSkill) {
+                    throw new NotFoundException('Skill is not found');
+                }
+
+                if (!foundSection) {
+                    throw new NotFoundException('Section is not found');
+                }
+
+                if (!createQuestionDto.isSingleChoiceQuestion === null) {
+                    throw new HttpException(
+                        'IsSingleChoiceQuestion is null',
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                const newQuestion = this.questionRepository.create({
+                    ...createQuestionDto,
+                    level: foundLevel,
+                    skill: foundSkill,
+                    section: foundSection,
+                });
+
+                const savedQuestion =
+                    await this.questionRepository.save(newQuestion);
+
+                await this.answerService.createMultipleAnswers(
+                    savedQuestion.id,
+                    answers,
+                );
+
+                savedQuestions.push(savedQuestion);
+            } catch (error) {
+                errors.push({
+                    question: createQuestionDto,
+                    message: error.message || 'Unknown error',
+                });
+            }
+        }
+
+        return {
+            savedQuestions,
+            errors,
+        };
+    }
+
     async getAllWithStatus(
         page: number,
         pageSize: number,
@@ -226,7 +315,7 @@ export class QuestionService {
             take: pageSize,
             where: { status },
             order: {
-                createdat: 'DESC',
+                updatedat: 'DESC',
             },
         });
 

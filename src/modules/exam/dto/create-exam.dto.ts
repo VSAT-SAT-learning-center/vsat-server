@@ -37,13 +37,4 @@ export class CreateExamDto {
   @IsOptional()
   @Expose()
   description?: string;
-
-  @ApiProperty({
-    description: 'Trạng thái của đề thi (tùy chọn)',
-    example: true,
-    required: false,
-  })
-  @IsBoolean()
-  @IsOptional()
-  status?: boolean;
 }
