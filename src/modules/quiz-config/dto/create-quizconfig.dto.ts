@@ -1,6 +1,6 @@
 import { IsUUID } from 'class-validator';
 
-export class CreateQuizSkillDto {
+export class CreateQuizConfigDto {
   @IsUUID()
   quizId: string;
 

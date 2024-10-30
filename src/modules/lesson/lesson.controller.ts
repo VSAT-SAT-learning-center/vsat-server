@@ -135,7 +135,6 @@ export class LessonController extends BaseController<Lesson> {
         @Query('targetLearningId') targetLearningId: string,
         @Query('limit') limit: number = 5,
     ) {
-        // Gọi service để lấy danh sách các bài học gần đây
         const recentLessons =
             await this.lessonProgressService.getRecentCompletedLessons(
                 targetLearningId,

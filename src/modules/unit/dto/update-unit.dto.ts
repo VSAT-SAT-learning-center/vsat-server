@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsString, IsUUID, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsUUID, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 export class UpdateUnitDto {
@@ -36,4 +36,15 @@ export class UpdateUnitDto {
   @IsOptional()
   @Transform(({ value }) => value ?? UnitStatus.DRAFT)
   status?: UnitStatus;
+
+  @ApiProperty()
+  @IsOptional()
+  countfeedback?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+
 }

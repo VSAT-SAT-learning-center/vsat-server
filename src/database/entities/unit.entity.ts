@@ -48,6 +48,12 @@ export class Unit {
     @Column({ type: 'enum', enum: UnitStatus, default: UnitStatus.DRAFT })
     status: UnitStatus;
 
+    @Column({ type: 'boolean', default: true })
+    isActive: boolean;
+
+    @Column({ type: 'int', nullable: true })
+    countfeedback: number;
+
     // One-to-many relationship
     @OneToMany(() => UnitArea, (unitArea) => unitArea.unit, { cascade: true })
     unitAreas: UnitArea[];
