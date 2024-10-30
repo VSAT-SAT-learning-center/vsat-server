@@ -62,11 +62,11 @@ export class QuestionService {
 
     normalizeContent(content: string): string {
         const strippedContent = sanitizeHtml(content, {
-            allowedTags: [], // Loại bỏ tất cả các thẻ HTML
-            allowedAttributes: {}, // Không cho phép thuộc tính nào
+            allowedTags: [],
+            allowedAttributes: {},
         });
 
-        return strippedContent.replace(/\s+/g, ' ').trim(); // Xóa các khoảng trắng thừa
+        return strippedContent.replace(/\s+/g, ' ').trim();
     }
 
     async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
@@ -400,6 +400,13 @@ export class QuestionService {
         const question = await this.questionRepository.findOneBy({ id });
         if (!question) {
             throw new NotFoundException('Question not found');
+        }
+
+        if (status === QuestionStatus.REJECT) {
+            if (question.countfeedback == 3) {
+                question.isActive = false;
+            }
+            question.countfeedback = question.countfeedback + 1;
         }
 
         question.status = status;

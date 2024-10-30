@@ -29,7 +29,7 @@ import { QuizModule } from './modules/quiz/quiz.module';
 import { QuizAttemptModule } from './modules/quiz-attempt/quiz-attempt.module';
 import { QuizAttemptAnswerModule } from './modules/quiz-attempt-answer/quiz-attempt-answer.module';
 import { QuizAttemptSkillModule } from './modules/quiz-attempt-skill/quiz-attempt-skill.module';
-import { QuizSkillModule } from './modules/quiz-skill/quiz-skill.module';
+import { QuizConfigModule } from './modules/quiz-config/quiz-config.module';
 import { RoleModule } from './modules/role/role.module';
 import { SkillModule } from './modules/skill/skill.module';
 import { StudyProfileModule } from './modules/study-profile/study-profile.module';
@@ -75,7 +75,7 @@ import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
         QuizAttemptModule,
         QuizAttemptAnswerModule,
         QuizAttemptSkillModule,
-        QuizSkillModule,
+        QuizConfigModule,
         QuizQuestionModule,
         RoleModule,
         SectionModule,

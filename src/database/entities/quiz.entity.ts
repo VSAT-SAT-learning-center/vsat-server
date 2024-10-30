@@ -30,12 +30,6 @@ export class Quiz {
     @JoinColumn({ name: 'unitid' })
     unit: Unit;
 
-    @Column({ type: 'int', nullable: true })
-    totalquestion: number;
-
-    @Column({ type: 'int', nullable: true })
-    passingscore: number;
-
     @Column({ type: 'boolean', default: false })
     status: boolean;
 }

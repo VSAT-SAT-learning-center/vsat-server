@@ -13,6 +13,7 @@ import { FeedbackService } from '../feedback/feedback.service';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
+import { Feedback } from 'src/database/entities/feedback.entity';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -769,46 +770,48 @@ export class UnitService extends BaseService<Unit> {
     async approveOrRejectLearningMaterial(
         feedbackDto: LearningMaterialFeedbackDto,
         action: 'approve' | 'reject',
-    ): Promise<void> {
+    ): Promise<Feedback> {
         if (action === 'reject') {
-            await this.rejectLearningMaterial(feedbackDto);
+            return await this.rejectLearningMaterial(feedbackDto);
         } else if (action === 'approve') {
-            await this.approveLearningMaterial(feedbackDto);
+            return await this.approveLearningMaterial(feedbackDto);
         }
     }
 
     private async rejectLearningMaterial(
         feedbackDto: LearningMaterialFeedbackDto,
-    ): Promise<void> {
+    ): Promise<Feedback> {
         const unit = await this.unitRepository.findOneBy({
             id: feedbackDto.unitFeedback.unitId,
         });
-        
-        if(unit === null) {
+
+        if (unit === null) {
             throw new NotFoundException('Unit not found');
         }
-        //Set user will be feedback
-        feedbackDto.accountToId = unit.createdby;
 
-        await this.feedbackService.rejectLearningMaterialFeedback(feedbackDto);
+        if (unit.countfeedback == 3) {
+            unit.isActive = false;
+        }
 
         // Mark the entire unit as rejected
         await this.updateUnitStatus(unit.id, {
             status: UnitStatus.REJECTED,
+            countfeedback: unit.countfeedback + 1,
+            isActive: unit.isActive,
         });
+
+        feedbackDto.accountToId = unit.createdby;
+        return await this.feedbackService.rejectLearningMaterialFeedback(feedbackDto);
     }
 
     private async approveLearningMaterial(
         feedbackDto: LearningMaterialFeedbackDto,
-    ): Promise<void> {
-        // const { unit } =
-        //     await this.feedbackService.approveLearningMaterialFeedback(
-        //         feedbackDto,
-        //     );
-
+    ): Promise<Feedback> {
         // Mark the entire unit as approved
         await this.updateUnitStatus(feedbackDto.unitFeedback.unitId, {
             status: UnitStatus.APPROVED,
         });
+
+        return await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
     }
 }

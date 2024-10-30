@@ -36,10 +36,6 @@ export class QuizQuestion {
     @JoinColumn({ name: 'skillid' })
     skill: Skill;
 
-    @ManyToOne(() => Quiz)
-    @JoinColumn({ name: 'quizid' })
-    quiz: Quiz;
-
     @ManyToOne(() => Level)
     @JoinColumn({ name: 'levelid' })
     level: Level;
@@ -53,6 +49,9 @@ export class QuizQuestion {
 
     @Column({ type: 'text', nullable: true })
     content: string;
+
+    @Column({ type: 'text', nullable: true })
+    plainContent: string;
 
     @Column({ type: 'text', nullable: true })
     explain: string;
