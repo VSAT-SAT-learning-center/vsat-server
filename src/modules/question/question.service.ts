@@ -1,6 +1,5 @@
 import {
     BadRequestException,
-    ConflictException,
     forwardRef,
     HttpException,
     HttpStatus,
@@ -10,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
+import sanitizeHtml from 'sanitize-html';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Feedback } from 'src/database/entities/feedback.entity';
@@ -21,13 +21,12 @@ import { In, IsNull, Repository } from 'typeorm';
 import { Answerservice } from '../answer/answer.service';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FeedbackService } from '../feedback/feedback.service';
+import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { GetQuestionDTO } from './dto/get-question.dto';
 import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
-import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
-import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class QuestionService {
@@ -64,7 +63,7 @@ export class QuestionService {
             allowedTags: [], // Loại bỏ tất cả các thẻ HTML
             allowedAttributes: {}, // Không cho phép thuộc tính nào
         });
-    
+
         return strippedContent.replace(/\s+/g, ' ').trim(); // Xóa các khoảng trắng thừa
     }
 
@@ -94,8 +93,14 @@ export class QuestionService {
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { level, skill, section, answers, content, plainContent } =
-                    createQuestionDto;
+                const {
+                    level,
+                    skill,
+                    section,
+                    answers,
+                    content,
+                    plainContent,
+                } = createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { name: level },
@@ -108,11 +113,11 @@ export class QuestionService {
                 });
 
                 const normalizedContent = this.normalizeContent(content);
-            
+
                 const existingQuestion = await this.questionRepository.findOne({
                     where: { plainContent: normalizedContent },
                 });
-        
+
                 if (existingQuestion) {
                     throw new HttpException(
                         `Question already exists`,
@@ -132,9 +137,9 @@ export class QuestionService {
                     throw new NotFoundException('Section is not found');
                 }
 
-                if (!createQuestionDto.isSingleChoiceQuestion === null) {
+                if (createQuestionDto.isSingleChoiceQuestion === null) {
                     throw new HttpException(
-                        'IsSingleChoiceQuestion is null',
+                        'Question type is empty',
                         HttpStatus.BAD_REQUEST,
                     );
                 }
@@ -144,7 +149,7 @@ export class QuestionService {
                     level: foundLevel,
                     skill: foundSkill,
                     section: foundSection,
-                    plainContent: normalizedContent
+                    plainContent: normalizedContent,
                 });
 
                 const savedQuestion =
@@ -220,7 +225,7 @@ export class QuestionService {
             level: foundLevel,
             skill: foundSkill,
             section: foundSection,
-            plainContent: normalizedContent
+            plainContent: normalizedContent,
         });
 
         const savedQuestion = await this.questionRepository.save(newQuestion);
