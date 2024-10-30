@@ -9,18 +9,26 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import sanitizeHtml from 'sanitize-html';
+import { QuestionStatus } from 'src/common/enums/question-status.enum';
+import { Answer } from 'src/database/entities/anwser.entity';
+import { Feedback } from 'src/database/entities/feedback.entity';
 import { Level } from 'src/database/entities/level.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { Section } from 'src/database/entities/section.entity';
 import { Skill } from 'src/database/entities/skill.entity';
 import { In, IsNull, Repository } from 'typeorm';
 import { Answerservice } from '../answer/answer.service';
+import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FeedbackService } from '../feedback/feedback.service';
 import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
-import sanitizeHtml from 'sanitize-html';
-import { validate } from 'class-validator';
-import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
+import { CreateQuestionFileDto } from './dto/create-question-file.dto';
+import { CreateQuestionDTO } from './dto/create-question.dto';
+import { GetQuestionDTO } from './dto/get-question.dto';
+import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
+import { UpdateQuestionDTO } from './dto/update-question.dto';
 
 @Injectable()
 export class QuestionService {
