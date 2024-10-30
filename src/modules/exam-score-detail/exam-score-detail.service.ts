@@ -7,7 +7,6 @@ import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
-import { ExamScore } from 'src/database/entities/examscore.entity';
 import { Section } from 'src/database/entities/section.entity';
 
 @Injectable()
@@ -15,8 +14,6 @@ export class ExamScoreDetailService extends BaseService<ExamScoreDetail> {
     constructor(
         @InjectRepository(ExamScoreDetail)
         private readonly examScoreDetailRepository: Repository<ExamScoreDetail>,
-        @InjectRepository(ExamScore)
-        private readonly examScoreRepository: Repository<ExamScore>,
         @InjectRepository(Section)
         private readonly sectionRepository: Repository<Section>,
         paginationService: PaginationService,
@@ -30,10 +27,6 @@ export class ExamScoreDetailService extends BaseService<ExamScoreDetail> {
         const createdExamScoreDetails: ExamScoreDetail[] = [];
 
         for (const dto of createExamScoreDetailsDto) {
-            const examScore = await this.examScoreRepository.findOne({
-                where: { id: dto.examScoreId },
-            });
-
             const section = await this.sectionRepository.findOne({
                 where: { id: dto.sectionId },
             });
@@ -44,15 +37,9 @@ export class ExamScoreDetailService extends BaseService<ExamScoreDetail> {
                 );
             }
 
-            if (!examScore) {
-                throw new NotFoundException(
-                    `ExamScore with id ${dto.examScoreId} not found`,
-                );
-            }
 
             const newExamScoreDetail = this.repository.create({
                 ...dto,
-                examScore,
                 section,
             });
 
