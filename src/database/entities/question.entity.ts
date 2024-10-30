@@ -51,6 +51,9 @@ export class Question {
     content: string;
 
     @Column({ type: 'text', nullable: true })
+    plainContent: string;
+
+    @Column({ type: 'text', nullable: true })
     explain: string;
 
     @Column({ type: 'int', nullable: true })
