@@ -27,6 +27,7 @@ import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FeedbackService } from '../feedback/feedback.service';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
+import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class QuestionService {
@@ -59,6 +60,15 @@ export class QuestionService {
         }
     }
 
+    normalizeContent(content: string): string {
+        const strippedContent = sanitizeHtml(content, {
+            allowedTags: [], // Loại bỏ tất cả các thẻ HTML
+            allowedAttributes: {}, // Không cho phép thuộc tính nào
+        });
+    
+        return strippedContent.replace(/\s+/g, ' ').trim(); // Xóa các khoảng trắng thừa
+    }
+
     async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId } = feedbackDto;
 
@@ -85,7 +95,7 @@ export class QuestionService {
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { level, skill, section, answers, content } =
+                const { level, skill, section, answers, content, plainContent } =
                     createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
@@ -98,10 +108,12 @@ export class QuestionService {
                     where: { name: section },
                 });
 
+                const normalizedContent = this.normalizeContent(content);
+            
                 const existingQuestion = await this.questionRepository.findOne({
-                    where: { content },
+                    where: { plainContent: normalizedContent },
                 });
-
+        
                 if (existingQuestion) {
                     throw new HttpException(
                         `Question already exists`,
@@ -133,6 +145,7 @@ export class QuestionService {
                     level: foundLevel,
                     skill: foundSkill,
                     section: foundSection,
+                    plainContent: normalizedContent
                 });
 
                 const savedQuestion =
@@ -159,7 +172,7 @@ export class QuestionService {
     }
 
     async saveManual(createQuestionDto: CreateQuestionDTO): Promise<Question> {
-        const { levelId, skillId, sectionId, answers, content } =
+        const { levelId, skillId, sectionId, answers, content, plainContent } =
             createQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
@@ -183,8 +196,10 @@ export class QuestionService {
             throw new NotFoundException('Section not found');
         }
 
+        const normalizedContent = this.normalizeContent(content);
+
         const existingQuestion = await this.questionRepository.findOne({
-            where: { content },
+            where: { plainContent: normalizedContent },
         });
 
         if (existingQuestion) {
@@ -206,6 +221,7 @@ export class QuestionService {
             level: foundLevel,
             skill: foundSkill,
             section: foundSection,
+            plainContent: normalizedContent
         });
 
         const savedQuestion = await this.questionRepository.save(newQuestion);

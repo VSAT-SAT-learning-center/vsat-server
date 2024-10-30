@@ -6,9 +6,14 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { Skill } from './skill.entity';
 import { Quiz } from './quiz.entity';
+import { Level } from './level.entity';
+import { Section } from './section.entity';
+import { QuizAnswer } from './quizanswer.entity';
+import { QuizStatus } from 'src/common/enums/quiz.status.enum';
 
 @Entity('quizquestion')
 export class QuizQuestion {
@@ -35,15 +40,30 @@ export class QuizQuestion {
     @JoinColumn({ name: 'quizid' })
     quiz: Quiz;
 
+    @ManyToOne(() => Level)
+    @JoinColumn({ name: 'levelid' })
+    level: Level;
+
+    @ManyToOne(() => Section)
+    @JoinColumn({ name: 'sectionid' })
+    section: Section;
+
+    @OneToMany(() => QuizAnswer, (quizAnswer) => quizAnswer.quizquestion)
+    answers: QuizAnswer[];
+
     @Column({ type: 'text', nullable: true })
     content: string;
 
     @Column({ type: 'text', nullable: true })
     explain: string;
 
-    @Column({ type: 'int', nullable: true })
-    sort: number;
+    @Column({
+        type: 'enum',
+        enum: QuizStatus,
+        default: QuizStatus.DRAFT,
+    })
+    status: QuizStatus;
 
-    @Column({ type: 'boolean', default: true })
-    status: boolean;
+    @Column({ type: 'boolean', nullable: true })
+    isSingleChoiceQuestion: boolean;
 }
