@@ -56,11 +56,11 @@ export class Answerservice {
         for (const answerDto of createMultipleAnswersDto) {
             const { label, text, isCorrectAnswer } = answerDto;
 
-            const question = await this.questionRepository.findOne({
+            const questions = await this.questionRepository.findOne({
                 where: { id: questionId },
             });
 
-            if (!question) {
+            if (!questions) {
                 throw new NotFoundException(
                     `Question with ID ${questionId} not found`,
                 );
@@ -90,7 +90,7 @@ export class Answerservice {
             const answer = this.answerRepository.create({
                 label,
                 text,
-                question,
+                question: questions,
                 isCorrectAnswer,
             });
 

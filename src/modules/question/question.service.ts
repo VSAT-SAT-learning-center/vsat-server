@@ -64,11 +64,11 @@ export class QuestionService {
 
     normalizeContent(content: string): string {
         const strippedContent = sanitizeHtml(content, {
-            allowedTags: [], // Loại bỏ tất cả các thẻ HTML
-            allowedAttributes: {}, // Không cho phép thuộc tính nào
+            allowedTags: [],
+            allowedAttributes: {},
         });
 
-        return strippedContent.replace(/\s+/g, ' ').trim(); // Xóa các khoảng trắng thừa
+        return strippedContent.replace(/\s+/g, ' ').trim();
     }
 
     async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
