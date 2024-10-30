@@ -24,53 +24,64 @@ export class FeedbackService extends BaseService<Feedback> {
         @InjectRepository(Feedback)
         private readonly feedbackRepository: Repository<Feedback>,
         private readonly lessonService: LessonService,
-        private readonly feeddbacksGateway: FeedbacksGateway,
+        private readonly feedbackGateway: FeedbacksGateway,
         private readonly accountService: AccountService,
     ) {
         super(feedbackRepository);
     }
 
+    //For consistency and better error handling, it’s good to wrap feedback creation and status updates inside a try-catch block and possibly use Promise.all to parallelize lesson feedback updates.
     async rejectLearningMaterialFeedback(
         feedbackDto: LearningMaterialFeedbackDto,
     ): Promise<Feedback> {
-        const { unitFeedback, accountFromId, accountToId  } = feedbackDto;
+        const { unitFeedback, accountFromId, accountToId } = feedbackDto;
 
-        // Loop through each unit area and lessons inside the unit
+        const feedbackPromises = unitFeedback.lessonsFeedback.map(
+            async (lessonFeedback) => {
+                const { lessonId, isRejected, content, reason } =
+                    lessonFeedback;
 
-        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
-            const { lessonId, isRejected, content, reason } = lessonFeedback;
+                if (isRejected) {
+                    await this.lessonService.updateLessonStatus(lessonId, {
+                        status: false,
+                    });
 
-            if (isRejected) {
-                // Mark lesson as rejected
-                await this.lessonService.updateLessonStatus(lessonId, {
-                    status: false, // Set status to false for rejected lessons
-                });
+                    await this.feedbackRepository.save({
+                        accountFrom: { id: accountFromId },
+                        accountTo: { id: accountToId },
+                        lesson: { id: lessonId },
+                        unit: { id: unitFeedback.unitId },
+                        content,
+                        reason,
+                        status: FeedbackStatus.REJECTED,
+                    });
+                }
+            },
+        );
 
-                // Create feedback entry for rejected lesson
-                await this.feedbackRepository.save({
-                    accountFrom: { id: accountFromId },
-                    accountTo: { id: accountToId },
-                    lesson: { id: lessonId },
-                    unit: { id: unitFeedback.unitId },
-                    content,
-                    reason,
-                    status: FeedbackStatus.REJECTED,
-                });
-            }
-        }
+        await Promise.all(feedbackPromises);
 
         // Create feedback entry for the unit
-        return await this.feedbackRepository.save({
+        const rejectFeedback = await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
             content: 'Rejected due to lesson issues',
             status: FeedbackStatus.REJECTED,
         });
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Learning material was rejected`,
+            FeedbackEventType.UNIT_FEEDBACK,
+        );
+
+        return rejectFeedback;
     }
 
     async approveLearningMaterialFeedback(
         feedbackDto: LearningMaterialFeedbackDto,
     ): Promise<Feedback> {
-        const { unitFeedback } = feedbackDto;
+        const { unitFeedback, accountFromId, accountToId } = feedbackDto;
 
         // Approve all lessons by setting their status to true
         for (const lessonFeedback of unitFeedback.lessonsFeedback) {
@@ -84,11 +95,22 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Create feedback entry for the approved unit
-        return await this.feedbackRepository.save({
+        const approvedFeedback = await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
             content: 'Approved',
             status: FeedbackStatus.APPROVED,
         });
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Learning material was approved`,
+            FeedbackEventType.UNIT_FEEDBACK,
+        );
+
+        return approvedFeedback;
     }
 
     async submitLearningMaterial(
@@ -113,7 +135,7 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        managers.forEach((manager) => {
+        const feedbackPromises = managers.map(async (manager) => {
             createFeedbackDto.accountFrom = accountFrom;
             createFeedbackDto.accountTo = manager;
             const feedback = this.feedbackRepository.create(createFeedbackDto);
@@ -125,14 +147,15 @@ export class FeedbackService extends BaseService<Feedback> {
                 accountFrom: feedback.accountFrom.id,
                 accountTo: feedback.accountTo.id,
             });
-
-            console.log('sending notification to manager: ', manager.firstname);
-            this.feeddbacksGateway.sendNotificationToUser(
-                manager.id,
-                `New learning material was submitted`,
-                FeedbackEventType.UNIT_FEEDBACK,
-            );
         });
+
+        await Promise.all(feedbackPromises);
+
+        this.feedbackGateway.sendNotificationToMultipleUsers(
+            managers.map((manager) => manager.id),
+            `New learning material was submitted`,
+            FeedbackEventType.UNIT_FEEDBACK,
+        );
 
         return feedbackList;
     }
@@ -140,9 +163,10 @@ export class FeedbackService extends BaseService<Feedback> {
     async rejectQuestionFeedback(
         feedbackDto: QuestionFeedbackDto,
     ): Promise<Feedback> {
-        const { questionId, content, reason, accountFromId, accountToId } = feedbackDto;
+        const { questionId, content, reason, accountFromId, accountToId } =
+            feedbackDto;
 
-        return await this.feedbackRepository.save({
+        const rejectFeedback = await this.feedbackRepository.save({
             accountFrom: { id: accountFromId },
             accountTo: { id: accountToId },
             content,
@@ -150,32 +174,38 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
             question: { id: questionId },
         });
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Question was rejected`,
+            FeedbackEventType.QUESTION_FEEDBACK,
+        );
+
+        return rejectFeedback;
     }
 
     async approveQuestionFeedback(
         feedbackDto: QuestionFeedbackDto,
-    ): Promise<void> {
-        const { questionId, content } = feedbackDto;
+    ): Promise<Feedback> {
+        const { questionId, content, accountFromId, accountToId } = feedbackDto;
 
-        await this.feedbackRepository.save({
+        const approvedFeedback = await this.feedbackRepository.save({
             question: { id: questionId },
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
             content,
             status: FeedbackStatus.APPROVED,
         });
-    }
 
-    async markAsRead(feedbackId: string): Promise<Feedback> {
-        const feedback = await this.feedbackRepository.findOne({
-            where: { id: feedbackId },
-        });
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Question was approved`,
+            FeedbackEventType.QUESTION_FEEDBACK,
+        );
 
-        if (!feedback) {
-            throw new NotFoundException('Feedback not found');
-        }
-
-        feedback.isRead = true;
-
-        return this.feedbackRepository.save(feedback);
+        return approvedFeedback;
     }
 
     async getFeedbackByUserId(userId: string): Promise<Feedback[]> {

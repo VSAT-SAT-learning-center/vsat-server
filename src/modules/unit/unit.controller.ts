@@ -11,6 +11,7 @@ import {
     DefaultValuePipe,
     ParseIntPipe,
     BadRequestException,
+    HttpException,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -54,10 +55,12 @@ export class UnitController extends BaseController<Unit> {
                 SuccessMessages.update('Feedback'),
             );
         } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Error when updating Feedback',
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
             );
         }
     }
@@ -66,59 +69,76 @@ export class UnitController extends BaseController<Unit> {
     async getUnitsWithDetails(
         @Param('status') status: string,
         @Query('page') page: number = 1,
-        @Query('pageSize') pageSize: number = 10,
+        @Query('pageSize') pageSize: number = 6,
     ) {
         if (!page) {
             page = 1;
         }
         if (!pageSize) {
-            pageSize = 10;
+            pageSize = 6;
         }
 
         let units;
+        try {
+            if (status === 'pending') {
+                units = await this.unitService.getPendingUnitWithDetails(
+                    page,
+                    pageSize,
+                );
+            } else if (status === 'approve') {
+                units = await this.unitService.getApproveUnitWithDetails(
+                    page,
+                    pageSize,
+                );
+            } else if (status === 'reject') {
+                units = await this.unitService.getRejectUnitWithDetails(
+                    page,
+                    pageSize,
+                );
+            } else {
+                return ResponseHelper.error(
+                    null,
+                    HttpStatus.BAD_REQUEST,
+                    'Invalid status parameter. Must be "pending", "approve", or "reject".',
+                );
+            }
 
-        // Check the status route parameter and call the appropriate service method
-        if (status === 'pending') {
-            units = await this.unitService.getPendingUnitWithDetails(
-                page,
-                pageSize,
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                units,
+                SuccessMessages.get(
+                    `${status.charAt(0).toUpperCase() + status.slice(1)}Unit`,
+                ),
             );
-        } else if (status === 'approve') {
-            units = await this.unitService.getApproveUnitWithDetails(
-                page,
-                pageSize,
-            );
-        } else if (status === 'reject') {
-            units = await this.unitService.getRejectUnitWithDetails(
-                page,
-                pageSize,
-            );
-        } else {
-            return ResponseHelper.error(
-                null,
-                HttpStatus.BAD_REQUEST,
-                'Invalid status parameter. Must be "pending", "approve", or "reject".',
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
             );
         }
-
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            units,
-            SuccessMessages.get(
-                `${status.charAt(0).toUpperCase() + status.slice(1)}Unit`,
-            ),
-        );
     }
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        console.log('id call');
-        const unit = await this.unitService.findOneById(id, ['unitAreas']);
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            unit,
-            SuccessMessages.get('Unit'),
-        );
+        try {
+            const unit = await this.unitService.findOneById(id, ['unitAreas']);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                unit,
+                SuccessMessages.get('Unit'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
     }
 
     @Post(':id/submit')
@@ -255,5 +275,49 @@ export class UnitController extends BaseController<Unit> {
             pageSize,
             userId,
         );
+    }
+
+    @Post('user/:status')
+    async getUnitsWithDetailsByUserId(
+        @Param('status') status: string,
+        @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
+        pageSize: number,
+    ): Promise<PagedUnitResponseDto> {
+        const { userId } = getUnitsByUserIdDto;
+
+        let units;
+
+        // Determine the status and call the appropriate service method
+        if (status === 'draft') {
+            units = await this.unitService.getDraftUnitWithDetailsByUserId(
+                page,
+                pageSize,
+                userId,
+            );
+        } else if (status === 'pending') {
+            units = await this.unitService.getPendingUnitWithDetailsByUserId(
+                page,
+                pageSize,
+                userId,
+            );
+        } else if (status === 'approve') {
+            units = await this.unitService.getApproveUnitWithDetailsByUserId(
+                page,
+                pageSize,
+                userId,
+            );
+        } else if (status === 'reject') {
+            units = await this.unitService.getRejectUnitWithDetailsByUserId(
+                page,
+                pageSize,
+                userId,
+            );
+        } else {
+            return null;
+        }
+
+        return units;
     }
 }

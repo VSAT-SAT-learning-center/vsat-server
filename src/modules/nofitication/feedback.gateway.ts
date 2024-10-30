@@ -65,13 +65,13 @@ export class FeedbacksGateway
     // Function to send notification to a specific user
     sendNotificationToUser(
         userId: string,
-        message: string,
+        data: any,
         eventType: FeedbackEventType,
     ) {
         const userSocket = this.users.get(userId);
         if (userSocket) {
             this.handleEmitSocket({
-                data: message,
+                data: data,
                 event: 'feedbackNotification',
                 eventType: eventType,
                 to: userSocket.id,
@@ -93,10 +93,10 @@ export class FeedbacksGateway
     }
 
     // Broadcast notification to all users
-    broadcastNotification(message: string) {
+    broadcastNotification(data: any) {
         console.log('Broadcasting feedback notification...');
         this.handleEmitSocket({
-            data: message,
+            data: data,
             event: 'feedbackNotification',
         });
     }

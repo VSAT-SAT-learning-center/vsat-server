@@ -69,7 +69,5 @@ export class Feedback {
 
     @Column({ type: 'text', nullable: true })
     reason: string;
-
-    @Column({ type: 'boolean', default: false })
-    isRead: boolean;
 }
+
