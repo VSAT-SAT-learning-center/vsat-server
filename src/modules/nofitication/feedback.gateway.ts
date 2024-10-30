@@ -47,8 +47,6 @@ export class FeedbacksGateway
             console.log('Authentication failed:', error.message);
             client.disconnect();
         }
-
-        // The userId will be registered later via the 'registerUser' event
     }
 
     handleDisconnect(client: Socket) {
@@ -62,7 +60,6 @@ export class FeedbacksGateway
         }
     }
 
-    // Function to send notification to a specific user
     sendNotificationToUser(
         userId: string,
         data: any,
@@ -91,8 +88,8 @@ export class FeedbacksGateway
             this.sendNotificationToUser(userId, message, eventType);
         });
     }
+    
 
-    // Broadcast notification to all users
     broadcastNotification(data: any) {
         console.log('Broadcasting feedback notification...');
         this.handleEmitSocket({
@@ -143,7 +140,6 @@ export class FeedbacksGateway
         return null;
     }
 
-    // Handle incoming notifications between users
     @SubscribeMessage('sendToUser')
     handleSendToUser(
         client: Socket,
@@ -170,7 +166,6 @@ export class FeedbacksGateway
         this.sendNotificationToMultipleUsers(userIds, message, eventType);
     }
 
-    // Allow users to broadcast notifications to all users
     @SubscribeMessage('broadcast')
     handleBroadcast(client: Socket, message: string) {
         this.broadcastNotification(message);

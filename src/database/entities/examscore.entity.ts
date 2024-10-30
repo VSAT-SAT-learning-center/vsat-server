@@ -18,7 +18,6 @@ export class ExamScore {
   @Column({ type: 'uuid', nullable: true })
   updatedby: string;
 
-  @ManyToOne(() => ExamStructure)
-  @JoinColumn({ name: 'examstructureid' })
-  examStructure: ExamStructure;
+  @Column({ type: 'text'})
+  type: string;
 }
