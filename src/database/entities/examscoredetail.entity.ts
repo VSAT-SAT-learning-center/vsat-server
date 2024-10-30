@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Section } from './section.entity';
-import { ExamStructure } from './examstructure.entity';
 import { ExamScore } from './examscore.entity';
 
 @Entity('examscoredetail')
@@ -22,7 +21,7 @@ export class ExamScoreDetail {
 
   @ManyToOne(() => ExamScore)
   @JoinColumn({ name: 'examscoreid' })
-  examStructure: ExamScore;
+  examScore: ExamScore;
 
   @ManyToOne(() => Section)
   @JoinColumn({ name: 'sectionid' })
