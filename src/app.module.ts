@@ -17,6 +17,7 @@ import { CommentModule } from './modules/comment/comment.module';
 import { ExamModule } from './modules/exam/exam.module';
 import { ExamAttemptModule } from './modules/exam-attempt/exam-attempt.module';
 import { ExamAttemptDetailModule } from './modules/exam-attempt-detail/exam-attempt-detail.module';
+import { ExamScoreModule } from './modules/exam-score/exam-score.module';
 import { ExamScoreDetailModule } from './modules/exam-score-detail/exam-score-detail.module';
 import { ExamStructureModule } from './modules/exam-structure/exam-structure.module';
 import { ExamTypeModule } from './modules/exam-type/exam-type.module';
@@ -58,6 +59,7 @@ import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
         ExamModule,
         ExamAttemptModule,
         ExamAttemptDetailModule,
+        ExamScoreModule,
         ExamScoreDetailModule,
         ExamStructureModule,
         ExamTypeModule,

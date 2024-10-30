@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { ExamScore } from './examscore.entity';
+import { ExamStructure } from './examstructure.entity';
 
-@Entity('examstructure')
-export class ExamStructure {
+@Entity('examscore')
+export class ExamScore {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -18,13 +18,6 @@ export class ExamStructure {
   @Column({ type: 'uuid', nullable: true })
   updatedby: string;
 
-  @ManyToOne(() => ExamScore)
-  @JoinColumn({ name: 'examscoreid' })
-  examScore: ExamScore;
-
-  @Column({ type: 'varchar', length: 255 })
-  structurename: string;
-
-  @Column({ type: 'text', nullable: true })
-  description: string;
+  @Column({ type: 'text'})
+  type: string;
 }
