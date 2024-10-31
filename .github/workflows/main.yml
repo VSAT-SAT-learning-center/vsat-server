@@ -3,15 +3,14 @@ name: CI/CD for VSAT
 on:
   push:
     branches:
-      - '**'
+      - main
   pull_request:
     branches:
       - '**'
 
 jobs:
-  lint-test-build:
+  setup:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,13 +23,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
       - name: Run lint
         run: npm run lint
 
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
       - name: Run tests with coverage
-        run: npm run test -- --coverage --passWithNoTests
         env:
           CI: true
+        run: npm run test -- --coverage --passWithNoTests
 
       - name: Upload test coverage report
         if: always()
@@ -39,6 +46,10 @@ jobs:
           name: coverage-report
           path: coverage
 
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
       - name: Build the app
         run: npm run build
 
@@ -48,3 +59,32 @@ jobs:
         with:
           name: build-artifacts
           path: dist
+
+  deploy-backend:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check current user
+        run: whoami
+
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_HOST=103.162.15.145" > .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_DB=vsat" >> .env
+          echo "POSTGRES_SYNC=true" >> .env
+          echo "POSTGRES_LOGGING=true" >> .env
+          echo "MONGO_URI=mongodb://localhost:27017/nest" >> .env
+          echo "MAIL_USER=vsat.center.official@gmail.com" >> .env
+          echo "ACCESS_TOKEN_KEY=${{ secrets.ACCESS_TOKEN_KEY }}" >> .env
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> .env
+
+      - name: Deploy Backend with Docker Compose
+        run: docker compose up --build -d
