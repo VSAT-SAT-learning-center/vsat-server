@@ -10,9 +10,8 @@ import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('TargetLearnings')
 @Controller('target-learnings')
-export class TargetLearningController extends BaseController<TargetLearning> {
+export class TargetLearningController{
   constructor(targetLearningService: TargetLearningService) {
-    super(targetLearningService, 'TargetLearning');
   }
 }
 

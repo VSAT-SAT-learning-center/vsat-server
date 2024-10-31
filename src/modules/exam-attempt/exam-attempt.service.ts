@@ -13,6 +13,7 @@ export class ExamAttemptService {
     constructor(
         @InjectRepository(ExamAttempt)
         private readonly examAttemptRepository: Repository<ExamAttempt>,
+        
     ) {}
 
     async recommend(examAttemptId: string) {
@@ -25,16 +26,33 @@ export class ExamAttemptService {
             //all
         } else if (examAttempt.scoreRW < 400) {
             //all
-        } else if (examAttempt.studyProfile.targetscoreMath >= 400 && examAttempt.studyProfile.targetscoreMath < 600) {
-                if (examAttempt.scoreMath < 600){
-                    //4TH Math
-                }
-        } else if (examAttempt.scoreRW < 600) {
-            //4TH RW
-        } else if (examAttempt.scoreMath < 800){
-            //4TH Math
-        } else if (examAttempt.scoreRW < 800){
-             //4TH RW
+        } else if (
+            examAttempt.studyProfile.targetscoreMath >= 400 &&
+            examAttempt.studyProfile.targetscoreMath < 600
+        ) {
+            if (examAttempt.scoreMath < 600) {
+                //4TH Math
+            } else if (examAttempt.scoreRW < 600) {
+                //4TH RW
+            }
+        } else if (
+            examAttempt.studyProfile.targetscoreMath >= 600 &&
+            examAttempt.studyProfile.targetscoreMath < 800
+        ) {
+            if (examAttempt.scoreMath < 800) {
+                //4TH Math
+            } else if (examAttempt.scoreRW < 800) {
+                //4TH RW
+            }
+        } else if (
+            examAttempt.studyProfile.targetscoreMath >= 600 &&
+            examAttempt.studyProfile.targetscoreMath <= 800
+        ) {
+            if (examAttempt.scoreMath > 400 && examAttempt.scoreMath < 600) {
+                //1TH Math
+            } else if (examAttempt.scoreRW > 400 && examAttempt.scoreRW < 600) {
+                //1TH Math
+            }
         }
     }
 }

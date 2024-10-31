@@ -11,8 +11,12 @@ import { BaseService } from '../base/base.service';
 export class TargetLearningService extends BaseService<TargetLearning> {
   constructor(
     @InjectRepository(TargetLearning)
-    targetLearningRepository: Repository<TargetLearning>,
+    private readonly targetLearningRepository: Repository<TargetLearning>,
   ) {
     super(targetLearningRepository);
+  }
+
+  async save(){
+
   }
 }
