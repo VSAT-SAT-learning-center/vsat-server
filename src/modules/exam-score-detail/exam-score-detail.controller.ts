@@ -28,7 +28,7 @@ export class ExamScoreDetailController {
         private readonly examScoreDetailService: ExamScoreDetailService,
     ) {}
 
-    @Patch(':id')
+    @Patch()
     @ApiBody({ type: [UpdateExamScoreDetailDto] })
     async update(@Body() updateExamScoreDetailDto: UpdateExamScoreDetailDto[]) {
         try {
