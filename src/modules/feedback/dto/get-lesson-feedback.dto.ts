@@ -21,8 +21,7 @@ export class QuestionFeedbackResponseDto {
     updatedat: Date;
 
     @Expose()
-    question: Question;
-    
+    question: Question; 
     @Expose()
     @Type(() => AccountDto)
     accountFrom: AccountDto;

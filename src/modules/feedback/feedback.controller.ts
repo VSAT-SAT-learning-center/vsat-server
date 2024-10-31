@@ -33,12 +33,12 @@ export class FeedbackController extends BaseController<Feedback> {
         );
     }
 
-    @Get('question/:userId')
+    @Get('question/:questionId')
     async getQuestionFeedbackByUserId(
-        @Param('userId') userId: string,
         @Param('questionId') questionId: string,
     ) {
         try {
+            const userId = "";
             const feedback = await this.feedbackService.getQuestionFeedbackUserId(
                 userId,
                 questionId,

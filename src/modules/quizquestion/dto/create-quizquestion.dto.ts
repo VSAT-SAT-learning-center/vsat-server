@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsNotEmpty, IsString } from 'class-validator';
-import { QuizStatus } from 'src/common/enums/quiz.status.enum';
+import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
 import { CreateQuizAnswerDTO } from 'src/modules/quizanswer/dto/create-quizanswer.dto';
 
@@ -42,5 +42,5 @@ export class CreateQuizQuestionDto {
     @IsBoolean()
     isSingleChoiceQuestion: boolean;
 
-    status: QuizStatus;
+    status: QuizQuestionStatus;
 }
