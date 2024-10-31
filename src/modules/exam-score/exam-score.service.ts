@@ -56,7 +56,10 @@ export class ExamScoreService {
         const [examScore, total] = await this.examScoreRepository.findAndCount({
             skip: skip,
             take: pageSize,
-            relations: ['examScoreDetails'],
+            relations: ['examScoreDetails', 'examScoreDetails.section'],
+            order: {
+                createdat: 'DESC',
+            },
         });
 
         const totalPages = Math.ceil(total / pageSize);
