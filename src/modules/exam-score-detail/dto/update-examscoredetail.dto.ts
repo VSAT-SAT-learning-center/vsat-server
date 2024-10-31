@@ -3,22 +3,23 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsUUID, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateExamScoreDetailDto {
+    @ApiProperty()
     @IsUUID()
-    @Expose()
-    @ApiProperty()
     id: string;
-
-    @IsInt()
-    @ApiProperty()
-    @Expose()
-    lowerscore?: number;
-
-    @IsInt()
-    @ApiProperty()
-    @Expose()
-    upperscore?: number;
 
     @IsString()
     @ApiProperty()
     section: string;
+
+    @IsInt()
+    @ApiProperty()
+    rawscore?: number;
+
+    @IsInt()
+    @ApiProperty()
+    lowerscore?: number;
+
+    @IsInt()
+    @ApiProperty()
+    upperscore?: number;
 }
