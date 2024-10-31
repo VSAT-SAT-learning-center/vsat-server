@@ -24,6 +24,8 @@ import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
+import { QuizService } from '../quiz/quiz.service';
+import { SkillService } from '../skill/skill.service';
 
 @Injectable()
 export class QuizQuestionService {
@@ -38,7 +40,7 @@ export class QuizQuestionService {
         private readonly sectionRepository: Repository<Section>,
         @InjectRepository(QuizAnswer)
         private readonly quizAnswerRepository: Repository<QuizAnswer>,
-        private readonly quizAnswerService: QuizAnswerService,
+        private readonly quizAnswerService: QuizAnswerService
     ) {}
 
     normalizeContent(content: string): string {
@@ -53,7 +55,7 @@ export class QuizQuestionService {
     async saveQuizQuestion(
         createQuizQuestionDto: CreateQuizQuestionDto,
     ): Promise<QuizQuestion> {
-        const { levelId, skillId, sectionId, answers, content, plainContent } =
+        const { levelId, skillId, answers, content, plainContent } =
             createQuizQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
@@ -68,13 +70,6 @@ export class QuizQuestionService {
         });
         if (!foundSkill) {
             throw new NotFoundException('Skill not found');
-        }
-
-        const foundSection = await this.sectionRepository.findOne({
-            where: { id: sectionId },
-        });
-        if (!foundSection) {
-            throw new NotFoundException('Section not found');
         }
 
         if (!answers || answers.length === 0) {
@@ -117,7 +112,6 @@ export class QuizQuestionService {
             ...createQuizQuestionDto,
             level: foundLevel,
             skill: foundSkill,
-            section: foundSection,
             plainContent: normalizedContent,
         });
 
@@ -200,7 +194,6 @@ export class QuizQuestionService {
                 const {
                     level,
                     skill,
-                    section,
                     answers,
                     content,
                     plainContent,
@@ -211,9 +204,6 @@ export class QuizQuestionService {
                 });
                 const foundSkill = await this.skillRepository.findOne({
                     where: { content: skill },
-                });
-                const foundSection = await this.sectionRepository.findOne({
-                    where: { name: section },
                 });
 
                 if (!answers || answers.length === 0) {
@@ -260,10 +250,6 @@ export class QuizQuestionService {
                     throw new NotFoundException('Skill is not found');
                 }
 
-                if (!foundSection) {
-                    throw new NotFoundException('Section is not found');
-                }
-
                 if (createQuizQuestionDto.isSingleChoiceQuestion === null) {
                     throw new HttpException(
                         'IsSingleChoiceQuestion is null',
@@ -278,8 +264,7 @@ export class QuizQuestionService {
                     isSingleChoiceQuestion:
                         createQuizQuestionDto.isSingleChoiceQuestion,
                     level: foundLevel,
-                    skill: foundSkill,
-                    section: foundSection,
+                    skill: foundSkill
                 });
 
                 const savedQuizQuestion =
@@ -420,5 +405,42 @@ export class QuizQuestionService {
         });
 
         return questionWithAnswers;
+    }
+
+    async getQuizQuestionsByLevelAndSkill(levelId: string, skillId: string): Promise<QuizQuestion[]> {
+        return this.quizQuestionRepository.find({
+            where: {
+                level: { id: levelId },
+                skill: { id: skillId },
+                status: QuizQuestionStatus.APPROVED, // Optional: filter by approved status if needed
+            },
+            relations: ['answers'],
+        });
+    }
+
+    async getRandomQuizQuestionsByLevelAndSkill(levelId: string, skillId: string, quantity: number): Promise<QuizQuestion[]> {
+        // Fetch all matching quiz questions
+        const questions = await this.quizQuestionRepository.find({
+            where: {
+                level: { id: levelId },
+                skill: { id: skillId },
+                status: QuizQuestionStatus.APPROVED, // Filter by approved status if needed
+            },
+            relations: ['answers'], // Optionally include related answers
+        });
+
+        // Shuffle questions and select a specified quantity
+        return this.getRandomSubset(questions, quantity);
+    }
+
+    private getRandomSubset(questions: QuizQuestion[], quantity: number): QuizQuestion[] {
+        // Shuffle the questions array
+        for (let i = questions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [questions[i], questions[j]] = [questions[j], questions[i]];
+        }
+        
+        // Return the first `quantity` items after shuffle
+        return questions.slice(0, quantity);
     }
 }

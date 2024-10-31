@@ -4,10 +4,12 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
-    ManyToOne,
     JoinColumn,
+    OneToOne,
+    ManyToOne,
 } from 'typeorm';
 import { Unit } from './unit.entity';
+import { QuizConfig } from './quizconfig.entity';
 
 @Entity('quiz')
 export class Quiz {
@@ -26,9 +28,12 @@ export class Quiz {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => Unit)
-    @JoinColumn({ name: 'unitid' })
-    unit: Unit;
+    @ManyToOne(() => QuizConfig, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'quizconfigid' })
+    quizconfig: QuizConfig;
+
+    @Column({ type: 'int', nullable: true })
+    totalquestion: number;
 
     @Column({ type: 'boolean', default: false })
     status: boolean;

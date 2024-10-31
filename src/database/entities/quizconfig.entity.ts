@@ -6,9 +6,11 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToOne,
 } from 'typeorm';
 import { Quiz } from './quiz.entity';
 import { Skill } from './skill.entity';
+import { Unit } from './unit.entity';
 
 @Entity('quizconfig')
 export class QuizConfig {
@@ -30,6 +32,10 @@ export class QuizConfig {
     @ManyToOne(() => Quiz, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'quizid' })
     quiz: Quiz;
+
+    @OneToOne(() => Unit)
+    @JoinColumn({ name: 'unitid' })
+    unit: Unit;
 
     @ManyToOne(() => Skill, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'skillid' })

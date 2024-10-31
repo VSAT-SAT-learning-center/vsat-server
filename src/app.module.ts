@@ -43,6 +43,7 @@ import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
 import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
 import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
+import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-question-item.module';
 
 @Module({
     imports: [
@@ -90,6 +91,7 @@ import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
         AnswerModule,
         GptModule,
         QuizAnswerModule,
+        QuizQuestionItemModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

@@ -40,10 +40,6 @@ export class QuizQuestion {
     @JoinColumn({ name: 'levelid' })
     level: Level;
 
-    @ManyToOne(() => Section)
-    @JoinColumn({ name: 'sectionid' })
-    section: Section;
-
     @OneToMany(() => QuizAnswer, (quizAnswer) => quizAnswer.quizquestion)
     answers: QuizAnswer[];
 

@@ -11,5 +11,6 @@ import { QuizConfig } from 'src/database/entities/quizconfig.entity';
   imports: [TypeOrmModule.forFeature([QuizConfig, Quiz, Skill])],
   providers: [QuizConfigService, PaginationService],
   controllers: [QuizConfigController],
+  exports: [QuizConfigService],
 })
 export class QuizConfigModule {}

@@ -13,6 +13,7 @@ import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
 @Module({
     imports: [TypeOrmModule.forFeature([QuizQuestion, Level, Section, Skill, QuizAnswer]), QuizAnswerModule],
     controllers: [QuizQuestionController],
-    providers: [QuizQuestionService, PaginationService],
+    providers: [QuizQuestionService],
+    exports: [QuizQuestionService],
 })
 export class QuizQuestionModule {}

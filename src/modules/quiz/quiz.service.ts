@@ -5,109 +5,164 @@ import { Repository } from 'typeorm';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { Unit } from 'src/database/entities/unit.entity';
-import { NotFoundError } from 'rxjs';
 import { plainToInstance } from 'class-transformer';
 import { GetQuizDto } from './dto/get-quiz.dto';
+import { QuizConfigService } from '../quiz-config/quiz-config.service';
+import { QuizQuestionService } from '../quizquestion/quiz-question.service';
+import { BaseService } from '../base/base.service';
+import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
+import { UnitService } from '../unit/unit.service';
+import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
 
 @Injectable()
-export class QuizService {
+export class QuizService extends BaseService<Quiz> {
     constructor(
         @InjectRepository(Quiz)
         private readonly quizRepository: Repository<Quiz>,
-        @InjectRepository(Unit)
-        private readonly unitRepository: Repository<Unit>,
-    ) {}
 
-    async save(createQuizDto: CreateQuizDto): Promise<Quiz> {
-        const unitExists = await this.unitRepository.findOne({
-            where: { id: createQuizDto.unitId },
-        });
-
-        if (!unitExists) {
-            throw new NotFoundException(
-                `Unit with ID ${createQuizDto.unitId} does not exist`,
-            );
-        }
-
-        const quiz = this.quizRepository.create({
-            ...createQuizDto,
-            unit: unitExists,
-            status: false,
-        });
-
-        const saveQuiz = await this.quizRepository.save(quiz);
-
-        return saveQuiz;
+        private readonly unitService: UnitService,
+        private readonly quizConfigService: QuizConfigService,
+        private readonly quizQuestionService: QuizQuestionService,
+        private readonly quizQuestionItemService: QuizQuestionItemService,
+    ) {
+        super(quizRepository);
     }
 
-    async update(
-        id: string,
-        updateQuizDto: UpdateQuizDto,
-    ): Promise<UpdateQuizDto> {
-        const quiz = await this.quizRepository.findOne({
-            where: { id },
-        });
+    // async save(createQuizDto: CreateQuizDto): Promise<Quiz> {
+    //     const unitExists = await this.unitRepository.findOne({
+    //         where: { id: createQuizDto.unitId },
+    //     });
 
-        if (!quiz) {
-            throw new NotFoundException(`Quiz with ID ${id} not found`);
+    //     if (!unitExists) {
+    //         throw new NotFoundException(
+    //             `Unit with ID ${createQuizDto.unitId} does not exist`,
+    //         );
+    //     }
+
+    //     const quiz = this.quizRepository.create({
+    //         ...createQuizDto,
+    //         unit: unitExists,
+    //         status: false,
+    //     });
+
+    //     const saveQuiz = await this.quizRepository.save(quiz);
+
+    //     return saveQuiz;
+    // }
+
+    // async updateQuiz(
+    //     id: string,
+    //     updateQuizDto: UpdateQuizDto,
+    // ): Promise<UpdateQuizDto> {
+    //     const quiz = await this.quizRepository.findOne({
+    //         where: { id },
+    //     });
+
+    //     if (!quiz) {
+    //         throw new NotFoundException(`Quiz with ID ${id} not found`);
+    //     }
+
+    //     if (updateQuizDto.unitId) {
+    //         const unitExists = await this.unitRepository.findOne({
+    //             where: { id: updateQuizDto.unitId },
+    //         });
+
+    //         if (!unitExists) {
+    //             throw new NotFoundException(
+    //                 `Unit with ID ${updateQuizDto.unitId} does not exist`,
+    //             );
+    //         }
+
+    //         quiz.unit = unitExists;
+    //     }
+
+    //     Object.assign(quiz, updateQuizDto);
+
+    //     return plainToInstance(
+    //         UpdateQuizDto,
+    //         await this.quizRepository.save(quiz),
+    //         { excludeExtraneousValues: true },
+    //     );
+    // }
+
+    // async getAllQuizzes(page: number, pageSize: number): Promise<any> {
+    //     const skip = (page - 1) * pageSize;
+
+    //     const [quizzes, total] = await this.quizRepository.findAndCount({
+    //         relations: ['unit'],
+    //         skip: skip,
+    //         take: pageSize,
+    //     });
+
+    //     const totalPages = Math.ceil(total / pageSize);
+
+    //     return {
+    //         data: plainToInstance(GetQuizDto, quizzes, {
+    //             excludeExtraneousValues: true,
+    //         }),
+    //         totalPages: totalPages,
+    //         currentPage: page,
+    //         totalItems: total,
+    //     };
+    // }
+
+    // async getById(id: string): Promise<GetQuizDto> {
+    //     const quiz = await this.quizRepository.findOne({
+    //         where: { id },
+    //         relations: ['unit'],
+    //     });
+
+    //     if (!quiz) {
+    //         throw new NotFoundException(`Quiz with ID ${id} not found`);
+    //     }
+
+    //     return plainToInstance(GetQuizDto, quiz, {
+    //         excludeExtraneousValues: true,
+    //     });
+    // }
+
+    async createQuiz(unitId: string): Promise<Quiz> {
+        // Step 1: Get the quiz by unitId
+        const unit = await this.unitService.findOneById(unitId, ['level']);
+
+        if (!unit) {
+            throw new NotFoundException(`Unit with ID ${unitId} not found`);
         }
 
-        if (updateQuizDto.unitId) {
-            const unitExists = await this.unitRepository.findOne({
-                where: { id: updateQuizDto.unitId },
-            });
+        const quizConfigs = await this.quizConfigService.findConfigsByUnitId(unitId);
 
-            if (!unitExists) {
-                throw new NotFoundException(
-                    `Unit with ID ${updateQuizDto.unitId} does not exist`,
+        if (!quizConfigs) {
+            throw new NotFoundException(`QuizConfig not found for unit ID: ${unitId}`);
+        }
+
+        const quizQuestions: QuizQuestion[] = [];
+
+        const levelId = unit.level.id;
+        const quizConfigId = quizConfigs[0].id;
+
+        for (const config of quizConfigs) {
+            const skillId = config.skill.id;
+            const questionQuantity = config.totalquestion;
+
+            // Fetch questions based on skillId and levelId
+            const questions =
+                await this.quizQuestionService.getRandomQuizQuestionsByLevelAndSkill(
+                    levelId,
+                    skillId,
+                    questionQuantity,
                 );
-            }
 
-            quiz.unit = unitExists;
+            // Append the questions to the main list
+            quizQuestions.push(...questions);
         }
 
-        Object.assign(quiz, updateQuizDto);
-
-        return plainToInstance(
-            UpdateQuizDto,
-            await this.quizRepository.save(quiz),
-            { excludeExtraneousValues: true },
-        );
-    }
-
-    async getAll(page: number, pageSize: number): Promise<any> {
-        const skip = (page - 1) * pageSize;
-
-        const [quizzes, total] = await this.quizRepository.findAndCount({
-            relations: ['unit'],
-            skip: skip,
-            take: pageSize,
+        const quiz = await this.quizRepository.create({
+            quizconfig: { id: quizConfigId },
+            totalquestion: quizQuestions.length
         });
 
-        const totalPages = Math.ceil(total / pageSize);
+        await this.quizQuestionItemService.insertQuizQuestionItems(quiz.id, quizQuestions);
 
-        return {
-            data: plainToInstance(GetQuizDto, quizzes, {
-                excludeExtraneousValues: true,
-            }),
-            totalPages: totalPages,
-            currentPage: page,
-            totalItems: total,
-        };
-    }
-
-    async getById(id: string): Promise<GetQuizDto> {
-        const quiz = await this.quizRepository.findOne({
-            where: { id },
-            relations: ['unit'],
-        });
-
-        if (!quiz) {
-            throw new NotFoundException(`Quiz with ID ${id} not found`);
-        }
-
-        return plainToInstance(GetQuizDto, quiz, {
-            excludeExtraneousValues: true,
-        });
+        return quiz; 
     }
 }

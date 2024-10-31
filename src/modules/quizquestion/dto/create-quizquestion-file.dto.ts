@@ -23,11 +23,6 @@ export class CreateQuizQuestionFileDto extends BaseDTO {
     skill: string;
 
     @Expose()
-    @ValidateNested()
-    @ApiProperty({ example: 'Math' })
-    section: string;
-
-    @Expose()
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
