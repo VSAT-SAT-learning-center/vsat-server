@@ -466,8 +466,6 @@ export class QuestionService {
             throw new NotFoundException('Question not found');
         }
 
-       
-
         if (question.status === QuestionStatus.APPROVED) {
             throw new HttpException(
                 'Cannot update question because it is already Approved',

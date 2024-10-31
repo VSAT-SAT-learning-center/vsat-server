@@ -4,8 +4,10 @@ import {
     Get,
     HttpException,
     HttpStatus,
+    Param,
     Patch,
     Post,
+    Put,
     Query,
 } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -16,6 +18,8 @@ import { CreateQuizQuestionDto } from './dto/create-quizquestion.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
+import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
+import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
 
 @ApiTags('QuizQuestions')
 @Controller('quiz-questions')
@@ -91,6 +95,55 @@ export class QuizQuestionController {
             return ResponseHelper.success(
                 HttpStatus.OK,
                 SuccessMessages.update('QuizQuestions'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Put('updateQuizQuestion/:id')
+    async updateQuizQuestion(
+        @Param('id') id: string,
+        @Body() updateQuizQuestionDto: UpdateQuizQuestionDTO,
+    ) {
+        try {
+            const question = await this.quizQuestionService.updateQuizQuestion(
+                id,
+                updateQuizQuestionDto,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                question,
+                SuccessMessages.update('QuizQuestion'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('import-file')
+    @ApiBody({ type: [CreateQuizQuestionFileDto] })
+    async save(@Body() createQuestionFileDto: CreateQuizQuestionFileDto[]) {
+        try {
+            const saveQuestion = await this.quizQuestionService.save(
+                createQuestionFileDto,
+            );
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                saveQuestion,
+                SuccessMessages.create('QuizQuestion'),
             );
         } catch (error) {
             throw new HttpException(
