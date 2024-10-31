@@ -42,5 +42,7 @@ export class ExamScoreDetailService {
     
         return this.examScoreDetailRepository.save(createdExamScoreDetails);
     }
+
+    
     
 }

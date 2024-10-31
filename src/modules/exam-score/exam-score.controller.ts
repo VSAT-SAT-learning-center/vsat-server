@@ -45,4 +45,31 @@ export class ExamScoreController {
             );
         }
     }
+
+    @Get()
+    async getAllExamScoreWithDetails(
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+    ) {
+        try {
+            const savedExamScore =
+                await this.examScoreService.getAllExamScoreWithDetails(
+                    page,
+                    pageSize,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                savedExamScore,
+                SuccessMessages.get('ExamScore'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

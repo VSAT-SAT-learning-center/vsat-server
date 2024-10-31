@@ -1,14 +1,20 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { Repository } from 'typeorm';
 import { CreateExamScoreDto } from './dto/create-examscore.dto';
 import { ExamScoreDetailService } from '../exam-score-detail/exam-score-detail.service';
+import { plainToInstance } from 'class-transformer';
 @Injectable()
 export class ExamScoreService {
     constructor(
         @InjectRepository(ExamScore)
-        private readonly repository: Repository<ExamScore>,
+        private readonly examScoreRepository: Repository<ExamScore>,
 
         private readonly examScoreDetailService: ExamScoreDetailService,
     ) {}
@@ -16,11 +22,11 @@ export class ExamScoreService {
     async create(
         createExamScoreDto: CreateExamScoreDto,
     ): Promise<CreateExamScoreDto> {
-        const type = await this.repository.findOne({
+        const type = await this.examScoreRepository.findOne({
             where: { type: createExamScoreDto.type },
         });
 
-        const title = await this.repository.findOne({
+        const title = await this.examScoreRepository.findOne({
             where: { title: createExamScoreDto.title },
         });
 
@@ -37,12 +43,12 @@ export class ExamScoreService {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        const saveExamScore = await this.repository.create({
+        const saveExamScore = await this.examScoreRepository.create({
             type: createExamScoreDto.type,
             title: createExamScoreDto.title,
         });
 
-        await this.repository.save(saveExamScore);
+        await this.examScoreRepository.save(saveExamScore);
 
         await this.examScoreDetailService.createMany(
             createExamScoreDto.createExamScoreDetail,
@@ -50,5 +56,26 @@ export class ExamScoreService {
         );
 
         return createExamScoreDto;
+    }
+
+    async getAllExamScoreWithDetails(
+        page: number,
+        pageSize: number,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [examScore, total] = await this.examScoreRepository.findAndCount({
+            skip: skip,
+            take: pageSize,
+            relations: ['examScoreDetails'],
+        });
+
+        const totalPages = Math.ceil(total / pageSize);
+        return {
+            examScore,
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
     }
 }
