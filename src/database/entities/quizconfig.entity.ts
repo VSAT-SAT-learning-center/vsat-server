@@ -29,10 +29,6 @@ export class QuizConfig {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => Quiz, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'quizid' })
-    quiz: Quiz;
-
     @OneToOne(() => Unit)
     @JoinColumn({ name: 'unitid' })
     unit: Unit;

@@ -156,13 +156,15 @@ export class QuizService extends BaseService<Quiz> {
             quizQuestions.push(...questions);
         }
 
-        const quiz = await this.quizRepository.create({
+        const quiz = this.quizRepository.create({
             quizconfig: { id: quizConfigId },
             totalquestion: quizQuestions.length
         });
 
-        await this.quizQuestionItemService.insertQuizQuestionItems(quiz.id, quizQuestions);
+        const createQuiz = await this.quizRepository.save(quiz);
 
-        return quiz; 
+        await this.quizQuestionItemService.insertQuizQuestionItems(createQuiz.id, quizQuestions);
+
+        return createQuiz; 
     }
 }
