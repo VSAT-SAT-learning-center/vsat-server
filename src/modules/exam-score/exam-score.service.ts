@@ -22,20 +22,9 @@ export class ExamScoreService {
     async create(
         createExamScoreDto: CreateExamScoreDto,
     ): Promise<CreateExamScoreDto> {
-        const type = await this.examScoreRepository.findOne({
-            where: { type: createExamScoreDto.type },
-        });
-
         const title = await this.examScoreRepository.findOne({
             where: { title: createExamScoreDto.title },
         });
-
-        if (type) {
-            throw new HttpException(
-                'Type is already esxist',
-                HttpStatus.BAD_REQUEST,
-            );
-        }
 
         if (title) {
             throw new HttpException(
