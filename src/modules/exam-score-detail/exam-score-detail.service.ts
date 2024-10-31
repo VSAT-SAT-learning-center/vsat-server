@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateExamScoreDetailDto } from './dto/create-examscoredetail.dto';
@@ -48,15 +53,37 @@ export class ExamScoreDetailService {
         return this.examScoreDetailRepository.save(createdExamScoreDetails);
     }
 
-    async update(id: string, updateExamScoreDetail: UpdateExamScoreDetailDto) {
-        const examScoreDetail = await this.examScoreDetailRepository.findOne({
-            where: { id: id },
-        });
+    async update(updateExamScoreDetail: UpdateExamScoreDetailDto[]) {
+        const updatedExamScoreDetails: ExamScoreDetail[] = [];
 
-        if (!examScoreDetail) {
-            throw new NotFoundException(
-                `ExamScoreDetail with ID ${id} not found`,
-            );
+        for (const updateDto of updateExamScoreDetail) {
+            const existingExamScoreDetail =
+                await this.examScoreDetailRepository.findOne({
+                    where: { id: updateDto.id },
+                });
+
+            if (!existingExamScoreDetail) {
+                throw new NotFoundException(
+                    `ExamScoreDetail with ID ${updateDto.id} not found`,
+                );
+            }
+
+            if (updateDto.lowerscore === undefined) {
+                throw new HttpException(
+                    'Lowscore is undefined',
+                    HttpStatus.BAD_REQUEST,
+                );
+            } else if (updateDto.upperscore === undefined) {
+                throw new HttpException(
+                    'Upper is undefined',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            Object.assign(existingExamScoreDetail, updateDto);
+
+            updatedExamScoreDetails.push(existingExamScoreDetail);
         }
+        return this.examScoreDetailRepository.save(updatedExamScoreDetails);
     }
 }

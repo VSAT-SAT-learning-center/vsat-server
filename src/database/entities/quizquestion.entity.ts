@@ -65,4 +65,10 @@ export class QuizQuestion {
 
     @Column({ type: 'boolean', nullable: true })
     isSingleChoiceQuestion: boolean;
+
+    @Column({ type: 'int', nullable: true })
+    countfeedback: number;
+
+    @Column({ type: 'boolean', default: true })
+    isActive: boolean;
 }

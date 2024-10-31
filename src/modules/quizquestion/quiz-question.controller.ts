@@ -133,6 +133,32 @@ export class QuizQuestionController {
         }
     }
 
+    @Put('updateStatus/:id')
+    async updateStatus(
+        @Param('id') id: string,
+        @Body() status: QuizQuestionStatus,
+    ) {
+        try {
+            const question = await this.quizQuestionService.updateStatus(
+                id,
+                status,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                question,
+                SuccessMessages.update('QuizQuestion'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
     @Post('import-file')
     @ApiBody({ type: [CreateQuizQuestionFileDto] })
     async save(@Body() createQuestionFileDto: CreateQuizQuestionFileDto[]) {

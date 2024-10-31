@@ -17,6 +17,6 @@ export class TargetLearningService extends BaseService<TargetLearning> {
   }
 
   async save(){
-
+    
   }
 }

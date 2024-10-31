@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     HttpException,
     HttpStatus,
     Injectable,
@@ -420,5 +421,33 @@ export class QuizQuestionService {
         });
 
         return questionWithAnswers;
+    }
+
+    async updateStatus(
+        id: string,
+        status: QuizQuestionStatus,
+    ): Promise<boolean> {
+        if (!Object.values(QuizQuestionStatus).includes(status)) {
+            throw new BadRequestException(`Invalid status value: ${status}`);
+        }
+
+        const quizQuestion = await this.quizQuestionRepository.findOneBy({
+            id,
+        });
+        if (!quizQuestion) {
+            throw new NotFoundException('Question not found');
+        }
+
+        if (status === QuizQuestionStatus.REJECT) {
+            if (quizQuestion.countfeedback == 3) {
+                quizQuestion.isActive = false;
+            }
+            quizQuestion.countfeedback = quizQuestion.countfeedback + 1;
+        }
+
+        quizQuestion.status = status;
+
+        await this.quizQuestionRepository.save(quizQuestion);
+        return true;
     }
 }
