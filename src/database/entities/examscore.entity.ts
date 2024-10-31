@@ -20,4 +20,7 @@ export class ExamScore {
 
   @Column({ type: 'text'})
   type: string;
+
+  @Column({ type: 'text'})
+  title: string;
 }

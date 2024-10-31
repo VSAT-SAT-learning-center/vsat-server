@@ -27,29 +27,29 @@ export class ExamScoreDetailController {
     ) {
     }
 
-    @Post()
-    @ApiBody({ type: CreateExamScoreDetailDto, isArray: true })
-    async createMany(
-        @Body() createExamScoreDetailsDto: CreateExamScoreDetailDto[],
-    ) {
-        try {
-            const createdExamScoreDetails =
-                await this.examScoreDetailService.createMany(
-                    createExamScoreDetailsDto,
-                );
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                createdExamScoreDetails,
-                'Exam score details created successfully',
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
+    // @Post()
+    // @ApiBody({ type: CreateExamScoreDetailDto, isArray: true })
+    // async createMany(
+    //     @Body() createExamScoreDetailsDto: CreateExamScoreDetailDto[],
+    // ) {
+    //     try {
+    //         const createdExamScoreDetails =
+    //             await this.examScoreDetailService.createMany(
+    //                 createExamScoreDetailsDto,
+    //             );
+    //         return ResponseHelper.success(
+    //             HttpStatus.CREATED,
+    //             createdExamScoreDetails,
+    //             'Exam score details created successfully',
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 }

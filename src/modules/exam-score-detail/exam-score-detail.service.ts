@@ -1,51 +1,46 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateExamScoreDetailDto } from './dto/create-examscoredetail.dto';
-import { UpdateExamScoreDetailDto } from './dto/update-examscoredetail.dto';
 import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { BaseService } from '../base/base.service';
 import { Section } from 'src/database/entities/section.entity';
+import { ExamScore } from 'src/database/entities/examscore.entity';
 
 @Injectable()
-export class ExamScoreDetailService extends BaseService<ExamScoreDetail> {
+export class ExamScoreDetailService {
     constructor(
         @InjectRepository(ExamScoreDetail)
         private readonly examScoreDetailRepository: Repository<ExamScoreDetail>,
         @InjectRepository(Section)
         private readonly sectionRepository: Repository<Section>,
-        paginationService: PaginationService,
-    ) {
-        super(examScoreDetailRepository, paginationService);
-    }
+    ) {}
 
     async createMany(
         createExamScoreDetailsDto: CreateExamScoreDetailDto[],
+        examScoreId: string,
     ): Promise<ExamScoreDetail[]> {
-        const createdExamScoreDetails: ExamScoreDetail[] = [];
-
-        for (const dto of createExamScoreDetailsDto) {
-            const section = await this.sectionRepository.findOne({
-                where: { id: dto.sectionId },
-            });
-
+        const sectionNames = createExamScoreDetailsDto.map(dto => dto.section);
+        const sections = await this.sectionRepository.find({
+            where: { name: In(sectionNames) },
+        });
+        
+        const sectionMap = new Map(sections.map(section => [section.name, section]));
+    
+        const createdExamScoreDetails = createExamScoreDetailsDto.map(dto => {
+            const section = sectionMap.get(dto.section);
+            
             if (!section) {
-                throw new NotFoundException(
-                    `Section with id ${dto.sectionId} not found`,
-                );
+                throw new NotFoundException(`Section ${dto.section} not found`);
             }
-
-
-            const newExamScoreDetail = this.repository.create({
+    
+            return this.examScoreDetailRepository.create({
                 ...dto,
                 section,
+                examScore: { id: examScoreId } as ExamScore,
             });
-
-            createdExamScoreDetails.push(newExamScoreDetail);
-        }
-
-        return this.repository.save(createdExamScoreDetails);
+        });
+    
+        return this.examScoreDetailRepository.save(createdExamScoreDetails);
     }
+    
 }

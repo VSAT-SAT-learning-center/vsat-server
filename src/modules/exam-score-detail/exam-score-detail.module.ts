@@ -7,8 +7,9 @@ import { ExamScoreDetailService } from './exam-score-detail.service';
 import { ExamScoreDetailController } from './exam-score-detail.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ExamScoreDetail, Section])],
-  providers: [ExamScoreDetailService, PaginationService],
-  controllers: [ExamScoreDetailController],
+    imports: [TypeOrmModule.forFeature([ExamScoreDetail, Section])],
+    providers: [ExamScoreDetailService],
+    controllers: [ExamScoreDetailController],
+    exports: [ExamScoreDetailService],
 })
 export class ExamScoreDetailModule {}
