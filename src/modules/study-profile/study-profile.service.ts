@@ -7,11 +7,13 @@ import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { BaseService } from '../base/base.service';
 
 @Injectable()
-export class StudyProfileService extends BaseService<StudyProfile> {
-  constructor(
-    @InjectRepository(StudyProfile)
-    private readonly studyProfileRepository: Repository<StudyProfile>,
-  ) {
-    super(studyProfileRepository);
-  }
+export class StudyProfileService {
+    constructor(
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
+    ) {}
+
+    async recommend(studyProfile: StudyProfile) {
+      
+    }
 }

@@ -365,7 +365,7 @@ export class QuizQuestionService {
                 HttpStatus.BAD_REQUEST,
             );
         } else if (quizQuestion.status === QuizQuestionStatus.REJECT) {
-            quizQuestion.status = QuizQuestionStatus.REJECT;
+            quizQuestion.status = QuizQuestionStatus.DRAFT;
         }
 
         Object.assign(quizQuestion, {
