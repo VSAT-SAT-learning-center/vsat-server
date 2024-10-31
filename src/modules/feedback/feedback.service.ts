@@ -232,4 +232,19 @@ export class FeedbackService extends BaseService<Feedback> {
         // Transform the entity to DTO
         return plainToInstance(QuestionFeedbackResponseDto, feedback, { excludeExtraneousValues: true });
     }
+
+    async getLessonFeedbackUserId(userId: string, questionId: string): Promise<QuestionFeedbackResponseDto> {
+        const feedback = await this.feedbackRepository.findOne({
+            where: [{ accountTo: { id: userId }, question: { id: questionId } }],
+            relations: ['question', 'accountFrom', 'accountTo'],
+            order: { updatedat: 'DESC' },
+        });
+
+        if (!feedback) {
+            throw new Error('Feedback not found');
+        }
+    
+        // Transform the entity to DTO
+        return plainToInstance(QuestionFeedbackResponseDto, feedback, { excludeExtraneousValues: true });
+    }
 }
