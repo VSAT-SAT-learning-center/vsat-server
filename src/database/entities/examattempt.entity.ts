@@ -31,5 +31,8 @@ export class ExamAttempt {
   attemptdatetime: Date;
 
   @Column({ type: 'int', nullable: true })
-  score: number;
+  scoreMath: number;
+
+  @Column({ type: 'int', nullable: true })
+  scoreRW: number;
 }

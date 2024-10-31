@@ -1,79 +1,50 @@
 name: CI/CD for VSAT
 
 on:
-  push: # Trigger workflow on push to any branch
+  push:
     branches:
-      - '*' # '*' means all branches
-  pull_request: # Trigger workflow on all pull requests to any branch
+      - '**'
+  pull_request:
     branches:
       - '**'
 
 jobs:
-  lint:
+  lint-test-build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3 # Checks out the repository under $GITHUB_WORKSPACE
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3 # Sets up Node.js environment
+        uses: actions/setup-node@v3
         with:
-          node-version: 20.x # Use Node.js 20.x
+          node-version: 20.x
 
       - name: Install dependencies
-        run: npm ci # Installs project dependencies using 'ci' for clean install
+        run: npm ci
 
       - name: Run lint
-        run: npm run lint # Runs lint checks
-
-  test:
-    needs: lint # Runs after lint job is complete
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3 # Checks out the repository under $GITHUB_WORKSPACE
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3 # Sets up Node.js environment
-        with:
-          node-version: 20.x # Use Node.js 20.x
-
-      - name: Install dependencies
-        run: npm ci # Installs project dependencies using 'ci' for clean install
+        run: npm run lint
 
       - name: Run tests with coverage
+        run: npm run test -- --coverage --passWithNoTests
         env:
-          CI: true # Set CI environment variable to true for better output in CI environments
-        run: npm run test -- --coverage --passWithNoTests # Add --passWithNoTests flag to allow tests to pass when no test files are found
+          CI: true
 
       - name: Upload test coverage report
-        if: always() # Upload even if there is a failure for debugging purposes
-        uses: actions/upload-artifact@v3 # Uploads test coverage report as an artifact
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: coverage # Adjust the path if needed (e.g., 'coverage/lcov-report' for LCOV)
-
-  build:
-    needs: test # Runs after the test job is complete
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3 # Checks out the repository under $GITHUB_WORKSPACE
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3 # Sets up Node.js environment
-        with:
-          node-version: 20.x # Use Node.js 20.x
-
-      - name: Install dependencies
-        run: npm ci # Installs project dependencies using 'ci' for clean install
+          path: coverage
 
       - name: Build the app
-        run: npm run build # Builds the NestJS application
+        run: npm run build
 
       - name: Upload build artifacts
-        if: success() # Only upload if the build is successful
-        uses: actions/upload-artifact@v3 # Uploads build artifacts (if needed)
+        if: success()
+        uses: actions/upload-artifact@v3
         with:
           name: build-artifacts
-          path: dist # Adjust the path if needed
+          path: dist

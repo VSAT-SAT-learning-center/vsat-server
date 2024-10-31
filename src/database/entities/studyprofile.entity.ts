@@ -31,7 +31,10 @@ export class StudyProfile {
     account: Account;
 
     @Column({ type: 'int', nullable: true })
-    targetscore: number;
+    targetscoreMath: number;
+
+    @Column({ type: 'int', nullable: true })
+    targetscoreRW: number;
 
     @Column({ type: 'timestamp', nullable: true })
     startdate: Date;
