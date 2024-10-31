@@ -38,12 +38,6 @@ export class QuestionController {
                 SuccessMessages.create('Question'),
             );
         } catch (error) {
-            if (error.code === '23505') {
-                throw new HttpException(
-                    'Question content already exists',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
             throw new HttpException(
                 {
                     statusCode: error.status || HttpStatus.BAD_REQUEST,

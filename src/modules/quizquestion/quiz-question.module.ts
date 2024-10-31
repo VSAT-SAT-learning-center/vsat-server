@@ -8,9 +8,10 @@ import { Level } from 'src/database/entities/level.entity';
 import { Skill } from 'src/database/entities/skill.entity';
 import { Section } from 'src/database/entities/section.entity';
 import { QuizAnswerModule } from '../quizanswer/quiz-answer.module';
+import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([QuizQuestion, Level, Section, Skill]), QuizAnswerModule],
+    imports: [TypeOrmModule.forFeature([QuizQuestion, Level, Section, Skill, QuizAnswer]), QuizAnswerModule],
     controllers: [QuizQuestionController],
     providers: [QuizQuestionService, PaginationService],
 })
