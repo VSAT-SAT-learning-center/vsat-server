@@ -59,6 +59,9 @@ export class ExamScoreService {
             relations: ['examScoreDetails', 'examScoreDetails.section'],
             order: {
                 createdat: 'DESC',
+                examScoreDetails: {
+                    rawscore: 'ASC',
+                },
             },
         });
 
