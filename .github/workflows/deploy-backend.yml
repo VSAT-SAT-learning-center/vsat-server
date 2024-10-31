@@ -21,7 +21,7 @@ jobs:
             # Bước 3: Tạo file .env với các thông tin cấu hình
             - name: Create .env file
               run: |
-                  echo "POSTGRES_HOST=103.163.25.160" > .env
+                  echo "POSTGRES_HOST=103.162.15.145" > .env
                   echo "POSTGRES_PORT=5432" >> .env
                   echo "POSTGRES_USER=postgres" >> .env
                   echo "POSTGRES_DB=vsat" >> .env
