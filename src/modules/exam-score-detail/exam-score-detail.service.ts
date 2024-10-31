@@ -80,7 +80,10 @@ export class ExamScoreDetailService {
                 );
             }
 
-            Object.assign(existingExamScoreDetail, updateDto);
+            Object.assign(existingExamScoreDetail, {
+                lowerscore: updateDto.lowerscore,
+                upperscore: updateDto.upperscore,
+            });
 
             updatedExamScoreDetails.push(existingExamScoreDetail);
         }
