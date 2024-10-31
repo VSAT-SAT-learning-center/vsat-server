@@ -6,6 +6,7 @@ import { UpdateTargetLearningDto } from './dto/update-targetlearning.dto';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 import { BaseService } from '../base/base.service';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class TargetLearningService extends BaseService<TargetLearning> {
@@ -16,7 +17,9 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         super(targetLearningRepository);
     }
 
-    async save(createTargetLearningDto: CreateTargetLearningDto): Promise<CreateTargetLearningDto>{
+    async save(
+        createTargetLearningDto: CreateTargetLearningDto,
+    ): Promise<TargetLearning> {
         const level = await this.targetLearningRepository.findOne({
             where: { id: createTargetLearningDto.levelId },
         });
@@ -39,6 +42,11 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        return await this.targetLearningRepository.save(createTargetLearningDto);
+        const targetLearningEntity = plainToInstance(
+            TargetLearning,
+            createTargetLearningDto,
+        );
+
+        return await this.targetLearningRepository.save(targetLearningEntity);
     }
 }
