@@ -1,51 +1,79 @@
 name: CI/CD for VSAT
 
 on:
-  push:
+  push: # Trigger workflow on push to any branch
     branches:
-      - '**'
-  pull_request:
+      - '*' # '*' means all branches
+  pull_request: # Trigger workflow on all pull requests to any branch
     branches:
       - '**'
 
 jobs:
-  lint-test-build:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3 # Checks out the repository under $GITHUB_WORKSPACE
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3 # Sets up Node.js environment
         with:
-          node-version: 20.x
+          node-version: 20.x # Use Node.js 20.x
 
       - name: Install dependencies
-        run: npm ci
-        working-directory: ./vsat-server
+        run: npm ci # Installs project dependencies using 'ci' for clean install
 
       - name: Run lint
-        run: npm run lint
+        run: npm run lint # Runs lint checks
+
+  test:
+    needs: lint # Runs after lint job is complete
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3 # Checks out the repository under $GITHUB_WORKSPACE
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3 # Sets up Node.js environment
+        with:
+          node-version: 20.x # Use Node.js 20.x
+
+      - name: Install dependencies
+        run: npm ci # Installs project dependencies using 'ci' for clean install
 
       - name: Run tests with coverage
-        run: npm run test -- --coverage --passWithNoTests
         env:
-          CI: true
+          CI: true # Set CI environment variable to true for better output in CI environments
+        run: npm run test -- --coverage --passWithNoTests # Add --passWithNoTests flag to allow tests to pass when no test files are found
 
       - name: Upload test coverage report
-        if: always()
-        uses: actions/upload-artifact@v3
+        if: always() # Upload even if there is a failure for debugging purposes
+        uses: actions/upload-artifact@v3 # Uploads test coverage report as an artifact
         with:
           name: coverage-report
-          path: coverage
+          path: coverage # Adjust the path if needed (e.g., 'coverage/lcov-report' for LCOV)
+
+  build:
+    needs: test # Runs after the test job is complete
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3 # Checks out the repository under $GITHUB_WORKSPACE
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3 # Sets up Node.js environment
+        with:
+          node-version: 20.x # Use Node.js 20.x
+
+      - name: Install dependencies
+        run: npm ci # Installs project dependencies using 'ci' for clean install
 
       - name: Build the app
-        run: npm run build
+        run: npm run build # Builds the NestJS application
 
       - name: Upload build artifacts
-        if: success()
-        uses: actions/upload-artifact@v3
+        if: success() # Only upload if the build is successful
+        uses: actions/upload-artifact@v3 # Uploads build artifacts (if needed)
         with:
           name: build-artifacts
-          path: dist
+          path: dist # Adjust the path if needed
