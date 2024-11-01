@@ -15,7 +15,10 @@ export class PostgresConfigService implements TypeOrmOptionsFactory {
             password: this.configService.get<string>('POSTGRES_PASSWORD'),
             database: this.configService.get<string>('POSTGRES_DB'),
             entities: [__dirname + '/../entities/*.entity.{ts,js}'],
-            synchronize: false, // Disable in production
+            synchronize: this.configService.get<boolean>(
+                'POSTGRES_SYNC',
+                false,
+            ),
             logging: this.configService.get<boolean>('POSTGRES_LOGGING', true),
             retryAttempts: this.configService.get<number>(
                 'POSTGRES_RETRY_ATTEMPTS',

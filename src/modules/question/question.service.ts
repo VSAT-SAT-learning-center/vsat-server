@@ -464,8 +464,6 @@ export class QuestionService {
             throw new NotFoundException('Question not found');
         }
 
-       
-
         if (question.status === QuestionStatus.APPROVED) {
             throw new HttpException(
                 'Cannot update question because it is already Approved',
@@ -476,8 +474,8 @@ export class QuestionService {
                 'Cannot update question because it is already Pending',
                 HttpStatus.BAD_REQUEST,
             );
-        }else if (question.status === QuestionStatus.REJECT) {
-            question.status = QuestionStatus.PENDING;
+        } else if (question.status === QuestionStatus.REJECT) {
+            question.status = QuestionStatus.DRAFT;
         }
 
         Object.assign(question, {
