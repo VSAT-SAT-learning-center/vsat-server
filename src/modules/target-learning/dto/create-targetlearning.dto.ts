@@ -9,8 +9,4 @@ export class CreateTargetLearningDto {
 
   @IsUUID()
   studyProfileId: string;
-
-  @IsBoolean()
-  @IsOptional()
-  status?: boolean;
 }

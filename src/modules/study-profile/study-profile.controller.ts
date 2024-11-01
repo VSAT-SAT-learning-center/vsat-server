@@ -20,10 +20,6 @@ import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('StudyProfiles')
 @Controller('study-profiles')
-export class StudyProfileController extends BaseController<StudyProfile> {
-    constructor(private readonly studyProfileService: StudyProfileService) {
-        super(studyProfileService, 'StudyProfile');
-    }
-
-   
+export class StudyProfileController {
+    constructor(private readonly studyProfileService: StudyProfileService) {}
 }

@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ExamStructure } from './examstructure.entity';
+import { ExamScoreDetail } from './examscoredetail.entity';
 
 @Entity('examscore')
 export class ExamScore {
@@ -20,4 +21,10 @@ export class ExamScore {
 
   @Column({ type: 'text'})
   type: string;
+
+  @Column({ type: 'text'})
+  title: string;
+
+  @OneToMany(() => ExamScoreDetail, (examScoreDetail) => examScoreDetail.examScore)
+  examScoreDetails: ExamScoreDetail[];
 }
