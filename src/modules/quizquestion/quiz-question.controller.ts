@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
@@ -20,6 +21,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
 import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
+import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
 
 @ApiTags('QuizQuestions')
 @Controller('quiz-questions')
@@ -178,6 +180,37 @@ export class QuizQuestionController {
                     message: error.message || 'An error occurred',
                 },
                 error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('censor/:action')
+    async approveOrRejectQuestion(
+        @Param('action') action: 'approve' | 'reject',
+        @Body() feedbackDto: QuizQuestionFeedbackDto,
+    ) {
+        if (action !== 'approve' && action !== 'reject') {
+            throw new BadRequestException(
+                'Invalid action. Use "approve" or "reject".',
+            );
+        }
+        
+        try {
+            const feedbacks = await this.quizQuestionService.approveOrRejectQuizQuestion(
+                feedbackDto,
+                action,
+            );
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                feedbacks,
+                SuccessMessages.update('Feedback'),
+            );
+        } catch (error) {
+            return ResponseHelper.error(
+                error,
+                HttpStatus.BAD_REQUEST,
+                'Error when updating Feedback',
             );
         }
     }

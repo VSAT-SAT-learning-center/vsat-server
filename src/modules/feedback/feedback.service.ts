@@ -19,6 +19,7 @@ import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
 import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
 import { plainToInstance } from 'class-transformer';
+import { QuizQuestionFeedbackDto } from './dto/quizquestion-feedback.dto';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -194,6 +195,54 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const approvedFeedback = await this.feedbackRepository.save({
             question: { id: questionId },
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
+            content,
+            status: FeedbackStatus.APPROVED,
+        });
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Question was approved`,
+            FeedbackEventType.QUESTION_FEEDBACK,
+        );
+
+        return approvedFeedback;
+    }
+
+    async rejectQuizQuestionFeedback(
+        feedbackDto: QuizQuestionFeedbackDto,
+    ): Promise<Feedback> {
+        const { quizQuestionId, content, reason, accountFromId, accountToId } =
+            feedbackDto;
+
+        const rejectFeedback = await this.feedbackRepository.save({
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
+            content,
+            reason,
+            status: FeedbackStatus.REJECTED,
+            question: { id: quizQuestionId },
+        });
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Question was rejected`,
+            FeedbackEventType.QUESTION_FEEDBACK,
+        );
+
+        return rejectFeedback;
+    }
+
+    async approveQuizQuestionFeedback(
+        feedbackDto: QuizQuestionFeedbackDto,
+    ): Promise<Feedback> {
+        const { quizQuestionId, content, accountFromId, accountToId } = feedbackDto;
+
+        const approvedFeedback = await this.feedbackRepository.save({
+            question: { id: quizQuestionId },
             accountFrom: { id: accountFromId },
             accountTo: { id: accountToId },
             content,
