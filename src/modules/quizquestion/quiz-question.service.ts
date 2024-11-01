@@ -1,7 +1,9 @@
 import {
     BadRequestException,
+    forwardRef,
     HttpException,
     HttpStatus,
+    Inject,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -25,6 +27,10 @@ import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
+import { Feedback } from 'src/database/entities/feedback.entity';
+import { FeedbackService } from '../feedback/feedback.service';
+import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
+import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
 
 @Injectable()
 export class QuizQuestionService {
@@ -40,7 +46,37 @@ export class QuizQuestionService {
         @InjectRepository(QuizAnswer)
         private readonly quizAnswerRepository: Repository<QuizAnswer>,
         private readonly quizAnswerService: QuizAnswerService,
+        @Inject(forwardRef(() => FeedbackService))
+        private readonly feedbackService: FeedbackService,
     ) {}
+
+    async approveOrRejectQuizQuestion(
+        feedbackDto: QuizQuestionFeedbackDto,
+        action: 'approve' | 'reject',
+    ): Promise<Feedback> {
+        if (action === 'reject') {
+            return await this.rejectQuestion(feedbackDto);
+        } else if (action === 'approve') {
+            await this.approveQuestion(feedbackDto);
+            return;
+        }
+    }
+
+    async rejectQuestion(feedbackDto: QuizQuestionFeedbackDto): Promise<Feedback> {
+        const { quizQuestionId } = feedbackDto;
+
+        await this.updateStatus(quizQuestionId, QuizQuestionStatus.REJECT);
+
+        return await this.feedbackService.rejectQuizQuestionFeedback(feedbackDto);
+    }
+
+    async approveQuestion(feedbackDto: QuizQuestionFeedbackDto): Promise<void> {
+        const { quizQuestionId } = feedbackDto;
+
+        await this.updateStatus(quizQuestionId, QuizQuestionStatus.APPROVED);
+
+        //this.feedbackService.approveQuestionFeedback(feedbackDto);
+    }
 
     normalizeContent(content: string): string {
         const strippedContent = sanitizeHtml(content, {
@@ -450,4 +486,6 @@ export class QuizQuestionService {
         await this.quizQuestionRepository.save(quizQuestion);
         return true;
     }
+
+    
 }
