@@ -1,17 +1,25 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { IsUUID, IsInt, Min } from 'class-validator';
 
 export class CreateDomainDistributionDto {
-  @IsUUID()
-  domainId: string;
+    @IsUUID()
+    @Expose()
+    @ApiProperty()
+    domainId: string;
 
-  @IsUUID()
-  moduleTypeId: string;
+    @IsUUID()
+    @Expose()
+    @ApiProperty()
+    moduleTypeId: string;
 
-  @IsInt()
-  @Min(1)
-  minquestion: number;
+    @IsInt()
+    @Expose()
+    @ApiProperty()
+    minquestion: number;
 
-  @IsInt()
-  @Min(1)
-  maxquestion: number;
+    @IsInt()
+    @Expose()
+    @ApiProperty()
+    maxquestion: number;
 }

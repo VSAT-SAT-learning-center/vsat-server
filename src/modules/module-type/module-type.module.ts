@@ -8,8 +8,9 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ModuleTypeController } from './module-type.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ModuleType, Section, ExamStructure])],
-  providers: [ModuleTypeService, PaginationService],
-  controllers: [ModuleTypeController],
+    imports: [TypeOrmModule.forFeature([ModuleType, Section, ExamStructure])],
+    providers: [ModuleTypeService, PaginationService],
+    controllers: [ModuleTypeController],
+    exports: [ModuleTypeService],
 })
 export class ModuleTypeModule {}

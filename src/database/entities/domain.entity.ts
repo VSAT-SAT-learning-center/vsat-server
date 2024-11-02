@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Section } from './section.entity';
+import { DomainDistributionConfig } from './domaindistributionconfig.entity';
 
 @Entity('domain')
 export class Domain {
@@ -27,4 +28,7 @@ export class Domain {
 
   @Column({ type: 'boolean', default: true })
   status: boolean;
+
+  @OneToMany(() => DomainDistributionConfig, (config) => config.domain)
+  domainDistributionConfigs: DomainDistributionConfig[];
 }

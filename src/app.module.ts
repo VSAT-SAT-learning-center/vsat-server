@@ -44,6 +44,9 @@ import { GptModule } from './modules/gpt/gpt.module';
 import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
 import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
 import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-question-item.module';
+import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-structure-type.module';
+import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-structure-config.module';
+import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module';
 
 @Module({
     imports: [
@@ -92,6 +95,9 @@ import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-questi
         GptModule,
         QuizAnswerModule,
         QuizQuestionItemModule,
+        ExamStructureTypeModule,
+        ExamStructureConfigModule,
+        ExamSemesterModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -119,8 +125,10 @@ import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-questi
             }),
             inject: [ConfigService],
         }),
+
+        ExamSemesterModule,
     ],
-    providers: [FeedbacksGateway]
+    providers: [FeedbacksGateway],
     // providers: [PaginationService],
     // exports: [PaginationService]
 })
