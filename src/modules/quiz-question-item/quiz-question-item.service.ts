@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { QuizQuestionItem } from 'src/database/entities/quizquestionitem.entity';
 import { BaseService } from '../base/base.service';
 import { Repository } from 'typeorm';
@@ -13,9 +13,7 @@ export class QuizQuestionItemService extends BaseService<QuizQuestionItem> {
         @InjectRepository(QuizQuestionItem)
         private readonly quizQuestionItemRepository: Repository<QuizQuestionItem>,
 
-        @InjectRepository(QuizQuestion)
-        private readonly quizQuestionRepository: Repository<QuizQuestion>,
-
+        @Inject(forwardRef(() => QuizService))
         private readonly quizService: QuizService,
     ) {
         super(quizQuestionItemRepository);

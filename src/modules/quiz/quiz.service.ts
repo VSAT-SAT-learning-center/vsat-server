@@ -167,4 +167,18 @@ export class QuizService extends BaseService<Quiz> {
 
         return createQuiz; 
     }
+
+    async getCurrentUnitForQuiz(quizId: string): Promise<any> {
+        const quiz = await this.quizRepository.findOne({
+            where: { id: quizId },
+            relations: ['quizconfig', 'quizconfig.unit'],
+        });
+    
+        if (!quiz || !quiz.quizconfig || !quiz.quizconfig.unit) {
+            throw new NotFoundException(`Unit can not found for Quiz with ID ${quizId}`);
+        }
+    
+        return quiz.quizconfig.unit;
+    }
+    
 }

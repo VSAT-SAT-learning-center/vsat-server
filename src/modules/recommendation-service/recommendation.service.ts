@@ -1,12 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { UnitAreaService } from "../unit-area/unit-area.service";
-import { QuizAttemptSkillService } from "../quiz-attempt-skill/quiz-attempt-skill.service";
 import { UnitArea } from "src/database/entities/unitarea.entity";
 import { QuizAttemptService } from "../quiz-attempt/quiz-attempt.service";
 
 @Injectable()
 export class RecommendationService {
     constructor(
+        @Inject(forwardRef(() => QuizAttemptService))
         private readonly quizAttemptService: QuizAttemptService,
         private readonly unitAreaService: UnitAreaService,
     ) {}

@@ -15,18 +15,45 @@ export class QuizAttemptAnswerService extends BaseService<QuizAttemptAnswer> {
         super(quizAttemptAnswerRepository);
     }
 
+    async findAnswer(
+        quizAttemptId: string,
+        questionId: string,
+    ): Promise<QuizAttemptAnswer | undefined> {
+        return this.quizAttemptAnswerRepository.findOne({
+            where: {
+                quizAttempt: { id: quizAttemptId },
+                quizQuestion: { id: questionId },
+            },
+        });
+    }
 
     async saveQuizAttemptAnswer(
         quizAttemptId: string,
-        quizQuestionId: string,
+        questionId: string,
+        selectedAnswerId: string,
         isCorrect: boolean,
     ): Promise<QuizAttemptAnswer> {
-        const attemptAnswer = this.quizAttemptAnswerRepository.create({
+        const newAnswer = this.quizAttemptAnswerRepository.create({
             quizAttempt: { id: quizAttemptId },
-            quizQuestion: { id: quizQuestionId },
-            iscorrect: isCorrect,
+            quizQuestion: { id: questionId },
+            studentAnswer: selectedAnswerId,
+            isCorrect: isCorrect,
         });
+        return this.quizAttemptAnswerRepository.save(newAnswer);
+    }
 
-        return await this.quizAttemptAnswerRepository.save(attemptAnswer);
+    async updateQuizAttemptAnswer(
+        quizAttemptAnswer: QuizAttemptAnswer,
+    ): Promise<QuizAttemptAnswer> {
+        return this.quizAttemptAnswerRepository.save(quizAttemptAnswer);
+    }
+
+    async findAnswersByQuizAttemptId(
+        quizAttemptId: string,
+    ): Promise<QuizAttemptAnswer[]> {
+        return this.quizAttemptAnswerRepository.find({
+            where: { quizAttempt: { id: quizAttemptId } },
+            relations: ['quizQuestion', 'quizQuestion.skill'], // Bao gồm thông tin skill cho mỗi câu hỏi
+        });
     }
 }

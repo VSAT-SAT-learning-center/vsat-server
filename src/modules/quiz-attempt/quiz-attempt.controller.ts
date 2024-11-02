@@ -12,15 +12,15 @@ import {
 import { CreateQuizAttemptDto } from './dto/create-quizattempt.dto';
 import { UpdateQuizAttemptDto } from './dto/update-quizattempt.dto';
 import { QuizAttemptService } from './quiz-attempt.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { QuizAttempt } from 'src/database/entities/quizattempt.entity';
 import { BaseController } from '../base/base.controller';
 import { ApiTags } from '@nestjs/swagger';
-import { RecommendationService } from '../recommendation-service/recommendation-service.service';
+import { RecommendationService } from '../recommendation-service/recommendation.service';
 import { QuizAttemptAnswerService } from '../quiz-attempt-answer/quiz-attempt-answer.service';
 import { QuizService } from '../quiz/quiz.service';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
+import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
 
 @ApiTags('QuizAttempts')
 @Controller('quiz-attempts')
@@ -71,19 +71,31 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
     @Post(':quizAttemptId/answer')
     async submitAnswer(
         @Param('quizAttemptId') quizAttemptId: string,
-        @Body() answerDto: { quizQuestionId: string; isCorrect: boolean },
+        @Body()
+        answerDto: {
+            quizQuestionId: string;
+            selectedAnswerId: string;
+            isCorrect: boolean;
+        },
     ) {
-        const { quizQuestionId, isCorrect } = answerDto;
+        const { quizQuestionId, selectedAnswerId, isCorrect } = answerDto;
         return await this.quizAttemptAnswerService.saveQuizAttemptAnswer(
             quizAttemptId,
             quizQuestionId,
+            selectedAnswerId,
             isCorrect,
         );
     }
 
     @Post(':quizAttemptId/complete')
-    async completeQuizAttempt(@Param('quizAttemptId') quizAttemptId: string) {
-        return await this.quizAttemptService.completeQuizAttempt(quizAttemptId);
+    async completeQuizAttempt(
+        @Param('quizAttemptId') quizAttemptId: string,
+        @Body() completeQuizAttemptDto: CompleteQuizAttemptDto,
+    ) {
+        return await this.quizAttemptService.completeQuizAttempt(
+            quizAttemptId,
+            completeQuizAttemptDto,
+        );
     }
 
     @Get(':quizAttemptId/recommendations')

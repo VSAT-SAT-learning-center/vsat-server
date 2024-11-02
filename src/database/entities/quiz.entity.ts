@@ -5,11 +5,11 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     JoinColumn,
-    OneToOne,
     ManyToOne,
+    OneToMany,
 } from 'typeorm';
-import { Unit } from './unit.entity';
 import { QuizConfig } from './quizconfig.entity';
+import { QuizQuestionItem } from './quizquestionitem.entity';
 
 @Entity('quiz')
 export class Quiz {
@@ -37,4 +37,7 @@ export class Quiz {
 
     @Column({ type: 'boolean', default: false })
     status: boolean;
+
+    @OneToMany(() => QuizQuestionItem, (question) => question.quiz)
+    quizQuestions: QuizQuestionItem[];
 }
