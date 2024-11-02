@@ -13,6 +13,7 @@ import { ExamScoreDetailService } from '../exam-score-detail/exam-score-detail.s
 import { plainToInstance } from 'class-transformer';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
+import { log } from 'console';
 @Injectable()
 export class ExamScoreService {
     constructor(
@@ -81,8 +82,13 @@ export class ExamScoreService {
             await this.examStructureTypeRepository.findOne({
                 where: { name: getExamScoreDto.name },
             });
+        
         return await this.examScoreRepository.find({
-            where: { examStructureType: examStructureType },
+            where: {
+                examStructureType: {
+                    id: examStructureType.id,
+                },
+            },
             relations: ['examScoreDetails'],
         });
     }

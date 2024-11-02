@@ -11,6 +11,7 @@ import { GetExamStructureDto } from './dto/get-examstructure.dto';
 import { ExamStructureConfigService } from '../exam-structure-config/exam-structure-config.service';
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
+import { ModuleTypeService } from '../module-type/module-type.service';
 
 @Injectable()
 export class ExamStructureService {
@@ -23,6 +24,7 @@ export class ExamStructureService {
         private readonly examScoreRepository: Repository<ExamScore>,
 
         private readonly examStructureConfigService: ExamStructureConfigService,
+        private readonly moduleTypeService: ModuleTypeService,
     ) {}
 
     async save(
@@ -67,6 +69,8 @@ export class ExamStructureService {
             savedExamstructure.id,
             examStructureConfig,
         );
+
+        await this.moduleTypeService.save(savedExamstructure.id, moduleType)
 
         return plainToInstance(CreateExamStructureDto, savedExamstructure, {
             excludeExtraneousValues: true,

@@ -8,11 +8,13 @@ import { ExamStructureConfigService } from '../exam-structure-config/exam-struct
 import { ExamStructureConfigModule } from '../exam-structure-config/exam-structure-config.module';
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
+import { ModuleTypeModule } from '../module-type/module-type.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([ExamStructure, ExamStructureType, ExamScore]),
         ExamStructureConfigModule,
+        ModuleTypeModule,
     ],
     providers: [ExamStructureService, PaginationService],
     controllers: [ExamStructureController],
