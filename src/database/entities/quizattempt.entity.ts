@@ -6,9 +6,11 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { StudyProfile } from './studyprofile.entity';
 import { Quiz } from './quiz.entity';
+import { QuizAttemptAnswer } from './quizattemptanswer.entity';
 
 @Entity('quizattempt')
 export class QuizAttempt {
@@ -40,4 +42,8 @@ export class QuizAttempt {
 
     @Column({ type: 'int', nullable: true })
     score: number;
+
+    //One to many
+    @OneToMany(() => QuizAttemptAnswer, (answer) => answer.quizAttempt)
+    answers: QuizAttemptAnswer[];
 }
