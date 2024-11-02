@@ -1,3 +1,4 @@
+import { GetExamScoreDto } from './dto/get-examscore.dto';
 import {
     HttpException,
     HttpStatus,
@@ -10,67 +11,79 @@ import { Repository } from 'typeorm';
 import { CreateExamScoreDto } from './dto/create-examscore.dto';
 import { ExamScoreDetailService } from '../exam-score-detail/exam-score-detail.service';
 import { plainToInstance } from 'class-transformer';
+import { ExamStructure } from 'src/database/entities/examstructure.entity';
+import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
 @Injectable()
 export class ExamScoreService {
     constructor(
         @InjectRepository(ExamScore)
         private readonly examScoreRepository: Repository<ExamScore>,
+        @InjectRepository(ExamStructure)
+        private readonly examStructureRepository: Repository<ExamStructure>,
+        @InjectRepository(ExamStructureType)
+        private readonly examStructureTypeRepository: Repository<ExamStructureType>,
 
         private readonly examScoreDetailService: ExamScoreDetailService,
     ) {}
 
-    // async create(
-    //     createExamScoreDto: CreateExamScoreDto,
-    // ): Promise<CreateExamScoreDto> {
-    //     const title = await this.examScoreRepository.findOne({
-    //         where: { title: createExamScoreDto.title },
-    //     });
+    async create(
+        createExamScoreDto: CreateExamScoreDto,
+    ): Promise<CreateExamScoreDto> {
+        const examStructureType =
+            await this.examStructureTypeRepository.findOne({
+                where: { name: createExamScoreDto.type },
+            });
 
-    //     if (title) {
-    //         throw new HttpException(
-    //             'Title is already esxist',
-    //             HttpStatus.BAD_REQUEST,
-    //         );
-    //     }
-    //     const saveExamScore = await this.examScoreRepository.create({
-    //         type: createExamScoreDto.type,
-    //         title: createExamScoreDto.title,
-    //     });
+        const saveExamScore = await this.examScoreRepository.create({
+            title: createExamScoreDto.title,
+            examStructureType: examStructureType,
+        });
 
-    //     await this.examScoreRepository.save(saveExamScore);
+        await this.examScoreRepository.save(saveExamScore);
 
-    //     await this.examScoreDetailService.createMany(
-    //         createExamScoreDto.createExamScoreDetail,
-    //         saveExamScore.id,
-    //     );
+        await this.examScoreDetailService.createMany(
+            createExamScoreDto.createExamScoreDetail,
+            saveExamScore.id,
+        );
 
-    //     return createExamScoreDto;
-    // }
+        return createExamScoreDto;
+    }
 
-    // async getAllExamScoreWithDetails(
-    //     page: number,
-    //     pageSize: number,
-    // ): Promise<any> {
-    //     const skip = (page - 1) * pageSize;
+    async getAllExamScoreWithDetails(
+        page: number,
+        pageSize: number,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
 
-    //     const [examScore, total] = await this.examScoreRepository.findAndCount({
-    //         skip: skip,
-    //         take: pageSize,
-    //         relations: ['examScoreDetails', 'examScoreDetails.section'],
-    //         order: {
-    //             createdat: 'DESC',
-    //             examScoreDetails: {
-    //                 rawscore: 'ASC',
-    //             },
-    //         },
-    //     });
+        const [examScore, total] = await this.examScoreRepository.findAndCount({
+            skip: skip,
+            take: pageSize,
+            relations: ['examScoreDetails', 'examScoreDetails.section'],
+            order: {
+                createdat: 'DESC',
+                examScoreDetails: {
+                    rawscore: 'ASC',
+                },
+            },
+        });
 
-    //     const totalPages = Math.ceil(total / pageSize);
-    //     return {
-    //         examScore,
-    //         totalPages: totalPages,
-    //         currentPage: page,
-    //         totalItems: total,
-    //     };
-    // }
+        const totalPages = Math.ceil(total / pageSize);
+        return {
+            examScore,
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
+    async getExamScoreWithExamStructureType(getExamScoreDto: GetExamScoreDto) {
+        const examStructureType =
+            await this.examStructureTypeRepository.findOne({
+                where: { name: getExamScoreDto.name },
+            });
+        return await this.examScoreRepository.find({
+            where: { examStructureType: examStructureType },
+            relations: ['examScoreDetails'],
+        });
+    }
 }

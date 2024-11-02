@@ -43,6 +43,8 @@ import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
 import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
 import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
+import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-structure-type.module';
+import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-structure-config.module';
 
 @Module({
     imports: [
@@ -90,6 +92,8 @@ import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
         AnswerModule,
         GptModule,
         QuizAnswerModule,
+        ExamStructureTypeModule,
+        ExamStructureConfigModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -118,7 +122,7 @@ import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
             inject: [ConfigService],
         }),
     ],
-    providers: [FeedbacksGateway]
+    providers: [FeedbacksGateway],
     // providers: [PaginationService],
     // exports: [PaginationService]
 })
