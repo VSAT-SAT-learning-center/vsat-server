@@ -45,6 +45,7 @@ import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
 import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
 import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-structure-type.module';
 import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-structure-config.module';
+import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module';
 
 @Module({
     imports: [
@@ -94,6 +95,7 @@ import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-
         QuizAnswerModule,
         ExamStructureTypeModule,
         ExamStructureConfigModule,
+        ExamSemesterModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -121,6 +123,8 @@ import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-
             }),
             inject: [ConfigService],
         }),
+
+        ExamSemesterModule,
     ],
     providers: [FeedbacksGateway],
     // providers: [PaginationService],

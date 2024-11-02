@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { ExamScore } from './examscore.entity';
 import { ExamStructureType } from './examstructuretype.entity';
 import { ExamStructureConfig } from './examstructureconfig.entity';
+import { ExamSemester } from './examsemeseter.entity';
 
 @Entity('examstructure')
 export class ExamStructure {
@@ -27,6 +28,9 @@ export class ExamStructure {
   @ManyToOne(() => ExamStructureType)
   @JoinColumn({ name: 'examStructureTypeId' })
   examStructureType: ExamStructureType;
+
+  @ManyToOne(() => ExamSemester, (examSemester) => examSemester.examStructures)
+  examSemester: ExamSemester;
 
   @Column({ type: 'varchar', length: 255 })
   structurename: string;
