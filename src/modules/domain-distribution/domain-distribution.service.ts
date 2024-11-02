@@ -22,13 +22,16 @@ export class DomainDistributionService extends BaseService<DomainDistribution> {
         super(domainDistributionRepository);
     }
 
-    async save(createDomainDistributionDto: CreateDomainDistributionDto) {
+    async save(
+        moduleTypeId: string,
+        createDomainDistributionDto: CreateDomainDistributionDto,
+    ) {
         const domain = await this.domainDistributionRepository.findOne({
             where: { id: createDomainDistributionDto.domainId },
         });
 
         const moduleType = await this.moduleTypeRepository.findOne({
-            where: { id: createDomainDistributionDto.moduleTypeId },
+            where: { id: moduleTypeId },
         });
 
         if (!domain) {
@@ -41,7 +44,6 @@ export class DomainDistributionService extends BaseService<DomainDistribution> {
 
         const createDomainDistribution =
             await this.domainDistributionRepository.create({
-                ...createDomainDistributionDto,
                 domain: domain,
                 moduleType: moduleType,
             });
@@ -54,6 +56,4 @@ export class DomainDistributionService extends BaseService<DomainDistribution> {
             excludeExtraneousValues: true,
         });
     }
-
-    
 }

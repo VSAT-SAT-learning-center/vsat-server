@@ -14,26 +14,32 @@ export class CreateExamStructureDto {
     @IsUUID()
     @IsString()
     @Expose()
+    @ApiProperty()
     examScoreId: string;
 
     @IsString()
     @Expose()
+    @ApiProperty()
     examStructureType: string;
 
     @IsString()
     @Expose()
+    @ApiProperty()
     structurename: string;
 
     @IsString()
     @Expose()
+    @ApiProperty()
     description: string;
 
     @IsNumber()
     @Expose()
+    @ApiProperty()
     requiredCorrectInModule1RW: number;
 
     @IsNumber()
     @Expose()
+    @ApiProperty()
     requiredCorrectInModule1M: number;
 
     @ApiProperty({ type: [CreateExamStructureConfigDto] })
