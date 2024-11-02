@@ -1,23 +1,25 @@
-import { IsUUID, IsInt, IsOptional } from 'class-validator';
+import { Expose } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsUUID, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateExamScoreDetailDto {
-  @IsUUID()
-  @IsOptional()
-  examScoreId?: string;
+    @ApiProperty()
+    @IsUUID()
+    id: string;
 
-  @IsUUID()
-  @IsOptional()
-  sectionId?: string;
+    @IsString()
+    @ApiProperty()
+    section: string;
 
-  @IsInt()
-  @IsOptional()
-  rawscore?: number;
+    @IsInt()
+    @ApiProperty()
+    rawscore?: number;
 
-  @IsInt()
-  @IsOptional()
-  lowerscore?: number;
+    @IsInt()
+    @ApiProperty()
+    lowerscore?: number;
 
-  @IsInt()
-  @IsOptional()
-  upperscore?: number;
+    @IsInt()
+    @ApiProperty()
+    upperscore?: number;
 }

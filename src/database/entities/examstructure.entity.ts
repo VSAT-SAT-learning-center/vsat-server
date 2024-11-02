@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ExamScore } from './examscore.entity';
+import { ExamStructureType } from './examstructuretype.entity';
+import { ExamStructureConfig } from './examstructureconfig.entity';
 
 @Entity('examstructure')
 export class ExamStructure {
@@ -22,9 +24,22 @@ export class ExamStructure {
   @JoinColumn({ name: 'examscoreid' })
   examScore: ExamScore;
 
+  @ManyToOne(() => ExamStructureType)
+  @JoinColumn({ name: 'examStructureTypeId' })
+  examStructureType: ExamStructureType;
+
   @Column({ type: 'varchar', length: 255 })
   structurename: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
+
+  @Column('int', { nullable: true })
+  requiredCorrectInModule1RW: number;
+
+  @Column('int', { nullable: true })
+  requiredCorrectInModule1M: number;
+
+  @OneToMany(() => ExamStructureConfig, (config) => config.examStructure)
+  configs: ExamStructureConfig[];
 }

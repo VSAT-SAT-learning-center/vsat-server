@@ -1,6 +1,9 @@
 import {
+    BadRequestException,
+    forwardRef,
     HttpException,
     HttpStatus,
+    Inject,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -24,8 +27,9 @@ import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
-import { QuizService } from '../quiz/quiz.service';
-import { SkillService } from '../skill/skill.service';
+import { FeedbackService } from '../feedback/feedback.service';
+import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
+import { Feedback } from 'src/database/entities/feedback.entity';
 
 @Injectable()
 export class QuizQuestionService {
@@ -40,8 +44,38 @@ export class QuizQuestionService {
         private readonly sectionRepository: Repository<Section>,
         @InjectRepository(QuizAnswer)
         private readonly quizAnswerRepository: Repository<QuizAnswer>,
-        private readonly quizAnswerService: QuizAnswerService
+        private readonly quizAnswerService: QuizAnswerService,
+        @Inject(forwardRef(() => FeedbackService))
+        private readonly feedbackService: FeedbackService,
     ) {}
+
+    async approveOrRejectQuizQuestion(
+        feedbackDto: QuizQuestionFeedbackDto,
+        action: 'approve' | 'reject',
+    ): Promise<Feedback> {
+        if (action === 'reject') {
+            return await this.rejectQuestion(feedbackDto);
+        } else if (action === 'approve') {
+            await this.approveQuestion(feedbackDto);
+            return;
+        }
+    }
+
+    async rejectQuestion(feedbackDto: QuizQuestionFeedbackDto): Promise<Feedback> {
+        const { quizQuestionId } = feedbackDto;
+
+        await this.updateStatus(quizQuestionId, QuizQuestionStatus.REJECT);
+
+        return await this.feedbackService.rejectQuizQuestionFeedback(feedbackDto);
+    }
+
+    async approveQuestion(feedbackDto: QuizQuestionFeedbackDto): Promise<void> {
+        const { quizQuestionId } = feedbackDto;
+
+        await this.updateStatus(quizQuestionId, QuizQuestionStatus.APPROVED);
+
+        //this.feedbackService.approveQuestionFeedback(feedbackDto);
+    }
 
     normalizeContent(content: string): string {
         const strippedContent = sanitizeHtml(content, {
@@ -350,7 +384,7 @@ export class QuizQuestionService {
                 HttpStatus.BAD_REQUEST,
             );
         } else if (quizQuestion.status === QuizQuestionStatus.REJECT) {
-            quizQuestion.status = QuizQuestionStatus.REJECT;
+            quizQuestion.status = QuizQuestionStatus.DRAFT;
         }
 
         Object.assign(quizQuestion, {
@@ -443,4 +477,33 @@ export class QuizQuestionService {
         // Return the first `quantity` items after shuffle
         return questions.slice(0, quantity);
     }
+    async updateStatus(
+        id: string,
+        status: QuizQuestionStatus,
+    ): Promise<boolean> {
+        if (!Object.values(QuizQuestionStatus).includes(status)) {
+            throw new BadRequestException(`Invalid status value: ${status}`);
+        }
+
+        const quizQuestion = await this.quizQuestionRepository.findOneBy({
+            id,
+        });
+        if (!quizQuestion) {
+            throw new NotFoundException('Question not found');
+        }
+
+        if (status === QuizQuestionStatus.REJECT) {
+            if (quizQuestion.countfeedback == 3) {
+                quizQuestion.isActive = false;
+            }
+            quizQuestion.countfeedback = quizQuestion.countfeedback + 1;
+        }
+
+        quizQuestion.status = status;
+
+        await this.quizQuestionRepository.save(quizQuestion);
+        return true;
+    }
+
+    
 }

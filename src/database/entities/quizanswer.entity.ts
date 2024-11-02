@@ -14,7 +14,7 @@ export class QuizAnswer {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => QuizQuestion)
+    @ManyToOne(() => QuizQuestion, (quizQuestion) => quizQuestion.answers)
     @JoinColumn({ name: 'quizquestionid' })
     quizquestion: QuizQuestion;
 
