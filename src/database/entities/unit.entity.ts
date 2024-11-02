@@ -13,6 +13,7 @@ import { Level } from './level.entity';
 import { UnitArea } from './unitarea.entity';
 import { Feedback } from './feedback.entity';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { Domain } from './domain.entity';
 
 @Entity('unit')
 export class Unit {
@@ -38,6 +39,10 @@ export class Unit {
     @ManyToOne(() => Level)
     @JoinColumn({ name: 'levelid' })
     level: Level;
+
+    @ManyToOne(() => Domain)
+    @JoinColumn({ name: 'domainid' })
+    domain: Domain;
 
     @Column({ type: 'varchar', length: 100 })
     title: string;

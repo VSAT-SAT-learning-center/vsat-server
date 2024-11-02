@@ -223,4 +223,11 @@ export class UnitAreaService extends BaseService<UnitArea> {
 
         return updatedUnitArea;
     }
+
+    async findUnitAreasBySkill(skillId: string): Promise<UnitArea[]> {
+        return await this.unitAreaRepository.find({
+            where: { skill: { id: skillId } },
+            relations: ['skill'],
+        });
+    }
 }

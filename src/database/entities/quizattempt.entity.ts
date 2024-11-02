@@ -11,6 +11,7 @@ import {
 import { StudyProfile } from './studyprofile.entity';
 import { Quiz } from './quiz.entity';
 import { QuizAttemptAnswer } from './quizattemptanswer.entity';
+import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 
 @Entity('quizattempt')
 export class QuizAttempt {
@@ -42,6 +43,13 @@ export class QuizAttempt {
 
     @Column({ type: 'int', nullable: true })
     score: number;
+
+    @Column({
+        type: 'enum',
+        enum: QuizAttemptStatus,
+        default: QuizAttemptStatus.NOT_STARTED,
+    })
+    status: QuizAttemptStatus;
 
     //One to many
     @OneToMany(() => QuizAttemptAnswer, (answer) => answer.quizAttempt)
