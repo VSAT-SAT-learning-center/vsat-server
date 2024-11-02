@@ -7,19 +7,4 @@ export class CreateDomainDistributionDto {
     @Expose()
     @ApiProperty()
     domainId: string;
-
-    @IsUUID()
-    @Expose()
-    @ApiProperty()
-    moduleTypeId: string;
-
-    @IsInt()
-    @Expose()
-    @ApiProperty()
-    minquestion: number;
-
-    @IsInt()
-    @Expose()
-    @ApiProperty()
-    maxquestion: number;
 }

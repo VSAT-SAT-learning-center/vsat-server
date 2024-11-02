@@ -10,6 +10,7 @@ import { BaseService } from '../base/base.service';
 import { Section } from 'src/database/entities/section.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { plainToInstance } from 'class-transformer';
+import { DomainDistributionService } from '../domain-distribution/domain-distribution.service';
 
 @Injectable()
 export class ModuleTypeService extends BaseService<ModuleType> {
@@ -21,6 +22,7 @@ export class ModuleTypeService extends BaseService<ModuleType> {
         @InjectRepository(ExamStructure)
         private readonly examStructureRepository: Repository<ExamStructure>,
         paginationService: PaginationService,
+        private readonly domainDistributionService: DomainDistributionService,
     ) {
         super(moduleTypeRepository, paginationService);
     }
@@ -51,9 +53,14 @@ export class ModuleTypeService extends BaseService<ModuleType> {
             examStructure: examStructure,
         });
 
-        const save = await this.moduleTypeRepository.save(createdModuleType);
+        const saveModuleType =
+            await this.moduleTypeRepository.save(createdModuleType);
 
-        return plainToInstance(CreateModuleTypeDto, save, {
+        await this.domainDistributionService.save(
+            saveModuleType.id,
+            createModuleTypeDto.domainDistribution,
+        );
+        return plainToInstance(CreateModuleTypeDto, saveModuleType, {
             excludeExtraneousValues: true,
         });
     }

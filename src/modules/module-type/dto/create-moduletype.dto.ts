@@ -33,5 +33,5 @@ export class CreateModuleTypeDto {
 
     @ApiProperty({ type: [CreateDomainDistributionDto] })
     @Type(() => CreateDomainDistributionDto)
-    examStructureConfig: CreateDomainDistributionDto[];
+    domainDistribution: CreateDomainDistributionDto;
 }

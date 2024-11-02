@@ -89,7 +89,7 @@ export class ExamScoreService {
                     id: examStructureType.id,
                 },
             },
-            relations: ['examScoreDetails'],
+            relations: ['examScoreDetails', 'examScoreDetails.section'],
         });
     }
 }

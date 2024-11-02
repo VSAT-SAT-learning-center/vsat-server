@@ -26,10 +26,4 @@ export class DomainDistribution {
   @ManyToOne(() => ModuleType)
   @JoinColumn({ name: 'moduletypeid' })
   moduleType: ModuleType;
-
-  @Column({ type: 'int' })
-  minquestion: number;
-
-  @Column({ type: 'int' })
-  maxquestion: number;
 }
