@@ -6,4 +6,8 @@ export class CreateDomainDistributionDto {
     @Expose()
     @ApiProperty()
     domain: string;
+
+    @Expose()
+    @ApiProperty()
+    numberofquestion: number;
 }
