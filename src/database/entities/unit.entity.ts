@@ -13,10 +13,11 @@ import { Level } from './level.entity';
 import { UnitArea } from './unitarea.entity';
 import { Feedback } from './feedback.entity';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { Domain } from './domain.entity';
 
 @Entity('unit')
 export class Unit {
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn('uuid') 
     id: string;
 
     @CreateDateColumn({ type: 'timestamp' })
@@ -54,7 +55,10 @@ export class Unit {
     @Column({ type: 'int', nullable: true })
     countfeedback: number;
 
-    // One-to-many relationship
+    @ManyToOne(() => Domain, (domain) => domain.units)
+    @JoinColumn({ name: 'domainid' })
+    domain: Domain;
+
     @OneToMany(() => UnitArea, (unitArea) => unitArea.unit, { cascade: true })
     unitAreas: UnitArea[];
 

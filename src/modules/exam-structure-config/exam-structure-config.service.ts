@@ -18,38 +18,40 @@ export class ExamStructureConfigService {
         private readonly domainRepository: Repository<Domain>,
     ) {}
 
-    async save(
-        examStructureId: string,
-        createExamStructureConfigDto: CreateExamStructureConfigDto,
-    ) {
+    async save(examStructureId: string, createExamStructureConfigDtos: CreateExamStructureConfigDto[]) {
         const examStructure = await this.examStructureRepository.findOne({
             where: { id: examStructureId },
         });
-
-        const domain = await this.domainRepository.findOne({
-            where: { id: createExamStructureConfigDto.domainId },
-        });
-
+    
         if (!examStructure) {
             throw new NotFoundException('ExamStructure is not found');
         }
-
-        if (!domain) {
-            throw new NotFoundException('Domain is not found');
-        }
-
-        const createExamstructureConfig =
-            await this.examStructureConfigRepository.create({
+    
+        const configsToSave = [];
+    
+        for (const configDto of createExamStructureConfigDtos) {
+            const domain = await this.domainRepository.findOne({
+                where: { content: configDto.domain },
+            });
+    
+            if (!domain) {
+                throw new NotFoundException(`Domain '${configDto.domain}' is not found`);
+            }
+    
+            const config = this.examStructureConfigRepository.create({
                 examStructure: examStructure,
                 domain: domain,
-                numberOfQuestion: createExamStructureConfigDto.numberOfQuestion,
+                numberOfQuestion: configDto.numberOfQuestion,
             });
-
-        const save = await this.examStructureConfigRepository.save(
-            createExamstructureConfig,
-        );
-        return plainToInstance(CreateExamStructureConfigDto, save, {
+    
+            configsToSave.push(config);
+        }
+    
+        const savedConfigs = await this.examStructureConfigRepository.save(configsToSave);
+        
+        return plainToInstance(CreateExamStructureConfigDto, savedConfigs, {
             excludeExtraneousValues: true,
         });
     }
+    
 }

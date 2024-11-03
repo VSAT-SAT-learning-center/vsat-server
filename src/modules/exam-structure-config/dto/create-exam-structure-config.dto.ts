@@ -4,7 +4,7 @@ import { IsString, IsUUID } from 'class-validator';
 export class CreateExamStructureConfigDto {
     @IsString()
     @ApiProperty()
-    domainId: string;
+    domain: string;
 
     @IsString()
     @ApiProperty()
