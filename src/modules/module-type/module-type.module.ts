@@ -7,9 +7,10 @@ import { ModuleTypeService } from './module-type.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ModuleTypeController } from './module-type.controller';
 import { DomainDistributionModule } from '../domain-distribution/domain-distribution.module';
+import { Domain } from 'src/database/entities/domain.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ModuleType, Section, ExamStructure]), DomainDistributionModule],
+    imports: [TypeOrmModule.forFeature([ModuleType, Section, ExamStructure, Domain]), DomainDistributionModule],
     providers: [ModuleTypeService, PaginationService],
     controllers: [ModuleTypeController],
     exports: [ModuleTypeService],

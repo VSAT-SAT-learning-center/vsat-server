@@ -5,7 +5,9 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { ExamStructureConfigService } from "./exam-structure-config.service";
 import { ExamStructureConfigController } from "./exam-structure-config.controller";
 import { ExamStructure } from "src/database/entities/examstructure.entity";
-import { Domain } from "domain";
+import { Domain } from "src/database/entities/domain.entity";
+
+
 
 
 
