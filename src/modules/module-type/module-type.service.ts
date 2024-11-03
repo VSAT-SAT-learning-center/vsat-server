@@ -27,40 +27,47 @@ export class ModuleTypeService extends BaseService<ModuleType> {
         super(moduleTypeRepository, paginationService);
     }
 
-    async save(
-        examStructureId: string,
-        createModuleTypeDto: CreateModuleTypeDto,
-    ) {
-        const section = await this.sectionRepository.findOne({
-            where: { id: createModuleTypeDto.sectionId },
-        });
-
+    async save(examStructureId: string, createModuleTypeDtos: CreateModuleTypeDto[]) {
         const examStructure = await this.examStructureRepository.findOne({
             where: { id: examStructureId },
         });
-
-        if (!section) {
-            throw new NotFoundException('Section is not found');
-        }
 
         if (!examStructure) {
             throw new NotFoundException('ExamStructure is not found');
         }
 
-        const createdModuleType = await this.moduleTypeRepository.create({
-            ...createModuleTypeDto,
-            section: section,
-            examStructure: examStructure,
-        });
+        const savedModuleTypes = [];
 
-        const saveModuleType =
-            await this.moduleTypeRepository.save(createdModuleType);
+        for (const createModuleTypeDto of createModuleTypeDtos) {
+            const section = await this.sectionRepository.findOne({
+                where: { name: createModuleTypeDto.section },
+            });
 
-        await this.domainDistributionService.save(
-            saveModuleType.id,
-            createModuleTypeDto.domainDistribution,
-        );
-        return plainToInstance(CreateModuleTypeDto, saveModuleType, {
+            if (!section) {
+                throw new NotFoundException('Section is not found');
+            }
+
+            const createdModuleType = this.moduleTypeRepository.create({
+                name: createModuleTypeDto.name,
+                section: section,
+                examStructure: examStructure,
+                level: createModuleTypeDto.level,
+                numberofquestion: createModuleTypeDto.numberOfQuestion,
+            });
+
+            const saveModuleType = await this.moduleTypeRepository.save(createdModuleType);
+
+            await this.domainDistributionService.save(
+                saveModuleType.id,
+                Array.isArray(createModuleTypeDto.domainDistribution)
+                    ? createModuleTypeDto.domainDistribution
+                    : [createModuleTypeDto.domainDistribution],
+            );
+
+            savedModuleTypes.push(saveModuleType);
+        }
+
+        return plainToInstance(CreateModuleTypeDto, savedModuleTypes, {
             excludeExtraneousValues: true,
         });
     }

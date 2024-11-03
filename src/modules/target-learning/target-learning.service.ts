@@ -7,12 +7,21 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 import { BaseService } from '../base/base.service';
 import { plainToInstance } from 'class-transformer';
+import { Level } from 'src/database/entities/level.entity';
+import { Section } from 'src/database/entities/section.entity';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 
 @Injectable()
 export class TargetLearningService extends BaseService<TargetLearning> {
     constructor(
         @InjectRepository(TargetLearning)
         private readonly targetLearningRepository: Repository<TargetLearning>,
+        @InjectRepository(Level)
+        private readonly levelRepository: Repository<Level>,
+        @InjectRepository(Section)
+        private readonly sectionRepository: Repository<Section>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
     ) {
         super(targetLearningRepository);
     }
@@ -20,15 +29,15 @@ export class TargetLearningService extends BaseService<TargetLearning> {
     async save(
         createTargetLearningDto: CreateTargetLearningDto,
     ): Promise<TargetLearning> {
-        const level = await this.targetLearningRepository.findOne({
+        const level = await this.levelRepository.findOne({
             where: { id: createTargetLearningDto.levelId },
         });
 
-        const section = await this.targetLearningRepository.findOne({
+        const section = await this.sectionRepository.findOne({
             where: { id: createTargetLearningDto.sectionId },
         });
 
-        const studyProfile = await this.targetLearningRepository.findOne({
+        const studyProfile = await this.studyProfileRepository.findOne({
             where: { id: createTargetLearningDto.studyProfileId },
         });
 
@@ -42,11 +51,23 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        const targetLearningEntity = plainToInstance(
-            TargetLearning,
-            createTargetLearningDto,
+        const createTargetLearning = await this.targetLearningRepository.create(
+            {
+                level: level,
+                section: section,
+                studyProfile: studyProfile,
+            },
         );
 
-        return await this.targetLearningRepository.save(targetLearningEntity);
+        const saveTargetLEarning =
+            await this.targetLearningRepository.save(createTargetLearning);
+
+        const targetLearningEntity = plainToInstance(
+            TargetLearning,
+            saveTargetLEarning,
+            { excludeExtraneousValues: true },
+        );
+
+        return targetLearningEntity;
     }
 }

@@ -12,6 +12,7 @@ import { ExamStructureConfigService } from '../exam-structure-config/exam-struct
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { ModuleTypeService } from '../module-type/module-type.service';
+import { ExamSemester } from 'src/database/entities/examsemeseter.entity';
 
 @Injectable()
 export class ExamStructureService {
@@ -22,14 +23,14 @@ export class ExamStructureService {
         private readonly examStructureTypeRepository: Repository<ExamStructureType>,
         @InjectRepository(ExamScore)
         private readonly examScoreRepository: Repository<ExamScore>,
+        @InjectRepository(ExamSemester)
+        private readonly examSemesterRepository: Repository<ExamSemester>,
 
         private readonly examStructureConfigService: ExamStructureConfigService,
         private readonly moduleTypeService: ModuleTypeService,
     ) {}
 
-    async save(
-        createExamStructure: CreateExamStructureDto,
-    ): Promise<CreateExamStructureDto> {
+    async save(createExamStructure: CreateExamStructureDto): Promise<CreateExamStructureDto> {
         const {
             examScoreId,
             examStructureType,
@@ -39,15 +40,23 @@ export class ExamStructureService {
             requiredCorrectInModule1M,
             examStructureConfig,
             moduleType,
+            examSemesterId,
         } = createExamStructure;
 
-        const examstructureTypeEntity =
-            await this.examStructureTypeRepository.findOne({
-                where: { name: examStructureType },
-            });
+        const examstructureTypeEntity = await this.examStructureTypeRepository.findOne({
+            where: { name: examStructureType },
+        });
+
+        const examSemester = await this.examSemesterRepository.findOne({
+            where: { id: examSemesterId },
+        });
 
         if (!examstructureTypeEntity) {
             throw new NotFoundException('ExamStructureType is not found');
+        }
+
+        if (!examSemester) {
+            throw new NotFoundException('ExamSemester is not found');
         }
 
         const examScore = await this.examScoreRepository.findOne({
@@ -61,16 +70,17 @@ export class ExamStructureService {
             description,
             requiredCorrectInModule1RW,
             requiredCorrectInModule1M,
+            examSemester: examSemester,
         });
 
         const savedExamstructure = await this.repository.save(newExamStructure);
 
         await this.examStructureConfigService.save(
             savedExamstructure.id,
-            examStructureConfig,
+            Array.isArray(examStructureConfig) ? examStructureConfig : [examStructureConfig],
         );
 
-        await this.moduleTypeService.save(savedExamstructure.id, moduleType)
+        await this.moduleTypeService.save(savedExamstructure.id, Array.isArray(moduleType) ? moduleType : [moduleType]);
 
         return plainToInstance(CreateExamStructureDto, savedExamstructure, {
             excludeExtraneousValues: true,

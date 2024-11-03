@@ -59,7 +59,11 @@ export class ExamScoreService {
         const [examScore, total] = await this.examScoreRepository.findAndCount({
             skip: skip,
             take: pageSize,
-            relations: ['examScoreDetails', 'examScoreDetails.section'],
+            relations: [
+                'examScoreDetails',
+                'examScoreDetails.section',
+                'examStructureType',
+            ],
             order: {
                 createdat: 'DESC',
                 examScoreDetails: {
@@ -68,12 +72,9 @@ export class ExamScoreService {
             },
         });
 
-        const totalPages = Math.ceil(total / pageSize);
         return {
-            examScore,
-            totalPages: totalPages,
-            currentPage: page,
-            totalItems: total,
+            data: examScore,
+            total,
         };
     }
 
@@ -82,7 +83,7 @@ export class ExamScoreService {
             await this.examStructureTypeRepository.findOne({
                 where: { name: getExamScoreDto.name },
             });
-        
+
         return await this.examScoreRepository.find({
             where: {
                 examStructureType: {
@@ -90,6 +91,11 @@ export class ExamScoreService {
                 },
             },
             relations: ['examScoreDetails', 'examScoreDetails.section'],
+            order: {
+                examScoreDetails: {
+                    rawscore: 'ASC',
+                },
+            },
         });
     }
 }

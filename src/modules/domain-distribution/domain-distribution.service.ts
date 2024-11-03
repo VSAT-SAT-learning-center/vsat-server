@@ -22,37 +22,36 @@ export class DomainDistributionService extends BaseService<DomainDistribution> {
         super(domainDistributionRepository);
     }
 
-    async save(
-        moduleTypeId: string,
-        createDomainDistributionDto: CreateDomainDistributionDto,
-    ) {
-        const domain = await this.domainDistributionRepository.findOne({
-            where: { id: createDomainDistributionDto.domainId },
-        });
-
+    async save(moduleTypeId: string, createDomainDistributionDtos: CreateDomainDistributionDto[]) {
         const moduleType = await this.moduleTypeRepository.findOne({
             where: { id: moduleTypeId },
         });
-
-        if (!domain) {
-            throw new NotFoundException('Domain is not found');
-        }
 
         if (!moduleType) {
             throw new NotFoundException('ModuleType is not found');
         }
 
-        const createDomainDistribution =
-            await this.domainDistributionRepository.create({
+        const savedDomainDistributions = [];
+
+        for (const createDomainDistributionDto of createDomainDistributionDtos) {
+            const domain = await this.domainRepository.findOne({
+                where: { content: createDomainDistributionDto.domain },
+            });
+
+            if (!domain) {
+                throw new NotFoundException(`Domain "${createDomainDistributionDto.domain}" is not found`);
+            }
+
+            const createDomainDistribution = this.domainDistributionRepository.create({
                 domain: domain,
                 moduleType: moduleType,
             });
 
-        const save = await this.domainDistributionRepository.save(
-            createDomainDistribution,
-        );
+            const savedDomainDistribution = await this.domainDistributionRepository.save(createDomainDistribution);
+            savedDomainDistributions.push(savedDomainDistribution);
+        }
 
-        return plainToInstance(CreateDomainDistributionDto, save, {
+        return plainToInstance(CreateDomainDistributionDto, savedDomainDistributions, {
             excludeExtraneousValues: true,
         });
     }
