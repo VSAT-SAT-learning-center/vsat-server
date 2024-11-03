@@ -14,10 +14,11 @@ export class ExamSemesterService {
     async getExamSemestersWithDetails(): Promise<ExamSemesterWithDetailsDto[]> {
         const examSemesters = await this.examSemesterRepository.find({
             relations: [
-                'examStructures',
-                'examStructures.examStructureType',
+                // 'examStructures',
+                // 'examStructures.examStructureType',
                 'domainDistributionConfigs',
                 'domainDistributionConfigs.domain',
+                'domainDistributionConfigs.domain.section',
             ],
         });
 
@@ -36,6 +37,10 @@ export class ExamSemesterService {
                     percentage: config.percent,
                     minQuestion: config.minQuestion,
                     maxQuestion: config.maxQuestion,
+                    section: config.domain?.section ? { // Check if section exists
+                        id: config.domain.section.id,
+                        name: config.domain.section.name,
+                    } : null,
                 }),
             ),
         }));
@@ -45,10 +50,11 @@ export class ExamSemesterService {
         const semester = await this.examSemesterRepository.findOne({
             where: { id },
             relations: [
-                'examStructures',
-                'examStructures.examStructureType',
+                // 'examStructures',
+                // 'examStructures.examStructureType',
                 'domainDistributionConfigs',
                 'domainDistributionConfigs.domain',
+                'domainDistributionConfigs.domain.section',
             ],
         });
 
@@ -71,6 +77,10 @@ export class ExamSemesterService {
                     percentage: config.percent,
                     minQuestion: config.minQuestion,
                     maxQuestion: config.maxQuestion,
+                    section: config.domain?.section ? { // Check if section exists
+                        id: config.domain.section.id,
+                        name: config.domain.section.name,
+                    } : null,
                 }),
             ),
         };
