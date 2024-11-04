@@ -5,7 +5,6 @@ import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
 import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 import { TargetLearningService } from '../target-learning/target-learning.service';
 import { CreateTargetLearningDto } from '../target-learning/dto/create-targetlearning.dto';
@@ -17,7 +16,7 @@ import { Domain } from 'src/database/entities/domain.entity';
 import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
 
 @Injectable()
-export class ExamAttemptService {
+export class ExamAttemptService extends BaseService<ExamAttempt> {
     constructor(
         @InjectRepository(ExamAttempt)
         private readonly examAttemptRepository: Repository<ExamAttempt>,
@@ -34,7 +33,10 @@ export class ExamAttemptService {
 
         private readonly targetLearningService: TargetLearningService,
         private readonly unitProgressService: UnitProgressService,
-    ) {}
+    ) {
+        super(examAttemptRepository);
+    }
+        
 
     async recommend(examAttemptId: string, createTargetLearningDto: CreateTargetLearningDto) {
         const examAttempt = await this.examAttemptRepository.findOne({
@@ -345,6 +347,23 @@ export class ExamAttemptService {
         }
     }
 
+    async findOneById(examAttemptId: string): Promise<ExamAttempt> {
+        return this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+            relations: ['exam', 'exam.examStructure'],
+        });
+    }
+
+    async updateScore(
+        examAttemptId: string,
+        scoreRW: number,
+        scoreMath: number,
+    ): Promise<void> {
+        await this.examAttemptRepository.update(examAttemptId, {
+            scoreRW,
+            scoreMath,
+        });
+    }
     //RW
     async getExamAtemptDomainRW(examAttemptId: string, iscorrect: boolean) {
         const domainsRW = await this.domainRepository.find({

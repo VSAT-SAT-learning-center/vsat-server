@@ -15,6 +15,7 @@ import { FeedbackModule } from '../feedback/feedback.module';
 @Module({
     imports: [TypeOrmModule.forFeature([QuizQuestion, Level, Section, Skill, QuizAnswer]), QuizAnswerModule, FeedbackModule],
     controllers: [QuizQuestionController],
-    providers: [QuizQuestionService, PaginationService],
+    providers: [QuizQuestionService],
+    exports: [QuizQuestionService],
 })
 export class QuizQuestionModule {}

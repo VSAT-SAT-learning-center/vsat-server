@@ -25,10 +25,6 @@ export class GetQuizQuestionDTO extends BaseDTO {
     skill: GetSkillDTO;
 
     @Expose()
-    @Type(() => GetSectionDto)
-    section: Section;
-
-    @Expose()
     @ApiProperty({ type: [GetAnswerDTO] })
     @IsArray()
     @ValidateNested({ each: true })

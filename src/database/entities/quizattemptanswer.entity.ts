@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { QuizAttempt } from './quizattempt.entity';
 import { QuizQuestion } from './quizquestion.entity';
+import { QuizAnswer } from './quizanswer.entity';
 
 @Entity('quizattemptanswer')
 export class QuizAttemptAnswer {
@@ -35,6 +36,9 @@ export class QuizAttemptAnswer {
     @JoinColumn({ name: 'quizquestionid' })
     quizQuestion: QuizQuestion;
 
+    @Column({ type: 'text', nullable: true })
+    studentAnswer: string;
+
     @Column({ type: 'boolean', default: false })
-    iscorrect: boolean;
+    isCorrect: boolean;
 }

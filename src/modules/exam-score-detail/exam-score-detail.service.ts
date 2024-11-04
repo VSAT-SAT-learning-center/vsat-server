@@ -89,4 +89,21 @@ export class ExamScoreDetailService {
         }
         return this.examScoreDetailRepository.save(updatedExamScoreDetails);
     }
+
+    async getScore(
+        rawscore: number,
+        sectionName: string,
+        difficulty: string,
+    ): Promise<number> {
+        const scoreDetail = await this.examScoreDetailRepository.findOne({
+            where: {
+                rawscore: rawscore,
+                section: { name: sectionName },
+            },
+            select: difficulty === 'Hard' ? ['upperscore'] : ['lowerscore'],
+        });
+        return difficulty === 'Hard'
+            ? scoreDetail?.upperscore
+            : scoreDetail?.lowerscore;
+    }
 }

@@ -16,6 +16,7 @@ import { LessonService } from '../lesson/lesson.service';
 import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
 import { UnitAreaResponseDto } from './dto/get-unitarea.dto';
 import { UpdateUnitAreaStatusDto } from './dto/update-status-unitarea.dto';
+import { Skill } from 'src/database/entities/skill.entity';
 
 @Injectable()
 export class UnitAreaService extends BaseService<UnitArea> {
@@ -222,5 +223,34 @@ export class UnitAreaService extends BaseService<UnitArea> {
         const updatedUnitArea = await this.unitAreaRepository.save(unitArea);
 
         return updatedUnitArea;
+    }
+
+    async findUnitAreasBySkill(skillId: string): Promise<UnitArea[]> {
+        return await this.unitAreaRepository.find({
+            where: { skill: { id: skillId } },
+            relations: ['skill'],
+        });
+    }
+
+    async recommendUnitAreasBasedOnWeakSkills(
+        weakSkills: Skill[],
+    ): Promise<UnitArea[]> {
+        // Tạo danh sách `UnitArea` khuyến nghị dựa trên danh sách kỹ năng yếu
+        const recommendedUnitAreas: UnitArea[] = [];
+    
+        for (const skill of weakSkills) {
+            // Tìm các UnitArea liên quan đến skill hiện tại
+            const unitAreasForSkill = await this.findUnitAreasBySkill(skill.id);
+    
+            // Thêm các UnitArea tìm được vào danh sách khuyến nghị
+            recommendedUnitAreas.push(...unitAreasForSkill);
+        }
+    
+        // Loại bỏ trùng lặp các UnitArea trong danh sách khuyến nghị
+        const uniqueRecommendedUnitAreas = Array.from(
+            new Set(recommendedUnitAreas.map((ua) => ua.id)),
+        ).map((id) => recommendedUnitAreas.find((ua) => ua.id === id));
+    
+        return uniqueRecommendedUnitAreas;
     }
 }

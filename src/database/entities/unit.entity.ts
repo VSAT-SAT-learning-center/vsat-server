@@ -40,6 +40,10 @@ export class Unit {
     @JoinColumn({ name: 'levelid' })
     level: Level;
 
+    @ManyToOne(() => Domain)
+    @JoinColumn({ name: 'domainid' })
+    domain: Domain;
+
     @Column({ type: 'varchar', length: 100 })
     title: string;
 
@@ -54,10 +58,6 @@ export class Unit {
 
     @Column({ type: 'int', nullable: true })
     countfeedback: number;
-
-    @ManyToOne(() => Domain, (domain) => domain.units)
-    @JoinColumn({ name: 'domainid' })
-    domain: Domain;
 
     @OneToMany(() => UnitArea, (unitArea) => unitArea.unit, { cascade: true })
     unitAreas: UnitArea[];

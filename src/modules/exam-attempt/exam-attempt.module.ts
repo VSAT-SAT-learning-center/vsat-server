@@ -21,7 +21,8 @@ import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entit
         TargetLearningModule,
         UnitProgressModule,
     ],
-    providers: [ExamAttemptService, PaginationService],
+    providers: [ExamAttemptService],
     controllers: [ExamAttemptController],
+    exports: [ExamAttemptService],
 })
 export class ExamAttemptModule {}

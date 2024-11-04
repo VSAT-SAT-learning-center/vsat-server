@@ -9,6 +9,10 @@ import { plainToInstance } from 'class-transformer';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
 import { log } from 'console';
+import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
+import { ExamAttemptDetailService } from '../exam-attempt-detail/exam-attempt-detail.service';
+import { ModuleTypeService } from '../module-type/module-type.service';
+import { SectionName } from 'src/common/enums/section-name-enum';
 @Injectable()
 export class ExamScoreService {
     constructor(
@@ -20,6 +24,10 @@ export class ExamScoreService {
         private readonly examStructureTypeRepository: Repository<ExamStructureType>,
 
         private readonly examScoreDetailService: ExamScoreDetailService,
+
+        private readonly examAttemptService: ExamAttemptService,
+        private readonly examAttemptDetailService: ExamAttemptDetailService,
+        private readonly moduleTypeService: ModuleTypeService,
     ) {}
 
     async create(createExamScoreDto: CreateExamScoreDto): Promise<CreateExamScoreDto> {
@@ -83,6 +91,42 @@ export class ExamScoreService {
         });
     }
 
+    async calculateScore(examAttemptId: string) {
+        // Step 1: Xác định độ khó của Module 2 cho từng phần
+        const module2DifficultyRW = await this.moduleTypeService.getModuleDifficulty(
+            examAttemptId,
+            SectionName.READING_WRITING,
+        );
+        const module2DifficultyMath = await this.moduleTypeService.getModuleDifficulty(
+            examAttemptId,
+            SectionName.MATH,
+        );
+
+        // Step 2: Tính tổng số câu đúng cho từng phần
+        const rawscoreRW = await this.examAttemptDetailService.countCorrectAnswers(
+            examAttemptId,
+            SectionName.READING_WRITING,
+        );
+        const rawscoreMath = await this.examAttemptDetailService.countCorrectAnswers(
+            examAttemptId,
+            SectionName.MATH,
+        );
+
+        // Step 3: Lấy điểm từ ExamScoreDetail
+        const finalScoreRW = await this.examScoreDetailService.getScore(
+            rawscoreRW,
+            SectionName.READING_WRITING,
+            module2DifficultyRW,
+        );
+        const finalScoreMath = await this.examScoreDetailService.getScore(
+            rawscoreMath,
+            SectionName.MATH,
+            module2DifficultyMath,
+        );
+
+        // Step 4: Cập nhật điểm trong ExamAttempt
+        await this.examAttemptService.updateScore(examAttemptId, finalScoreRW, finalScoreMath);
+    }
     async getExamScoreById(id: string): Promise<ExamScore> {
         const examScore = await this.examScoreRepository.findOne({
             where: { id: id },

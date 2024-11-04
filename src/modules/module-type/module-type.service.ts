@@ -10,6 +10,7 @@ import { BaseService } from '../base/base.service';
 import { Section } from 'src/database/entities/section.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { plainToInstance } from 'class-transformer';
+import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
 import { DomainDistributionService } from '../domain-distribution/domain-distribution.service';
 
 @Injectable()
@@ -21,10 +22,11 @@ export class ModuleTypeService extends BaseService<ModuleType> {
         private readonly sectionRepository: Repository<Section>,
         @InjectRepository(ExamStructure)
         private readonly examStructureRepository: Repository<ExamStructure>,
-        paginationService: PaginationService,
+
+        private readonly examAttemptService: ExamAttemptService,
         private readonly domainDistributionService: DomainDistributionService,
     ) {
-        super(moduleTypeRepository, paginationService);
+        super(moduleTypeRepository);
     }
 
     async save(examStructureId: string, createModuleTypeDtos: CreateModuleTypeDto[]) {
@@ -70,5 +72,33 @@ export class ModuleTypeService extends BaseService<ModuleType> {
         return plainToInstance(CreateModuleTypeDto, savedModuleTypes, {
             excludeExtraneousValues: true,
         });
+    }
+
+    async getModuleDifficulty(
+        examAttemptId: string,
+        sectionName: string,
+    ): Promise<string> {
+        // Bước 1: Lấy `examStructureId` từ `ExamAttempt`
+        const examAttempt =
+            await this.examAttemptService.findOneById(examAttemptId);
+        const examStructureId = examAttempt?.exam?.examStructure?.id;
+
+        if (!examStructureId) {
+            throw new Error(
+                'Exam structure not found for the provided attempt',
+            );
+        }
+
+        // Bước 2: Lấy `ModuleType` với `examStructureId`, `sectionId`, và tên là "Module 2"
+        const moduleType = await this.moduleTypeRepository.findOne({
+            where: {
+                examStructure: { id: examStructureId },
+                section: { name: sectionName },
+                name: 'Module 2',
+            },
+            select: ['level'],
+        });
+
+        return moduleType?.level || 'Easy';
     }
 }

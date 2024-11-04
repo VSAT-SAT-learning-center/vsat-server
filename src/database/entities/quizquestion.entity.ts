@@ -40,13 +40,6 @@ export class QuizQuestion {
     @JoinColumn({ name: 'levelid' })
     level: Level;
 
-    @ManyToOne(() => Section)
-    @JoinColumn({ name: 'sectionid' })
-    section: Section;
-
-    @OneToMany(() => QuizAnswer, (quizAnswer) => quizAnswer.quizquestion)
-    answers: QuizAnswer[];
-
     @Column({ type: 'text', nullable: true })
     content: string;
 
@@ -71,4 +64,7 @@ export class QuizQuestion {
 
     @Column({ type: 'boolean', default: true })
     isActive: boolean;
+
+    @OneToMany(() => QuizAnswer, (quizAnswer) => quizAnswer.quizquestion)
+    answers: QuizAnswer[];
 }

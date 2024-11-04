@@ -4,16 +4,56 @@ import { Repository } from 'typeorm';
 import { CreateQuizAttemptAnswerDto } from './dto/create-quizattemptanswer.dto';
 import { UpdateQuizAttemptAnswerDto } from './dto/update-quizattemptanswer.dto';
 import { QuizAttemptAnswer } from 'src/database/entities/quizattemptanswer.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 
 @Injectable()
 export class QuizAttemptAnswerService extends BaseService<QuizAttemptAnswer> {
-  constructor(
-    @InjectRepository(QuizAttemptAnswer) repository: Repository<QuizAttemptAnswer>, // Inject repository for QuizAttemptAnswer
-    paginationService: PaginationService,
-  ) {
-    super(repository, paginationService); // Pass repository and paginationService to BaseService
-  }
+    constructor(
+        @InjectRepository(QuizAttemptAnswer)
+        private readonly quizAttemptAnswerRepository: Repository<QuizAttemptAnswer>,
+    ) {
+        super(quizAttemptAnswerRepository);
+    }
+
+    async findAnswer(
+        quizAttemptId: string,
+        questionId: string,
+    ): Promise<QuizAttemptAnswer | undefined> {
+        return this.quizAttemptAnswerRepository.findOne({
+            where: {
+                quizAttempt: { id: quizAttemptId },
+                quizQuestion: { id: questionId },
+            },
+        });
+    }
+
+    async saveQuizAttemptAnswer(
+        quizAttemptId: string,
+        questionId: string,
+        selectedAnswerId: string,
+        isCorrect: boolean,
+    ): Promise<QuizAttemptAnswer> {
+        const newAnswer = this.quizAttemptAnswerRepository.create({
+            quizAttempt: { id: quizAttemptId },
+            quizQuestion: { id: questionId },
+            studentAnswer: selectedAnswerId,
+            isCorrect: isCorrect,
+        });
+        return this.quizAttemptAnswerRepository.save(newAnswer);
+    }
+
+    async updateQuizAttemptAnswer(
+        quizAttemptAnswer: QuizAttemptAnswer,
+    ): Promise<QuizAttemptAnswer> {
+        return this.quizAttemptAnswerRepository.save(quizAttemptAnswer);
+    }
+
+    async findAnswersByQuizAttemptId(
+        quizAttemptId: string,
+    ): Promise<QuizAttemptAnswer[]> {
+        return this.quizAttemptAnswerRepository.find({
+            where: { quizAttempt: { id: quizAttemptId } },
+            relations: ['quizQuestion', 'quizQuestion.skill'], // Bao gồm thông tin skill cho mỗi câu hỏi
+        });
+    }
 }

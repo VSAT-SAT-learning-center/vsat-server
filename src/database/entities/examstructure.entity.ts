@@ -36,10 +36,11 @@ export class ExamStructure {
     examScore: ExamScore;
 
     @ManyToOne(() => ExamStructureType)
-    @JoinColumn({ name: 'examStructureTypeId' })
+    @JoinColumn({ name: 'examstructuretypeid' })
     examStructureType: ExamStructureType;
 
     @ManyToOne(() => ExamSemester, (examSemester) => examSemester.examStructures)
+    @JoinColumn({ name: 'examsemesterid' })
     examSemester: ExamSemester;
 
     @Column({ type: 'varchar', length: 255 })

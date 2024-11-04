@@ -4,31 +4,34 @@ import { Repository } from 'typeorm';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { Skill } from 'src/database/entities/skill.entity';
-import { PaginationService } from 'src/common/helpers/pagination.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
 import { SkillDto } from './dto/skill.dto';
+import { QuizQuestionService } from '../quizquestion/quiz-question.service';
 
 @Injectable()
 export class SkillService extends BaseService<Skill> {
-  constructor(
-    @InjectRepository(Skill)
-    private readonly skillRepository: Repository<Skill>,
-    //paginationService: PaginationService,
-  ) {
-    super(skillRepository);
-  }
-
-  async getSkillsByDomainId(domainId: string): Promise<SkillDto[]> {
-    const skills = await this.skillRepository.find({ where: { domain: { id: domainId } } });
-
-    if (!skills || skills.length === 0) {
-      throw new NotFoundException(`No skills found for domain ID ${domainId}`);
+    constructor(
+        @InjectRepository(Skill)
+        private readonly skillRepository: Repository<Skill>,
+    ) {
+        super(skillRepository);
     }
-    
-    return skills.map(skill => ({
-      id: skill.id,
-      content: skill.content,  // Assuming 'name' is the content field
-    }));
-  }
+
+    async getSkillsByDomainId(domainId: string): Promise<SkillDto[]> {
+        const skills = await this.skillRepository.find({
+            where: { domain: { id: domainId } },
+        });
+
+        if (!skills || skills.length === 0) {
+            throw new NotFoundException(
+                `No skills found for domain ID ${domainId}`,
+            );
+        }
+
+        return skills.map((skill) => ({
+            id: skill.id,
+            content: skill.content, // Assuming 'name' is the content field
+        }));
+    }
+
 }

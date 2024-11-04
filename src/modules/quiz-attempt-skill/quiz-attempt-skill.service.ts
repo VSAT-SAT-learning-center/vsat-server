@@ -10,10 +10,10 @@ import { BaseService } from '../base/base.service';
 
 @Injectable()
 export class QuizAttemptSkillService extends BaseService<QuizAttemptSkill> {
-  constructor(
-    @InjectRepository(QuizAttemptSkill) repository: Repository<QuizAttemptSkill>, // Inject repository for QuizAttemptSkill
-    paginationService: PaginationService,
-  ) {
-    super(repository, paginationService); // Pass repository and paginationService to BaseService
-  }
+    constructor(
+        @InjectRepository(QuizAttemptSkill)
+        private readonly quizAttemmptSkillRepository: Repository<QuizAttemptSkill>,
+    ) {
+        super(quizAttemmptSkillRepository);
+    }
 }

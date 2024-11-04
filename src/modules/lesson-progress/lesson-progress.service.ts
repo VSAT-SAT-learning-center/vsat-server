@@ -182,8 +182,8 @@ export class LessonProgressService extends BaseService<LessonProgress> {
             },
         });
 
+        // Insert LessonProgress mới nếu chưa có
         if (!lessonProgress) {
-            // Insert LessonProgress mới nếu chưa có
             lessonProgress = this.lessonProgressRepository.create({
                 lesson: { id: lessonId },
                 unitAreaProgress: { id: unitAreaProgressId },

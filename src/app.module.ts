@@ -43,6 +43,7 @@ import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
 import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
 import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
+import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-question-item.module';
 import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-structure-type.module';
 import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-structure-config.module';
 import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module';
@@ -93,6 +94,7 @@ import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module
         AnswerModule,
         GptModule,
         QuizAnswerModule,
+        QuizQuestionItemModule,
         ExamStructureTypeModule,
         ExamStructureConfigModule,
         ExamSemesterModule,
