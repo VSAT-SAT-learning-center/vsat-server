@@ -142,7 +142,7 @@ export class UnitController extends BaseController<Unit> {
     }
 
     @Post(':id/submit')
-    @ApiParam({ name: 'id', required: true, description: 'ID of the unit' }) // Swagger parameter
+    @ApiParam({ name: 'id', required: true, description: 'ID of the unit' })
     async submitLearningMaterial(@Param('id') unitId: string) {
         const unit = await this.unitService.submitLearningMaterial(unitId);
 

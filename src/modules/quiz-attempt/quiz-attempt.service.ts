@@ -9,6 +9,7 @@ import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 import { QuizAttemptAnswerService } from '../quiz-attempt-answer/quiz-attempt-answer.service';
 import { QuizQuestionService } from '../quizquestion/quiz-question.service';
 import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
+import { CompleteQuizAttemptResponseDto } from './dto/reponse-complete-quiz-attempt.dto';
 
 @Injectable()
 export class QuizAttemptService extends BaseService<QuizAttempt> {
@@ -88,6 +89,104 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         });
     }
 
+    async completeQuizAttempt(
+        quizId: string,
+        completeQuizAttemptDto: CompleteQuizAttemptDto,
+    ): Promise<CompleteQuizAttemptResponseDto> {
+        const { studyProfileId, answers } = completeQuizAttemptDto;
+
+        // Step 1: Calculate Score
+        let correctAnswers = 0;
+        const totalQuestions = answers.length;
+
+        for (const answer of answers) {
+            const isCorrect = await this.quizQuestionService.verifyAnswer(
+                answer.questionId,
+                answer.selectedAnswerId,
+            );
+
+            // Store or update answer in QuizAttemptAnswer
+            const existingAnswer =
+                await this.quizAttemptAnswerService.findAnswer(
+                    quizId,
+                    answer.questionId,
+                );
+
+            if (existingAnswer) {
+                existingAnswer.studentAnswer = answer.selectedAnswerId;
+                existingAnswer.isCorrect = isCorrect;
+                await this.quizAttemptAnswerService.updateQuizAttemptAnswer(
+                    existingAnswer,
+                );
+            } else {
+                await this.quizAttemptAnswerService.saveQuizAttemptAnswer(
+                    quizId,
+                    answer.questionId,
+                    answer.selectedAnswerId,
+                    isCorrect,
+                );
+            }
+
+            if (isCorrect) correctAnswers++;
+        }
+
+        const score = (correctAnswers / totalQuestions) * 100;
+
+        // Step 2: Save QuizAttempt record with final score
+        const quizAttempt = await this.quizAttemptRepository.create({
+            quiz: { id: quizId },
+            studyProfile: { id: studyProfileId },
+            attemptdatetime: new Date(),
+            score,
+            status: QuizAttemptStatus.COMPLETED,
+        });
+
+        const savedQuizAttempt =
+            await this.quizAttemptRepository.save(quizAttempt);
+
+        // Step 3: Assess Skills and Track Level Changes
+        const skillsResult = await this.assessSkillProgress(
+            savedQuizAttempt.id,
+        );
+
+        // Step 4: Recommend Units based on Weak Skills
+        const recommendedUnits = await this.findWeakSkillsByQuizAttempt(
+            savedQuizAttempt.id,
+        );
+
+        // Step 5: Evaluate Progress Compared to Previous Attempts
+        const progressEvaluation = await this.evaluateQuizProgress(
+            studyProfileId,
+            quizId,
+            score,
+        );
+
+        // Step 6: Calculate Course Mastery
+        const courseMastery = await this.calculateCourseMastery(studyProfileId);
+
+        // Step 7: Get Current Unit for Quiz
+        const currentUnit =
+            await this.quizService.getCurrentUnitForQuiz(quizId);
+
+        // Step 8: Format and Return Data
+        return {
+            // The student score
+            quizProgress: score,
+            // Độ thành thạo của học sinh qua các bài làm attempt
+            courseMastery,
+            // The unit identifier that the student is currently working on or will move to next.
+            currentUnit,
+            // Summary of skills assessed in the quiz, detailing accuracy per skill and total correct answers.
+            skillsSummary: skillsResult.skillsSummary,
+            // Detailed performance metrics for each skill, including accuracy and proficiency level.
+            skillDetails: skillsResult.skillDetails,
+            // A list of recommended units (or unit areas) that focus on skills the student needs to improve.
+            recommendedLessons: recommendedUnits,
+            // A summary evaluation comparing the student’s performance in this quiz to previous attempts, e.g., improvement, steady, or decline.
+            progressEvaluation,
+        };
+    }
+
     // async completeQuizAttempt(quizAttemptId: string): Promise<QuizAttempt> {
     //     const quizAttempt = await this.quizAttemptRepository.findOne({
     //         where: { id: quizAttemptId },
@@ -111,75 +210,6 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     //     quizAttempt.score = score;
     //     return await this.quizAttemptRepository.save(quizAttempt);
     // }
-
-    async completeQuizAttempt(
-        quizId: string,
-        completeQuizAttemptDto: CompleteQuizAttemptDto,
-    ): Promise<any> {
-        const { studyProfileId, answers } = completeQuizAttemptDto;
-    
-        // Step 1: Calculate Score
-        let correctAnswers = 0;
-        const totalQuestions = answers.length;
-    
-        for (const answer of answers) {
-            const isCorrect = await this.quizQuestionService.verifyAnswer(
-                answer.questionId,
-                answer.selectedAnswerId,
-            );
-    
-            // Store or update answer in QuizAttemptAnswer
-            const existingAnswer = await this.quizAttemptAnswerService.findAnswer(
-                quizId,
-                answer.questionId,
-            );
-    
-            if (existingAnswer) {
-                existingAnswer.studentAnswer = answer.selectedAnswerId;
-                existingAnswer.isCorrect = isCorrect;
-                await this.quizAttemptAnswerService.updateQuizAttemptAnswer(existingAnswer);
-            } else {
-                await this.quizAttemptAnswerService.saveQuizAttemptAnswer(
-                    quizId,
-                    answer.questionId,
-                    answer.selectedAnswerId,
-                    isCorrect,
-                );
-            }
-    
-            if (isCorrect) correctAnswers++;
-        }
-    
-        const score = (correctAnswers / totalQuestions) * 100;
-    
-        // Step 2: Save QuizAttempt record with final score
-        const quizAttempt = await this.quizAttemptRepository.create({
-            quiz: { id: quizId },
-            studyProfile: { id: studyProfileId },
-            attemptdatetime: new Date(),
-            score,
-            status: QuizAttemptStatus.COMPLETED,
-        });
-    
-        const savedQuizAttempt = await this.quizAttemptRepository.save(quizAttempt);
-    
-        // Step 3: Assess Skills and Track Level Changes
-        const skillsResult = await this.assessSkillProgress(savedQuizAttempt.id);
-    
-        // Step 4: Recommend Units based on Weak Skills
-        const recommendedUnits = await this.findWeakSkillsByQuizAttempt(savedQuizAttempt.id);
-    
-        // Step 5: Format and Return Data
-        return {
-            quizProgress: score,
-            courseMastery: this.calculateCourseMastery(studyProfileId),
-            currentUnit: this.quizService.getCurrentUnitForQuiz(quizId),
-            skillsSummary: skillsResult.skillsSummary,
-            skillDetails: skillsResult.skillDetails,
-            recommendedLessons: recommendedUnits,
-        };
-    }
-    
 
     async findWeakSkillsByQuizAttempt(quizAttemptId: string): Promise<Skill[]> {
         // Load the quiz attempt with related answers and questions
@@ -252,21 +282,29 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         return quizAttempt;
     }
 
-    async assessSkillProgress(quizAttemptId: string): Promise<{ skillsSummary: any; skillDetails: any }> {
+    async assessSkillProgress(
+        quizAttemptId: string,
+    ): Promise<{ skillsSummary: any; skillDetails: any }> {
         // Lấy các câu trả lời trong QuizAttempt
-        const answers = await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttemptId);
-        const skillScores = new Map<string, { correct: number; total: number }>();
-    
+        const answers =
+            await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(
+                quizAttemptId,
+            );
+        const skillScores = new Map<
+            string,
+            { correct: number; total: number }
+        >();
+
         // Xử lý từng câu trả lời
         for (const answer of answers) {
             const skillId = answer.quizQuestion.skill.id;
             const isCorrect = answer.isCorrect;
-    
+
             // Khởi tạo nếu chưa có skillId trong map
             if (!skillScores.has(skillId)) {
                 skillScores.set(skillId, { correct: 0, total: 0 });
             }
-    
+
             // Cập nhật điểm kỹ năng
             const skillScore = skillScores.get(skillId);
             if (skillScore) {
@@ -274,28 +312,156 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
                 if (isCorrect) skillScore.correct += 1;
             }
         }
-    
+
         // Tạo dữ liệu kết quả
-        const skillsSummary = Array.from(skillScores.entries()).map(([skillId, score]) => ({
-            skillId,
-            accuracy: (score.correct / score.total) * 100,
-        }));
+        const skillsSummary = Array.from(skillScores.entries()).map(
+            ([skillId, score]) => ({
+                skillId,
+                accuracy: (score.correct / score.total) * 100,
+            }),
+        );
         const skillDetails = skillsSummary; // Có thể tùy chỉnh nếu cần chi tiết hơn
-    
+
         return { skillsSummary, skillDetails };
     }
 
     async calculateCourseMastery(studyProfileId: string): Promise<number> {
         // Lấy tất cả QuizAttempt đã hoàn thành của học sinh
         const completedAttempts = await this.quizAttemptRepository.find({
-            where: { studyProfile: { id: studyProfileId }, status: QuizAttemptStatus.COMPLETED },
+            where: {
+                studyProfile: { id: studyProfileId },
+                status: QuizAttemptStatus.COMPLETED,
+            },
         });
-    
+
         if (completedAttempts.length === 0) return 0;
-    
+
         // Tính điểm trung bình của các lần attempt
-        const totalScore = completedAttempts.reduce((sum, attempt) => sum + attempt.score, 0);
+        const totalScore = completedAttempts.reduce(
+            (sum, attempt) => sum + attempt.score,
+            0,
+        );
         return totalScore / completedAttempts.length;
     }
-    
+
+    async evaluateQuizProgress(
+        studyProfileId: string,
+        quizId: string,
+        currentScore: number,
+    ): Promise<{
+        progress: 'improved' | 'declined' | 'same';
+        previousScore: number | null;
+    }> {
+        // Step 1: Get the latest completed quiz attempt for comparison
+        const previousAttempt = await this.quizAttemptRepository.findOne({
+            where: {
+                studyProfile: { id: studyProfileId },
+                quiz: { id: quizId },
+                status: QuizAttemptStatus.COMPLETED, // Assuming we have a status field
+            },
+            order: { attemptdatetime: 'DESC' },
+        });
+
+        if (!previousAttempt) {
+            // Nếu không có lần trước đó để so sánh, đây là lần đầu tiên học sinh làm quiz
+            return { progress: 'same', previousScore: null };
+        }
+
+        const previousScore = previousAttempt.score;
+
+        // Step 2: Compare current score with previous score
+        let progress: 'improved' | 'declined' | 'same';
+        if (currentScore > previousScore) {
+            progress = 'improved';
+        } else if (currentScore < previousScore) {
+            progress = 'declined';
+        } else {
+            progress = 'same';
+        }
+
+        return { progress, previousScore };
+    }
+
+    async getOngoingQuizAttemptForUnit(
+        studyProfileId: string,
+        unitId: string,
+    ): Promise<QuizAttempt | null> {
+        // Find the latest quiz attempt for the specified study profile and unit that is still in progress
+        const ongoingQuizAttempt = await this.quizAttemptRepository.findOne({
+            where: {
+                studyProfile: { id: studyProfileId },
+                quiz: { quizconfig: { unit: { id: unitId } } },
+                status: QuizAttemptStatus.IN_PROGRESS,
+            },
+            relations: [
+                'quiz',
+                'quiz.quizQuestions',
+                'quiz.quizQuestions.quizquestion',
+                'quiz.quizconfig',
+            ], // Fetch related data for unit and quiz questions
+            order: {
+                attemptdatetime: 'DESC', // Get the most recent in-progress attempt if multiple exist
+            },
+        });
+
+        return ongoingQuizAttempt || null;
+    }
+
+    async findByQuizId(quizId: string): Promise<QuizAttempt | null> {
+        return this.quizAttemptRepository.findOne({
+            where: {
+                quiz: { id: quizId },
+                status: QuizAttemptStatus.IN_PROGRESS,
+            },
+            relations: ['quiz', 'studyProfile'],
+        });
+    }
+
+    async validateCompletion(quizAttemptId: string): Promise<boolean> {
+        const quizAttempt = await this.quizAttemptRepository.findOne({
+            where: { id: quizAttemptId },
+            relations: ['quiz', 'quiz.quizQuestions'],
+        });
+
+        if (!quizAttempt) {
+            throw new NotFoundException(
+                `Quiz Attempt with ID ${quizAttemptId} not found.`,
+            );
+        }
+
+        const answeredQuestions =
+            await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(
+                quizAttemptId,
+            );
+
+        const answerQuestionCount = answeredQuestions.length;
+
+        const totalQuestions = quizAttempt.quiz.quizQuestions.length;
+
+        return answerQuestionCount === totalQuestions;
+    }
+
+    //Return the current progress of the quiz attempt
+    // async getProgress(
+    //     quizAttemptId: string,
+    // ): Promise<{ answeredQuestions: number; totalQuestions: number }> {
+    //     const quizAttempt = await this.quizAttemptRepository.findOne({
+    //         where: { id: quizAttemptId },
+    //         relations: ['quiz', 'quiz.quizQuestions'],
+    //     });
+
+    //     if (!quizAttempt) {
+    //         throw new NotFoundException(
+    //             `Quiz Attempt with ID ${quizAttemptId} not found.`,
+    //         );
+    //     }
+
+    //     const answeredQuestions =
+    //         await this.quizAttemptAnswerService.countAnswersByQuizAttempt(
+    //             quizAttemptId,
+    //         );
+    //     const totalQuestions = quizAttempt.quiz.quizQuestions.length;
+
+    //     return { answeredQuestions, totalQuestions };
+    // }
 }

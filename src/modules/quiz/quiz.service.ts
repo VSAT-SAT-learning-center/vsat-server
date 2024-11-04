@@ -140,6 +140,7 @@ export class QuizService extends BaseService<Quiz> {
         const levelId = unit.level.id;
         const quizConfigId = quizConfigs[0].id;
 
+        //Get random question by level and skill
         for (const config of quizConfigs) {
             const skillId = config.skill.id;
             const questionQuantity = config.totalquestion;
@@ -163,6 +164,7 @@ export class QuizService extends BaseService<Quiz> {
 
         const createQuiz = await this.quizRepository.save(quiz);
 
+        //Insert quiz question
         await this.quizQuestionItemService.insertQuizQuestionItems(createQuiz.id, quizQuestions);
 
         return createQuiz; 

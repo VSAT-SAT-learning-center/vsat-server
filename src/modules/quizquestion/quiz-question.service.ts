@@ -172,7 +172,6 @@ export class QuizQuestionService {
         const [questions, total] =
             await this.quizQuestionRepository.findAndCount({
                 relations: [
-                    'section',
                     'level',
                     'skill',
                     'skill.domain',
