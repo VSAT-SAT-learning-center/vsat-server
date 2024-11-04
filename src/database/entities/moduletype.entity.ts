@@ -6,9 +6,11 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { Section } from './section.entity';
 import { ExamStructure } from './examstructure.entity';
+import { DomainDistribution } from './domaindistribution.entity';
 
 @Entity('moduletype')
 export class ModuleType {
@@ -34,6 +36,9 @@ export class ModuleType {
     @ManyToOne(() => ExamStructure)
     @JoinColumn({ name: 'examstructureid' })
     examStructure: ExamStructure;
+
+    @OneToMany(() => DomainDistribution, (domaindistribution) => domaindistribution.moduleType)
+    domaindistribution: DomainDistribution[];
 
     @Column({ type: 'varchar', length: 100 })
     name: string;
