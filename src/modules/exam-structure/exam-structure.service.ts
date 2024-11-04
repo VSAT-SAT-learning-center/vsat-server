@@ -112,6 +112,9 @@ export class ExamStructureService {
         const formattedResult = result.map((examStructure) => ({
             id: examStructure.id,
             structurename: examStructure.structurename,
+            description: examStructure.description,
+            requiredCorrectInModule1RW: examStructure.requiredCorrectInModule1RW,
+            requiredCorrectInModule1M: examStructure.requiredCorrectInModule1M,
             examScore: examStructure.examScore,
             examStructureType: examStructure.examStructureType,
             examSemester: examStructure.examSemester,
