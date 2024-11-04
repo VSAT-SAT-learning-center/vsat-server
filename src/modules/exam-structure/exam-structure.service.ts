@@ -115,6 +115,7 @@ export class ExamStructureService {
             description: examStructure.description,
             requiredCorrectInModule1RW: examStructure.requiredCorrectInModule1RW,
             requiredCorrectInModule1M: examStructure.requiredCorrectInModule1M,
+            createdat: examStructure.createdat,
             examScore: examStructure.examScore,
             examStructureType: examStructure.examStructureType,
             examSemester: examStructure.examSemester,
