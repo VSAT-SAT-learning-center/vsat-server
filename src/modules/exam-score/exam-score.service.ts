@@ -86,7 +86,7 @@ export class ExamScoreService {
     async getExamScoreById(id: string): Promise<ExamScore> {
         const examScore = await this.examScoreRepository.findOne({
             where: { id: id },
-            relations: ['examScoreDetails'],
+            relations: ['examScoreDetails', 'examScoreDetails.section'],
         });
 
         if (!examScore) {
