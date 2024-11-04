@@ -17,6 +17,7 @@ import { log } from 'console';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
 import { ExamAttemptDetailService } from '../exam-attempt-detail/exam-attempt-detail.service';
 import { ModuleTypeService } from '../module-type/module-type.service';
+import { SectionName } from 'src/common/enums/section-name-enum';
 @Injectable()
 export class ExamScoreService {
     constructor(
@@ -101,19 +102,19 @@ export class ExamScoreService {
     }
 
     async calculateScore(examAttemptId: string) {
-        // Bước 1: Xác định độ khó của Module 2 cho từng phần
-        const module2DifficultyRW = await this.moduleTypeService.getModuleDifficulty(examAttemptId, 'Reading & Writing');
-        const module2DifficultyMath = await this.moduleTypeService.getModuleDifficulty(examAttemptId, 'Math');
+        // Step 1: Xác định độ khó của Module 2 cho từng phần
+        const module2DifficultyRW = await this.moduleTypeService.getModuleDifficulty(examAttemptId, SectionName.READING_WRITING);
+        const module2DifficultyMath = await this.moduleTypeService.getModuleDifficulty(examAttemptId, SectionName.MATH);
     
-        // Bước 2: Tính tổng số câu đúng cho từng phần
-        const rawscoreRW = await this.examAttemptDetailService.countCorrectAnswers(examAttemptId, 'Reading & Writing');
-        const rawscoreMath = await this.examAttemptDetailService.countCorrectAnswers(examAttemptId, 'Math');
+        // Step 2: Tính tổng số câu đúng cho từng phần
+        const rawscoreRW = await this.examAttemptDetailService.countCorrectAnswers(examAttemptId, SectionName.READING_WRITING);
+        const rawscoreMath = await this.examAttemptDetailService.countCorrectAnswers(examAttemptId, SectionName.MATH);
     
-        // Bước 3: Lấy điểm từ ExamScoreDetail
-        const finalScoreRW = await this.examScoreDetailService.getScore(rawscoreRW, 'Reading & Writing', module2DifficultyRW);
-        const finalScoreMath = await this.examScoreDetailService.getScore(rawscoreMath, 'Math', module2DifficultyMath);
+        // Step 3: Lấy điểm từ ExamScoreDetail
+        const finalScoreRW = await this.examScoreDetailService.getScore(rawscoreRW, SectionName.READING_WRITING, module2DifficultyRW);
+        const finalScoreMath = await this.examScoreDetailService.getScore(rawscoreMath, SectionName.MATH, module2DifficultyMath);
     
-        // Bước 4: Cập nhật điểm trong ExamAttempt
+        // Step 4: Cập nhật điểm trong ExamAttempt
         await this.examAttemptService.updateScore(examAttemptId, finalScoreRW, finalScoreMath);
       }
 }
