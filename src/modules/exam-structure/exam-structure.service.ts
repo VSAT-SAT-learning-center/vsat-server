@@ -80,7 +80,10 @@ export class ExamStructureService {
             Array.isArray(examStructureConfig) ? examStructureConfig : [examStructureConfig],
         );
 
-        await this.moduleTypeService.save(savedExamstructure.id, Array.isArray(moduleType) ? moduleType : [moduleType]);
+        await this.moduleTypeService.save(
+            savedExamstructure.id,
+            Array.isArray(moduleType) ? moduleType : [moduleType],
+        );
 
         return plainToInstance(CreateExamStructureDto, savedExamstructure, {
             excludeExtraneousValues: true,
@@ -92,14 +95,51 @@ export class ExamStructureService {
             skip: (page - 1) * pageSize,
             take: pageSize,
             order: { createdat: 'DESC' },
+            relations: [
+                'examScore',
+                'examStructureType',
+                'examSemester',
+                'configs',
+                'moduletype',
+                'moduletype.section',
+                'moduletype.domaindistribution',
+                'moduletype.domaindistribution.domain',
+                'moduletype.domaindistribution.domain.section',
+            ],
         });
 
-        const data = plainToInstance(GetExamStructureDto, result, {
-            excludeExtraneousValues: true,
-        });
+        // Ánh xạ kết quả để lấy section.name của mỗi ModuleType
+        const formattedResult = result.map((examStructure) => ({
+            id: examStructure.id,
+            structurename: examStructure.structurename,
+            description: examStructure.description,
+            requiredCorrectInModule1RW: examStructure.requiredCorrectInModule1RW,
+            requiredCorrectInModule1M: examStructure.requiredCorrectInModule1M,
+            createdat: examStructure.createdat,
+            createdby: examStructure.createdby,
+            updatedat: examStructure.updatedat,
+            updatedby: examStructure.updatedby,
+            examScore: examStructure.examScore,
+            examStructureType: examStructure.examStructureType,
+            examSemester: examStructure.examSemester,
+            configs: examStructure.configs,
+            moduletype: examStructure.moduletype.map((moduleType) => ({
+                id: moduleType.id,
+                name: moduleType.name,
+                level: moduleType.level,
+                numberOfQuestion: moduleType.numberofquestion,
+                section: moduleType.section ? moduleType.section.name : null,
+                domaindistribution: moduleType.domaindistribution.map((distribution) => ({
+                    id: distribution.id,
+                    numberofquestion: distribution.numberofquestion,
+                    domain: distribution.domain.content,
+                    section: distribution.domain.section.name,
+                })),
+            })),
+        }));
 
         return {
-            data,
+            result: formattedResult,
             total,
         };
     }

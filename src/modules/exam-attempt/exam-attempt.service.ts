@@ -45,12 +45,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         const domainsRW = await this.domainRepository.find({
-            where: [
-                { content: 'Expression of Ideas' },
-                { content: 'Standard English Conventions' },
-                { content: 'Information and Ideas' },
-                { content: 'Craft and Structure' },
-            ],
+            where: { section: { name: 'Reading & Writing' } },
             relations: ['skills'],
         });
 
@@ -83,12 +78,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         //Math
         const domainErrorCountsMath = [];
         const domainsMath = await this.domainRepository.find({
-            where: [
-                { content: 'Algebra' },
-                { content: 'Advanced Math' },
-                { content: 'Problem: Solving and Data Analysis' },
-                { content: 'Geometry and Trigonometry' },
-            ],
+            where: { section: { name: 'Math' } },
             relations: ['skills'],
         });
 
@@ -217,41 +207,69 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 createTargetLearningDto.sectionId = math.id;
 
-                const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                const targetLearning =
+                    await this.targetLearningService.save(createTargetLearningDto);
 
-                await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdFoundationsMath);
+                console.log(targetLearning);
+
+                console.log('case 1 Math');
+
+                await this.unitProgressService.startMultipleUnitProgress(
+                    targetLearning.id,
+                    unitIdFoundationsMath,
+                );
 
                 break;
 
-            case examAttempt.studyProfile.targetscoreMath >= 400 && examAttempt.studyProfile.targetscoreMath < 600:
+            case examAttempt.studyProfile.targetscoreMath >= 400 &&
+                examAttempt.studyProfile.targetscoreMath < 600:
                 if (examAttempt.scoreMath < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
                     createTargetLearningDto.sectionId = math.id;
 
-                    const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                    console.log('case 2 Math');
 
-                    await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, top3UnitIdMediumMath);
+                    const targetLearning =
+                        await this.targetLearningService.save(createTargetLearningDto);
+
+                    await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        top3UnitIdMediumMath,
+                    );
                 }
                 break;
 
-            case examAttempt.studyProfile.targetscoreMath >= 600 && examAttempt.studyProfile.targetscoreMath < 800:
+            case examAttempt.studyProfile.targetscoreMath >= 600 &&
+                examAttempt.studyProfile.targetscoreMath < 800:
                 if (examAttempt.scoreMath > 400 && examAttempt.scoreMath < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
                     createTargetLearningDto.sectionId = math.id;
 
-                    const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                    console.log('case 3 Math');
 
-                    await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdMediumMath);
+                    const targetLearning =
+                        await this.targetLearningService.save(createTargetLearningDto);
+
+                    await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        unitIdMediumMath,
+                    );
                 } else if (examAttempt.scoreMath < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
                     createTargetLearningDto.sectionId = math.id;
 
-                    const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                    console.log('case 4 Math');
 
-                    await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, top3UnitIdAdvanceMath);
+                    const targetLearning =
+                        await this.targetLearningService.save(createTargetLearningDto);
+
+                    await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        top3UnitIdAdvanceMath,
+                    );
                 }
                 break;
         }
@@ -263,41 +281,67 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 createTargetLearningDto.sectionId = RW.id;
 
-                const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                console.log('case 1 RW');
 
-                await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdFoundationsRW);
+                const targetLearning =
+                    await this.targetLearningService.save(createTargetLearningDto);
+
+                await this.unitProgressService.startMultipleUnitProgress(
+                    targetLearning.id,
+                    unitIdFoundationsRW,
+                );
 
                 break;
 
-            case examAttempt.studyProfile.targetscoreRW >= 400 && examAttempt.studyProfile.targetscoreRW < 600:
+            case examAttempt.studyProfile.targetscoreRW >= 400 &&
+                examAttempt.studyProfile.targetscoreRW < 600:
                 if (examAttempt.scoreRW < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
                     createTargetLearningDto.sectionId = RW.id;
 
-                    const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                    console.log('case 2 RW');
 
-                    await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, top3UnitIdMediumsRW);
+                    const targetLearning =
+                        await this.targetLearningService.save(createTargetLearningDto);
+
+                    await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        top3UnitIdMediumsRW,
+                    );
                 }
                 break;
 
-            case examAttempt.studyProfile.targetscoreRW >= 600 && examAttempt.studyProfile.targetscoreRW < 800:
+            case examAttempt.studyProfile.targetscoreRW >= 600 &&
+                examAttempt.studyProfile.targetscoreRW < 800:
                 if (examAttempt.scoreRW > 400 && examAttempt.scoreRW < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
                     createTargetLearningDto.sectionId = RW.id;
 
-                    const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                    console.log('case 3 RW');
 
-                    await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdMediumsRW);
+                    const targetLearning =
+                        await this.targetLearningService.save(createTargetLearningDto);
+
+                    await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        unitIdMediumsRW,
+                    );
                 } else if (examAttempt.scoreRW < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
                     createTargetLearningDto.sectionId = RW.id;
 
-                    const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
+                    console.log('case 4 RW');
 
-                    await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, top3UnitIdAdvanceRW);
+                    const targetLearning =
+                        await this.targetLearningService.save(createTargetLearningDto);
+
+                    await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        top3UnitIdAdvanceRW,
+                    );
                 }
                 break;
         }
@@ -319,5 +363,187 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             scoreRW,
             scoreMath,
         });
+    }
+    //RW
+    async getExamAtemptDomainRW(examAttemptId: string, iscorrect: boolean) {
+        const domainsRW = await this.domainRepository.find({
+            where: { section: { name: 'Reading & Writing' } },
+            relations: ['skills'],
+        });
+
+        const domainCounts = [];
+        let allSkills = 0;
+        let totalSkill = 0;
+        let total = 0;
+
+        for (const domain of domainsRW) {
+            for (const skill of domain.skills) {
+                const skillCount = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        iscorrect: iscorrect,
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                total += skillCount;
+
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkill += allSkills;
+            }
+            domainCounts.push({ doaminId: domain.id, domainContent: domain.content, count: total });
+        }
+
+        allSkills += totalSkill;
+
+        let percent = (total * 100) / allSkills || 0;
+
+        domainCounts.push({ percent: percent });
+
+        return domainCounts;
+    }
+
+    async getExamAtemptsSkillRW(examAttemptId: string, iscorrect: boolean) {
+        const domainsRW = await this.domainRepository.find({
+            where: { section: { name: 'Reading & Writing' } },
+            relations: ['skills'],
+        });
+
+        const skillCounts = [];
+        const skillAllCounts = [];
+
+        for (const domain of domainsRW) {
+            for (const skill of domain.skills) {
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                skillAllCounts.push({
+                    skillId: skill.id,
+                    skillContent: skill.content,
+                    count: allSkills,
+                });
+
+                const skillFind = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        iscorrect: iscorrect,
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                skillCounts.push({
+                    skillId: skill.id,
+                    skillContent: skill.content,
+                    count: skillFind,
+                    percent: (skillFind * 100) / allSkills || 0,
+                });
+            }
+        }
+        return skillCounts;
+    }
+
+    //Math
+    async getExamAtemptDomainMath(examAttemptId: string, iscorrect: boolean) {
+        const domainsMath = await this.domainRepository.find({
+            where: { section: { name: 'Math' } },
+            relations: ['skills'],
+        });
+
+        const domainCounts = [];
+        let total = 0;
+        let totalSkill = 0;
+        let allSkills = 0;
+
+        for (const domain of domainsMath) {
+            for (const skill of domain.skills) {
+                const skillCount = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        iscorrect: iscorrect,
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                total += skillCount;
+
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkill += allSkills;
+            }
+
+            domainCounts.push({ doaminId: domain.id, domainContent: domain.content, count: total });
+        }
+
+        allSkills += totalSkill;
+        let percent = (total * 100) / allSkills || 0;
+
+        domainCounts.push({ percent: percent });
+
+        return domainCounts;
+    }
+
+    async getExamAtemptsSkillMath(examAttemptId: string, iscorrect: boolean) {
+        const domainsMath = await this.domainRepository.find({
+            where: { section: { name: 'Math' } },
+            relations: ['skills'],
+        });
+
+        const skillCounts = [];
+        const skillAllCounts = [];
+        for (const domain of domainsMath) {
+            for (const skill of domain.skills) {
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                skillAllCounts.push({
+                    skillId: skill.id,
+                    skillContent: skill.content,
+                    count: allSkills,
+                });
+
+                const skillFind = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        iscorrect: iscorrect,
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                skillCounts.push({
+                    skillId: skill.id,
+                    skillContent: skill.content,
+                    count: skillFind,
+                    percent: (skillFind * 100) / allSkills || 0,
+                });
+            }
+        }
+        return skillCounts;
     }
 }

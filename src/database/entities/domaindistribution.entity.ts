@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Domain } from './domain.entity';
 import { ModuleType } from './moduletype.entity';
+import { ExamStructure } from './examstructure.entity';
 
 @Entity('domaindistribution')
 export class DomainDistribution {

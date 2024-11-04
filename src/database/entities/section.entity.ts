@@ -4,7 +4,9 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
+    OneToMany,
 } from 'typeorm';
+import { ModuleType } from './moduletype.entity';
 
 @Entity('section')
 export class Section {
@@ -31,4 +33,8 @@ export class Section {
 
     @Column({ type: 'boolean', default: true })
     status: boolean;
+
+    @OneToMany(() => ModuleType, (moduletype) => moduletype.section)
+    moduletype: ModuleType[];
+
 }

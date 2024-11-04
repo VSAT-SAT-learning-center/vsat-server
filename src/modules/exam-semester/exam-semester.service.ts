@@ -31,18 +31,19 @@ export class ExamSemesterService {
             //     name: structure.structurename,
             //     structureType: structure.examStructureType?.name,
             // })),
-            domainDistributionConfig: semester.domainDistributionConfigs.map(
-                (config) => ({
-                    domain: config.domain?.content,
-                    percentage: config.percent,
-                    minQuestion: config.minQuestion,
-                    maxQuestion: config.maxQuestion,
-                    section: config.domain?.section ? { // Check if section exists
-                        id: config.domain.section.id,
-                        name: config.domain.section.name,
-                    } : null,
-                }),
-            ),
+            domainDistributionConfig: semester.domainDistributionConfigs.map((config) => ({
+                domain: config.domain?.content,
+                percentage: config.percent,
+                minQuestion: config.minQuestion,
+                maxQuestion: config.maxQuestion,
+                section: config.domain?.section
+                    ? {
+                          // Check if section exists
+                          id: config.domain.section.id,
+                          name: config.domain.section.name,
+                      }
+                    : null,
+            })),
         }));
     }
 
@@ -71,18 +72,30 @@ export class ExamSemesterService {
             //     name: structure.structurename,
             //     structureType: structure.examStructureType?.name,
             // })),
-            domainDistributionConfig: semester.domainDistributionConfigs.map(
-                (config) => ({
-                    domain: config.domain?.content,
-                    percentage: config.percent,
-                    minQuestion: config.minQuestion,
-                    maxQuestion: config.maxQuestion,
-                    section: config.domain?.section ? { // Check if section exists
-                        id: config.domain.section.id,
-                        name: config.domain.section.name,
-                    } : null,
-                }),
-            ),
+            domainDistributionConfig: semester.domainDistributionConfigs.map((config) => ({
+                domain: config.domain?.content,
+                percentage: config.percent,
+                minQuestion: config.minQuestion,
+                maxQuestion: config.maxQuestion,
+                section: config.domain?.section
+                    ? {
+                          // Check if section exists
+                          id: config.domain.section.id,
+                          name: config.domain.section.name,
+                      }
+                    : null,
+            })),
         };
     }
+
+    // async getExamSemesterById(id: string): Promise<ExamSemester> {
+    //     const examSemester = await this.examSemesterRepository.findOne({
+    //         where: { id: id },
+    //     });
+
+    //     if (!examSemester) {
+    //         throw new NotFoundException('ExamSemester is not found');
+    //     }
+    //     return examSemester;
+    // }
 }

@@ -27,13 +27,32 @@ export class ExamStructureController {
     @Post()
     async save(@Body() createExamStructure: CreateExamStructureDto) {
         try {
-            const savedExamStructure =
-                await this.examStructureService.save(createExamStructure);
-                return ResponseHelper.success(
-                  HttpStatus.OK,
-                  savedExamStructure,
-                  SuccessMessages.create('ExamStructure'),
-              ); 
+            const savedExamStructure = await this.examStructureService.save(createExamStructure);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                savedExamStructure,
+                SuccessMessages.create('ExamStructure'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get()
+    async getExamStructure(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
+        try {
+            const getExamstructure = await this.examStructureService.get(page, pageSize);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamstructure,
+                SuccessMessages.get('Recommend'),
+            );
         } catch (error) {
             throw new HttpException(
                 {

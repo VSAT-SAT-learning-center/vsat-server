@@ -51,4 +51,96 @@ export class ExamAttemptController {
             );
         }
     }
+
+    @Get('getExamAtemptDomainRW/:id')
+    async getExamAtemptDomainRW(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+        try {
+            const getExamAtemptDomain = await this.examAttemptService.getExamAtemptDomainRW(
+                id,
+                isCorrect,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamAtemptDomain,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getExamAtemptsSkillRW/:id')
+    async getExamAtemptsSkillRW(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+        try {
+            const getExamAtemptSkill = await this.examAttemptService.getExamAtemptsSkillRW(
+                id,
+                isCorrect,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamAtemptSkill,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getExamAtemptDomainMath/:id')
+    async getExamAtemptDomainMath(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+        try {
+            const getExamAtemptDomain = await this.examAttemptService.getExamAtemptDomainMath(
+                id,
+                isCorrect,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamAtemptDomain,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getExamAtemptsSkillMath/:id')
+    async getExamAtemptsSkillMath(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+        try {
+            const getExamAtemptSkill = await this.examAttemptService.getExamAtemptsSkillMath(
+                id,
+                isCorrect,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamAtemptSkill,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

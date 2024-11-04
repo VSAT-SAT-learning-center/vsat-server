@@ -10,26 +10,25 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
 import { DomainDto } from './dto/domain.dto';
 @Injectable()
 export class DomainService extends BaseService<Domain> {
-  constructor(
-    @InjectRepository(Domain)
-    private readonly domainRepository: Repository<Domain>
-  ) {
-    super(domainRepository); 
-  }
-
-  async getDomainsBySectionId(sectionId: string): Promise<DomainDto[]> {
-    // Fetch domains by section ID
-    const domains = await this.domainRepository.find({ where: { section: { id: sectionId } } });
-
-    if (!domains || domains.length === 0) {
-      throw new NotFoundException(`No domains found for section ID ${sectionId}`);
+    constructor(
+        @InjectRepository(Domain)
+        private readonly domainRepository: Repository<Domain>,
+    ) {
+        super(domainRepository);
     }
 
-    // Map the Domain entities to DomainDto
-    return domains.map(domain => ({
-      id: domain.id,
-      name: domain.content,  // Assuming 'name' is the desired field to return
-    }));
-  }
-  
+    async getDomainsBySectionId(sectionId: string): Promise<DomainDto[]> {
+        // Fetch domains by section ID
+        const domains = await this.domainRepository.find({ where: { section: { id: sectionId } } });
+
+        if (!domains || domains.length === 0) {
+            throw new NotFoundException(`No domains found for section ID ${sectionId}`);
+        }
+
+        // Map the Domain entities to DomainDto
+        return domains.map((domain) => ({
+            id: domain.id,
+            name: domain.content, // Assuming 'name' is the desired field to return
+        }));
+    }
 }

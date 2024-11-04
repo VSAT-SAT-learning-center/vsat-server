@@ -1,10 +1,5 @@
 import { GetExamScoreDto } from './dto/get-examscore.dto';
-import {
-    HttpException,
-    HttpStatus,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { Repository } from 'typeorm';
@@ -35,13 +30,10 @@ export class ExamScoreService {
         private readonly moduleTypeService: ModuleTypeService,
     ) {}
 
-    async create(
-        createExamScoreDto: CreateExamScoreDto,
-    ): Promise<CreateExamScoreDto> {
-        const examStructureType =
-            await this.examStructureTypeRepository.findOne({
-                where: { name: createExamScoreDto.type },
-            });
+    async create(createExamScoreDto: CreateExamScoreDto): Promise<CreateExamScoreDto> {
+        const examStructureType = await this.examStructureTypeRepository.findOne({
+            where: { name: createExamScoreDto.type },
+        });
 
         const saveExamScore = await this.examScoreRepository.create({
             title: createExamScoreDto.title,
@@ -58,20 +50,13 @@ export class ExamScoreService {
         return createExamScoreDto;
     }
 
-    async getAllExamScoreWithDetails(
-        page: number,
-        pageSize: number,
-    ): Promise<any> {
+    async getAllExamScoreWithDetails(page: number, pageSize: number): Promise<any> {
         const skip = (page - 1) * pageSize;
 
         const [examScore, total] = await this.examScoreRepository.findAndCount({
             skip: skip,
             take: pageSize,
-            relations: [
-                'examScoreDetails',
-                'examScoreDetails.section',
-                'examStructureType',
-            ],
+            relations: ['examScoreDetails', 'examScoreDetails.section', 'examStructureType'],
             order: {
                 createdat: 'DESC',
                 examScoreDetails: {
@@ -87,10 +72,9 @@ export class ExamScoreService {
     }
 
     async getExamScoreWithExamStructureType(getExamScoreDto: GetExamScoreDto) {
-        const examStructureType =
-            await this.examStructureTypeRepository.findOne({
-                where: { name: getExamScoreDto.name },
-            });
+        const examStructureType = await this.examStructureTypeRepository.findOne({
+            where: { name: getExamScoreDto.name },
+        });
 
         return await this.examScoreRepository.find({
             where: {
@@ -109,18 +93,50 @@ export class ExamScoreService {
 
     async calculateScore(examAttemptId: string) {
         // Step 1: Xác định độ khó của Module 2 cho từng phần
-        const module2DifficultyRW = await this.moduleTypeService.getModuleDifficulty(examAttemptId, SectionName.READING_WRITING);
-        const module2DifficultyMath = await this.moduleTypeService.getModuleDifficulty(examAttemptId, SectionName.MATH);
-    
+        const module2DifficultyRW = await this.moduleTypeService.getModuleDifficulty(
+            examAttemptId,
+            SectionName.READING_WRITING,
+        );
+        const module2DifficultyMath = await this.moduleTypeService.getModuleDifficulty(
+            examAttemptId,
+            SectionName.MATH,
+        );
+
         // Step 2: Tính tổng số câu đúng cho từng phần
-        const rawscoreRW = await this.examAttemptDetailService.countCorrectAnswers(examAttemptId, SectionName.READING_WRITING);
-        const rawscoreMath = await this.examAttemptDetailService.countCorrectAnswers(examAttemptId, SectionName.MATH);
-    
+        const rawscoreRW = await this.examAttemptDetailService.countCorrectAnswers(
+            examAttemptId,
+            SectionName.READING_WRITING,
+        );
+        const rawscoreMath = await this.examAttemptDetailService.countCorrectAnswers(
+            examAttemptId,
+            SectionName.MATH,
+        );
+
         // Step 3: Lấy điểm từ ExamScoreDetail
-        const finalScoreRW = await this.examScoreDetailService.getScore(rawscoreRW, SectionName.READING_WRITING, module2DifficultyRW);
-        const finalScoreMath = await this.examScoreDetailService.getScore(rawscoreMath, SectionName.MATH, module2DifficultyMath);
-    
+        const finalScoreRW = await this.examScoreDetailService.getScore(
+            rawscoreRW,
+            SectionName.READING_WRITING,
+            module2DifficultyRW,
+        );
+        const finalScoreMath = await this.examScoreDetailService.getScore(
+            rawscoreMath,
+            SectionName.MATH,
+            module2DifficultyMath,
+        );
+
         // Step 4: Cập nhật điểm trong ExamAttempt
         await this.examAttemptService.updateScore(examAttemptId, finalScoreRW, finalScoreMath);
-      }
+    }
+    async getExamScoreById(id: string): Promise<ExamScore> {
+        const examScore = await this.examScoreRepository.findOne({
+            where: { id: id },
+            relations: ['examScoreDetails', 'examScoreDetails.section'],
+        });
+
+        if (!examScore) {
+            throw new NotFoundException('ExamScore is not found');
+        }
+
+        return examScore;
+    }
 }

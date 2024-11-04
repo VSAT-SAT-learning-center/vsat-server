@@ -29,8 +29,7 @@ export class ExamScoreController {
     @Post()
     async create(@Body() createExamScoreDto: CreateExamScoreDto) {
         try {
-            const savedExamScore =
-                await this.examScoreService.create(createExamScoreDto);
+            const savedExamScore = await this.examScoreService.create(createExamScoreDto);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 savedExamScore,
@@ -53,11 +52,30 @@ export class ExamScoreController {
         @Query('pageSize') pageSize?: number,
     ) {
         try {
-            const savedExamScore =
-                await this.examScoreService.getAllExamScoreWithDetails(
-                    page,
-                    pageSize,
-                );
+            const savedExamScore = await this.examScoreService.getAllExamScoreWithDetails(
+                page,
+                pageSize,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                savedExamScore,
+                SuccessMessages.get('ExamScore'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get(':id')
+    async getExamScoreById(@Param('id') id: string) {
+        try {
+            const savedExamScore = await this.examScoreService.getExamScoreById(id);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 savedExamScore,
@@ -75,14 +93,10 @@ export class ExamScoreController {
     }
 
     @Post('/exam-structure-type')
-    async getExamScoreWithExamStructureType(
-        @Body() getExamScoreDto: GetExamScoreDto,
-    ) {
+    async getExamScoreWithExamStructureType(@Body() getExamScoreDto: GetExamScoreDto) {
         try {
             const savedExamScore =
-                await this.examScoreService.getExamScoreWithExamStructureType(
-                    getExamScoreDto,
-                );
+                await this.examScoreService.getExamScoreWithExamStructureType(getExamScoreDto);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 savedExamScore,
