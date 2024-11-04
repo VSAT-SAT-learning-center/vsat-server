@@ -91,7 +91,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const top3DomainsRW = domainErrorCounts.slice(0, 3);
 
         const top3DomainIdsRW = top3DomainsRW.map((domain) => domain.id);
-        console.log(top3DomainIdsRW);
+
         //Math
         const domainErrorCountsMath = [];
         const domainsMath = await this.domainRepository.find({
@@ -100,9 +100,20 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         for (const domain of domainsMath) {
-            let total = 0;
+            let totalErrors = 0;
+            let totalSkills = 0;
 
             for (const skill of domain.skills) {
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkills += allSkills;
+
                 const skillErrorCount = await this.examAttemptDetailRepository.count({
                     where: {
                         examAttempt: { id: examAttemptId },
@@ -112,13 +123,20 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     relations: ['question'],
                 });
 
-                total += skillErrorCount;
+                totalErrors += skillErrorCount;
             }
 
-            domainErrorCountsMath.push({ id: domain.id, domain: domain.content, total });
+            const percent = (totalErrors * 100) / totalSkills;
+
+            domainErrorCountsMath.push({
+                id: domain.id,
+                domain: domain.content,
+                totalErrors,
+                percent,
+            });
         }
 
-        domainErrorCountsMath.sort((a, b) => b.totalErrors - a.totalErrors);
+        domainErrorCountsMath.sort((a, b) => b.percent - a.percent);
         const top3DomainsMath = domainErrorCountsMath.slice(0, 3);
 
         const top3DomainsMathIds = top3DomainsMath.map((domain) => domain.id);
@@ -385,12 +403,21 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         const domainCounts = [];
-        let allSkills = 0;
-        let totalSkill = 0;
-        let total = 0;
 
         for (const domain of domainsRW) {
+            let totalSkill = 0;
+            let total = 0;
             for (const skill of domain.skills) {
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkill += allSkills;
+
                 const skillCount = await this.examAttemptDetailRepository.count({
                     where: {
                         examAttempt: { id: examAttemptId },
@@ -401,25 +428,17 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 });
 
                 total += skillCount;
-
-                const allSkills = await this.examAttemptDetailRepository.count({
-                    where: {
-                        examAttempt: { id: examAttemptId },
-                        question: { skill: { id: skill.id } },
-                    },
-                    relations: ['question'],
-                });
-
-                totalSkill += allSkills;
             }
-            domainCounts.push({ doaminId: domain.id, domainContent: domain.content, count: total });
+
+            const percent = (total * 100) / totalSkill;
+
+            domainCounts.push({
+                doaminId: domain.id,
+                domainContent: domain.content,
+                count: total,
+                percent: percent,
+            });
         }
-
-        allSkills += totalSkill;
-
-        let percent = (total * 100) / allSkills || 0;
-
-        domainCounts.push({ percent: percent });
 
         return domainCounts;
     }
@@ -477,12 +496,22 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         const domainCounts = [];
-        let total = 0;
-        let totalSkill = 0;
-        let allSkills = 0;
 
         for (const domain of domainsMath) {
+            let totalSkill = 0;
+            let total = 0;
+
             for (const skill of domain.skills) {
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkill += allSkills;
+
                 const skillCount = await this.examAttemptDetailRepository.count({
                     where: {
                         examAttempt: { id: examAttemptId },
@@ -493,25 +522,17 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 });
 
                 total += skillCount;
-
-                const allSkills = await this.examAttemptDetailRepository.count({
-                    where: {
-                        examAttempt: { id: examAttemptId },
-                        question: { skill: { id: skill.id } },
-                    },
-                    relations: ['question'],
-                });
-
-                totalSkill += allSkills;
             }
 
-            domainCounts.push({ doaminId: domain.id, domainContent: domain.content, count: total });
+            const percent = (total * 100) / totalSkill;
+
+            domainCounts.push({
+                doaminId: domain.id,
+                domainContent: domain.content,
+                count: total,
+                percent: percent,
+            });
         }
-
-        allSkills += totalSkill;
-        let percent = (total * 100) / allSkills || 0;
-
-        domainCounts.push({ percent: percent });
 
         return domainCounts;
     }
