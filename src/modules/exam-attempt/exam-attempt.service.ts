@@ -36,7 +36,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     ) {
         super(examAttemptRepository);
     }
-        
 
     async recommend(examAttemptId: string, createTargetLearningDto: CreateTargetLearningDto) {
         const examAttempt = await this.examAttemptRepository.findOne({
@@ -53,8 +52,19 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         for (const domain of domainsRW) {
             let totalErrors = 0;
+            let totalSkills = 0;
 
             for (const skill of domain.skills) {
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkills += allSkills;
+
                 const skillErrorCount = await this.examAttemptDetailRepository.count({
                     where: {
                         examAttempt: { id: examAttemptId },
@@ -67,14 +77,21 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 totalErrors += skillErrorCount;
             }
 
-            domainErrorCounts.push({ id: domain.id, domain: domain.content, totalErrors });
+            const percent = (totalErrors * 100) / totalSkills;
+
+            domainErrorCounts.push({
+                id: domain.id,
+                domain: domain.content,
+                totalErrors,
+                percent,
+            });
         }
 
-        domainErrorCounts.sort((a, b) => b.totalErrors - a.totalErrors);
+        domainErrorCounts.sort((a, b) => b.percent - a.percent);
         const top3DomainsRW = domainErrorCounts.slice(0, 3);
 
         const top3DomainIdsRW = top3DomainsRW.map((domain) => domain.id);
-
+        console.log(top3DomainIdsRW);
         //Math
         const domainErrorCountsMath = [];
         const domainsMath = await this.domainRepository.find({
@@ -354,11 +371,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
     }
 
-    async updateScore(
-        examAttemptId: string,
-        scoreRW: number,
-        scoreMath: number,
-    ): Promise<void> {
+    async updateScore(examAttemptId: string, scoreRW: number, scoreMath: number): Promise<void> {
         await this.examAttemptRepository.update(examAttemptId, {
             scoreRW,
             scoreMath,
