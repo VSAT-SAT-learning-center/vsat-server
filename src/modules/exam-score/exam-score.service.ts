@@ -1,10 +1,5 @@
 import { GetExamScoreDto } from './dto/get-examscore.dto';
-import {
-    HttpException,
-    HttpStatus,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { Repository } from 'typeorm';
@@ -27,13 +22,10 @@ export class ExamScoreService {
         private readonly examScoreDetailService: ExamScoreDetailService,
     ) {}
 
-    async create(
-        createExamScoreDto: CreateExamScoreDto,
-    ): Promise<CreateExamScoreDto> {
-        const examStructureType =
-            await this.examStructureTypeRepository.findOne({
-                where: { name: createExamScoreDto.type },
-            });
+    async create(createExamScoreDto: CreateExamScoreDto): Promise<CreateExamScoreDto> {
+        const examStructureType = await this.examStructureTypeRepository.findOne({
+            where: { name: createExamScoreDto.type },
+        });
 
         const saveExamScore = await this.examScoreRepository.create({
             title: createExamScoreDto.title,
@@ -50,20 +42,13 @@ export class ExamScoreService {
         return createExamScoreDto;
     }
 
-    async getAllExamScoreWithDetails(
-        page: number,
-        pageSize: number,
-    ): Promise<any> {
+    async getAllExamScoreWithDetails(page: number, pageSize: number): Promise<any> {
         const skip = (page - 1) * pageSize;
 
         const [examScore, total] = await this.examScoreRepository.findAndCount({
             skip: skip,
             take: pageSize,
-            relations: [
-                'examScoreDetails',
-                'examScoreDetails.section',
-                'examStructureType',
-            ],
+            relations: ['examScoreDetails', 'examScoreDetails.section', 'examStructureType'],
             order: {
                 createdat: 'DESC',
                 examScoreDetails: {
@@ -79,10 +64,9 @@ export class ExamScoreService {
     }
 
     async getExamScoreWithExamStructureType(getExamScoreDto: GetExamScoreDto) {
-        const examStructureType =
-            await this.examStructureTypeRepository.findOne({
-                where: { name: getExamScoreDto.name },
-            });
+        const examStructureType = await this.examStructureTypeRepository.findOne({
+            where: { name: getExamScoreDto.name },
+        });
 
         return await this.examScoreRepository.find({
             where: {
@@ -97,5 +81,18 @@ export class ExamScoreService {
                 },
             },
         });
+    }
+
+    async getExamScoreById(id: string): Promise<ExamScore> {
+        const examScore = await this.examScoreRepository.findOne({
+            where: { id: id },
+            relations: ['examScoreDetails'],
+        });
+
+        if (!examScore) {
+            throw new NotFoundException('ExamScore is not found');
+        }
+
+        return examScore;
     }
 }

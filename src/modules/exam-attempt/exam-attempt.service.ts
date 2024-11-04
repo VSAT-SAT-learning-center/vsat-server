@@ -43,12 +43,7 @@ export class ExamAttemptService {
         });
 
         const domainsRW = await this.domainRepository.find({
-            where: [
-                { content: 'Expression of Ideas' },
-                { content: 'Standard English Conventions' },
-                { content: 'Information and Ideas' },
-                { content: 'Craft and Structure' },
-            ],
+            where: { section: { name: 'Reading & Writing' } },
             relations: ['skills'],
         });
 
@@ -81,12 +76,7 @@ export class ExamAttemptService {
         //Math
         const domainErrorCountsMath = [];
         const domainsMath = await this.domainRepository.find({
-            where: [
-                { content: 'Algebra' },
-                { content: 'Advanced Math' },
-                { content: 'Problem: Solving and Data Analysis' },
-                { content: 'Geometry and Trigonometry' },
-            ],
+            where: { section: { name: 'Math' } },
             relations: ['skills'],
         });
 
@@ -355,22 +345,19 @@ export class ExamAttemptService {
         }
     }
 
-    async getExamAtemptDomain(examAttemptId: string, iscorrect: boolean) {
+    //RW
+    async getExamAtemptDomainRW(examAttemptId: string, iscorrect: boolean) {
         const domainsRW = await this.domainRepository.find({
-            where: [
-                { content: 'Expression of Ideas' },
-                { content: 'Standard English Conventions' },
-                { content: 'Information and Ideas' },
-                { content: 'Craft and Structure' },
-            ],
+            where: { section: { name: 'Reading & Writing' } },
             relations: ['skills'],
         });
 
         const domainCounts = [];
+        let allSkills = 0;
+        let totalSkill = 0;
+        let total = 0;
 
         for (const domain of domainsRW) {
-            let total = 0;
-
             for (const skill of domain.skills) {
                 const skillCount = await this.examAttemptDetailRepository.count({
                     where: {
@@ -382,30 +369,40 @@ export class ExamAttemptService {
                 });
 
                 total += skillCount;
-            }
 
-            domainCounts.push({ id: domain.id, domain: domain.content, total });
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkill += allSkills;
+            }
+            domainCounts.push({ doaminId: domain.id, domainContent: domain.content, count: total });
         }
+
+        allSkills += totalSkill;
+
+        let percent = (total * 100) / allSkills || 0;
+
+        domainCounts.push({ percent: percent });
+
+        return domainCounts;
     }
 
-    async getExamAtemptSkil(examAttemptId: string, iscorrect: boolean) {
+    async getExamAtemptsSkillRW(examAttemptId: string, iscorrect: boolean) {
         const domainsRW = await this.domainRepository.find({
-            where: [
-                { content: 'Expression of Ideas' },
-                { content: 'Standard English Conventions' },
-                { content: 'Information and Ideas' },
-                { content: 'Craft and Structure' },
-            ],
+            where: { section: { name: 'Reading & Writing' } },
             relations: ['skills'],
         });
 
-        const domainCounts = [];
-
+        const skillCounts = [];
+        let countAllSkill = 0;
         for (const domain of domainsRW) {
-            let total = 0;
-
             for (const skill of domain.skills) {
-                const skillFind = await this.examAttemptDetailRepository.find({
+                const skillFind = await this.examAttemptDetailRepository.count({
                     where: {
                         examAttempt: { id: examAttemptId },
                         iscorrect: iscorrect,
@@ -414,10 +411,88 @@ export class ExamAttemptService {
                     relations: ['question'],
                 });
 
-            
+                skillCounts.push({
+                    skillId: skill.id,
+                    skillContent: skill.content,
+                    count: skillFind,
+                });
+            }
+        }
+        return skillCounts;
+    }
+
+    //Math
+    async getExamAtemptDomainMath(examAttemptId: string, iscorrect: boolean) {
+        const domainsMath = await this.domainRepository.find({
+            where: { section: { name: 'Math' } },
+            relations: ['skills'],
+        });
+
+        const domainCounts = [];
+        let total = 0;
+        let totalSkill = 0;
+        let allSkills = 0;
+
+        for (const domain of domainsMath) {
+            for (const skill of domain.skills) {
+                const skillCount = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        iscorrect: iscorrect,
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                total += skillCount;
+
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                totalSkill += allSkills;
             }
 
-            domainCounts.push({ id: domain.id, domain: domain.content, total });
+            domainCounts.push({ doaminId: domain.id, domainContent: domain.content, count: total });
         }
+
+        allSkills += totalSkill;
+        let percent = (total * 100) / allSkills || 0;
+
+        domainCounts.push({ percent: percent });
+
+        return domainCounts;
+    }
+
+    async getExamAtemptsSkillMath(examAttemptId: string, iscorrect: boolean) {
+        const domainsMath = await this.domainRepository.find({
+            where: { section: { name: 'Math' } },
+            relations: ['skills'],
+        });
+
+        const skillCounts = [];
+        for (const domain of domainsMath) {
+            for (const skill of domain.skills) {
+                const skillFind = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        iscorrect: iscorrect,
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                skillCounts.push({
+                    skillId: skill.id,
+                    skillContent: skill.content,
+                    count: skillFind,
+                });
+            }
+        }
+        return skillCounts;
     }
 }
