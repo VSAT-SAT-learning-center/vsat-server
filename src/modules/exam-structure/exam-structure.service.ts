@@ -101,14 +101,38 @@ export class ExamStructureService {
                 'examSemester',
                 'configs',
                 'moduletype',
+                'moduletype.section',
                 'moduletype.domaindistribution',
                 'moduletype.domaindistribution.domain',
                 'moduletype.domaindistribution.domain.section',
             ],
         });
 
+        // Ánh xạ kết quả để lấy section.name của mỗi ModuleType
+        const formattedResult = result.map((examStructure) => ({
+            id: examStructure.id,
+            structurename: examStructure.structurename,
+            examScore: examStructure.examScore,
+            examStructureType: examStructure.examStructureType,
+            examSemester: examStructure.examSemester,
+            configs: examStructure.configs,
+            moduletype: examStructure.moduletype.map((moduleType) => ({
+                id: moduleType.id,
+                name: moduleType.name,
+                level: moduleType.level,
+                numberOfQuestion: moduleType.numberofquestion,
+                section: moduleType.section ? moduleType.section.name : null,
+                domaindistribution: moduleType.domaindistribution.map((distribution) => ({
+                    id: distribution.id,
+                    numberofquestion: distribution.numberofquestion,
+                    domain: distribution.domain.content,
+                    section: distribution.domain.section.name,
+                })),
+            })),
+        }));
+
         return {
-            result,
+            result: formattedResult,
             total,
         };
     }
