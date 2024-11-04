@@ -14,7 +14,8 @@ import { TargetLearningModule } from '../target-learning/target-learning.module'
         TypeOrmModule.forFeature([ExamAttempt, StudyProfile, Exam]),
         TargetLearningModule,
     ],
-    providers: [ExamAttemptService, PaginationService],
+    providers: [ExamAttemptService],
     controllers: [ExamAttemptController],
+    exports: [ExamAttemptService],
 })
 export class ExamAttemptModule {}

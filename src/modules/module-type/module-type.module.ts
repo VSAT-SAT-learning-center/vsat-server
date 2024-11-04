@@ -6,10 +6,14 @@ import { Section } from 'src/database/entities/section.entity';
 import { ModuleTypeService } from './module-type.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ModuleTypeController } from './module-type.controller';
+import { ExamAttemptModule } from '../exam-attempt/exam-attempt.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ModuleType, Section, ExamStructure])],
-    providers: [ModuleTypeService, PaginationService],
+    imports: [
+        TypeOrmModule.forFeature([ModuleType, Section, ExamStructure]),
+        ExamAttemptModule,
+    ],
+    providers: [ModuleTypeService],
     controllers: [ModuleTypeController],
     exports: [ModuleTypeService],
 })

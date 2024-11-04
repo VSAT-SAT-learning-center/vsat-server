@@ -19,5 +19,6 @@ import { Answer } from 'src/database/entities/anwser.entity';
     ],
     providers: [ExamAttemptDetailService],
     controllers: [ExamAttemptDetailController],
+    exports: [ExamAttemptDetailService],
 })
 export class ExamAttemptDetailModule {}
