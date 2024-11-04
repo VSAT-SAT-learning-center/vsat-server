@@ -26,9 +26,6 @@ export class ExamType {
     @Column({ type: 'varchar', length: 100 })
     name: string;
 
-    @Column({ type: 'text', nullable: true })
-    description: string;
-
     @Column({ type: 'boolean', default: true })
     status: boolean;
 }
