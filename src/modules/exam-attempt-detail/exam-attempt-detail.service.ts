@@ -96,4 +96,17 @@ export class ExamAttemptDetailService {
 
         return results;
     }
+
+    async countCorrectAnswers(
+        examAttemptId: string,
+        sectionName: string,
+    ): Promise<number> {
+        return this.examAttemptDetailRepository.count({
+            where: {
+                examAttempt: { id: examAttemptId },
+                question: { section: { name: sectionName } },
+                iscorrect: true,
+            },
+        });
+    }
 }

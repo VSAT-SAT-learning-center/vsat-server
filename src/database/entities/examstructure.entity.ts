@@ -5,7 +5,7 @@ import { ExamStructureConfig } from './examstructureconfig.entity';
 import { ExamSemester } from './examsemeseter.entity';
 
 @Entity('examstructure')
-export class ExamStructure {
+export class  ExamStructure {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -26,10 +26,11 @@ export class ExamStructure {
   examScore: ExamScore;
 
   @ManyToOne(() => ExamStructureType)
-  @JoinColumn({ name: 'examStructureTypeId' })
+  @JoinColumn({ name: 'examstructuretypeid' })
   examStructureType: ExamStructureType;
 
   @ManyToOne(() => ExamSemester, (examSemester) => examSemester.examStructures)
+  @JoinColumn({ name: 'examsemesterid' })
   examSemester: ExamSemester;
 
   @Column({ type: 'varchar', length: 255 })

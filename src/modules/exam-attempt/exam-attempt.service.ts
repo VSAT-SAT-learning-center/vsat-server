@@ -11,13 +11,15 @@ import { TargetLearningService } from '../target-learning/target-learning.servic
 import { CreateTargetLearningDto } from '../target-learning/dto/create-targetlearning.dto';
 
 @Injectable()
-export class ExamAttemptService {
+export class ExamAttemptService extends BaseService<ExamAttempt> {
     constructor(
         @InjectRepository(ExamAttempt)
         private readonly examAttemptRepository: Repository<ExamAttempt>,
 
         private readonly targetLearningService: TargetLearningService,
-    ) {}
+    ) {
+        super(examAttemptRepository);
+    }
 
     async recommend(
         examAttemptId: string,
@@ -66,5 +68,23 @@ export class ExamAttemptService {
                 //1TH Math
             }
         }
+    }
+
+    async findOneById(examAttemptId: string): Promise<ExamAttempt> {
+        return this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+            relations: ['exam', 'exam.examStructure'],
+        });
+    }
+
+    async updateScore(
+        examAttemptId: string,
+        scoreRW: number,
+        scoreMath: number,
+    ): Promise<void> {
+        await this.examAttemptRepository.update(examAttemptId, {
+            scoreRW,
+            scoreMath,
+        });
     }
 }
