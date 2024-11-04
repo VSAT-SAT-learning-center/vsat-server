@@ -26,9 +26,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         super(targetLearningRepository);
     }
 
-    async save(
-        createTargetLearningDto: CreateTargetLearningDto,
-    ): Promise<TargetLearning> {
+    async save(createTargetLearningDto: CreateTargetLearningDto): Promise<TargetLearning> {
         const level = await this.levelRepository.findOne({
             where: { id: createTargetLearningDto.levelId },
         });
@@ -51,23 +49,14 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        const createTargetLearning = await this.targetLearningRepository.create(
-            {
-                level: level,
-                section: section,
-                studyProfile: studyProfile,
-            },
-        );
+        const createTargetLearning = await this.targetLearningRepository.create({
+            level: level,
+            section: section,
+            studyProfile: studyProfile,
+        });
 
-        const saveTargetLEarning =
-            await this.targetLearningRepository.save(createTargetLearning);
+        const saveTargetLEarning = await this.targetLearningRepository.save(createTargetLearning);
 
-        const targetLearningEntity = plainToInstance(
-            TargetLearning,
-            saveTargetLEarning,
-            { excludeExtraneousValues: true },
-        );
-
-        return targetLearningEntity;
+        return saveTargetLEarning;
     }
 }
