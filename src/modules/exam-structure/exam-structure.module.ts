@@ -9,10 +9,13 @@ import { ExamStructureConfigModule } from '../exam-structure-config/exam-structu
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { ModuleTypeModule } from '../module-type/module-type.module';
+import { ExamSemester } from 'src/database/entities/examsemeseter.entity';
+import { Domain } from 'src/database/entities/domain.entity';
+
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([ExamStructure, ExamStructureType, ExamScore]),
+        TypeOrmModule.forFeature([ExamStructure, ExamStructureType, ExamScore, ExamSemester, Domain]),
         ExamStructureConfigModule,
         ModuleTypeModule,
     ],

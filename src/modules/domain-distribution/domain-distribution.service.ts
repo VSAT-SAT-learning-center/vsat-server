@@ -22,38 +22,38 @@ export class DomainDistributionService extends BaseService<DomainDistribution> {
         super(domainDistributionRepository);
     }
 
-    async save(createDomainDistributionDto: CreateDomainDistributionDto) {
-        const domain = await this.domainDistributionRepository.findOne({
-            where: { id: createDomainDistributionDto.domainId },
-        });
-
+    async save(moduleTypeId: string, createDomainDistributionDtos: CreateDomainDistributionDto[]) {
         const moduleType = await this.moduleTypeRepository.findOne({
-            where: { id: createDomainDistributionDto.moduleTypeId },
+            where: { id: moduleTypeId },
         });
-
-        if (!domain) {
-            throw new NotFoundException('Domain is not found');
-        }
 
         if (!moduleType) {
             throw new NotFoundException('ModuleType is not found');
         }
 
-        const createDomainDistribution =
-            await this.domainDistributionRepository.create({
-                ...createDomainDistributionDto,
-                domain: domain,
-                moduleType: moduleType,
+        const savedDomainDistributions = [];
+
+        for (const createDomainDistributionDto of createDomainDistributionDtos) {
+            const domain = await this.domainRepository.findOne({
+                where: { content: createDomainDistributionDto.domain },
             });
 
-        const save = await this.domainDistributionRepository.save(
-            createDomainDistribution,
-        );
+            if (!domain) {
+                throw new NotFoundException(`Domain "${createDomainDistributionDto.domain}" is not found`);
+            }
 
-        return plainToInstance(CreateDomainDistributionDto, save, {
+            const createDomainDistribution = this.domainDistributionRepository.create({
+                domain: domain,
+                moduleType: moduleType,
+                numberofquestion: createDomainDistributionDto.numberofquestion,
+            });
+
+            const savedDomainDistribution = await this.domainDistributionRepository.save(createDomainDistribution);
+            savedDomainDistributions.push(savedDomainDistribution);
+        }
+
+        return plainToInstance(CreateDomainDistributionDto, savedDomainDistributions, {
             excludeExtraneousValues: true,
         });
     }
-
-    
 }

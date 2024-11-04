@@ -11,10 +11,9 @@ import {
 import { CreateDomainDistributionDto } from 'src/modules/domain-distribution/dto/create-domaindistribution.dto';
 
 export class CreateModuleTypeDto {
-    @IsUUID()
     @Expose()
     @ApiProperty()
-    sectionId: string;
+    section: string;
 
     @IsString()
     @Expose()
@@ -33,5 +32,5 @@ export class CreateModuleTypeDto {
 
     @ApiProperty({ type: [CreateDomainDistributionDto] })
     @Type(() => CreateDomainDistributionDto)
-    examStructureConfig: CreateDomainDistributionDto[];
+    domainDistribution: CreateDomainDistributionDto;
 }

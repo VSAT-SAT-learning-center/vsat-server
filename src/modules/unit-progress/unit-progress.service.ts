@@ -1,9 +1,4 @@
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
@@ -32,19 +27,15 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         super(unitProgressRepository);
     }
 
-    async create(
-        createUnitProgressDto: CreateUnitProgressDto,
-    ): Promise<UnitProgress> {
-        const { unitId, targetLearningId, ...unitProgressData } =
-            createUnitProgressDto;
+    async create(createUnitProgressDto: CreateUnitProgressDto): Promise<UnitProgress> {
+        const { unitId, targetLearningId, ...unitProgressData } = createUnitProgressDto;
 
         const unit = await this.unitService.findOneById(unitId);
         if (!unit) {
             throw new NotFoundException('Unit not found');
         }
 
-        const targetLearning =
-            await this.targetLearningService.findOneById(targetLearningId);
+        const targetLearning = await this.targetLearningService.findOneById(targetLearningId);
 
         if (!targetLearning) {
             throw new NotFoundException('TargetLearning not found');
@@ -59,12 +50,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return await this.unitProgressRepository.save(newUnitProgress);
     }
 
-    async update(
-        id: string,
-        updateUnitProgressDto: UpdateUnitProgressDto,
-    ): Promise<UnitProgress> {
-        const { unitId, targetLearningId, ...unitProgressData } =
-            updateUnitProgressDto;
+    async update(id: string, updateUnitProgressDto: UpdateUnitProgressDto): Promise<UnitProgress> {
+        const { unitId, targetLearningId, ...unitProgressData } = updateUnitProgressDto;
 
         const unitProgress = await this.findOneById(id);
         if (!unitProgress) {
@@ -76,8 +63,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             throw new NotFoundException('Unit not found');
         }
 
-        const targetLearning =
-            await this.targetLearningService.findOneById(targetLearningId);
+        const targetLearning = await this.targetLearningService.findOneById(targetLearningId);
         if (!targetLearning) {
             throw new NotFoundException('TargetLearning not found');
         }
@@ -92,12 +78,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return updatedUnitProgress;
     }
 
-    async updateUnitProgress(
-        unitId: string,
-        targetLearningId: string,
-    ): Promise<UnitProgress> {
-        const progress =
-            await this.unitAreaProgressService.calculateUnitProgress(unitId);
+    async updateUnitProgress(unitId: string, targetLearningId: string): Promise<UnitProgress> {
+        const progress = await this.unitAreaProgressService.calculateUnitProgress(unitId);
 
         let unitProgress = await this.unitProgressRepository.findOne({
             where: {
@@ -119,11 +101,11 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return this.unitProgressRepository.save(unitProgress);
     }
 
-    async updateUnitProgressNow(unitId: string,targetLearningId: string, unitProgressId: string) {
+    async updateUnitProgressNow(unitId: string, targetLearningId: string, unitProgressId: string) {
         // Lấy UnitProgress dựa trên UnitId và targetLearningId
         const unitProgress = await this.unitProgressRepository.findOne({
             where: {
-                id: unitProgressId ,
+                id: unitProgressId,
                 targetLearning: { id: targetLearningId },
             },
             relations: ['unitAreaProgresses'],
@@ -149,9 +131,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         // }
 
         // Tính toán phần trăm hoàn thành dựa trên số UnitArea đã hoàn thành
-        const totalUnitAreas = (
-            await this.unitAreaService.findByUnitIdWithLessons(unitId)
-        ).length;
+        const totalUnitAreas = (await this.unitAreaService.findByUnitIdWithLessons(unitId)).length;
 
         if (totalUnitAreas === 0) {
             throw new NotFoundException('No UnitAreas found for this Unit');
@@ -159,8 +139,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
 
         // Tính số UnitArea đã hoàn thành dựa trên UnitAreaProgress
         const completedUnitAreas = unitProgress.unitAreaProgresses.filter(
-            (unitAreaProgress) =>
-                unitAreaProgress.status === ProgressStatus.COMPLETED,
+            (unitAreaProgress) => unitAreaProgress.status === ProgressStatus.COMPLETED,
         ).length;
 
         // Cập nhật phần trăm hoàn thành dựa trên tổng số UnitArea
@@ -199,5 +178,34 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         }
 
         return unitProgress;
+    }
+
+    async startMultipleUnitProgress(targetLearningId: string, unitIds: string[]) {
+        const unitProgressList = [];
+        for (const unitId of unitIds) {
+            let unitProgress = await this.unitProgressRepository.findOne({
+                where: {
+                    unit: { id: unitId },
+                    targetLearning: { id: targetLearningId },
+                },
+            });
+
+            if (!unitProgress) {
+                unitProgress = this.unitProgressRepository.create({
+                    unit: { id: unitId },
+                    targetLearning: { id: targetLearningId },
+                    progress: 0,
+                    status: ProgressStatus.NOT_STARTED,
+                });
+
+                unitProgressList.push(unitProgress);
+            }
+        }
+
+        if (unitProgressList.length > 0) {
+            await this.unitProgressRepository.save(unitProgressList);
+        }
+
+        return unitProgressList;
     }
 }
