@@ -430,7 +430,7 @@ export class ExamAttemptService {
                     skillId: skill.id,
                     skillContent: skill.content,
                     count: skillFind,
-                    percent: (skillFind * 100) / allSkills,
+                    percent: (skillFind * 100) / allSkills || 0,
                 });
             }
         }
@@ -491,8 +491,23 @@ export class ExamAttemptService {
         });
 
         const skillCounts = [];
+        const skillAllCounts = [];
         for (const domain of domainsMath) {
             for (const skill of domain.skills) {
+                const allSkills = await this.examAttemptDetailRepository.count({
+                    where: {
+                        examAttempt: { id: examAttemptId },
+                        question: { skill: { id: skill.id } },
+                    },
+                    relations: ['question'],
+                });
+
+                skillAllCounts.push({
+                    skillId: skill.id,
+                    skillContent: skill.content,
+                    count: allSkills,
+                });
+
                 const skillFind = await this.examAttemptDetailRepository.count({
                     where: {
                         examAttempt: { id: examAttemptId },
@@ -506,6 +521,7 @@ export class ExamAttemptService {
                     skillId: skill.id,
                     skillContent: skill.content,
                     count: skillFind,
+                    percent: (skillFind * 100) / allSkills || 0,
                 });
             }
         }

@@ -102,6 +102,8 @@ export class ExamStructureService {
                 'configs',
                 'moduletype',
                 'moduletype.domaindistribution',
+                'moduletype.domaindistribution.domain',
+                'moduletype.domaindistribution.domain.section',
             ],
         });
 
