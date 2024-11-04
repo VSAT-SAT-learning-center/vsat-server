@@ -59,10 +59,6 @@ export class Unit {
     @Column({ type: 'int', nullable: true })
     countfeedback: number;
 
-    @ManyToOne(() => Domain, (domain) => domain.units)
-    @JoinColumn({ name: 'domainid' })
-    domain: Domain;
-
     @OneToMany(() => UnitArea, (unitArea) => unitArea.unit, { cascade: true })
     unitAreas: UnitArea[];
 
