@@ -9,5 +9,5 @@ export class CreateDomainDistributionDto {
 
     @Expose()
     @ApiProperty()
-    numberofquestion: number;
+    numberOfQuestion: number;
 }

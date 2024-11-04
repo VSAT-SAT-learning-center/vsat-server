@@ -45,7 +45,7 @@ export class DomainDistributionService extends BaseService<DomainDistribution> {
             const createDomainDistribution = this.domainDistributionRepository.create({
                 domain: domain,
                 moduleType: moduleType,
-                numberofquestion: createDomainDistributionDto.numberofquestion,
+                numberofquestion: createDomainDistributionDto.numberOfQuestion,
             });
 
             const savedDomainDistribution = await this.domainDistributionRepository.save(createDomainDistribution);

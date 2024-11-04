@@ -217,6 +217,10 @@ export class ExamAttemptService {
 
                 const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 
+                console.log(targetLearning);
+
+                console.log('case 1 Math');
+
                 await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdFoundationsMath);
 
                 break;
@@ -226,6 +230,8 @@ export class ExamAttemptService {
                     createTargetLearningDto.levelId = medium.id;
 
                     createTargetLearningDto.sectionId = math.id;
+
+                    console.log('case 2 Math');
 
                     const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 
@@ -239,6 +245,8 @@ export class ExamAttemptService {
 
                     createTargetLearningDto.sectionId = math.id;
 
+                    console.log('case 3 Math');
+
                     const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 
                     await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdMediumMath);
@@ -246,6 +254,8 @@ export class ExamAttemptService {
                     createTargetLearningDto.levelId = advance.id;
 
                     createTargetLearningDto.sectionId = math.id;
+
+                    console.log('case 4 Math');
 
                     const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 
@@ -261,6 +271,8 @@ export class ExamAttemptService {
 
                 createTargetLearningDto.sectionId = RW.id;
 
+                console.log('case 1 RW');
+
                 const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 
                 await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdFoundationsRW);
@@ -272,6 +284,8 @@ export class ExamAttemptService {
                     createTargetLearningDto.levelId = medium.id;
 
                     createTargetLearningDto.sectionId = RW.id;
+
+                    console.log('case 2 RW');
 
                     const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 
@@ -285,6 +299,8 @@ export class ExamAttemptService {
 
                     createTargetLearningDto.sectionId = RW.id;
 
+                    console.log('case 3 RW');
+
                     const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 
                     await this.unitProgressService.startMultipleUnitProgress(targetLearning.id, unitIdMediumsRW);
@@ -292,6 +308,8 @@ export class ExamAttemptService {
                     createTargetLearningDto.levelId = advance.id;
 
                     createTargetLearningDto.sectionId = RW.id;
+
+                    console.log('case 4 RW');
 
                     const targetLearning = await this.targetLearningService.save(createTargetLearningDto);
 

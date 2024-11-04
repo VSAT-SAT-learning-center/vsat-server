@@ -569,4 +569,8 @@ export class QuestionService {
 
         await this.questionRepository.save(questions);
     }
+
+    async search(){
+        
+    }
 }

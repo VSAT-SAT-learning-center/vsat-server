@@ -23,9 +23,7 @@ export class ExamAttemptDetailService {
         private readonly answerRepository: Repository<Answer>,
     ) {}
 
-    async check(
-        checkExamAttemptDetails: CheckExamAttemptDetail[],
-    ): Promise<CheckExamAttemptDetail[]> {
+    async check(checkExamAttemptDetails: CheckExamAttemptDetail[]): Promise<CheckExamAttemptDetail[]> {
         const results: CheckExamAttemptDetail[] = [];
 
         for (const checkExamAttemptDetail of checkExamAttemptDetails) {
@@ -50,10 +48,7 @@ export class ExamAttemptDetailService {
             });
 
             if (question.isSingleChoiceQuestion === true) {
-                const correctAnswer = answers.find(
-                    (answer) =>
-                        answer.label === checkExamAttemptDetail.studentanswer,
-                );
+                const correctAnswer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
 
                 if (!correctAnswer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = false;
@@ -61,10 +56,7 @@ export class ExamAttemptDetailService {
                     checkExamAttemptDetail.isCorrect = true;
                 }
             } else if (question.isSingleChoiceQuestion === false) {
-                const correctAnswer = answers.find(
-                    (answer) =>
-                        answer.text === checkExamAttemptDetail.studentanswer,
-                );
+                const correctAnswer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
 
                 console.log(correctAnswer);
 
@@ -75,18 +67,14 @@ export class ExamAttemptDetailService {
                 }
             }
 
-            const examAttemptDetailEntity =
-                this.examAttemptDetailRepository.create({
-                    examAttempt: examAttempt,
-                    question: question,
-                    iscorrect: checkExamAttemptDetail.isCorrect,
-                    studentAnswer: checkExamAttemptDetail.studentanswer,
-                });
+            const examAttemptDetailEntity = this.examAttemptDetailRepository.create({
+                examAttempt: examAttempt,
+                question: question,
+                iscorrect: checkExamAttemptDetail.isCorrect,
+                studentAnswer: checkExamAttemptDetail.studentanswer,
+            });
 
-            const savedExamAttemptDetail =
-                await this.examAttemptDetailRepository.save(
-                    examAttemptDetailEntity,
-                );
+            const savedExamAttemptDetail = await this.examAttemptDetailRepository.save(examAttemptDetailEntity);
 
             results.push({
                 ...checkExamAttemptDetail,
