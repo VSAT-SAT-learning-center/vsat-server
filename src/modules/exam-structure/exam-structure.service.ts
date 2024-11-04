@@ -80,7 +80,10 @@ export class ExamStructureService {
             Array.isArray(examStructureConfig) ? examStructureConfig : [examStructureConfig],
         );
 
-        await this.moduleTypeService.save(savedExamstructure.id, Array.isArray(moduleType) ? moduleType : [moduleType]);
+        await this.moduleTypeService.save(
+            savedExamstructure.id,
+            Array.isArray(moduleType) ? moduleType : [moduleType],
+        );
 
         return plainToInstance(CreateExamStructureDto, savedExamstructure, {
             excludeExtraneousValues: true,
@@ -92,14 +95,18 @@ export class ExamStructureService {
             skip: (page - 1) * pageSize,
             take: pageSize,
             order: { createdat: 'DESC' },
-        });
-
-        const data = plainToInstance(GetExamStructureDto, result, {
-            excludeExtraneousValues: true,
+            relations: [
+                'examScore',
+                'examStructureType',
+                'examSemester',
+                'configs',
+                'moduletype',
+                'moduletype.domaindistribution',
+            ],
         });
 
         return {
-            data,
+            result,
             total,
         };
     }

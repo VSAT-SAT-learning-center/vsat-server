@@ -51,4 +51,50 @@ export class ExamAttemptController {
             );
         }
     }
+
+    @Get('getExamAtemptDomain/:id')
+    async getExamAtemptDomain(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+        try {
+            const getExamAtemptDomain = await this.examAttemptService.getExamAtemptDomain(
+                id,
+                isCorrect,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamAtemptDomain,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getExamAtemptSkill/:id')
+    async getExamAtemptsSkill(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+        try {
+            const getExamAtemptSkill = await this.examAttemptService.getExamAtemptSkil(
+                id,
+                isCorrect,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamAtemptSkill,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }
