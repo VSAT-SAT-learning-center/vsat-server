@@ -32,9 +32,7 @@ export class QuizQuestionController {
     async saveManual(@Body() createQuizQuestionDto: CreateQuizQuestionDto) {
         try {
             const saveQuestion =
-                await this.quizQuestionService.saveQuizQuestion(
-                    createQuizQuestionDto,
-                );
+                await this.quizQuestionService.saveQuizQuestion(createQuizQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,
@@ -94,10 +92,7 @@ export class QuizQuestionController {
 
             await this.quizQuestionService.publish(quizQuestionIds);
 
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                SuccessMessages.update('QuizQuestions'),
-            );
+            return ResponseHelper.success(HttpStatus.OK, SuccessMessages.update('QuizQuestions'));
         } catch (error) {
             throw new HttpException(
                 {
@@ -136,15 +131,20 @@ export class QuizQuestionController {
     }
 
     @Put('updateStatus/:id')
-    async updateStatus(
-        @Param('id') id: string,
-        @Body() status: QuizQuestionStatus,
-    ) {
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                status: {
+                    type: 'string',
+                    enum: ['Submit', 'Reject', 'Approved'],
+                },
+            },
+        },
+    })
+    async updateStatus(@Param('id') id: string, @Body() status: QuizQuestionStatus) {
         try {
-            const question = await this.quizQuestionService.updateStatus(
-                id,
-                status,
-            );
+            const question = await this.quizQuestionService.updateStatus(id, status);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
@@ -165,9 +165,7 @@ export class QuizQuestionController {
     @ApiBody({ type: [CreateQuizQuestionFileDto] })
     async save(@Body() createQuestionFileDto: CreateQuizQuestionFileDto[]) {
         try {
-            const saveQuestion = await this.quizQuestionService.save(
-                createQuestionFileDto,
-            );
+            const saveQuestion = await this.quizQuestionService.save(createQuestionFileDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,
@@ -190,11 +188,9 @@ export class QuizQuestionController {
         @Body() feedbackDto: QuizQuestionFeedbackDto,
     ) {
         if (action !== 'approve' && action !== 'reject') {
-            throw new BadRequestException(
-                'Invalid action. Use "approve" or "reject".',
-            );
+            throw new BadRequestException('Invalid action. Use "approve" or "reject".');
         }
-        
+
         try {
             const feedbacks = await this.quizQuestionService.approveOrRejectQuizQuestion(
                 feedbackDto,
