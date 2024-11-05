@@ -97,33 +97,33 @@ export class ExamSemesterController {
         }
     }
 
-    @Post()
-    async saveManual(
-        @Body() createExamSemesterDto: UploadFileExamSemesterDto,
-        @Body('configs')
-        createDomainDistributionConfigDtoArray: UploadFileDomainDistributionConfigDto[],
-    ) {
-        try {
-            const savedExamSemester = await this.examSemesterService.saveExamSemesterWithConfigs(
-                createExamSemesterDto,
-                createDomainDistributionConfigDtoArray,
-            );
+    // @Post()
+    // async saveManual(
+    //     @Body() createExamSemesterDto: UploadFileExamSemesterDto,
+    //     @Body('configs')
+    //     createDomainDistributionConfigDtoArray: UploadFileDomainDistributionConfigDto[],
+    // ) {
+    //     try {
+    //         const savedExamSemester = await this.examSemesterService.saveExamSemesterWithConfigs(
+    //             createExamSemesterDto,
+    //             createDomainDistributionConfigDtoArray,
+    //         );
 
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                savedExamSemester,
-                SuccessMessages.create('ExamSemester with DomainDistributionConfigs'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
+    //         return ResponseHelper.success(
+    //             HttpStatus.CREATED,
+    //             savedExamSemester,
+    //             SuccessMessages.create('ExamSemester with DomainDistributionConfigs'),
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 
     @Put('updateExamSemester/:id')
     async updateExamSemester(
