@@ -30,8 +30,7 @@ export class QuestionController {
     @ApiBody({ type: [CreateQuestionFileDto] })
     async save(@Body() createQuestionDto: CreateQuestionFileDto[]) {
         try {
-            const saveQuestion =
-                await this.questionService.save(createQuestionDto);
+            const saveQuestion = await this.questionService.save(createQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,
@@ -51,8 +50,7 @@ export class QuestionController {
     @Post()
     async saveManual(@Body() createQuestionDto: CreateQuestionDTO) {
         try {
-            const saveQuestion =
-                await this.questionService.saveManual(createQuestionDto);
+            const saveQuestion = await this.questionService.saveManual(createQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,
@@ -76,11 +74,7 @@ export class QuestionController {
         @Query('status') status?: QuestionStatus,
     ) {
         try {
-            const questions = await this.questionService.getAllWithStatus(
-                page,
-                pageSize,
-                status,
-            );
+            const questions = await this.questionService.getAllWithStatus(page, pageSize, status);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
@@ -109,10 +103,7 @@ export class QuestionController {
             },
         },
     })
-    async updateStatus(
-        @Param('id') id: string,
-        @Body() body: { status: string },
-    ) {
+    async updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
         try {
             const { status } = body;
             const checkQuestion = await this.questionService.updateStatus(
@@ -121,10 +112,7 @@ export class QuestionController {
             );
 
             if (checkQuestion) {
-                return ResponseHelper.success(
-                    HttpStatus.OK,
-                    SuccessMessages.approve(),
-                );
+                return ResponseHelper.success(HttpStatus.OK, SuccessMessages.approve());
             }
         } catch (error) {
             throw new HttpException(
@@ -138,15 +126,9 @@ export class QuestionController {
     }
 
     @Put('updateQuestion/:id')
-    async updateQuestion(
-        @Param('id') id: string,
-        @Body() updateQuestionDto: UpdateQuestionDTO,
-    ) {
+    async updateQuestion(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDTO) {
         try {
-            const question = await this.questionService.updateQuestion(
-                id,
-                updateQuestionDto,
-            );
+            const question = await this.questionService.updateQuestion(id, updateQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
@@ -169,10 +151,7 @@ export class QuestionController {
         @Query('pageSize') pageSize?: number,
     ) {
         try {
-            const questions = await this.questionService.getQuestionWithAnswer(
-                page,
-                pageSize,
-            );
+            const questions = await this.questionService.getQuestionWithAnswer(page, pageSize);
 
             return ResponseHelper.success(
                 HttpStatus.OK,
@@ -205,10 +184,7 @@ export class QuestionController {
 
             await this.questionService.publish(questionIds);
 
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                SuccessMessages.update('Questions'),
-            );
+            return ResponseHelper.success(HttpStatus.OK, SuccessMessages.update('Questions'));
         } catch (error) {
             throw new HttpException(
                 {
@@ -226,11 +202,9 @@ export class QuestionController {
         @Body() feedbackDto: QuestionFeedbackDto,
     ) {
         if (action !== 'approve' && action !== 'reject') {
-            throw new BadRequestException(
-                'Invalid action. Use "approve" or "reject".',
-            );
+            throw new BadRequestException('Invalid action. Use "approve" or "reject".');
         }
-        
+
         try {
             const feedbacks = await this.questionService.approveOrRejectQuestion(
                 feedbackDto,
