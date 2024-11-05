@@ -47,6 +47,7 @@ import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-questi
 import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-structure-type.module';
 import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-structure-config.module';
 import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module';
+import { DomainDistributionConfigModule } from './modules/domain-distribution-config/domain-distribution-config.module';
 
 @Module({
     imports: [
@@ -98,6 +99,7 @@ import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module
         ExamStructureTypeModule,
         ExamStructureConfigModule,
         ExamSemesterModule,
+        DomainDistributionConfigModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -127,6 +129,8 @@ import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module
         }),
 
         ExamSemesterModule,
+
+        DomainDistributionConfigModule,
     ],
     providers: [FeedbacksGateway],
     // providers: [PaginationService],

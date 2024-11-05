@@ -324,4 +324,5 @@ export class ExamSemesterService {
             relations: ['domainDistributionConfigs'],
         });
     }
+    
 }
