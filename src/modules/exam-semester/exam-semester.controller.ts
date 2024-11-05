@@ -68,15 +68,14 @@ export class ExamSemesterController {
     }
 
     @Post('import-file')
-    @ApiBody({ type: [CreateDomainDistributionConfigDto] })
+    @ApiBody({ type: CreateExamSemesterDto })
     async importExamSemesterWithConfigs(
-        @Body('configs')
-        createDomainDistributionConfigDtoArray: CreateDomainDistributionConfigDto[],
-        @Body('examSemester') createExamSemester: CreateExamSemesterDto,
+        @Body() createExamSemester: CreateExamSemesterDto,
     ) {
+        const { domainDistributionConfig } = createExamSemester;
         try {
             const result = await this.examSemesterService.uploadExamSemesterWithConfigs(
-                createDomainDistributionConfigDtoArray,
+                domainDistributionConfig,
                 createExamSemester,
             );
 

@@ -53,7 +53,11 @@ export class ExamSemesterWithDetailsDto {
 
     @ApiProperty({ description: 'Date and time of the exam semester' })
     @IsDate()
-    time: Date;
+    datefrom: Date;
+
+    @ApiProperty({ description: 'Date and time of the exam semester' })
+    @IsDate()
+    dateto: Date;
 
     // @ApiProperty({
     //     description: 'List of exam structures',

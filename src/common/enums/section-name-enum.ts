@@ -1,4 +1,4 @@
 export enum SectionName {
-    READING_WRITING = 'Reading & Writing', 
+    READING_WRITING = 'Reading_Writing', 
     MATH = 'Math',
 }

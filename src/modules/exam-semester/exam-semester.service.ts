@@ -41,7 +41,8 @@ export class ExamSemesterService {
         return examSemesters.map((semester) => ({
             id: semester.id,
             title: semester.title,
-            time: semester.time,
+            datefrom: semester.datefrom,
+            dateto: semester.dateto,
             // examStructure: semester.examStructures.map((structure) => ({
             //     id: structure.id,
             //     name: structure.structurename,
@@ -82,7 +83,8 @@ export class ExamSemesterService {
         return {
             id: semester.id,
             title: semester.title,
-            time: semester.time,
+            datefrom: semester.datefrom,
+            dateto: semester.dateto,
             // examStructure: semester.examStructures.map((structure) => ({
             //     id: structure.id,
             //     name: structure.structurename,
@@ -116,12 +118,13 @@ export class ExamSemesterService {
             config: CreateDomainDistributionConfigDto;
             message: string;
         }[] = [];
-
-        const { title, time } = createExamSemester;
+ 
+        const { title, dateFrom, dateTo } = createExamSemester;
 
         const examSemester = this.examSemesterRepository.create({
             title: title,
-            time: time,
+            datefrom: dateFrom,
+            dateto: dateTo,
         });
 
         const savedExamSemester = await this.examSemesterRepository.save(examSemester);
@@ -201,11 +204,12 @@ export class ExamSemesterService {
         createExamSemesterDto: CreateExamSemesterDto,
         createDomainDistributionConfigDtoArray: CreateDomainDistributionConfigDto[],
     ): Promise<ExamSemester> {
-        const { title, time } = createExamSemesterDto;
+        const { title, dateFrom, dateTo } = createExamSemesterDto;
 
         const newExamSemester = this.examSemesterRepository.create({
             title,
-            time,
+            datefrom: dateFrom,
+            dateto: dateTo,
         });
 
         const savedExamSemester = await this.examSemesterRepository.save(newExamSemester);
