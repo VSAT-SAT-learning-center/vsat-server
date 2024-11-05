@@ -1,12 +1,4 @@
-import {
-    IsString,
-    IsOptional,
-    IsUUID,
-    IsDate,
-    IsArray,
-    IsNumber,
-    isNumber,
-} from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsDate, IsArray, IsNumber, isNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ExamStructureDto {

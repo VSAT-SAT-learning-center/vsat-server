@@ -1,16 +1,22 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { DomainDistributionConfig } from 'src/database/entities/domaindistributionconfig.entity';
 import { BaseService } from '../base/base.service';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateDomainDistributionConfigDto } from './dto/update-domaindistribution-config.dto';
 import { max } from 'class-validator';
+import { CreateDomainDistributionConfigDto } from '../exam-semester/dto/create-examsemester.dto';
+import { Domain } from 'src/database/entities/domain.entity';
+import { ExamSemester } from 'src/database/entities/examsemeseter.entity';
 
 @Injectable()
 export class DomainDistributionConfigService extends BaseService<DomainDistributionConfig> {
     constructor(
         @InjectRepository(DomainDistributionConfig)
         private readonly domainDistributionConfigRepository: Repository<DomainDistributionConfig>,
+
+        @InjectRepository(Domain)
+        private readonly domainRepository: Repository<Domain>,
     ) {
         super(domainDistributionConfigRepository);
     }
@@ -48,5 +54,37 @@ export class DomainDistributionConfigService extends BaseService<DomainDistribut
             updatedDomainDistributionConfig.push(existingDomainDistributionConfig);
         }
         return this.domainDistributionConfigRepository.save(updatedDomainDistributionConfig);
+    }
+
+    async createMany(
+        createDomainDistributionConfigsDto: CreateDomainDistributionConfigDto[],
+        examSemesterId: string,
+    ): Promise<DomainDistributionConfig[]> {
+        const domainContent = createDomainDistributionConfigsDto.map(
+            (dto) => dto.domain,
+        );
+        const domains = await this.domainRepository.find({
+            where: { content: In(domainContent) },
+        });
+
+        const domainMap = new Map(
+            domains.map((domain) => [domain.content, domain]),
+        );
+
+        const createdDomainDistributionConfigs = createDomainDistributionConfigsDto.map((dto) => {
+            const domain = domainMap.get(dto.domain);
+
+            if (!domain) {
+                throw new NotFoundException(`Domain ${dto.domain} not found`);
+            }
+
+            return this.domainDistributionConfigRepository.create({
+                ...dto,
+                domain,
+                examSemester: { id: examSemesterId } as ExamSemester,
+            });
+        });
+
+        return this.domainDistributionConfigRepository.save(createdDomainDistributionConfigs);
     }
 }
