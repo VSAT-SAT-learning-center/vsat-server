@@ -1,14 +1,30 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExamSemester } from 'src/database/entities/examsemeseter.entity';
 import { Repository } from 'typeorm';
 import { ExamSemesterWithDetailsDto } from './dto/exam-semester.dto';
+import {
+    CreateDomainDistributionConfigDto,
+    CreateExamSemesterDto,
+} from './dto/uploadfile-examsemester.dto';
+import { DomainDistributionConfig } from 'src/database/entities/domaindistributionconfig.entity';
+import { Domain } from 'src/database/entities/domain.entity';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import {
+    UpdateDomainDistributionConfigDto,
+    UpdateExamSemesterDto,
+} from './dto/update-examsemester.dto';
 
 @Injectable()
 export class ExamSemesterService {
     constructor(
         @InjectRepository(ExamSemester)
         private readonly examSemesterRepository: Repository<ExamSemester>,
+        @InjectRepository(Domain)
+        private readonly domainRepository: Repository<Domain>,
+        @InjectRepository(DomainDistributionConfig)
+        private readonly domainDistributionConfigRepository: Repository<DomainDistributionConfig>,
     ) {}
 
     async getExamSemestersWithDetails(): Promise<ExamSemesterWithDetailsDto[]> {
@@ -88,14 +104,220 @@ export class ExamSemesterService {
         };
     }
 
-    // async getExamSemesterById(id: string): Promise<ExamSemester> {
-    //     const examSemester = await this.examSemesterRepository.findOne({
-    //         where: { id: id },
-    //     });
+    async uploadExamSemesterWithConfigs(
+        createDomainDistributionConfigDtoArray: CreateDomainDistributionConfigDto[],
+        createExamSemester: CreateExamSemesterDto,
+    ): Promise<{
+        savedConfigs: DomainDistributionConfig[];
+        errors: { config: CreateDomainDistributionConfigDto; message: string }[];
+    }> {
+        const savedConfigs: DomainDistributionConfig[] = [];
+        const errors: {
+            config: CreateDomainDistributionConfigDto;
+            message: string;
+        }[] = [];
 
-    //     if (!examSemester) {
-    //         throw new NotFoundException('ExamSemester is not found');
-    //     }
-    //     return examSemester;
-    // }
+        const { title, time } = createExamSemester;
+
+        const examSemester = this.examSemesterRepository.create({
+            title: title,
+            time: time,
+        });
+
+        const savedExamSemester = await this.examSemesterRepository.save(examSemester);
+
+        for (const createDomainDistributionConfigDto of createDomainDistributionConfigDtoArray) {
+            try {
+                const { title, minQuestion, maxQuestion, percent, domain } =
+                    createDomainDistributionConfigDto;
+
+                // Find Domain by name
+                const foundDomain = await this.domainRepository.findOne({
+                    where: { content: domain },
+                });
+
+                if (!foundDomain) {
+                    throw new NotFoundException(`Domain not found: ${domain}`);
+                }
+
+                // Validate the DTO fields
+                const configInstance = plainToInstance(
+                    CreateDomainDistributionConfigDto,
+                    createDomainDistributionConfigDto,
+                );
+                const validationErrors = await validate(configInstance);
+
+                if (validationErrors.length > 0) {
+                    const validationMessages = validationErrors
+                        .map((err) => Object.values(err.constraints).join(', '))
+                        .join('; ');
+                    throw new Error(validationMessages);
+                }
+
+                // Check for existing config with same title in the same ExamSemester and Domain
+                const existingConfig = await this.domainDistributionConfigRepository.findOne({
+                    where: {
+                        title,
+                        examSemester: { id: savedExamSemester.id },
+                        domain: { id: foundDomain.id },
+                    },
+                });
+
+                if (existingConfig) {
+                    throw new HttpException(
+                        `Config with title "${title}" already exists for the given ExamSemester and Domain`,
+                        HttpStatus.BAD_REQUEST,
+                    );
+                }
+
+                // Create new DomainDistributionConfig
+                const newConfig = this.domainDistributionConfigRepository.create({
+                    title,
+                    minQuestion,
+                    maxQuestion,
+                    percent,
+                    domain: foundDomain,
+                    examSemester: examSemester,
+                });
+
+                // Save the new config
+                const savedConfig = await this.domainDistributionConfigRepository.save(newConfig);
+                savedConfigs.push(savedConfig);
+            } catch (error) {
+                errors.push({
+                    config: createDomainDistributionConfigDto,
+                    message: error.message || 'Unknown error',
+                });
+            }
+        }
+
+        return {
+            savedConfigs,
+            errors,
+        };
+    }
+
+    async saveExamSemesterWithConfigs(
+        createExamSemesterDto: CreateExamSemesterDto,
+        createDomainDistributionConfigDtoArray: CreateDomainDistributionConfigDto[],
+    ): Promise<ExamSemester> {
+        const { title, time } = createExamSemesterDto;
+
+        const newExamSemester = this.examSemesterRepository.create({
+            title,
+            time,
+        });
+
+        const savedExamSemester = await this.examSemesterRepository.save(newExamSemester);
+
+        for (const configDto of createDomainDistributionConfigDtoArray) {
+            const { title, minQuestion, maxQuestion, percent, domain } = configDto;
+
+            const foundDomain = await this.domainRepository.findOne({
+                where: { content: domain },
+            });
+            if (!foundDomain) {
+                throw new NotFoundException(`Domain not found: ${domain}`);
+            }
+
+            const configInstance = plainToInstance(CreateDomainDistributionConfigDto, configDto);
+            const validationErrors = await validate(configInstance);
+            if (validationErrors.length > 0) {
+                const validationMessages = validationErrors
+                    .map((err) => Object.values(err.constraints).join(', '))
+                    .join('; ');
+                throw new Error(validationMessages);
+            }
+
+            const existingConfig = await this.domainDistributionConfigRepository.findOne({
+                where: {
+                    title,
+                    examSemester: { id: savedExamSemester.id },
+                    domain: { id: foundDomain.id },
+                },
+            });
+
+            if (existingConfig) {
+                throw new HttpException(
+                    `Config with title "${title}" already exists for the given ExamSemester and Domain`,
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            const newConfig = this.domainDistributionConfigRepository.create({
+                title,
+                minQuestion,
+                maxQuestion,
+                percent,
+                domain: foundDomain,
+                examSemester: savedExamSemester,
+            });
+
+            await this.domainDistributionConfigRepository.save(newConfig);
+        }
+
+        return savedExamSemester;
+    }
+
+    async updateExamSemesterWithConfigs(
+        id: string,
+        updateExamSemesterDto: UpdateExamSemesterDto,
+        updateDomainDistributionConfigDtoArray: UpdateDomainDistributionConfigDto[],
+    ): Promise<ExamSemester> {
+        const examSemester = await this.examSemesterRepository.findOne({
+            where: { id },
+            relations: ['domainDistributionConfigs'],
+        });
+
+        if (!examSemester) {
+            throw new NotFoundException('ExamSemester not found');
+        }
+
+        Object.assign(examSemester, updateExamSemesterDto);
+        const savedExamSemester = await this.examSemesterRepository.save(examSemester);
+
+        for (const configDto of updateDomainDistributionConfigDtoArray) {
+            const { id: configId, title, minQuestion, maxQuestion, percent, domain } = configDto;
+
+            const foundDomain = await this.domainRepository.findOne({
+                where: { content: domain },
+            });
+            if (!foundDomain) {
+                throw new NotFoundException(`Domain not found: ${domain}`);
+            }
+
+            const configInstance = plainToInstance(UpdateDomainDistributionConfigDto, configDto);
+            const validationErrors = await validate(configInstance);
+            if (validationErrors.length > 0) {
+                const validationMessages = validationErrors
+                    .map((err) => Object.values(err.constraints).join(', '))
+                    .join('; ');
+                throw new Error(validationMessages);
+            }
+
+            let domainConfig = await this.domainDistributionConfigRepository.findOne({
+                where: { id: configId, examSemester: { id: savedExamSemester.id } },
+            });
+
+            if (!domainConfig) {
+                domainConfig = this.domainDistributionConfigRepository.create({
+                    title,
+                    minQuestion,
+                    maxQuestion,
+                    percent,
+                    domain: foundDomain,
+                    examSemester: savedExamSemester,
+                });
+            } else {
+                Object.assign(domainConfig, configDto, { domain: foundDomain });
+            }
+
+            await this.domainDistributionConfigRepository.save(domainConfig);
+        }
+
+        return this.examSemesterRepository.findOne({
+            where: { id: savedExamSemester.id },
+            relations: ['domainDistributionConfigs'],
+        });
+    }
 }
