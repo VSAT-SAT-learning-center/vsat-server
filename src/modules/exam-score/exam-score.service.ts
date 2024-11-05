@@ -131,6 +131,11 @@ export class ExamScoreService {
         const examScore = await this.examScoreRepository.findOne({
             where: { id: id },
             relations: ['examScoreDetails', 'examScoreDetails.section'],
+            order: {
+                examScoreDetails: {
+                    rawscore: 'ASC',
+                },
+            },
         });
 
         if (!examScore) {

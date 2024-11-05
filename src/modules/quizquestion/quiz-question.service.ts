@@ -10,6 +10,7 @@ import {
 import { BaseService } from '../base/base.service';
 import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
 import { In, IsNull, Repository } from 'typeorm';
+import { PaginationService } from 'src/common/helpers/pagination.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateQuizQuestionDto } from './dto/create-quizquestion.dto';
 import { Level } from 'src/database/entities/level.entity';
@@ -24,10 +25,12 @@ import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 import { GetQuizQuestionDTO } from './dto/get-quizquestion.dto';
 import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
+import { Answer } from 'src/database/entities/anwser.entity';
 import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
-import { FeedbackService } from '../feedback/feedback.service';
-import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
 import { Feedback } from 'src/database/entities/feedback.entity';
+import { FeedbackService } from '../feedback/feedback.service';
+import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
+import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
 
 @Injectable()
 export class QuizQuestionService {
@@ -59,16 +62,12 @@ export class QuizQuestionService {
         }
     }
 
-    async rejectQuestion(
-        feedbackDto: QuizQuestionFeedbackDto,
-    ): Promise<Feedback> {
+    async rejectQuestion(feedbackDto: QuizQuestionFeedbackDto): Promise<Feedback> {
         const { quizQuestionId } = feedbackDto;
 
         await this.updateStatus(quizQuestionId, QuizQuestionStatus.REJECT);
 
-        return await this.feedbackService.rejectQuizQuestionFeedback(
-            feedbackDto,
-        );
+        return await this.feedbackService.rejectQuizQuestionFeedback(feedbackDto);
     }
 
     async approveQuestion(feedbackDto: QuizQuestionFeedbackDto): Promise<void> {
@@ -88,10 +87,8 @@ export class QuizQuestionService {
         return strippedContent.replace(/\s+/g, ' ').trim();
     }
 
-    async saveQuizQuestion(
-        createQuizQuestionDto: CreateQuizQuestionDto,
-    ): Promise<QuizQuestion> {
-        const { levelId, skillId, answers, content, plainContent } =
+    async saveQuizQuestion(createQuizQuestionDto: CreateQuizQuestionDto): Promise<QuizQuestion> {
+        const { levelId, skillId, sectionId, answers, content, plainContent } =
             createQuizQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
@@ -106,6 +103,13 @@ export class QuizQuestionService {
         });
         if (!foundSkill) {
             throw new NotFoundException('Skill not found');
+        }
+
+        const foundSection = await this.sectionRepository.findOne({
+            where: { id: sectionId },
+        });
+        if (!foundSection) {
+            throw new NotFoundException('Section not found');
         }
 
         if (!answers || answers.length === 0) {
@@ -131,10 +135,7 @@ export class QuizQuestionService {
         });
 
         if (existingQuestion) {
-            throw new HttpException(
-                `Question already exists`,
-                HttpStatus.BAD_REQUEST,
-            );
+            throw new HttpException(`Question already exists`, HttpStatus.BAD_REQUEST);
         }
 
         if (createQuizQuestionDto.isSingleChoiceQuestion === null) {
@@ -148,16 +149,13 @@ export class QuizQuestionService {
             ...createQuizQuestionDto,
             level: foundLevel,
             skill: foundSkill,
+            section: foundSection,
             plainContent: normalizedContent,
         });
 
-        const savedQuizQuestion =
-            await this.quizQuestionRepository.save(newQuizQuestion);
+        const savedQuizQuestion = await this.quizQuestionRepository.save(newQuizQuestion);
 
-        await this.quizAnswerService.createMultipleQuizAnswers(
-            savedQuizQuestion.id,
-            answers,
-        );
+        await this.quizAnswerService.createMultipleQuizAnswers(savedQuizQuestion.id, answers);
 
         return savedQuizQuestion;
     }
@@ -169,21 +167,15 @@ export class QuizQuestionService {
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
-        const [questions, total] =
-            await this.quizQuestionRepository.findAndCount({
-                relations: [
-                    'level',
-                    'skill',
-                    'skill.domain',
-                    'answers',
-                ],
-                skip: skip,
-                take: pageSize,
-                where: { status },
-                order: {
-                    updatedat: 'DESC',
-                },
-            });
+        const [questions, total] = await this.quizQuestionRepository.findAndCount({
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            skip: skip,
+            take: pageSize,
+            where: { status },
+            order: {
+                updatedat: 'DESC',
+            },
+        });
 
         const totalPages = Math.ceil(total / pageSize);
         return {
@@ -212,9 +204,7 @@ export class QuizQuestionService {
         await this.quizQuestionRepository.save(questions);
     }
 
-    async save(
-        createQuizQuestionDtoArray: CreateQuizQuestionFileDto[],
-    ): Promise<{
+    async save(createQuizQuestionDtoArray: CreateQuizQuestionFileDto[]): Promise<{
         savedQuestions: QuizQuestion[];
         errors: { question: CreateQuizQuestionFileDto; message: string }[];
     }> {
@@ -226,7 +216,7 @@ export class QuizQuestionService {
 
         for (const createQuizQuestionDto of createQuizQuestionDtoArray) {
             try {
-                const { level, skill, answers, content, plainContent } =
+                const { level, skill, section, answers, content, plainContent } =
                     createQuizQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
@@ -235,24 +225,22 @@ export class QuizQuestionService {
                 const foundSkill = await this.skillRepository.findOne({
                     where: { content: skill },
                 });
+                const foundSection = await this.sectionRepository.findOne({
+                    where: { name: section },
+                });
 
                 if (!answers || answers.length === 0) {
                     throw new Error('Answers array is empty');
                 }
 
                 for (const answer of answers) {
-                    const answerInstance = plainToInstance(
-                        CreateQuizAnswerDTO,
-                        answer,
-                    );
+                    const answerInstance = plainToInstance(CreateQuizAnswerDTO, answer);
 
                     const validationErrors = await validate(answerInstance);
 
                     if (validationErrors.length > 0) {
                         const validationMessages = validationErrors
-                            .map((err) =>
-                                Object.values(err.constraints).join(', '),
-                            )
+                            .map((err) => Object.values(err.constraints).join(', '))
                             .join('; ');
                         throw new Error(validationMessages);
                     }
@@ -260,16 +248,12 @@ export class QuizQuestionService {
 
                 const normalizedContent = this.normalizeContent(content);
 
-                const existingQuestion =
-                    await this.quizQuestionRepository.findOne({
-                        where: { plainContent: normalizedContent },
-                    });
+                const existingQuestion = await this.quizQuestionRepository.findOne({
+                    where: { plainContent: normalizedContent },
+                });
 
                 if (existingQuestion) {
-                    throw new HttpException(
-                        `Question already exists`,
-                        HttpStatus.BAD_REQUEST,
-                    );
+                    throw new HttpException(`Question already exists`, HttpStatus.BAD_REQUEST);
                 }
 
                 if (!foundLevel) {
@@ -278,6 +262,10 @@ export class QuizQuestionService {
 
                 if (!foundSkill) {
                     throw new NotFoundException('Skill is not found');
+                }
+
+                if (!foundSection) {
+                    throw new NotFoundException('Section is not found');
                 }
 
                 if (createQuizQuestionDto.isSingleChoiceQuestion === null) {
@@ -291,14 +279,13 @@ export class QuizQuestionService {
                     plainContent: normalizedContent,
                     content,
                     explain: createQuizQuestionDto.explain,
-                    isSingleChoiceQuestion:
-                        createQuizQuestionDto.isSingleChoiceQuestion,
+                    isSingleChoiceQuestion: createQuizQuestionDto.isSingleChoiceQuestion,
                     level: foundLevel,
                     skill: foundSkill,
+                    section: foundSection,
                 });
 
-                const savedQuizQuestion =
-                    await this.quizQuestionRepository.save(newQuestion);
+                const savedQuizQuestion = await this.quizQuestionRepository.save(newQuestion);
 
                 await this.quizAnswerService.createMultipleQuizAnswers(
                     savedQuizQuestion.id,
@@ -324,8 +311,7 @@ export class QuizQuestionService {
         id: string,
         updateQuizQuestionDto: UpdateQuizQuestionDTO,
     ): Promise<QuizQuestion> {
-        const { levelId, skillId, sectionId, answers, content } =
-            updateQuizQuestionDto;
+        const { levelId, skillId, sectionId, answers, content } = updateQuizQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
             where: { id: levelId },
@@ -342,10 +328,7 @@ export class QuizQuestionService {
         });
 
         if (existingQuestion && existingQuestion.id !== id) {
-            throw new HttpException(
-                `Question is already exists !`,
-                HttpStatus.CONFLICT,
-            );
+            throw new HttpException(`Question is already exists !`, HttpStatus.CONFLICT);
         }
 
         if (!foundLevel) {
@@ -416,8 +399,7 @@ export class QuizQuestionService {
             }
         }
 
-        const updatedQuestion =
-            await this.quizQuestionRepository.save(quizQuestion);
+        const updatedQuestion = await this.quizQuestionRepository.save(quizQuestion);
 
         const answersToDelete = await this.quizAnswerRepository.find({
             where: { quizquestion: IsNull() },
@@ -435,6 +417,31 @@ export class QuizQuestionService {
         });
 
         return questionWithAnswers;
+    }
+
+    async updateStatus(id: string, status: QuizQuestionStatus): Promise<boolean> {
+        if (!Object.values(QuizQuestionStatus).includes(status)) {
+            throw new BadRequestException(`Invalid status value: ${status}`);
+        }
+
+        const quizQuestion = await this.quizQuestionRepository.findOneBy({
+            id,
+        });
+        if (!quizQuestion) {
+            throw new NotFoundException('Question not found');
+        }
+
+        if (status === QuizQuestionStatus.REJECT) {
+            if (quizQuestion.countfeedback == 3) {
+                quizQuestion.isActive = false;
+            }
+            quizQuestion.countfeedback = quizQuestion.countfeedback + 1;
+        }
+
+        quizQuestion.status = status;
+
+        await this.quizQuestionRepository.save(quizQuestion);
+        return true;
     }
 
     async getQuizQuestionsByLevelAndSkill(
@@ -470,10 +477,7 @@ export class QuizQuestionService {
         return this.getRandomSubset(questions, quantity);
     }
 
-    private getRandomSubset(
-        questions: QuizQuestion[],
-        quantity: number,
-    ): QuizQuestion[] {
+    private getRandomSubset(questions: QuizQuestion[], quantity: number): QuizQuestion[] {
         // Shuffle the questions array
         for (let i = questions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -483,45 +487,18 @@ export class QuizQuestionService {
         // Return the first `quantity` items after shuffle
         return questions.slice(0, quantity);
     }
-    async updateStatus(
-        id: string,
-        status: QuizQuestionStatus,
-    ): Promise<boolean> {
-        if (!Object.values(QuizQuestionStatus).includes(status)) {
-            throw new BadRequestException(`Invalid status value: ${status}`);
-        }
-
-        const quizQuestion = await this.quizQuestionRepository.findOneBy({
-            id,
-        });
-        if (!quizQuestion) {
-            throw new NotFoundException('Question not found');
-        }
-
-        if (status === QuizQuestionStatus.REJECT) {
-            if (quizQuestion.countfeedback == 3) {
-                quizQuestion.isActive = false;
-            }
-            quizQuestion.countfeedback = quizQuestion.countfeedback + 1;
-        }
-
-        quizQuestion.status = status;
-
-        await this.quizQuestionRepository.save(quizQuestion);
-        return true;
-    }
 
     async verifyAnswer(questionId: string, selectedAnswerId: string): Promise<boolean> {
         const question = await this.quizQuestionRepository.findOne({
             where: { id: questionId },
             relations: ['answers'],
         });
-    
+
         if (!question) {
             throw new NotFoundException(`Question with ID ${questionId} not found`);
         }
-    
-        const correctAnswer = question.answers.find(answer => answer.isCorrectAnswer);
+
+        const correctAnswer = question.answers.find((answer) => answer.isCorrectAnswer);
         return correctAnswer?.id === selectedAnswerId;
     }
 }

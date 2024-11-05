@@ -108,7 +108,6 @@ export class ExamStructureService {
             ],
         });
 
-        // Ánh xạ kết quả để lấy section.name của mỗi ModuleType
         const formattedResult = result.map((examStructure) => ({
             id: examStructure.id,
             structurename: examStructure.structurename,
