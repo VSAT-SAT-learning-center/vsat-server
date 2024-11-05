@@ -41,7 +41,7 @@ export class QuizAttempt {
     @Column({ type: 'timestamp', nullable: true })
     attemptdatetime: Date;
 
-    @Column({ type: 'int', nullable: true })
+    @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
     score: number;
 
     @Column({
