@@ -3,10 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ExamSemester } from 'src/database/entities/examsemeseter.entity';
 import { Repository } from 'typeorm';
 import { ExamSemesterWithDetailsDto } from './dto/exam-semester.dto';
-import {
-    CreateDomainDistributionConfigDto,
-    CreateExamSemesterDto,
-} from './dto/uploadfile-examsemester.dto';
 import { DomainDistributionConfig } from 'src/database/entities/domaindistributionconfig.entity';
 import { Domain } from 'src/database/entities/domain.entity';
 import { plainToInstance } from 'class-transformer';
@@ -15,6 +11,12 @@ import {
     UpdateDomainDistributionConfigDto,
     UpdateExamSemesterDto,
 } from './dto/update-examsemester.dto';
+import {
+    UploadFileDomainDistributionConfigDto,
+    UploadFileExamSemesterDto,
+} from './dto/uploadfile-examsemester.dto';
+import { CreateExamSemeseterDto } from './dto/create-examsemester.dto';
+import { DomainDistributionConfigService } from '../domain-distribution-config/domain-distribution-config.service';
 
 @Injectable()
 export class ExamSemesterService {
@@ -25,6 +27,8 @@ export class ExamSemesterService {
         private readonly domainRepository: Repository<Domain>,
         @InjectRepository(DomainDistributionConfig)
         private readonly domainDistributionConfigRepository: Repository<DomainDistributionConfig>,
+
+        private readonly domainDistributionConfigService: DomainDistributionConfigService,
     ) {}
 
     async getExamSemestersWithDetails(): Promise<ExamSemesterWithDetailsDto[]> {
@@ -107,18 +111,18 @@ export class ExamSemesterService {
     }
 
     async uploadExamSemesterWithConfigs(
-        createDomainDistributionConfigDtoArray: CreateDomainDistributionConfigDto[],
-        createExamSemester: CreateExamSemesterDto,
+        createDomainDistributionConfigDtoArray: UploadFileDomainDistributionConfigDto[],
+        createExamSemester: UploadFileExamSemesterDto,
     ): Promise<{
         savedConfigs: DomainDistributionConfig[];
-        errors: { config: CreateDomainDistributionConfigDto; message: string }[];
+        errors: { config: UploadFileDomainDistributionConfigDto; message: string }[];
     }> {
         const savedConfigs: DomainDistributionConfig[] = [];
         const errors: {
-            config: CreateDomainDistributionConfigDto;
+            config: UploadFileDomainDistributionConfigDto;
             message: string;
         }[] = [];
- 
+
         const { title, dateFrom, dateTo } = createExamSemester;
 
         const examSemester = this.examSemesterRepository.create({
@@ -145,7 +149,7 @@ export class ExamSemesterService {
 
                 // Validate the DTO fields
                 const configInstance = plainToInstance(
-                    CreateDomainDistributionConfigDto,
+                    UploadFileDomainDistributionConfigDto,
                     createDomainDistributionConfigDto,
                 );
                 const validationErrors = await validate(configInstance);
@@ -201,8 +205,8 @@ export class ExamSemesterService {
     }
 
     async saveExamSemesterWithConfigs(
-        createExamSemesterDto: CreateExamSemesterDto,
-        createDomainDistributionConfigDtoArray: CreateDomainDistributionConfigDto[],
+        createExamSemesterDto: UploadFileExamSemesterDto,
+        createDomainDistributionConfigDtoArray: UploadFileDomainDistributionConfigDto[],
     ): Promise<ExamSemester> {
         const { title, dateFrom, dateTo } = createExamSemesterDto;
 
@@ -224,7 +228,10 @@ export class ExamSemesterService {
                 throw new NotFoundException(`Domain not found: ${domain}`);
             }
 
-            const configInstance = plainToInstance(CreateDomainDistributionConfigDto, configDto);
+            const configInstance = plainToInstance(
+                UploadFileDomainDistributionConfigDto,
+                configDto,
+            );
             const validationErrors = await validate(configInstance);
             if (validationErrors.length > 0) {
                 const validationMessages = validationErrors
@@ -324,5 +331,23 @@ export class ExamSemesterService {
             relations: ['domainDistributionConfigs'],
         });
     }
-    
+
+    async createExamSemesterWithConfigs(
+        createExamSemesterDto: CreateExamSemeseterDto,
+    ): Promise<CreateExamSemeseterDto> {
+        const saveExamSemester = await this.examSemesterRepository.create({
+            title: createExamSemesterDto.title,
+            datefrom: createExamSemesterDto.dateFrom,
+            dateto: createExamSemesterDto.dateTo,
+        });
+
+        await this.examSemesterRepository.save(saveExamSemester);
+
+        await this.domainDistributionConfigService.createMany(
+            createExamSemesterDto.createDomainDistributionConfig,
+            saveExamSemester.id,
+        );
+
+        return createExamSemesterDto;
+    }
 }

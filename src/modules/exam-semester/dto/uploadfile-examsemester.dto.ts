@@ -11,7 +11,7 @@ import {
     ValidateNested,
 } from 'class-validator';
 
-export class CreateDomainDistributionConfigDto {
+export class UploadFileDomainDistributionConfigDto {
     @Expose()
     @ApiProperty({ example: 'Title this' })
     @IsString()
@@ -44,7 +44,7 @@ export class CreateDomainDistributionConfigDto {
     domain: string;
 }
 
-export class CreateExamSemesterDto {
+export class UploadFileExamSemesterDto {
     @Expose()
     @ApiProperty({ example: 'Title this' })
     @IsString()
@@ -60,9 +60,9 @@ export class CreateExamSemesterDto {
     dateTo: Date;
 
     @Expose()
-    @ApiProperty({ type: [CreateDomainDistributionConfigDto] })
+    @ApiProperty({ type: [UploadFileDomainDistributionConfigDto] })
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => CreateDomainDistributionConfigDto)
-    domainDistributionConfig: CreateDomainDistributionConfigDto[];
+    @Type(() => UploadFileDomainDistributionConfigDto)
+    domainDistributionConfig: UploadFileDomainDistributionConfigDto[];
 }

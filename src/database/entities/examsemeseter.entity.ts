@@ -35,6 +35,7 @@ export class ExamSemester {
     @Column({ type: 'date', nullable: true })
     dateto: Date;
 
+    //One to many
     @OneToMany(
         () => ExamStructure,
         (examStructure) => examStructure.examSemester,

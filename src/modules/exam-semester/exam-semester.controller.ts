@@ -15,10 +15,14 @@ import { ExamSemesterWithDetailsDto } from './dto/exam-semester.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import {
-    CreateDomainDistributionConfigDto,
-    CreateExamSemesterDto,
+    UpdateDomainDistributionConfigDto,
+    UpdateExamSemesterDto,
+} from './dto/update-examsemester.dto';
+import {
+    UploadFileDomainDistributionConfigDto,
+    UploadFileExamSemesterDto,
 } from './dto/uploadfile-examsemester.dto';
-import { UpdateDomainDistributionConfigDto, UpdateExamSemesterDto } from './dto/update-examsemester.dto';
+import { CreateExamSemeseterDto } from './dto/create-examsemester.dto';
 
 @ApiTags('Exam Semesters')
 @Controller('exam-semester')
@@ -68,10 +72,8 @@ export class ExamSemesterController {
     }
 
     @Post('import-file')
-    @ApiBody({ type: CreateExamSemesterDto })
-    async importExamSemesterWithConfigs(
-        @Body() createExamSemester: CreateExamSemesterDto,
-    ) {
+    @ApiBody({ type: UploadFileExamSemesterDto })
+    async importExamSemesterWithConfigs(@Body() createExamSemester: UploadFileExamSemesterDto) {
         const { domainDistributionConfig } = createExamSemester;
         try {
             const result = await this.examSemesterService.uploadExamSemesterWithConfigs(
@@ -97,9 +99,9 @@ export class ExamSemesterController {
 
     @Post()
     async saveManual(
-        @Body() createExamSemesterDto: CreateExamSemesterDto,
+        @Body() createExamSemesterDto: UploadFileExamSemesterDto,
         @Body('configs')
-        createDomainDistributionConfigDtoArray: CreateDomainDistributionConfigDto[],
+        createDomainDistributionConfigDtoArray: UploadFileDomainDistributionConfigDto[],
     ) {
         try {
             const savedExamSemester = await this.examSemesterService.saveExamSemesterWithConfigs(
@@ -141,6 +143,29 @@ export class ExamSemesterController {
                 HttpStatus.OK,
                 updatedSemester,
                 SuccessMessages.update('ExamSemester with DomainDistributionConfigs'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post()
+    async create(@Body() createExamSemeseterDto: CreateExamSemeseterDto) {
+        try {
+            const savedExamScore =
+                await this.examSemesterService.createExamSemesterWithConfigs(
+                    createExamSemeseterDto,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                savedExamScore,
+                SuccessMessages.create('CreateExamSemeseter'),
             );
         } catch (error) {
             throw new HttpException(

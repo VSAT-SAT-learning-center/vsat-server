@@ -3,10 +3,12 @@ import { DomainDistributionConfigController } from './domain-distribution-config
 import { DomainDistributionConfigService } from './domain-distribution-config.service';
 import { DomainDistributionConfig } from 'src/database/entities/domaindistributionconfig.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Domain } from 'src/database/entities/domain.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([DomainDistributionConfig])],
+    imports: [TypeOrmModule.forFeature([DomainDistributionConfig, Domain])],
     providers: [DomainDistributionConfigService],
     controllers: [DomainDistributionConfigController],
+    exports: [DomainDistributionConfigService],
 })
 export class DomainDistributionConfigModule {}
