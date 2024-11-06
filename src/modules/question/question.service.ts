@@ -96,7 +96,8 @@ export class QuestionService {
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { level, skill, section, answers, content, plainContent } = createQuestionDto;
+                const { level, skill, section, answers, content, plainContent } =
+                    createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { name: level },
@@ -132,7 +133,10 @@ export class QuestionService {
                 });
 
                 if (existingQuestion) {
-                    throw new HttpException(`Question already exists`, HttpStatus.BAD_REQUEST);
+                    throw new HttpException(
+                        `Question already exists`,
+                        HttpStatus.BAD_REQUEST,
+                    );
                 }
 
                 if (!foundLevel) {
@@ -182,7 +186,8 @@ export class QuestionService {
     }
 
     async saveManual(createQuestionDto: CreateQuestionDTO): Promise<Question> {
-        const { levelId, skillId, sectionId, answers, content, plainContent } = createQuestionDto;
+        const { levelId, skillId, sectionId, answers, content, plainContent } =
+            createQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
             where: { id: levelId },
@@ -223,7 +228,10 @@ export class QuestionService {
 
             const normalizedText = this.normalizeContent(answer.text);
             if (normalizedAnswers.has(normalizedText)) {
-                throw new HttpException(`Duplicate answer: ${answer.text}`, HttpStatus.BAD_REQUEST);
+                throw new HttpException(
+                    `Duplicate answer: ${answer.text}`,
+                    HttpStatus.BAD_REQUEST,
+                );
             }
             normalizedAnswers.add(normalizedText);
         }
@@ -269,7 +277,8 @@ export class QuestionService {
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { levelId, skillId, sectionId, answers, content } = createQuestionDto;
+                const { levelId, skillId, sectionId, answers, content } =
+                    createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { id: levelId },
@@ -337,7 +346,11 @@ export class QuestionService {
         };
     }
 
-    async getAllWithStatus(page: number, pageSize: number, status: QuestionStatus): Promise<any> {
+    async getAllWithStatus(
+        page: number,
+        pageSize: number,
+        status: QuestionStatus,
+    ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
         const [questions, total] = await this.questionRepository.findAndCount({
@@ -384,7 +397,10 @@ export class QuestionService {
         return true;
     }
 
-    async updateQuestion(id: string, updateQuestionDto: UpdateQuestionDTO): Promise<Question> {
+    async updateQuestion(
+        id: string,
+        updateQuestionDto: UpdateQuestionDTO,
+    ): Promise<Question> {
         const { levelId, skillId, sectionId, answers, content } = updateQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
@@ -535,6 +551,7 @@ export class QuestionService {
         pageSize: number,
         skillId?: string,
         domain?: string,
+        level?: string,
         plainContent?: string,
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
@@ -546,18 +563,25 @@ export class QuestionService {
         }
 
         if (domain) {
-            whereCondition.skill = { ...whereCondition.skill, domain: { content: domain } };
+            whereCondition.skill = {
+                ...whereCondition.skill,
+                domain: { content: domain },
+            };
         }
 
         if (plainContent) {
             whereCondition.plainContent = ILike(`%${plainContent}%`);
         }
 
+        const levelExist = await this.questionRepository.findOne({
+            where: { level: { name: level } },
+        });
+
         const [questions, total] = await this.questionRepository.findAndCount({
             relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
             skip: skip,
             take: pageSize,
-            where: whereCondition,
+            where: [whereCondition, levelExist],
             order: { updatedat: 'DESC' },
         });
 

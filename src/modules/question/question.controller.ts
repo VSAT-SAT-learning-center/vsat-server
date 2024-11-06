@@ -97,6 +97,7 @@ export class QuestionController {
         @Query('pageSize') pageSize: number = 10,
         @Query('skillId') skillId?: string,
         @Query('domain') domain?: string,
+        @Query('level') level?: string,
         @Param('plainContent') plainContent?: string,
     ) {
         try {
@@ -105,6 +106,7 @@ export class QuestionController {
                 pageSize,
                 skillId,
                 domain,
+                level,
                 plainContent
             );
             return ResponseHelper.success(
