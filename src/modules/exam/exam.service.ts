@@ -9,6 +9,7 @@ import { BaseService } from '../base/base.service';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamType } from 'src/database/entities/examtype.entity';
+import { ExamQuestionService } from '../examquestion/examquestion.service';
 
 @Injectable()
 export class ExamService {
@@ -19,6 +20,8 @@ export class ExamService {
         private readonly examStructureRepository: Repository<ExamStructure>,
         @InjectRepository(ExamType)
         private readonly examTypeRepository: Repository<ExamType>,
+
+        private readonly examQuestionservice: ExamQuestionService,
     ) {}
 
     async createExam(createExamDto: CreateExamDto): Promise<Exam> {
@@ -52,6 +55,11 @@ export class ExamService {
         });
 
         const savedExam = await this.examRepository.save(newExam);
+
+        await this.examQuestionservice.createExamQuestion(
+            savedExam.id,
+            createExamDto.examQuestions,
+        );
 
         return savedExam;
     }

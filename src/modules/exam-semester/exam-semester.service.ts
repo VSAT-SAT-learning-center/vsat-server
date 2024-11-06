@@ -132,7 +132,7 @@ export class ExamSemesterService {
 
         for (const createDomainDistributionConfigDto of createDomainDistributionConfigDtoArray) {
             try {
-                const { title, minQuestion, maxQuestion, percent, domain } =
+                const { minQuestion, maxQuestion, percent, domain } =
                     createDomainDistributionConfigDto;
 
                 // Find Domain by name
@@ -215,7 +215,7 @@ export class ExamSemesterService {
         const savedExamSemester = await this.examSemesterRepository.save(newExamSemester);
 
         for (const configDto of createDomainDistributionConfigDtoArray) {
-            const { title, minQuestion, maxQuestion, percent, domain } = configDto;
+            const {minQuestion, maxQuestion, percent, domain } = configDto;
 
             const foundDomain = await this.domainRepository.findOne({
                 where: { content: domain },

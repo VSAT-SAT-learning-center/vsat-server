@@ -12,11 +12,6 @@ import {
 } from 'class-validator';
 
 export class UploadFileDomainDistributionConfigDto {
-    @Expose()
-    @ApiProperty({ example: 'Title this' })
-    @IsString()
-    @IsNotEmpty()
-    title: string;
 
     @Expose()
     @ApiProperty({ example: 5 })
