@@ -45,8 +45,7 @@ export class ExamSemesterService {
         return examSemesters.map((semester) => ({
             id: semester.id,
             title: semester.title,
-            datefrom: semester.datefrom,
-            dateto: semester.dateto,
+            time: semester.time,
             // examStructure: semester.examStructures.map((structure) => ({
             //     id: structure.id,
             //     name: structure.structurename,
@@ -87,8 +86,7 @@ export class ExamSemesterService {
         return {
             id: semester.id,
             title: semester.title,
-            datefrom: semester.datefrom,
-            dateto: semester.dateto,
+            time: semester.time,
             // examStructure: semester.examStructures.map((structure) => ({
             //     id: structure.id,
             //     name: structure.structurename,
@@ -123,12 +121,11 @@ export class ExamSemesterService {
             message: string;
         }[] = [];
 
-        const { title, dateFrom, dateTo } = createExamSemester;
+        const { title, time} = createExamSemester;
 
         const examSemester = this.examSemesterRepository.create({
             title: title,
-            datefrom: dateFrom,
-            dateto: dateTo,
+            time: time,
         });
 
         const savedExamSemester = await this.examSemesterRepository.save(examSemester);
@@ -208,12 +205,11 @@ export class ExamSemesterService {
         createExamSemesterDto: UploadFileExamSemesterDto,
         createDomainDistributionConfigDtoArray: UploadFileDomainDistributionConfigDto[],
     ): Promise<ExamSemester> {
-        const { title, dateFrom, dateTo } = createExamSemesterDto;
+        const { title, time } = createExamSemesterDto;
 
         const newExamSemester = this.examSemesterRepository.create({
             title,
-            datefrom: dateFrom,
-            dateto: dateTo,
+            time: time,
         });
 
         const savedExamSemester = await this.examSemesterRepository.save(newExamSemester);
@@ -337,8 +333,7 @@ export class ExamSemesterService {
     ): Promise<CreateExamSemeseterDto> {
         const saveExamSemester = await this.examSemesterRepository.create({
             title: createExamSemesterDto.title,
-            datefrom: createExamSemesterDto.dateFrom,
-            dateto: createExamSemesterDto.dateTo,
+            time: createExamSemesterDto.time,
         });
 
         await this.examSemesterRepository.save(saveExamSemester);

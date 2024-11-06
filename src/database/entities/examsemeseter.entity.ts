@@ -30,10 +30,7 @@ export class ExamSemester {
     title: string;
 
     @Column({ type: 'date', nullable: true })
-    datefrom: Date;
-    
-    @Column({ type: 'date', nullable: true })
-    dateto: Date;
+    time: Date;
 
     //One to many
     @OneToMany(

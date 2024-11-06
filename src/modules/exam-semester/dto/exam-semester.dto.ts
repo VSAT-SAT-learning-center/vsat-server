@@ -45,18 +45,7 @@ export class ExamSemesterWithDetailsDto {
 
     @ApiProperty({ description: 'Date and time of the exam semester' })
     @IsDate()
-    datefrom: Date;
-
-    @ApiProperty({ description: 'Date and time of the exam semester' })
-    @IsDate()
-    dateto: Date;
-
-    // @ApiProperty({
-    //     description: 'List of exam structures',
-    //     type: [ExamStructureDto],
-    // })
-    // @IsArray()
-    // examStructure: ExamStructureDto[];
+    time: Date;
 
     @ApiProperty({
         description: 'List of domain distribution configurations',

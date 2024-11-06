@@ -53,11 +53,7 @@ export class UploadFileExamSemesterDto {
 
     @Expose()
     @ApiProperty()
-    dateFrom: Date;
-
-    @Expose()
-    @ApiProperty()
-    dateTo: Date;
+    time: Date;
 
     @Expose()
     @ApiProperty({ type: [UploadFileDomainDistributionConfigDto] })
