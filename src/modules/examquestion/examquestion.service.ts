@@ -24,55 +24,55 @@ export class ExamQuestionService {
         private readonly examService: ExamService,
     ) {}
 
-    async createExamQuestion(
-        createExamQuestionDto: CreateExamQuestionDTO,
-    ): Promise<ExamQuestion[]> {
-        const { exam, question, moduleTypeId } = createExamQuestionDto;
+    // async createExamQuestion(
+    //     createExamQuestionDto: CreateExamQuestionDTO,
+    // ): Promise<ExamQuestion[]> {
+    //     const { exam, question, moduleTypeId } = createExamQuestionDto;
 
-        const moduleType = await this.moduleTypeRepository.findOne({
-            where: { id: moduleTypeId },
-        });
+    //     const moduleType = await this.moduleTypeRepository.findOne({
+    //         where: { id: moduleTypeId },
+    //     });
 
-        if (!moduleType) {
-            throw new HttpException(
-                `ModuleType with ID ${moduleTypeId} not found`,
-                HttpStatus.NOT_FOUND,
-            );
-        }
+    //     if (!moduleType) {
+    //         throw new HttpException(
+    //             `ModuleType with ID ${moduleTypeId} not found`,
+    //             HttpStatus.NOT_FOUND,
+    //         );
+    //     }
 
-        const savedExam = await this.examService.createExam(exam);
+    //     const savedExam = await this.examService.createExam(exam);
 
-        const { savedQuestions, errors } =
-            await this.questionService.saveExamQuestion(question);
+    //     const { savedQuestions, errors } =
+    //         await this.questionService.saveExamQuestion(question);
 
-        if (errors.length > 0) {
-            throw new HttpException(
-                `Failed to save some questions: ${errors.map((e) => e.message).join(', ')}`,
-                HttpStatus.BAD_REQUEST,
-            );
-        }
+    //     if (errors.length > 0) {
+    //         throw new HttpException(
+    //             `Failed to save some questions: ${errors.map((e) => e.message).join(', ')}`,
+    //             HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
 
-        const savedExamQuestions: ExamQuestion[] = [];
+    //     const savedExamQuestions: ExamQuestion[] = [];
 
-        for (const question of savedQuestions) {
-            if (!question.id) {
-                throw new HttpException(
-                    'Question ID is missing after saving.',
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                );
-            }
-            const newExamQuestion = this.examQuestionRepository.create({
-                exam: savedExam,
-                question: question,
-                moduleType,
-                status: true,
-            });
+    //     for (const question of savedQuestions) {
+    //         if (!question.id) {
+    //             throw new HttpException(
+    //                 'Question ID is missing after saving.',
+    //                 HttpStatus.INTERNAL_SERVER_ERROR,
+    //             );
+    //         }
+    //         const newExamQuestion = this.examQuestionRepository.create({
+    //             exam: savedExam,
+    //             question: question,
+    //             moduleType,
+    //             status: true,
+    //         });
 
-            const savedExamQuestion =
-                await this.examQuestionRepository.save(newExamQuestion);
-            savedExamQuestions.push(savedExamQuestion);
-        }
+    //         const savedExamQuestion =
+    //             await this.examQuestionRepository.save(newExamQuestion);
+    //         savedExamQuestions.push(savedExamQuestion);
+    //     }
 
-        return savedExamQuestions;
-    }
+    //     return savedExamQuestions;
+    // }
 }

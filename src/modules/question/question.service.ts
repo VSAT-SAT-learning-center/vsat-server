@@ -534,7 +534,7 @@ export class QuestionService {
         page: number,
         pageSize: number,
         skillId?: string,
-        domainId?: string,
+        domain?: string,
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
         const status = QuestionStatus.APPROVED;
@@ -544,8 +544,8 @@ export class QuestionService {
             whereCondition.skill = { id: skillId };
         }
 
-        if (domainId) {
-            whereCondition.skill = { ...whereCondition.skill, domain: { id: domainId } };
+        if (domain) {
+            whereCondition.skill = { ...whereCondition.skill, domain: { content: domain } };
         }
 
         const [questions, total] = await this.questionRepository.findAndCount({
