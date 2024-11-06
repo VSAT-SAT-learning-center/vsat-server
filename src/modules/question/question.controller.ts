@@ -1,4 +1,4 @@
-import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
 import {
     BadRequestException,
@@ -74,11 +74,7 @@ export class QuestionController {
         @Query('status') status?: QuestionStatus,
     ) {
         try {
-            const questions = await this.questionService.getAllWithStatus(
-                page,
-                pageSize,
-                status,
-            );
+            const questions = await this.questionService.getAllWithStatus(page, pageSize, status);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
@@ -96,23 +92,6 @@ export class QuestionController {
     }
 
     @Get('searchQuestions/:plainContent')
-    @ApiQuery({
-        name: 'page',
-        required: false,
-        description: 'Page number for pagination',
-    })
-    @ApiQuery({
-        name: 'pageSize',
-        required: false,
-        description: 'Number of items per page',
-    })
-    @ApiQuery({ name: 'skillId', required: false, description: 'Filter by skill ID' })
-    @ApiQuery({
-        name: 'domain',
-        required: false,
-        description: 'Filter by domain content',
-    })
-    @ApiQuery({ name: 'level', required: false, description: 'Filter by level name' })
     async searchQuestions(
         @Query('page') page: number = 1,
         @Query('pageSize') pageSize: number = 10,
@@ -128,7 +107,7 @@ export class QuestionController {
                 skillId,
                 domain,
                 level,
-                plainContent,
+                plainContent
             );
             return ResponseHelper.success(
                 HttpStatus.OK,
@@ -181,15 +160,9 @@ export class QuestionController {
     }
 
     @Put('updateQuestion/:id')
-    async updateQuestion(
-        @Param('id') id: string,
-        @Body() updateQuestionDto: UpdateQuestionDTO,
-    ) {
+    async updateQuestion(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDTO) {
         try {
-            const question = await this.questionService.updateQuestion(
-                id,
-                updateQuestionDto,
-            );
+            const question = await this.questionService.updateQuestion(id, updateQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
@@ -212,10 +185,7 @@ export class QuestionController {
         @Query('pageSize') pageSize?: number,
     ) {
         try {
-            const questions = await this.questionService.getQuestionWithAnswer(
-                page,
-                pageSize,
-            );
+            const questions = await this.questionService.getQuestionWithAnswer(page, pageSize);
 
             return ResponseHelper.success(
                 HttpStatus.OK,
@@ -248,10 +218,7 @@ export class QuestionController {
 
             await this.questionService.publish(questionIds);
 
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                SuccessMessages.update('Questions'),
-            );
+            return ResponseHelper.success(HttpStatus.OK, SuccessMessages.update('Questions'));
         } catch (error) {
             throw new HttpException(
                 {
