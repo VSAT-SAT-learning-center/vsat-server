@@ -37,12 +37,7 @@ export class CreateExamSemeseterDto {
     @ApiProperty()
     @Expose()
     @IsString()
-    dateFrom: string;
-
-    @ApiProperty()
-    @Expose()
-    @IsString()
-    dateTo: string;
+    time: string;
 
     @ApiProperty({ type: [CreateDomainDistributionConfigDto] })
     @IsArray()
