@@ -23,9 +23,7 @@ export class SkillService extends BaseService<Skill> {
         });
 
         if (!skills || skills.length === 0) {
-            throw new NotFoundException(
-                `No skills found for domain ID ${domainId}`,
-            );
+            throw new NotFoundException(`No skills found for domain ID ${domainId}`);
         }
 
         return skills.map((skill) => ({
@@ -34,4 +32,18 @@ export class SkillService extends BaseService<Skill> {
         }));
     }
 
+    async getSkillsByDomainName(name: string): Promise<SkillDto[]> {
+        const skills = await this.skillRepository.find({
+            where: { domain: { content: name } },
+        });
+
+        if (!skills || skills.length === 0) {
+            throw new NotFoundException(`No skills found for domain ID ${name}`);
+        }
+
+        return skills.map((skill) => ({
+            id: skill.id,
+            content: skill.content,
+        }));
+    }
 }

@@ -96,14 +96,14 @@ export class QuestionController {
         @Query('page') page: number = 1,
         @Query('pageSize') pageSize: number = 10,
         @Query('skillId') skillId?: string,
-        @Query('domainId') domainId?: string,
+        @Query('domain') domain?: string,
     ) {
         try {
             const questions = await this.questionService.searchQuestions(
                 page,
                 pageSize,
                 skillId,
-                domainId,
+                domain,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,
