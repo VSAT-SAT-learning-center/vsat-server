@@ -29,9 +29,24 @@ export class SkillController extends BaseController<Skill> {
     }
 
     @Get('domain/:name')
-    async getSkillsByDomainId(@Param('name') name: string): Promise<SkillDto[]> {
+    async getSkillsByDomainName(@Param('name') name: string): Promise<SkillDto[]> {
         try {
             return this.skillService.getSkillsByDomainName(name);
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('domain/:id')
+    async getSkillsByDomainId(@Param('id') id: string): Promise<SkillDto[]> {
+        try {
+            return this.skillService.getSkillsByDomainId(id);
         } catch (error) {
             throw new HttpException(
                 {

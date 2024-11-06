@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from 'src/database/entities/question.entity';
-import { In, IsNull, Repository } from 'typeorm';
+import { ILike, In, IsNull, Like, Repository } from 'typeorm';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
 import { Level } from 'src/database/entities/level.entity';
@@ -535,6 +535,7 @@ export class QuestionService {
         pageSize: number,
         skillId?: string,
         domain?: string,
+        plainContent?: string,
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
         const status = QuestionStatus.APPROVED;
@@ -546,6 +547,10 @@ export class QuestionService {
 
         if (domain) {
             whereCondition.skill = { ...whereCondition.skill, domain: { content: domain } };
+        }
+
+        if (plainContent) {
+            whereCondition.plainContent = ILike(`%${plainContent}%`);
         }
 
         const [questions, total] = await this.questionRepository.findAndCount({

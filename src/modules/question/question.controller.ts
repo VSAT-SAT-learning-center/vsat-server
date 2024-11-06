@@ -91,12 +91,13 @@ export class QuestionController {
         }
     }
 
-    @Get('searchQuestions')
+    @Get('searchQuestions/:plainContent')
     async searchQuestions(
         @Query('page') page: number = 1,
         @Query('pageSize') pageSize: number = 10,
         @Query('skillId') skillId?: string,
         @Query('domain') domain?: string,
+        @Param('plainContent') plainContent?: string,
     ) {
         try {
             const questions = await this.questionService.searchQuestions(
@@ -104,6 +105,7 @@ export class QuestionController {
                 pageSize,
                 skillId,
                 domain,
+                plainContent
             );
             return ResponseHelper.success(
                 HttpStatus.OK,
