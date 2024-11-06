@@ -75,4 +75,8 @@ export class ExamQuestionService {
 
     //     return savedExamQuestions;
     // }
+
+    async createExamQuestion(){
+        
+    }
 }

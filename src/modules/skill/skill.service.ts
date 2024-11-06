@@ -28,7 +28,7 @@ export class SkillService extends BaseService<Skill> {
 
         return skills.map((skill) => ({
             id: skill.id,
-            content: skill.content, // Assuming 'name' is the content field
+            content: skill.content,
         }));
     }
 
