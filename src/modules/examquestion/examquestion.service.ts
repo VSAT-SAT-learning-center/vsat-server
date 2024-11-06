@@ -1,17 +1,13 @@
 import { plainToInstance } from 'class-transformer';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExamQuestion } from 'src/database/entities/examquestion.entity';
 import { Repository } from 'typeorm';
 import { CreateExamQuestionDTO } from './dto/create-examquestion.dto';
-import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { Question } from 'src/database/entities/question.entity';
-import { Answer } from 'src/database/entities/anwser.entity';
 import { Exam } from 'src/database/entities/exam.entity';
-import { QuestionService } from '../question/question.service';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
-import { ExamService } from '../exam/exam.service';
+import { Domain } from 'src/database/entities/domain.entity';
 
 @Injectable()
 export class ExamQuestionService {
@@ -20,8 +16,13 @@ export class ExamQuestionService {
         private readonly examQuestionRepository: Repository<ExamQuestion>,
         @InjectRepository(ModuleType)
         private readonly moduleTypeRepository: Repository<ModuleType>,
-        private readonly questionService: QuestionService,
-        private readonly examService: ExamService,
+        @InjectRepository(Exam)
+        private readonly examRepository: Repository<Exam>,
+        @InjectRepository(Domain)
+        private readonly domainRepository: Repository<Domain>,
+        @InjectRepository(Question)
+        private readonly questionRepository: Repository<Question>,
+
     ) {}
 
     // async createExamQuestion(
@@ -76,7 +77,51 @@ export class ExamQuestionService {
     //     return savedExamQuestions;
     // }
 
-    async createExamQuestion(){
-        
+    async createExamQuestion(examId: string, createExamQuestionDto: CreateExamQuestionDTO[]) {
+        for (const createExamQuestionData of createExamQuestionDto) {
+            const moduleType = await this.moduleTypeRepository.findOne({
+                where: { id: createExamQuestionData.moduleId },
+            });
+
+            const exam = await this.examRepository.findOne({
+                where: { id: examId },
+            });
+
+            if (!moduleType) {
+                throw new NotFoundException('ModuleType is not found');
+            }
+
+            if (!exam) {
+                throw new NotFoundException('Exam is not found');
+            }
+
+            for (const domainData of createExamQuestionData.domains) {
+                const domain = await this.domainRepository.findOne({
+                    where: { content: domainData.domain },
+                });
+
+                if (!domain) {
+                    throw new NotFoundException('Domain is not found');
+                }
+
+                for (const questionData of domainData.questions) {
+                    const question = await this.questionRepository.findOne({
+                        where: { id: questionData.id },
+                    });
+
+                    if (!question) {
+                        throw new NotFoundException('Question is not found');
+                    }
+
+                    const createExamQuestion = await this.examQuestionRepository.create({
+                        moduleType: moduleType,
+                        exam: exam,
+                        question: question,
+                    });
+
+                    await this.examQuestionRepository.save(createExamQuestion);
+                }
+            }
+        }
     }
 }

@@ -18,6 +18,9 @@ import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamType } from 'src/database/entities/examtype.entity';
 import { Section } from 'src/database/entities/section.entity';
 import { FeedbackModule } from '../feedback/feedback.module';
+import { Domain } from 'src/database/entities/domain.entity';
+import { QuestionModule } from '../question/question.module';
+import { ExamModule } from '../exam/exam.module';
 
 @Module({
     imports: [
@@ -32,15 +35,12 @@ import { FeedbackModule } from '../feedback/feedback.module';
             ModuleType,
             ExamStructure,
             ExamType,
+            Domain,
         ]),
-        FeedbackModule
+        FeedbackModule,
     ],
     controllers: [ExamQuestionController],
-    providers: [
-        ExamQuestionService,
-        QuestionService,
-        Answerservice,
-        ExamService,
-    ],
+    providers: [ExamQuestionService, QuestionService, Answerservice, ExamService],
+    exports: [ExamQuestionService],
 })
 export class ExamQuestionModule {}

@@ -6,10 +6,12 @@ import { Exam } from 'src/database/entities/exam.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamType } from 'src/database/entities/examtype.entity';
 import { PaginationService } from 'src/common/helpers/pagination.service';
+import { ExamQuestionModule } from '../examquestion/examquestion.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Exam, ExamStructure, ExamType])],
+    imports: [TypeOrmModule.forFeature([Exam, ExamStructure, ExamType]), ExamQuestionModule],
     providers: [ExamService],
     controllers: [ExamController],
+    exports: [ExamService],
 })
 export class ExamModule {}
