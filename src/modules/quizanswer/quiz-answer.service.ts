@@ -11,6 +11,7 @@ import { CreateQuizAnswerDTO } from './dto/create-quizanswer.dto';
 import { plainToInstance } from 'class-transformer';
 import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
 import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
+import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class QuizAnswerService {
@@ -20,6 +21,15 @@ export class QuizAnswerService {
         @InjectRepository(QuizQuestion)
         private readonly quizQuestionRepository: Repository<QuizQuestion>,
     ) {}
+
+    normalizeContent(content: string): string {
+        const strippedContent = sanitizeHtml(content, {
+            allowedTags: [],
+            allowedAttributes: {},
+        });
+
+        return strippedContent.replace(/\s+/g, ' ').trim();
+    }
 
     async createMultipleQuizAnswers(
         quizQuestionId: string,
@@ -61,11 +71,14 @@ export class QuizAnswerService {
                 );
             }
 
+            const normalizedContent = this.normalizeContent(text);
+
             const answer = this.quizAnswerRepository.create({
                 label,
                 text,
                 quizquestion: quizQuestion,
                 isCorrectAnswer,
+                plaintext: normalizedContent
             });
 
             const savedQuizAnswer =

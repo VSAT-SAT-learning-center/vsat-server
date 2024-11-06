@@ -524,7 +524,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 total += skillCount;
             }
 
-            const percent = (total * 100) / totalSkill;
+            const percent = (total * 100) / totalSkill || 0;
 
             domainCounts.push({
                 doaminId: domain.id,
