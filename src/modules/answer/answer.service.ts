@@ -1,9 +1,4 @@
-import {
-    HttpException,
-    HttpStatus,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Repository } from 'typeorm';
@@ -11,6 +6,7 @@ import { plainToInstance } from 'class-transformer';
 import { Question } from 'src/database/entities/question.entity';
 import { CheckAnswerDTO } from './dto/check-answer.dto';
 import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
+import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class Answerservice {
@@ -21,6 +17,15 @@ export class Answerservice {
         @InjectRepository(Question)
         private readonly questionRepository: Repository<Question>,
     ) {}
+
+    normalizeContent(content: string): string {
+        const strippedContent = sanitizeHtml(content, {
+            allowedTags: [],
+            allowedAttributes: {},
+        });
+
+        return strippedContent.replace(/\s+/g, ' ').trim();
+    }
 
     async updateAnswer(ids: string[]): Promise<boolean> {
         for (const id of ids) {
@@ -61,37 +66,29 @@ export class Answerservice {
             });
 
             if (!questions) {
-                throw new NotFoundException(
-                    `Question with ID ${questionId} not found`,
-                );
+                throw new NotFoundException(`Question with ID ${questionId} not found`);
             }
 
             if (!label) {
-                throw new HttpException(
-                    `Lable should not empty`,
-                    HttpStatus.BAD_REQUEST,
-                );
+                throw new HttpException(`Lable should not empty`, HttpStatus.BAD_REQUEST);
             }
 
             if (!text) {
-                throw new HttpException(
-                    `Answer should not empty`,
-                    HttpStatus.BAD_REQUEST,
-                );
+                throw new HttpException(`Answer should not empty`, HttpStatus.BAD_REQUEST);
             }
 
             if (isCorrectAnswer === undefined || isCorrectAnswer === null) {
-                throw new HttpException(
-                    `isCorrectAnswer should not empty`,
-                    HttpStatus.BAD_REQUEST,
-                );
+                throw new HttpException(`isCorrectAnswer should not empty`, HttpStatus.BAD_REQUEST);
             }
+
+            const normalizedContent = this.normalizeContent(text);
 
             const answer = this.answerRepository.create({
                 label,
                 text,
                 question: questions,
                 isCorrectAnswer,
+                plaintext: normalizedContent,
             });
 
             const savedAnswer = await this.answerRepository.save(answer);
@@ -121,9 +118,7 @@ export class Answerservice {
             });
 
             if (!correctAnswers.length) {
-                throw new NotFoundException(
-                    `No correct answers found for question ${questionId}`,
-                );
+                throw new NotFoundException(`No correct answers found for question ${questionId}`);
             }
 
             const correctAnswerIds = correctAnswers.map((answer) => answer.id);

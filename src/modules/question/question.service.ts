@@ -92,19 +92,11 @@ export class QuestionService {
         errors: { question: CreateQuestionFileDto; message: string }[];
     }> {
         const savedQuestions: Question[] = [];
-        const errors: { question: CreateQuestionFileDto; message: string }[] =
-            [];
+        const errors: { question: CreateQuestionFileDto; message: string }[] = [];
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const {
-                    level,
-                    skill,
-                    section,
-                    answers,
-                    content,
-                    plainContent,
-                } = createQuestionDto;
+                const { level, skill, section, answers, content, plainContent } = createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { name: level },
@@ -121,18 +113,13 @@ export class QuestionService {
                 }
 
                 for (const answer of answers) {
-                    const answerInstance = plainToInstance(
-                        CreateAnswerDTO,
-                        answer,
-                    );
+                    const answerInstance = plainToInstance(CreateAnswerDTO, answer);
 
                     const validationErrors = await validate(answerInstance);
 
                     if (validationErrors.length > 0) {
                         const validationMessages = validationErrors
-                            .map((err) =>
-                                Object.values(err.constraints).join(', '),
-                            )
+                            .map((err) => Object.values(err.constraints).join(', '))
                             .join('; ');
                         throw new Error(validationMessages);
                     }
@@ -145,10 +132,7 @@ export class QuestionService {
                 });
 
                 if (existingQuestion) {
-                    throw new HttpException(
-                        `Question already exists`,
-                        HttpStatus.BAD_REQUEST,
-                    );
+                    throw new HttpException(`Question already exists`, HttpStatus.BAD_REQUEST);
                 }
 
                 if (!foundLevel) {
@@ -178,13 +162,9 @@ export class QuestionService {
                     plainContent: normalizedContent,
                 });
 
-                const savedQuestion =
-                    await this.questionRepository.save(newQuestion);
+                const savedQuestion = await this.questionRepository.save(newQuestion);
 
-                await this.answerService.createMultipleAnswers(
-                    savedQuestion.id,
-                    answers,
-                );
+                await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
 
                 savedQuestions.push(savedQuestion);
             } catch (error) {
@@ -202,8 +182,7 @@ export class QuestionService {
     }
 
     async saveManual(createQuestionDto: CreateQuestionDTO): Promise<Question> {
-        const { levelId, skillId, sectionId, answers, content, plainContent } =
-            createQuestionDto;
+        const { levelId, skillId, sectionId, answers, content, plainContent } = createQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
             where: { id: levelId },
@@ -229,7 +208,7 @@ export class QuestionService {
         if (!answers || answers.length === 0) {
             throw new Error('Answers array is empty');
         }
-
+        const normalizedAnswers = new Set();
         for (const answer of answers) {
             const answerInstance = plainToInstance(CreateAnswerDTO, answer);
 
@@ -241,6 +220,12 @@ export class QuestionService {
                     .join('; ');
                 throw new Error(validationMessages);
             }
+
+            const normalizedText = this.normalizeContent(answer.text);
+            if (normalizedAnswers.has(normalizedText)) {
+                throw new HttpException(`Duplicate answer: ${answer.text}`, HttpStatus.BAD_REQUEST);
+            }
+            normalizedAnswers.add(normalizedText);
         }
 
         const normalizedContent = this.normalizeContent(content);
@@ -250,10 +235,7 @@ export class QuestionService {
         });
 
         if (existingQuestion) {
-            throw new HttpException(
-                `Question already exists`,
-                HttpStatus.BAD_REQUEST,
-            );
+            throw new HttpException(`Question already exists`, HttpStatus.BAD_REQUEST);
         }
 
         if (createQuestionDto.isSingleChoiceQuestion === null) {
@@ -273,28 +255,21 @@ export class QuestionService {
 
         const savedQuestion = await this.questionRepository.save(newQuestion);
 
-        await this.answerService.createMultipleAnswers(
-            savedQuestion.id,
-            answers,
-        );
+        await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
 
         return savedQuestion;
     }
 
-    async saveExamQuestion(
-        createQuestionDtoArray: CreateQuestionExamDto[],
-    ): Promise<{
+    async saveExamQuestion(createQuestionDtoArray: CreateQuestionExamDto[]): Promise<{
         savedQuestions: Question[];
         errors: { question: CreateQuestionExamDto; message: string }[];
     }> {
         const savedQuestions: Question[] = [];
-        const errors: { question: CreateQuestionExamDto; message: string }[] =
-            [];
+        const errors: { question: CreateQuestionExamDto; message: string }[] = [];
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const { levelId, skillId, sectionId, answers, content } =
-                    createQuestionDto;
+                const { levelId, skillId, sectionId, answers, content } = createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { id: levelId },
@@ -343,13 +318,9 @@ export class QuestionService {
                     section: foundSection,
                 });
 
-                const savedQuestion =
-                    await this.questionRepository.save(newQuestion);
+                const savedQuestion = await this.questionRepository.save(newQuestion);
 
-                await this.answerService.createMultipleAnswers(
-                    savedQuestion.id,
-                    answers,
-                );
+                await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
 
                 savedQuestions.push(savedQuestion);
             } catch (error) {
@@ -366,11 +337,7 @@ export class QuestionService {
         };
     }
 
-    async getAllWithStatus(
-        page: number,
-        pageSize: number,
-        status: QuestionStatus,
-    ): Promise<any> {
+    async getAllWithStatus(page: number, pageSize: number, status: QuestionStatus): Promise<any> {
         const skip = (page - 1) * pageSize;
 
         const [questions, total] = await this.questionRepository.findAndCount({
@@ -417,12 +384,8 @@ export class QuestionService {
         return true;
     }
 
-    async updateQuestion(
-        id: string,
-        updateQuestionDto: UpdateQuestionDTO,
-    ): Promise<Question> {
-        const { levelId, skillId, sectionId, answers, content } =
-            updateQuestionDto;
+    async updateQuestion(id: string, updateQuestionDto: UpdateQuestionDTO): Promise<Question> {
+        const { levelId, skillId, sectionId, answers, content } = updateQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
             where: { id: levelId },
@@ -439,10 +402,7 @@ export class QuestionService {
         });
 
         if (existingQuestion && existingQuestion.id !== id) {
-            throw new HttpException(
-                `Question is already exists !`,
-                HttpStatus.CONFLICT,
-            );
+            throw new HttpException(`Question is already exists !`, HttpStatus.CONFLICT);
         }
 
         if (!foundLevel) {
@@ -476,7 +436,7 @@ export class QuestionService {
                 'Cannot update question because it is already Pending',
                 HttpStatus.BAD_REQUEST,
             );
-        }else if (question.status === QuestionStatus.REJECT) {
+        } else if (question.status === QuestionStatus.REJECT) {
             question.status = QuestionStatus.DRAFT;
         }
 
@@ -570,7 +530,41 @@ export class QuestionService {
         await this.questionRepository.save(questions);
     }
 
-    async search(){
-        
+    async searchQuestions(
+        page: number,
+        pageSize: number,
+        skillId?: string,
+        domainId?: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+        const status = QuestionStatus.APPROVED;
+        const whereCondition: any = { status };
+
+        if (skillId) {
+            whereCondition.skill = { id: skillId };
+        }
+
+        if (domainId) {
+            whereCondition.skill = { ...whereCondition.skill, domain: { id: domainId } };
+        }
+
+        const [questions, total] = await this.questionRepository.findAndCount({
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            skip: skip,
+            take: pageSize,
+            where: whereCondition,
+            order: { updatedat: 'DESC' },
+        });
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetQuestionDTO, questions, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
     }
 }
