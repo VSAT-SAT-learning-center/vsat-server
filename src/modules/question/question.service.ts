@@ -573,15 +573,15 @@ export class QuestionService {
             whereCondition.plainContent = ILike(`%${plainContent}%`);
         }
 
-        const levelExist = await this.questionRepository.findOne({
-            where: { level: { name: level } },
-        });
+        if (level) {
+            whereCondition.level = { name: level };
+        }
 
         const [questions, total] = await this.questionRepository.findAndCount({
             relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
             skip: skip,
             take: pageSize,
-            where: [whereCondition, levelExist],
+            where: whereCondition,
             order: { updatedat: 'DESC' },
         });
 
