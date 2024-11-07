@@ -43,7 +43,7 @@ export class SkillController extends BaseController<Skill> {
         }
     }
 
-    @Get('domain/:id')
+    @Get('domainById/:id')
     async getSkillsByDomainId(@Param('id') id: string): Promise<SkillDto[]> {
         try {
             return this.skillService.getSkillsByDomainId(id);
