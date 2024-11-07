@@ -280,7 +280,7 @@ export class QuestionController {
     @ApiBody({ type: FetchByContentDTO })
     async fetchByContent(@Body() fetchByContentDto: FetchByContentDTO) {
         try {
-            return await this.questionService.fetchByContent(fetchByContentDto.content);
+            return await this.questionService.fetchByContent(fetchByContentDto.contents);
         } catch (error) {
             return ResponseHelper.error(
                 error,

@@ -8,5 +8,5 @@ export class FetchByContentDTO {
     })
     @IsArray()
     @Expose()
-    content: string[];
+    contents: string[];
 }
