@@ -11,5 +11,6 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
   imports: [TypeOrmModule.forFeature([DomainDistribution, Domain, ModuleType])],
   providers: [DomainDistributionService],
   controllers: [DomainDistributionController],
+  exports: [DomainDistributionService]
 })
 export class DomainDistributionModule {}

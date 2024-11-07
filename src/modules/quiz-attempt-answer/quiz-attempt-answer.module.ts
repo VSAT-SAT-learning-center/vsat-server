@@ -11,5 +11,6 @@ import { QuizAttemptAnswerController } from './quiz-attempt-answer.controller';
   imports: [TypeOrmModule.forFeature([QuizAttemptAnswer, QuizAttempt, QuizQuestion])],
   providers: [QuizAttemptAnswerService, PaginationService],
   controllers: [QuizAttemptAnswerController],
+  exports: [QuizAttemptAnswerService],
 })
 export class QuizAttemptAnswerModule {}

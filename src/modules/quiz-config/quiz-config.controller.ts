@@ -1,17 +1,37 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put, HttpStatus } from '@nestjs/common';
-import { CreateQuizConfigDto } from './dto/create-quizconfig.dto';
-import { UpdateQuizConfigDto } from './dto/update-quizconfig.dto';
+import { Body, Controller, HttpException, HttpStatus, Post } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuizConfigService } from './quiz-config.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { BaseController } from '../base/base.controller';
-import { ApiTags } from '@nestjs/swagger';
 import { QuizConfig } from 'src/database/entities/quizconfig.entity';
+import { CreateQuizConfigForUnitDto } from './dto/create-quizconfig.dto';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
 
-@ApiTags('QuizConfigs')
-@Controller('quiz-skills')
-export class QuizConfigController extends BaseController<QuizConfig> {
-  constructor(QuizConfigService: QuizConfigService) {
-    super(QuizConfigService, 'QuizConfig'); // Pass service and entity name to BaseController
-  }
+@ApiTags('QuizConfig')
+@Controller('quiz-config')
+export class QuizConfigController {
+    constructor(private readonly quizConfigService: QuizConfigService) {}
+
+    @Post('quiz-config')
+    async createQuizConfigForUnit(
+        @Body() createQuizConfigForUnitDto: CreateQuizConfigForUnitDto,
+    ): Promise<any> {
+        try {
+            const quizConfigs =
+                await this.quizConfigService.createQuizConfigForUnit(
+                    createQuizConfigForUnitDto,
+                );
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                quizConfigs,
+                'Quiz config created successfully.',
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

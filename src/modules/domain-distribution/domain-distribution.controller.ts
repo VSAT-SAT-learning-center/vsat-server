@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put, HttpStatus } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    Query,
+    Put,
+    HttpStatus,
+} from '@nestjs/common';
 import { CreateDomainDistributionDto } from './dto/create-domaindistribution.dto';
 import { UpdateDomainDistributionDto } from './dto/update-domaindistribution.dto';
 import { DomainDistributionService } from './domain-distribution.service';
@@ -10,8 +20,6 @@ import { DomainDistribution } from 'src/database/entities/domaindistribution.ent
 
 @ApiTags('DomainDistributions')
 @Controller('domain-distributions')
-export class DomainDistributionController extends BaseController<DomainDistribution> {
-  constructor(domainDistributionService: DomainDistributionService) {
-    super(domainDistributionService, 'DomainDistribution');
-  }
+export class DomainDistributionController {
+    constructor(domainDistributionService: DomainDistributionService) {}
 }

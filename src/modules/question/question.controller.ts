@@ -20,6 +20,7 @@ import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
+import { FetchByContentDTO } from './dto/fetch-question.dto';
 
 @ApiTags('Questions')
 @Controller('questions')
@@ -30,8 +31,7 @@ export class QuestionController {
     @ApiBody({ type: [CreateQuestionFileDto] })
     async save(@Body() createQuestionDto: CreateQuestionFileDto[]) {
         try {
-            const saveQuestion =
-                await this.questionService.save(createQuestionDto);
+            const saveQuestion = await this.questionService.save(createQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,
@@ -51,8 +51,7 @@ export class QuestionController {
     @Post()
     async saveManual(@Body() createQuestionDto: CreateQuestionDTO) {
         try {
-            const saveQuestion =
-                await this.questionService.saveManual(createQuestionDto);
+            const saveQuestion = await this.questionService.saveManual(createQuestionDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,
@@ -97,6 +96,40 @@ export class QuestionController {
         }
     }
 
+    @Get('searchQuestions/:plainContent')
+    async searchQuestions(
+        @Query('page') page: number = 1,
+        @Query('pageSize') pageSize: number = 10,
+        @Query('skillId') skillId?: string,
+        @Query('domain') domain?: string,
+        @Query('level') level?: string,
+        @Param('plainContent') plainContent?: string,
+    ) {
+        try {
+            const questions = await this.questionService.searchQuestions(
+                page,
+                pageSize,
+                skillId,
+                domain,
+                level,
+                plainContent,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                questions,
+                SuccessMessages.get('Question'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
     @Put('update-status/:id')
     @ApiBody({
         schema: {
@@ -109,10 +142,7 @@ export class QuestionController {
             },
         },
     })
-    async updateStatus(
-        @Param('id') id: string,
-        @Body() body: { status: string },
-    ) {
+    async updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
         try {
             const { status } = body;
             const checkQuestion = await this.questionService.updateStatus(
@@ -121,10 +151,7 @@ export class QuestionController {
             );
 
             if (checkQuestion) {
-                return ResponseHelper.success(
-                    HttpStatus.OK,
-                    SuccessMessages.approve(),
-                );
+                return ResponseHelper.success(HttpStatus.OK, SuccessMessages.approve());
             }
         } catch (error) {
             throw new HttpException(
@@ -226,11 +253,9 @@ export class QuestionController {
         @Body() feedbackDto: QuestionFeedbackDto,
     ) {
         if (action !== 'approve' && action !== 'reject') {
-            throw new BadRequestException(
-                'Invalid action. Use "approve" or "reject".',
-            );
+            throw new BadRequestException('Invalid action. Use "approve" or "reject".');
         }
-        
+
         try {
             const feedbacks = await this.questionService.approveOrRejectQuestion(
                 feedbackDto,
@@ -247,6 +272,20 @@ export class QuestionController {
                 error,
                 HttpStatus.BAD_REQUEST,
                 'Error when updating Feedback',
+            );
+        }
+    }
+
+    @Post('fetchByContent')
+    @ApiBody({ type: FetchByContentDTO })
+    async fetchByContent(@Body() fetchByContentDto: FetchByContentDTO) {
+        try {
+            return await this.questionService.fetchByContent(fetchByContentDto.content);
+        } catch (error) {
+            return ResponseHelper.error(
+                error,
+                HttpStatus.BAD_REQUEST,
+                'Error when fetching questions by content',
             );
         }
     }

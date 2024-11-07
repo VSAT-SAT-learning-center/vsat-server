@@ -24,6 +24,9 @@ export class Answer {
     @Column({ type: 'text', nullable: true })
     text: string;
 
+    @Column({ type: 'text', nullable: true })
+    plaintext: string;
+
     @Column({ type: 'boolean', nullable: true })
     isCorrectAnswer: boolean;
 

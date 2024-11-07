@@ -1,10 +1,7 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    CreateDateColumn,
-    UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { ModuleType } from './moduletype.entity';
+import { Question } from './question.entity'; // Import Question entity
+import { QuizQuestion } from './quizquestion.entity';
 
 @Entity('section')
 export class Section {
@@ -31,4 +28,13 @@ export class Section {
 
     @Column({ type: 'boolean', default: true })
     status: boolean;
+
+    @OneToMany(() => ModuleType, (moduletype) => moduletype.section)
+    moduletype: ModuleType[];
+
+    @OneToMany(() => Question, (question) => question.section)
+    questions: Question[];
+
+    @OneToMany(() => QuizQuestion, (quizquestion) => quizquestion.section)
+    quizquestion: QuizQuestion[];
 }

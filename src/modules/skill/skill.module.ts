@@ -10,5 +10,6 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
   imports: [TypeOrmModule.forFeature([Skill, Domain])],
   providers: [SkillService, PaginationService],
   controllers: [SkillController],
+  exports: [SkillService],
 })
 export class SkillModule {}

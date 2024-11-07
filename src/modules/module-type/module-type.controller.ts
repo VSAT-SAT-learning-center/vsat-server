@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put, HttpStatus } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    Query,
+    Put,
+    HttpStatus,
+} from '@nestjs/common';
 import { CreateModuleTypeDto } from './dto/create-moduletype.dto';
 import { UpdateModuleTypeDto } from './dto/update-moduletype.dto';
 import { ModuleTypeService } from './module-type.service';
@@ -10,8 +20,6 @@ import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('ModuleType')
 @Controller('module-types')
-export class ModuleTypeController extends BaseController<ModuleType> {
-  constructor(moduleTypeService: ModuleTypeService) {
-    super(moduleTypeService, 'ModuleType');
-  }
+export class ModuleTypeController {
+    constructor(moduleTypeService: ModuleTypeService) {}
 }

@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Unit } from './unit.entity';
 import { Lesson } from './lesson.entity';
+import { Skill } from './skill.entity';
 
 @Entity('unitarea')
 export class UnitArea {
@@ -31,6 +32,10 @@ export class UnitArea {
     @ManyToOne(() => Unit, (unit) => unit.unitAreas)
     @JoinColumn({ name: 'unitid' })
     unit: Unit;
+
+    @ManyToOne(() => Skill, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'skillid' })
+    skill: Skill;
 
     @Column({ type: 'varchar', length: 255 })
     title: string;

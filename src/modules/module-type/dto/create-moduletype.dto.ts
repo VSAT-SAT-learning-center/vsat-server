@@ -1,24 +1,36 @@
-import { IsUUID, IsOptional, IsString, IsInt, IsBoolean } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
+import {
+    IsUUID,
+    IsOptional,
+    IsString,
+    IsInt,
+    IsBoolean,
+    IsNotEmpty,
+} from 'class-validator';
+import { CreateDomainDistributionDto } from 'src/modules/domain-distribution/dto/create-domaindistribution.dto';
 
 export class CreateModuleTypeDto {
-  @IsUUID()
-  sectionId: string;
+    @Expose()
+    @ApiProperty()
+    section: string;
 
-  @IsUUID()
-  examStructureId: string;
+    @IsString()
+    @Expose()
+    @ApiProperty()
+    name: string;
 
-  @IsString()
-  name: string;
+    @IsString()
+    @Expose()
+    @ApiProperty()
+    level: string;
 
-  @IsString()
-  @IsOptional()
-  level?: string;
+    @IsInt()
+    @Expose()
+    @ApiProperty()
+    numberOfQuestion: number;
 
-  @IsInt()
-  @IsOptional()
-  numberOfQuestion?: number;
-
-  @IsBoolean()
-  @IsOptional()
-  status?: boolean;
+    @ApiProperty({ type: [CreateDomainDistributionDto] })
+    @Type(() => CreateDomainDistributionDto)
+    domainDistribution: CreateDomainDistributionDto;
 }
