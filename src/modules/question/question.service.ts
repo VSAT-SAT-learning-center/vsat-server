@@ -607,9 +607,7 @@ export class QuestionService {
             });
 
             if (!question) {
-                throw new NotFoundException(
-                    `Question with content "${content}" is not found`,
-                );
+                throw new NotFoundException(`Question is not found`);
             }
 
             questions.push(question);
