@@ -17,13 +17,13 @@ export class SkillService extends BaseService<Skill> {
         super(skillRepository);
     }
 
-    async getSkillsByDomainId(domainId: string): Promise<SkillDto[]> {
+    async getSkillsByDomainId(id: string): Promise<SkillDto[]> {
         const skills = await this.skillRepository.find({
-            where: { domain: { id: domainId } },
+            where: { domain: { id: id } },
         });
 
         if (!skills || skills.length === 0) {
-            throw new NotFoundException(`No skills found for domain ID ${domainId}`);
+            throw new NotFoundException(`No skills found for domain ID ${id}`);
         }
 
         return skills.map((skill) => ({
