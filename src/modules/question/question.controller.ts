@@ -20,6 +20,7 @@ import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
+import { FetchByContentDTO } from './dto/fetch-question.dto';
 
 @ApiTags('Questions')
 @Controller('questions')
@@ -74,7 +75,11 @@ export class QuestionController {
         @Query('status') status?: QuestionStatus,
     ) {
         try {
-            const questions = await this.questionService.getAllWithStatus(page, pageSize, status);
+            const questions = await this.questionService.getAllWithStatus(
+                page,
+                pageSize,
+                status,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 questions,
@@ -107,7 +112,7 @@ export class QuestionController {
                 skillId,
                 domain,
                 level,
-                plainContent
+                plainContent,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,
@@ -160,9 +165,15 @@ export class QuestionController {
     }
 
     @Put('updateQuestion/:id')
-    async updateQuestion(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDTO) {
+    async updateQuestion(
+        @Param('id') id: string,
+        @Body() updateQuestionDto: UpdateQuestionDTO,
+    ) {
         try {
-            const question = await this.questionService.updateQuestion(id, updateQuestionDto);
+            const question = await this.questionService.updateQuestion(
+                id,
+                updateQuestionDto,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
@@ -185,7 +196,10 @@ export class QuestionController {
         @Query('pageSize') pageSize?: number,
     ) {
         try {
-            const questions = await this.questionService.getQuestionWithAnswer(page, pageSize);
+            const questions = await this.questionService.getQuestionWithAnswer(
+                page,
+                pageSize,
+            );
 
             return ResponseHelper.success(
                 HttpStatus.OK,
@@ -218,7 +232,10 @@ export class QuestionController {
 
             await this.questionService.publish(questionIds);
 
-            return ResponseHelper.success(HttpStatus.OK, SuccessMessages.update('Questions'));
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                SuccessMessages.update('Questions'),
+            );
         } catch (error) {
             throw new HttpException(
                 {
@@ -255,6 +272,20 @@ export class QuestionController {
                 error,
                 HttpStatus.BAD_REQUEST,
                 'Error when updating Feedback',
+            );
+        }
+    }
+
+    @Post('fetchByContent')
+    @ApiBody({ type: FetchByContentDTO })
+    async fetchByContent(@Body() fetchByContentDto: FetchByContentDTO) {
+        try {
+            return await this.questionService.fetchByContent(fetchByContentDto.content);
+        } catch (error) {
+            return ResponseHelper.error(
+                error,
+                HttpStatus.BAD_REQUEST,
+                'Error when fetching questions by content',
             );
         }
     }

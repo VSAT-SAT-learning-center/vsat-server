@@ -30,6 +30,7 @@ import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
 import sanitizeHtml from 'sanitize-html';
 import { validate } from 'class-validator';
 import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
+import { FetchByContentDTO } from './dto/fetch-question.dto';
 
 @Injectable()
 export class QuestionService {
@@ -595,5 +596,25 @@ export class QuestionService {
             currentPage: page,
             totalItems: total,
         };
+    }
+
+    async fetchByContent(contents: string[]) {
+        const questions = [];
+
+        for (const content of contents) {
+            const question = await this.questionRepository.findOne({
+                where: { plainContent: content },
+            });
+
+            if (!question) {
+                throw new NotFoundException(
+                    `Question with content "${content}" is not found`,
+                );
+            }
+
+            questions.push(question);
+        }
+
+        return questions;
     }
 }
