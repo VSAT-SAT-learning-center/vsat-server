@@ -10,28 +10,15 @@ jobs:
     deploy-backend:
         runs-on: self-hosted # Sử dụng runner tự quản trên VPS
         steps:
-            # Bước 1: Kiểm tra kết nối mạng để đảm bảo VPS có thể truy cập GitHub
-            - name: Network Check
-              run: ping -c 4 github.com
-
-            # Bước 2: Làm sạch thư mục làm việc
-            - name: Clean workspace
-              run: |
-                  sudo rm -rf $GITHUB_WORKSPACE/*
-                  sudo rm -rf $GITHUB_WORKSPACE/.git
-
-            # Bước 3: Tải mã nguồn từ repository về VPS
+            # Bước 1: Tải mã nguồn từ repository về VPS
             - name: Checkout code
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0 # Lấy toàn bộ lịch sử commit
-              timeout-minutes: 5 # Thiết lập thời gian chờ
+              uses: actions/checkout@v2
 
-            # Bước 4: Kiểm tra người dùng hiện tại
+            # Bước 2: Kiểm tra người dùng hiện tại
             - name: Check current user
               run: whoami
 
-            # Bước 5: Tạo file .env với các thông tin cấu hình
+            # Bước 3: Tạo file .env với các thông tin cấu hình
             - name: Create .env file
               run: |
                   echo "POSTGRES_HOST=103.163.25.160" > .env
@@ -48,6 +35,6 @@ jobs:
                   echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
                   echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> .env
 
-            # Bước 6: Thiết lập Docker Compose và khởi động container backend
+            # Bước 4: Thiết lập Docker Compose và khởi động container backend
             - name: Build and Deploy Backend with Docker Compose
               run: docker compose -f compose.yaml up --build -d
