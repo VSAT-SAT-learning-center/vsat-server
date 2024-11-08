@@ -45,4 +45,25 @@ export class ExamController {
             );
         }
     }
+
+    @Get()
+    async GetExamWithExamQuestion() {
+        try {
+            const exam = await this.examService.GetExamWithExamQuestion();
+
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                exam,
+                SuccessMessages.get('Exam'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

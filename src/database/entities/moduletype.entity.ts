@@ -11,6 +11,7 @@ import {
 import { Section } from './section.entity';
 import { ExamStructure } from './examstructure.entity';
 import { DomainDistribution } from './domaindistribution.entity';
+import { ExamQuestion } from './examquestion.entity';
 
 @Entity('moduletype')
 export class ModuleType {
@@ -37,8 +38,14 @@ export class ModuleType {
     @JoinColumn({ name: 'examstructureid' })
     examStructure: ExamStructure;
 
-    @OneToMany(() => DomainDistribution, (domaindistribution) => domaindistribution.moduleType)
+    @OneToMany(
+        () => DomainDistribution,
+        (domaindistribution) => domaindistribution.moduleType,
+    )
     domaindistribution: DomainDistribution[];
+
+    @OneToMany(() => ExamQuestion, (examquestion) => examquestion.moduleType)
+    examquestion: ExamQuestion[];
 
     @Column({ type: 'varchar', length: 100 })
     name: string;
