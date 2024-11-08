@@ -21,6 +21,7 @@ import { FeedbackModule } from '../feedback/feedback.module';
 import { Domain } from 'src/database/entities/domain.entity';
 import { QuestionModule } from '../question/question.module';
 import { ExamModule } from '../exam/exam.module';
+import { ModuleTypeModule } from '../module-type/module-type.module';
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import { ExamModule } from '../exam/exam.module';
             Domain,
         ]),
         FeedbackModule,
+        ModuleTypeModule,
     ],
     controllers: [ExamQuestionController],
     providers: [ExamQuestionService, QuestionService, Answerservice, ExamService],

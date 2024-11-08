@@ -49,6 +49,9 @@ export class ModuleType {
     @Column({ type: 'int', nullable: true })
     numberofquestion: number;
 
+    @Column({ type: 'int', nullable: true })
+    time: number;
+
     @Column({ type: 'boolean', default: true })
     status: boolean;
 }
