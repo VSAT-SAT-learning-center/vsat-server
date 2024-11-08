@@ -14,6 +14,7 @@ import { ModuleTypeService } from '../module-type/module-type.service';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { Domain } from 'src/database/entities/domain.entity';
+import { title } from 'process';
 
 @Injectable()
 export class ExamService {
@@ -59,17 +60,11 @@ export class ExamService {
         ]);
 
         if (!examStructure) {
-            throw new HttpException(
-                `ExamStructure was not found`,
-                HttpStatus.NOT_FOUND,
-            );
+            throw new HttpException(`ExamStructure was not found`, HttpStatus.NOT_FOUND);
         }
 
         if (!examType) {
-            throw new HttpException(
-                `ExamType was not found`,
-                HttpStatus.NOT_FOUND,
-            );
+            throw new HttpException(`ExamType was not found`, HttpStatus.NOT_FOUND);
         }
 
         const moduleMap = new Map(modules.map((module) => [module.id, module]));
@@ -78,10 +73,7 @@ export class ExamService {
 
         for (const examQuestion of createExamDto.examQuestions) {
             if (!moduleMap.has(examQuestion.moduleId)) {
-                throw new HttpException(
-                    `ModuleType not found`,
-                    HttpStatus.NOT_FOUND,
-                );
+                throw new HttpException(`ModuleType not found`, HttpStatus.NOT_FOUND);
             }
 
             for (const domain of examQuestion.domains) {
@@ -129,5 +121,129 @@ export class ExamService {
         await this.moduleTypeService.saveModuleConfig(createExamDto.moduleConfig);
 
         return savedExam;
+    }
+
+    async GetExamWithExamQuestion() {
+        const findExamsWithQuestions = async () => {
+            return await this.examRepository.find({
+                relations: ['examquestion', 'examStructure', 'examType'],
+            });
+        };
+
+        const findModuleQuestionsByExamId = async (examId: string) => {
+            const modules = await this.moduleTypeRepository
+                .createQueryBuilder('moduleType')
+                .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
+                .innerJoinAndSelect('examQuestion.question', 'question')
+                .leftJoinAndSelect('question.level', 'level')
+                .leftJoinAndSelect('question.skill', 'skill')
+                .leftJoinAndSelect('skill.domain', 'domain')
+                .leftJoinAndSelect('question.section', 'section')
+                .leftJoinAndSelect('question.answers', 'answers')
+                .leftJoinAndSelect('moduleType.section', 'moduleSection')
+                .where('examQuestion.exam.id = :examId', { examId })
+                .getMany();
+
+            let totalNumberOfQuestions = 0;
+            let totalTime = 0;
+
+            const moduleDetails = modules.map((module) => {
+                // Kiểm tra điều kiện và cộng dồn nếu thoả mãn
+                if (
+                    (module.section?.name === 'Reading & Writing' ||
+                        module.section?.name === 'Math') &&
+                    (module.name === 'Module 1' || module.name === 'Module 2') &&
+                    (module.level === null || module.level === 'Easy')
+                ) {
+                    totalNumberOfQuestions += module.numberofquestion || 0;
+                    totalTime += module.time || 0;
+                }
+
+                // Tổ chức các domains
+                const domains = new Map();
+                module.examquestion.forEach((examQuestion) => {
+                    const domainName = examQuestion.question.skill?.domain?.content;
+                    if (!domainName) return;
+
+                    if (!domains.has(domainName)) {
+                        domains.set(domainName, {
+                            domain: domainName,
+                            questions: [],
+                        });
+                    }
+
+                    domains.get(domainName).questions.push({
+                        id: examQuestion.question.id,
+                        content: examQuestion.question.content,
+                        plainContent: examQuestion.question.plainContent,
+                        explain: examQuestion.question.explain,
+                        sort: examQuestion.question.sort,
+                        isSingleChoiceQuestion:
+                            examQuestion.question.isSingleChoiceQuestion,
+                        status: examQuestion.question.status,
+                        countfeedback: examQuestion.question.countfeedback,
+                        isActive: examQuestion.question.isActive,
+                        level: examQuestion.question.level
+                            ? examQuestion.question.level.name
+                            : null,
+                        skill: examQuestion.question.skill
+                            ? examQuestion.question.skill.content
+                            : null,
+                        section: examQuestion.question.section
+                            ? examQuestion.question.section.name
+                            : null,
+                        answers: examQuestion.question.answers.map((answer) => ({
+                            id: answer.id,
+                            text: answer.text,
+                            isCorrect: answer.isCorrectAnswer,
+                        })),
+                    });
+                });
+
+                return {
+                    id: module.id,
+                    name: module.name,
+                    level: module.level,
+                    numberofquestion: module.numberofquestion,
+                    time: module.time,
+                    section: module.section?.name || null,
+                    domains: Array.from(domains.values()),
+                };
+            });
+
+            return { totalNumberOfQuestions, totalTime, modules: moduleDetails };
+        };
+
+        const exams = await findExamsWithQuestions();
+
+        return await Promise.all(
+            exams.map(async (exam) => {
+                const { totalNumberOfQuestions, totalTime, modules } =
+                    await findModuleQuestionsByExamId(exam.id);
+
+                return {
+                    id: exam.id,
+                    title: exam.title,
+                    description: exam.description,
+                    totalNumberOfQuestions,
+                    totalTime,
+                    examQuestions: modules,
+                    examStructure: exam.examStructure
+                        ? {
+                              id: exam.examStructure.id,
+                              structurename: exam.examStructure.structurename,
+                              description: exam.examStructure.description,
+                              requiredCorrectInModule1RW:
+                                  exam.examStructure.requiredCorrectInModule1RW,
+                              requiredCorrectInModule1M:
+                                  exam.examStructure.requiredCorrectInModule1M,
+                          }
+                        : null,
+                    examType: exam.examType
+                        ? { id: exam.examType.id, name: exam.examType.name }
+                        : null,
+                };
+            }),
+        );
     }
 }
