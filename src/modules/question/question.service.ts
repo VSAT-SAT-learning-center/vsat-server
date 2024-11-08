@@ -595,12 +595,13 @@ export class QuestionService {
         };
     }
 
-    async fetchByContent(contents: string[]) {
+    async fetchByContent(contents: string[]): Promise<GetQuestionDTO[]> {
         const questions = [];
 
         for (const content of contents) {
             const question = await this.questionRepository.findOne({
                 where: { plainContent: content },
+                relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
             });
 
             if (!question) {
@@ -610,6 +611,8 @@ export class QuestionService {
             questions.push(question);
         }
 
-        return questions;
+        return plainToInstance(GetQuestionDTO, questions, {
+            excludeExtraneousValues: true,
+        });
     }
 }

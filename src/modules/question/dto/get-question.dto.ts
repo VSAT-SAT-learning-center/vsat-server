@@ -45,6 +45,10 @@ export class GetQuestionDTO extends BaseDTO {
 
     @Expose()
     @ApiProperty()
+    plainContent: string;
+
+    @Expose()
+    @ApiProperty()
     correctoption: number;
 
     @Expose()
