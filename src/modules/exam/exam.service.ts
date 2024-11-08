@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { Exam } from 'src/database/entities/exam.entity';
@@ -36,9 +36,27 @@ export class ExamService {
     ) {}
 
     async createExam(createExamDto: CreateExamDto): Promise<Exam> {
-        const examStructure = await this.examStructureRepository.findOne({
-            where: { id: createExamDto.examStructureId },
-        });
+        const [examStructure, examType, modules, domains, questions] = await Promise.all([
+            this.examStructureRepository.findOne({
+                where: { id: createExamDto.examStructureId },
+            }),
+            this.examTypeRepository.findOne({ where: { id: createExamDto.examTypeId } }),
+            this.moduleTypeRepository.findByIds(
+                createExamDto.examQuestions.map((q) => q.moduleId),
+            ),
+            this.domainRepository.findBy({
+                content: In(
+                    createExamDto.examQuestions.flatMap((q) =>
+                        q.domains.map((d) => d.domain),
+                    ),
+                ),
+            }),
+            this.questionRepository.findByIds(
+                createExamDto.examQuestions.flatMap((q) =>
+                    q.domains.flatMap((d) => d.questions.map((q) => q.id)),
+                ),
+            ),
+        ]);
 
         if (!examStructure) {
             throw new HttpException(
@@ -47,10 +65,6 @@ export class ExamService {
             );
         }
 
-        const examType = await this.examTypeRepository.findOne({
-            where: { id: createExamDto.examTypeId },
-        });
-
         if (!examType) {
             throw new HttpException(
                 `ExamType with ID ${createExamDto.examTypeId} not found`,
@@ -58,12 +72,12 @@ export class ExamService {
             );
         }
 
-        for (const examQuestion of createExamDto.examQuestions) {
-            const moduleType = await this.moduleTypeRepository.findOne({
-                where: { id: examQuestion.moduleId },
-            });
+        const moduleMap = new Map(modules.map((module) => [module.id, module]));
+        const domainMap = new Map(domains.map((domain) => [domain.content, domain]));
+        const questionMap = new Map(questions.map((question) => [question.id, question]));
 
-            if (!moduleType) {
+        for (const examQuestion of createExamDto.examQuestions) {
+            if (!moduleMap.has(examQuestion.moduleId)) {
                 throw new HttpException(
                     `ModuleType with ID ${examQuestion.moduleId} not found`,
                     HttpStatus.NOT_FOUND,
@@ -71,11 +85,7 @@ export class ExamService {
             }
 
             for (const domain of examQuestion.domains) {
-                const domainEntity = await this.domainRepository.findOne({
-                    where: { content: domain.domain },
-                });
-
-                if (!domainEntity) {
+                if (!domainMap.has(domain.domain)) {
                     throw new HttpException(
                         `Domain with content ${domain.domain} not found`,
                         HttpStatus.NOT_FOUND,
@@ -83,11 +93,7 @@ export class ExamService {
                 }
 
                 for (const question of domain.questions) {
-                    const questionEntity = await this.questionRepository.findOne({
-                        where: { id: question.id },
-                    });
-
-                    if (!questionEntity) {
+                    if (!questionMap.has(question.id)) {
                         throw new HttpException(
                             `Question with ID ${question.id} not found`,
                             HttpStatus.NOT_FOUND,
@@ -98,16 +104,12 @@ export class ExamService {
         }
 
         for (const config of createExamDto.moduleConfig) {
-            const module = await this.moduleTypeRepository.findOne({
-                where: { id: config.moduleId },
-            });
-
-            if (!module) {
-                throw new HttpException(`ModuleType is not found`, HttpStatus.NOT_FOUND);
+            if (!moduleMap.has(config.moduleId)) {
+                throw new HttpException('ModuleType is not found', HttpStatus.NOT_FOUND);
             }
 
             if (config.time <= 0) {
-                throw new HttpException(`Invalid time value`, HttpStatus.BAD_REQUEST);
+                throw new HttpException('Invalid time value', HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -124,7 +126,6 @@ export class ExamService {
             savedExam.id,
             createExamDto.examQuestions,
         );
-
         await this.moduleTypeService.saveModuleConfig(createExamDto.moduleConfig);
 
         return savedExam;
