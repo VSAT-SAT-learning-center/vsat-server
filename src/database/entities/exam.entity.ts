@@ -1,39 +1,51 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    ManyToOne,
+    JoinColumn,
+    OneToMany,
+} from 'typeorm';
 import { ExamStructure } from './examstructure.entity';
 import { ExamType } from './examtype.entity';
-
+import { ExamQuestion } from './examquestion.entity';
 
 @Entity('exam')
 export class Exam {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdat: Date;
+    @CreateDateColumn({ type: 'timestamp' })
+    createdat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  createdby: string;
+    @Column({ type: 'uuid', nullable: true })
+    createdby: string;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedat: Date;
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  updatedby: string;
+    @Column({ type: 'uuid', nullable: true })
+    updatedby: string;
 
-  @ManyToOne(() => ExamStructure)
-  @JoinColumn({ name: 'examstructureid' })
-  examStructure: ExamStructure;
+    @ManyToOne(() => ExamStructure)
+    @JoinColumn({ name: 'examstructureid' })
+    examStructure: ExamStructure;
 
-  @ManyToOne(() => ExamType)
-  @JoinColumn({ name: 'examtypeid' })
-  examType: ExamType;
+    @ManyToOne(() => ExamType)
+    @JoinColumn({ name: 'examtypeid' })
+    examType: ExamType;
 
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
+    @Column({ type: 'varchar', length: 255 })
+    title: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+    @Column({ type: 'text', nullable: true })
+    description: string;
 
-  @Column({ type: 'boolean', default: true })
-  status: boolean;
+    @Column({ type: 'boolean', default: true })
+    status: boolean;
+
+    @OneToMany(() => ExamQuestion, (examQuestion) => examQuestion.exam)
+    examquestion: ExamQuestion[];
 }
