@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsArray, IsString } from 'class-validator';
+import { IsArray } from 'class-validator';
 
 export class FetchByContentDTO {
     @ApiProperty({
@@ -8,5 +8,5 @@ export class FetchByContentDTO {
     })
     @IsArray()
     @Expose()
-    content: string[];
+    contents: string[];
 }

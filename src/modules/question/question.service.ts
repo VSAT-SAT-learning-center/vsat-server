@@ -18,7 +18,7 @@ import { Level } from 'src/database/entities/level.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { Section } from 'src/database/entities/section.entity';
 import { Skill } from 'src/database/entities/skill.entity';
-import { In, IsNull, Repository } from 'typeorm';
+import { ILike, In, IsNull, Repository } from 'typeorm';
 import { Answerservice } from '../answer/answer.service';
 import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
