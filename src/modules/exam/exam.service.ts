@@ -60,14 +60,14 @@ export class ExamService {
 
         if (!examStructure) {
             throw new HttpException(
-                `ExamStructure with ID ${createExamDto.examStructureId} not found`,
+                `ExamStructure was not found`,
                 HttpStatus.NOT_FOUND,
             );
         }
 
         if (!examType) {
             throw new HttpException(
-                `ExamType with ID ${createExamDto.examTypeId} not found`,
+                `ExamType was not found`,
                 HttpStatus.NOT_FOUND,
             );
         }
