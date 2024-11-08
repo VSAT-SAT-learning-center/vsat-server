@@ -79,7 +79,7 @@ export class ExamService {
         for (const examQuestion of createExamDto.examQuestions) {
             if (!moduleMap.has(examQuestion.moduleId)) {
                 throw new HttpException(
-                    `ModuleType with ID ${examQuestion.moduleId} not found`,
+                    `ModuleType not found`,
                     HttpStatus.NOT_FOUND,
                 );
             }
