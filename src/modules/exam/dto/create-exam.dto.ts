@@ -1,7 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+import {
+    IsArray,
+    IsBoolean,
+    IsNumber,
+    IsOptional,
+    IsString,
+    IsUUID,
+    ValidateNested,
+} from 'class-validator';
 import { CreateExamQuestionDTO } from 'src/modules/examquestion/dto/create-examquestion.dto';
+import { ModuleConfig } from 'src/modules/module-type/dto/create-moduleconfig.dto';
 import { CreateQuestionExamDto } from 'src/modules/question/dto/create-question-exam.dto';
 
 export class CreateExamDto {
@@ -38,4 +47,10 @@ export class CreateExamDto {
     @ValidateNested({ each: true })
     @Type(() => CreateExamQuestionDTO)
     examQuestions: CreateExamQuestionDTO[];
+
+    @ApiProperty({ type: [ModuleConfig] })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ModuleConfig)
+    moduleConfig: ModuleConfig[];
 }
