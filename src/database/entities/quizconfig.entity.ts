@@ -29,7 +29,7 @@ export class QuizConfig {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @OneToOne(() => Unit)
+    @ManyToOne(() => Unit)
     @JoinColumn({ name: 'unitid' })
     unit: Unit;
 

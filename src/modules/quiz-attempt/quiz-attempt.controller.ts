@@ -16,7 +16,7 @@ import { QuizAttemptService } from './quiz-attempt.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { QuizAttempt } from 'src/database/entities/quizattempt.entity';
 import { BaseController } from '../base/base.controller';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { RecommendationService } from '../recommendation-service/recommendation.service';
 import { QuizAttemptAnswerService } from '../quiz-attempt-answer/quiz-attempt-answer.service';
 import { QuizService } from '../quiz/quiz.service';
@@ -40,6 +40,15 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
     }
 
     @Post(':unitId/start')
+    @ApiBody({
+        schema: {
+          type: 'object',
+          properties: {
+            studyProfileId: { type: 'string', description: 'ID of the study profile' },
+          },
+          required: ['studyProfileId'],
+        },
+      })
     async startQuizAttempt(
         @Param('unitId') unitId: string,
         @Body() { studyProfileId }: { studyProfileId: string },
