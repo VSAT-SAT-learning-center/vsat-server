@@ -10,10 +10,10 @@ export class StartLessonProgressDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  unitAreaId: string;
-
+  unitId: string;
+  
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  unitId: string;
+  unitAreaId: string;
 }

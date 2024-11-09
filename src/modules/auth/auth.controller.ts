@@ -6,12 +6,12 @@ import {
     HttpStatus,
     Post,
     Req,
+    Request,
     UseGuards,
 } from '@nestjs/common';
 import { AuthDTO } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { LocalGuard } from '../../common/guards/local.guard';
-import { Request } from 'express';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ApiTags } from '@nestjs/swagger';
@@ -26,9 +26,9 @@ export class AuthController {
 
     @Post('login')
     @UseGuards(LocalGuard)
-    async login(@Body() authDto: AuthDTO) {
+    async login(@Request() req) {
         try {
-            return this.authService.validateAccount(authDto);
+            return this.authService.login(req.user);
         } catch (error) {
             throw new HttpException(
                 {
@@ -43,10 +43,7 @@ export class AuthController {
     @Post('refreshToken')
     async refreshToken(@Body('refreshToken') refreshToken: string) {
         if (!refreshToken) {
-            throw new HttpException(
-                'Refresh token is required',
-                HttpStatus.BAD_REQUEST,
-            );
+            throw new HttpException('Refresh token is required', HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -64,7 +61,7 @@ export class AuthController {
 
     @Post('logout')
     @UseGuards(JwtAuthGuard)
-    async logout(@Req() req: Request) {
+    async logout(@Request() req) {
         try {
             const userId = req.user['id'];
 
@@ -75,10 +72,7 @@ export class AuthController {
             if (result) {
                 return { message: 'Logout successful' };
             } else {
-                throw new HttpException(
-                    'Logout failed',
-                    HttpStatus.BAD_REQUEST,
-                );
+                throw new HttpException('Logout failed', HttpStatus.BAD_REQUEST);
             }
         } catch (error) {
             throw new HttpException(

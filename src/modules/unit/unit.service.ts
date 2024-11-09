@@ -31,7 +31,7 @@ export class UnitService extends BaseService<Unit> {
     }
 
     async create(createUnitDto: CreateUnitDto): Promise<Unit> {
-        const { sectionId, levelId, ...unitData } = createUnitDto;
+        const { sectionId, levelId, domainId, ...unitData } = createUnitDto;
 
         const section = await this.sectionService.findOneById(sectionId);
         if (!section) {
@@ -43,7 +43,7 @@ export class UnitService extends BaseService<Unit> {
             throw new NotFoundException('Level not found');
         }
 
-        const domain = await this.domainService.findOneById(levelId);
+        const domain = await this.domainService.findOneById(domainId);
         if (!domain) {
             throw new NotFoundException('Domain not found');
         }
