@@ -20,7 +20,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { Unit } from 'src/database/entities/unit.entity';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
@@ -38,9 +38,7 @@ export class UnitController extends BaseController<Unit> {
         @Body() feedbackDto: LearningMaterialFeedbackDto,
     ) {
         if (action !== 'approve' && action !== 'reject') {
-            throw new BadRequestException(
-                'Invalid action. Use "approve" or "reject".',
-            );
+            throw new BadRequestException('Invalid action. Use "approve" or "reject".');
         }
 
         try {
@@ -81,20 +79,11 @@ export class UnitController extends BaseController<Unit> {
         let units;
         try {
             if (status === 'pending') {
-                units = await this.unitService.getPendingUnitWithDetails(
-                    page,
-                    pageSize,
-                );
+                units = await this.unitService.getPendingUnitWithDetails(page, pageSize);
             } else if (status === 'approve') {
-                units = await this.unitService.getApproveUnitWithDetails(
-                    page,
-                    pageSize,
-                );
+                units = await this.unitService.getApproveUnitWithDetails(page, pageSize);
             } else if (status === 'reject') {
-                units = await this.unitService.getRejectUnitWithDetails(
-                    page,
-                    pageSize,
-                );
+                units = await this.unitService.getRejectUnitWithDetails(page, pageSize);
             } else {
                 return ResponseHelper.error(
                     null,
@@ -164,10 +153,7 @@ export class UnitController extends BaseController<Unit> {
     }
 
     @Patch(':id')
-    async update(
-        @Param('id') id: string,
-        @Body() updateUnitDto: UpdateUnitDto,
-    ) {
+    async update(@Param('id') id: string, @Body() updateUnitDto: UpdateUnitDto) {
         const updatedUnit = await this.unitService.update(id, updateUnitDto);
         return ResponseHelper.success(
             HttpStatus.OK,
@@ -193,9 +179,7 @@ export class UnitController extends BaseController<Unit> {
     }
 
     @Get(':unitId/details')
-    async getUnitDetails(
-        @Param('unitId') unitId: string,
-    ): Promise<UnitResponseDto> {
+    async getUnitDetails(@Param('unitId') unitId: string): Promise<UnitResponseDto> {
         return await this.unitService.getUnitWithDetails(unitId);
     }
 
@@ -222,11 +206,7 @@ export class UnitController extends BaseController<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getDraftUnitWithDetailsByUserId(
-            page,
-            pageSize,
-            userId,
-        );
+        return this.unitService.getDraftUnitWithDetailsByUserId(page, pageSize, userId);
     }
 
     @Post('user/pending')
@@ -238,11 +218,7 @@ export class UnitController extends BaseController<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getPendingUnitWithDetailsByUserId(
-            page,
-            pageSize,
-            userId,
-        );
+        return this.unitService.getPendingUnitWithDetailsByUserId(page, pageSize, userId);
     }
 
     @Post('user/approve')
@@ -254,11 +230,7 @@ export class UnitController extends BaseController<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getApproveUnitWithDetailsByUserId(
-            page,
-            pageSize,
-            userId,
-        );
+        return this.unitService.getApproveUnitWithDetailsByUserId(page, pageSize, userId);
     }
 
     @Post('user/reject')
@@ -270,11 +242,7 @@ export class UnitController extends BaseController<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getRejectUnitWithDetailsByUserId(
-            page,
-            pageSize,
-            userId,
-        );
+        return this.unitService.getRejectUnitWithDetailsByUserId(page, pageSize, userId);
     }
 
     @Post('user/:status')
@@ -319,5 +287,28 @@ export class UnitController extends BaseController<Unit> {
         }
 
         return units;
+    }
+
+    @Get('domain/:id')
+    @ApiOperation({ summary: 'Get Unit with Domain and Skills' })
+    @ApiResponse({
+        status: 200,
+        description: 'Unit with Domain and Skills retrieved successfully',
+    })
+    @ApiResponse({ status: 404, description: 'Unit not found' })
+    async getUnitWithDomainAndSkills(@Param('id') id: string): Promise<Unit> {
+        try {
+            const unit = await this.unitService.getUnitWithDomainAndSkills(id);
+            return unit;
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.NOT_FOUND,
+                    message:
+                        error.message || 'An error occurred while retrieving the unit',
+                },
+                error.status || HttpStatus.NOT_FOUND,
+            );
+        }
     }
 }
