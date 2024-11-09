@@ -1,24 +1,23 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { Exam } from 'src/database/entities/exam.entity';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { BaseService } from '../base/base.service';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamType } from 'src/database/entities/examtype.entity';
 import { ExamQuestionService } from '../examquestion/examquestion.service';
-import { ModuleTypeService } from '../module-type/module-type.service';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { Domain } from 'src/database/entities/domain.entity';
-import { title } from 'process';
 import { ExamStatus } from 'src/common/enums/exam-status.enum';
+import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
+import { Feedback } from 'src/database/entities/feedback.entity';
+import { FeedbackService } from '../feedback/feedback.service';
 
 @Injectable()
-export class ExamService {
+export class ExamService extends BaseService<Exam> {
     constructor(
         @InjectRepository(Exam)
         private readonly examRepository: Repository<Exam>,
@@ -32,10 +31,12 @@ export class ExamService {
         private readonly questionRepository: Repository<Question>,
         @InjectRepository(Domain)
         private readonly domainRepository: Repository<Domain>,
+        private readonly feedbackService: FeedbackService,
 
         private readonly examQuestionservice: ExamQuestionService,
-        private readonly moduleTypeService: ModuleTypeService,
-    ) {}
+    ) {
+        super(examRepository);
+    }
 
     async createExam(createExamDto: CreateExamDto): Promise<Exam> {
         const [examStructure, examType, modules, domains, questions] = await Promise.all([
@@ -373,5 +374,64 @@ export class ExamService {
                 };
             }),
         );
+    }
+
+    async approveOrRejectExam(
+        feedbackDto: ExamCensorFeedbackDto,
+        action: 'approve' | 'reject',
+    ): Promise<Feedback> {
+        if (action === 'reject') {
+            return await this.rejectExam(feedbackDto);
+        } else if (action === 'approve') {
+            return await this.approveExam(feedbackDto);
+        }
+    }
+
+    private async rejectExam(feedbackDto: ExamCensorFeedbackDto): Promise<Feedback> {
+        const exam = await this.examRepository.findOneBy({
+            id: feedbackDto.examFeedback.examId,
+        });
+
+        if (exam === null) {
+            throw new NotFoundException('Exam not found');
+        }
+
+        if (exam.countfeedback == 3) {
+            exam.isActive = false;
+        }
+
+        // Mark the entire exam as rejected
+        await this.updateExamStatus(exam.id, {
+            status: ExamStatus.REJECTED,
+            countfeedback: exam.countfeedback + 1,
+            isActive: exam.isActive,
+        });
+
+        feedbackDto.accountToId = exam.createdby;
+        return await this.feedbackService.rejectExamFeedback(feedbackDto);
+    }
+
+    private async approveExam(feedbackDto: ExamCensorFeedbackDto): Promise<Feedback> {
+        // Mark the entire exam as approved
+        await this.updateExamStatus(feedbackDto.examFeedback.examId, {
+            status: ExamStatus.APPROVED,
+        });
+
+        return await this.feedbackService.approveExamFeedback(feedbackDto);
+    }
+
+    async updateExamStatus(id: string, updateExamDto: UpdateExamDto) {
+
+        const exam = await this.findOneById(id);
+        if (!exam) {
+            throw new NotFoundException('Exam not found');
+        }
+
+        await this.examRepository.save({
+            ...exam,
+            ...updateExamDto,
+        });
+
+        return updateExamDto;
     }
 }

@@ -9,17 +9,15 @@ import {
     Put,
     HttpStatus,
     HttpException,
+    BadRequestException,
 } from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { CreateExamDto } from './dto/create-exam.dto';
-import { UpdateExamDto } from './dto/update-exam.dto';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { Exam } from 'src/database/entities/exam.entity';
-import { BaseController } from '../base/base.controller';
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ExamStatus } from 'src/common/enums/exam-status.enum';
+import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
 
 @ApiTags('Exams')
 @Controller('exams')
@@ -77,6 +75,39 @@ export class ExamController {
                 HttpStatus.CREATED,
                 exam,
                 SuccessMessages.get('Exam'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('/censor/:action')
+    async approveOrRejectExam(
+        @Param('action') action: 'approve' | 'reject',
+        @Body() feedbackDto: ExamCensorFeedbackDto,
+    ) {
+        if (action !== 'approve' && action !== 'reject') {
+            throw new BadRequestException(
+                'Invalid action. Use "approve" or "reject".',
+            );
+        }
+
+        try {
+            const feedbacks = this.examService.approveOrRejectExam(
+                feedbackDto,
+                action,
+            );
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                feedbacks,
+                SuccessMessages.update('Feedback'),
             );
         } catch (error) {
             throw new HttpException(
