@@ -9,6 +9,7 @@ import { Exam } from 'src/database/entities/exam.entity';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Domain } from 'src/database/entities/domain.entity';
 import { UpdateExamQuestion } from './dto/update-examquestion.dto';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
 
 @Injectable()
 export class ExamQuestionService {
@@ -146,6 +147,7 @@ export class ExamQuestionService {
         await this.examQuestionRepository.delete(updateDeleteArrays);
 
         const updateQuestionArrays = [];
+        let examIdToUpdateStatus = null;
 
         for (const updateQuestionData of updateExamQuestion.updateQuestion) {
             const exam = await this.examRepository.findOne({
@@ -181,6 +183,15 @@ export class ExamQuestionService {
             const savedQuestion = await this.examQuestionRepository.save(createQuestion);
 
             updateQuestionArrays.push(savedQuestion);
+
+            examIdToUpdateStatus = exam.id;
+        }
+
+        if (examIdToUpdateStatus) {
+            await this.examRepository.update(
+                { id: examIdToUpdateStatus },
+                { status: ExamStatus.PENDING },
+            );
         }
 
         return updateQuestionArrays;
