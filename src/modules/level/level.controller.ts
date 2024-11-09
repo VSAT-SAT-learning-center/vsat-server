@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
-import { RolesGuard } from '../../common/guards/role.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { Level } from 'src/database/entities/level.entity';

@@ -11,13 +11,22 @@ import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Domain } from 'src/database/entities/domain.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { FeedbackModule } from '../feedback/feedback.module';
+import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Exam, ExamStructure, ExamType, ModuleType, Domain, Question]),
+        TypeOrmModule.forFeature([
+            Exam,
+            ExamStructure,
+            ExamType,
+            ModuleType,
+            Domain,
+            Question,
+            DomainDistribution,
+        ]),
         ExamQuestionModule,
         ModuleTypeModule,
-        FeedbackModule
+        FeedbackModule,
     ],
     providers: [ExamService],
     controllers: [ExamController],
