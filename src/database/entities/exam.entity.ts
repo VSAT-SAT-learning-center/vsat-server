@@ -11,6 +11,7 @@ import {
 import { ExamStructure } from './examstructure.entity';
 import { ExamType } from './examtype.entity';
 import { ExamQuestion } from './examquestion.entity';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
 
 @Entity('exam')
 export class Exam {
@@ -43,8 +44,12 @@ export class Exam {
     @Column({ type: 'text', nullable: true })
     description: string;
 
-    @Column({ type: 'boolean', default: true })
-    status: boolean;
+    @Column({
+        type: 'enum',
+        enum: ExamStatus,
+        default: ExamStatus.PENDING,
+    })
+    status: ExamStatus;
 
     @OneToMany(() => ExamQuestion, (examQuestion) => examQuestion.exam)
     examquestion: ExamQuestion[];
