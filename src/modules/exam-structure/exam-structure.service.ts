@@ -130,6 +130,7 @@ export class ExamStructureService {
                 id: moduleType.id,
                 name: moduleType.name,
                 level: moduleType.level,
+                time: moduleType.time,
                 numberOfQuestion: moduleType.numberofquestion,
                 section: moduleType.section ? moduleType.section.name : null,
                 domaindistribution: moduleType.domaindistribution.map((distribution) => ({
