@@ -52,6 +52,7 @@ export class ExamSemesterService {
             //     structureType: structure.examStructureType?.name,
             // })),
             domainDistributionConfig: semester.domainDistributionConfigs.map((config) => ({
+                id: config.id,
                 domain: config.domain?.content,
                 percentage: config.percent,
                 minQuestion: config.minQuestion,
@@ -93,6 +94,7 @@ export class ExamSemesterService {
             //     structureType: structure.examStructureType?.name,
             // })),
             domainDistributionConfig: semester.domainDistributionConfigs.map((config) => ({
+                id: config.id,
                 domain: config.domain?.content,
                 percentage: config.percent,
                 minQuestion: config.minQuestion,
