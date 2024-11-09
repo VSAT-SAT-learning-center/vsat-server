@@ -117,6 +117,7 @@ export class ExamService extends BaseService<Exam> {
     }
 
     async GetExamWithExamQuestion() {
+        // Hàm lấy tất cả các exam
         const findExamsWithQuestions = async () => {
             return await this.examRepository.find({
                 relations: ['examquestion', 'examStructure', 'examType'],
@@ -124,6 +125,7 @@ export class ExamService extends BaseService<Exam> {
             });
         };
 
+        // Hàm lấy thông tin câu hỏi theo từng examId
         const findModuleQuestionsByExamId = async (examId: string) => {
             const modules = await this.moduleTypeRepository
                 .createQueryBuilder('moduleType')
@@ -142,7 +144,9 @@ export class ExamService extends BaseService<Exam> {
             let totalNumberOfQuestions = 0;
             let totalTime = 0;
 
-            const moduleDetails = modules.map(async (module) => {
+            // Xử lý từng module
+            const moduleDetails = [];
+            for (const module of modules) {
                 if (
                     (module.section?.name === 'Reading & Writing' ||
                         module.section?.name === 'Math') &&
@@ -153,228 +157,78 @@ export class ExamService extends BaseService<Exam> {
                     totalTime += module.time || 0;
                 }
 
-                const domains = new Map();
-                module.examquestion.forEach((examQuestion) => {
-                    const domainName = examQuestion.question.skill?.domain?.content;
-                    if (!domainName) return;
-
-                    if (!domains.has(domainName)) {
-                        domains.set(domainName, {
-                            domain: domainName,
-                            questions: [],
-                        });
-                    }
-
-                    domains.get(domainName).questions.push({
-                        id: examQuestion.question.id,
-                        content: examQuestion.question.content,
-                        plainContent: examQuestion.question.plainContent,
-                        explain: examQuestion.question.explain,
-                        sort: examQuestion.question.sort,
-                        isSingleChoiceQuestion:
-                            examQuestion.question.isSingleChoiceQuestion,
-                        status: examQuestion.question.status,
-                        countfeedback: examQuestion.question.countfeedback,
-                        isActive: examQuestion.question.isActive,
-                        level: examQuestion.question.level,
-                        skill: examQuestion.question.skill,
-                        section: examQuestion.question.section,
-                        answers: examQuestion.question.answers.map((answer) => ({
-                            id: answer.id,
-                            text: answer.text,
-                            isCorrect: answer.isCorrectAnswer,
-                        })),
-                    });
-                });
-
                 // Lấy thông tin domain distribution cho module
-                const domaindistributions = await this.domainDistributionRepository
-                    .createQueryBuilder('domainDistribution')
-                    .innerJoinAndSelect('domainDistribution.domain', 'domain')
-                    .where('domainDistribution.moduleType.id = :moduleTypeId', {
-                        moduleTypeId: module.id,
-                    })
-                    .getMany();
+                const domains = new Map();
 
-                // Tạo mảng domaindistribution
-                const domaindistributionDetails = domaindistributions.map(
-                    (distribution) => ({
-                        domain: distribution.domain.content, // lấy content của domain
-                        numberofquestion: distribution.numberofquestion || 0, // lấy số câu hỏi
+                // Sử dụng Promise.all để xử lý song song các câu hỏi
+                await Promise.all(
+                    module.examquestion.map(async (examQuestion) => {
+                        const domainName = examQuestion.question.skill?.domain?.content;
+                        const domainID = examQuestion.question.skill?.domain?.id;
+
+                        // Lấy domain distribution
+                        const domaindistribution =
+                            await this.domainDistributionRepository.findOne({
+                                where: {
+                                    domain: { id: domainID },
+                                    moduleType: { id: module.id },
+                                },
+                            });
+
+                        if (!domainName || !domaindistribution) return;
+
+                        if (!domains.has(domainName)) {
+                            domains.set(domainName, {
+                                domain: domainName,
+                                numberofquestion:
+                                    domaindistribution.numberofquestion || 0,
+                                questions: [],
+                            });
+                        }
+
+                        // Thêm câu hỏi vào domain
+                        domains.get(domainName)?.questions.push({
+                            id: examQuestion.question.id,
+                            content: examQuestion.question.content,
+                            plainContent: examQuestion.question.plainContent,
+                            explain: examQuestion.question.explain,
+                            sort: examQuestion.question.sort,
+                            isSingleChoiceQuestion:
+                                examQuestion.question.isSingleChoiceQuestion,
+                            status: examQuestion.question.status,
+                            countfeedback: examQuestion.question.countfeedback,
+                            isActive: examQuestion.question.isActive,
+                            level: examQuestion.question.level,
+                            skill: examQuestion.question.skill,
+                            section: examQuestion.question.section,
+                            answers: examQuestion.question.answers.map((answer) => ({
+                                id: answer.id,
+                                text: answer.text,
+                                isCorrect: answer.isCorrectAnswer,
+                            })),
+                        });
                     }),
                 );
 
-                return {
+                moduleDetails.push({
                     id: module.id,
                     name: module.name,
                     level: module.level,
                     numberofquestion: module.numberofquestion,
                     time: module.time,
                     section: module.section?.name || null,
-                    domains: Array.from(domains.values()), // thông tin domain từ examquestion
-                    domaindistribution: domaindistributionDetails, // thông tin domain từ domainDistribution
-                };
-            });
-
-            const modulesWithDetails = await Promise.all(moduleDetails);
-
-            return { totalNumberOfQuestions, totalTime, modules: modulesWithDetails };
-        };
-
-        const exams = await findExamsWithQuestions();
-
-        return await Promise.all(
-            exams.map(async (exam) => {
-                const { totalNumberOfQuestions, totalTime, modules } =
-                    await findModuleQuestionsByExamId(exam.id);
-
-                return {
-                    id: exam.id,
-                    title: exam.title,
-                    description: exam.description,
-                    createdat: exam.createdat,
-                    updatedat: exam.updatedat,
-                    status: exam.status,
-                    totalNumberOfQuestions,
-                    totalTime,
-                    examQuestions: modules,
-                    examStructure: exam.examStructure
-                        ? {
-                              id: exam.examStructure.id,
-                              structurename: exam.examStructure.structurename,
-                              description: exam.examStructure.description,
-                              requiredCorrectInModule1RW:
-                                  exam.examStructure.requiredCorrectInModule1RW,
-                              requiredCorrectInModule1M:
-                                  exam.examStructure.requiredCorrectInModule1M,
-                          }
-                        : null,
-                    examType: exam.examType
-                        ? { id: exam.examType.id, name: exam.examType.name }
-                        : null,
-                };
-            }),
-        );
-    }
-
-    async GetExamWithExamQuestionByStatus(status?: ExamStatus) {
-        // Thêm tham số status
-        const findExamsWithQuestions = async () => {
-            const query = this.examRepository
-                .createQueryBuilder('exam')
-                .leftJoinAndSelect('exam.examquestion', 'examquestion')
-                .leftJoinAndSelect('exam.examStructure', 'examStructure')
-                .leftJoinAndSelect('exam.examType', 'examType')
-                .orderBy('exam.updatedat', 'DESC');
-
-            if (status) {
-                // Thêm điều kiện lọc theo trạng thái
-                query.where('exam.status = :status', { status });
+                    domains: Array.from(domains.values()),
+                });
             }
 
-            return await query.getMany(); // Trả về các bài kiểm tra theo điều kiện
+            return { totalNumberOfQuestions, totalTime, modules: moduleDetails };
         };
 
-        const findModuleQuestionsByExamId = async (examId: string) => {
-            const modules = await this.moduleTypeRepository
-                .createQueryBuilder('moduleType')
-                .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
-                .innerJoinAndSelect('examQuestion.question', 'question')
-                .leftJoinAndSelect('question.level', 'level')
-                .leftJoinAndSelect('question.skill', 'skill')
-                .leftJoinAndSelect('skill.domain', 'domain')
-                .leftJoinAndSelect('question.section', 'section')
-                .leftJoinAndSelect('question.answers', 'answers')
-                .leftJoinAndSelect('moduleType.section', 'moduleSection')
-                .where('examQuestion.exam.id = :examId', { examId })
-                .orderBy('moduleType.updatedat', 'DESC')
-                .getMany();
-
-            let totalNumberOfQuestions = 0;
-            let totalTime = 0;
-
-            const moduleDetails = modules.map(async (module) => {
-                if (
-                    (module.section?.name === 'Reading & Writing' ||
-                        module.section?.name === 'Math') &&
-                    (module.name === 'Module 1' || module.name === 'Module 2') &&
-                    (module.level === null || module.level === 'Easy')
-                ) {
-                    totalNumberOfQuestions += module.numberofquestion || 0;
-                    totalTime += module.time || 0;
-                }
-
-                const domains = new Map();
-                module.examquestion.forEach((examQuestion) => {
-                    const domainName = examQuestion.question.skill?.domain?.content;
-                    if (!domainName) return;
-
-                    if (!domains.has(domainName)) {
-                        domains.set(domainName, {
-                            domain: domainName,
-                            questions: [],
-                        });
-                    }
-
-                    domains.get(domainName).questions.push({
-                        id: examQuestion.question.id,
-                        content: examQuestion.question.content,
-                        plainContent: examQuestion.question.plainContent,
-                        explain: examQuestion.question.explain,
-                        sort: examQuestion.question.sort,
-                        isSingleChoiceQuestion:
-                            examQuestion.question.isSingleChoiceQuestion,
-                        status: examQuestion.question.status,
-                        countfeedback: examQuestion.question.countfeedback,
-                        isActive: examQuestion.question.isActive,
-                        level: examQuestion.question.level,
-                        skill: examQuestion.question.skill,
-                        section: examQuestion.question.section,
-                        answers: examQuestion.question.answers.map((answer) => ({
-                            id: answer.id,
-                            text: answer.text,
-                            isCorrect: answer.isCorrectAnswer,
-                        })),
-                    });
-                });
-
-                // Lấy thông tin domain distribution cho module
-                const domaindistributions = await this.domainDistributionRepository
-                    .createQueryBuilder('domainDistribution')
-                    .innerJoinAndSelect('domainDistribution.domain', 'domain')
-                    .where('domainDistribution.moduleType.id = :moduleTypeId', {
-                        moduleTypeId: module.id,
-                    })
-                    .getMany();
-
-                // Tạo mảng domaindistribution
-                const domaindistributionDetails = domaindistributions.map(
-                    (distribution) => ({
-                        domain: distribution.domain.content, // lấy content của domain
-                        numberofquestion: distribution.numberofquestion || 0, // lấy số câu hỏi
-                    }),
-                );
-
-                return {
-                    id: module.id,
-                    name: module.name,
-                    level: module.level,
-                    numberofquestion: module.numberofquestion,
-                    time: module.time,
-                    section: module.section?.name || null,
-                    domains: Array.from(domains.values()), // thông tin domain từ examquestion
-                    domaindistribution: domaindistributionDetails, // thông tin domain từ domainDistribution
-                };
-            });
-
-            const modulesWithDetails = await Promise.all(moduleDetails);
-
-            return { totalNumberOfQuestions, totalTime, modules: modulesWithDetails };
-        };
-
+        // Lấy tất cả các exam
         const exams = await findExamsWithQuestions();
 
-        return await Promise.all(
+        // Lấy thông tin từng exam
+        const result = await Promise.all(
             exams.map(async (exam) => {
                 const { totalNumberOfQuestions, totalTime, modules } =
                     await findModuleQuestionsByExamId(exam.id);
@@ -406,6 +260,157 @@ export class ExamService extends BaseService<Exam> {
                 };
             }),
         );
+
+        return result;
+    }
+
+    async GetExamWithExamQuestionByStatus(examStatus: ExamStatus) {
+        // Hàm lấy tất cả các exam theo examStatus
+        const findExamsWithQuestions = async () => {
+            return await this.examRepository.find({
+                relations: ['examquestion', 'examStructure', 'examType'],
+                where: { status: examStatus }, // Filter by examStatus
+                order: { updatedat: 'DESC' },
+            });
+        };
+
+        // Hàm lấy thông tin câu hỏi theo từng examId
+        const findModuleQuestionsByExamId = async (examId: string) => {
+            const modules = await this.moduleTypeRepository
+                .createQueryBuilder('moduleType')
+                .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
+                .innerJoinAndSelect('examQuestion.question', 'question')
+                .leftJoinAndSelect('question.level', 'level')
+                .leftJoinAndSelect('question.skill', 'skill')
+                .leftJoinAndSelect('skill.domain', 'domain')
+                .leftJoinAndSelect('question.section', 'section')
+                .leftJoinAndSelect('question.answers', 'answers')
+                .leftJoinAndSelect('moduleType.section', 'moduleSection')
+                .where('examQuestion.exam.id = :examId', { examId })
+                .orderBy('moduleType.updatedat', 'DESC')
+                .getMany();
+
+            let totalNumberOfQuestions = 0;
+            let totalTime = 0;
+
+            // Xử lý từng module
+            const moduleDetails = [];
+            for (const module of modules) {
+                if (
+                    (module.section?.name === 'Reading & Writing' ||
+                        module.section?.name === 'Math') &&
+                    (module.name === 'Module 1' || module.name === 'Module 2') &&
+                    (module.level === null || module.level === 'Easy')
+                ) {
+                    totalNumberOfQuestions += module.numberofquestion || 0;
+                    totalTime += module.time || 0;
+                }
+
+                // Lấy thông tin domain distribution cho module
+                const domains = new Map();
+
+                // Sử dụng Promise.all để xử lý song song các câu hỏi
+                await Promise.all(
+                    module.examquestion.map(async (examQuestion) => {
+                        const domainName = examQuestion.question.skill?.domain?.content;
+                        const domainID = examQuestion.question.skill?.domain?.id;
+
+                        // Lấy domain distribution
+                        const domaindistribution =
+                            await this.domainDistributionRepository.findOne({
+                                where: {
+                                    domain: { id: domainID },
+                                    moduleType: { id: module.id },
+                                },
+                            });
+
+                        if (!domainName || !domaindistribution) return;
+
+                        if (!domains.has(domainName)) {
+                            domains.set(domainName, {
+                                domain: domainName,
+                                numberofquestion:
+                                    domaindistribution.numberofquestion || 0,
+                                questions: [],
+                            });
+                        }
+
+                        // Thêm câu hỏi vào domain
+                        domains.get(domainName)?.questions.push({
+                            id: examQuestion.question.id,
+                            content: examQuestion.question.content,
+                            plainContent: examQuestion.question.plainContent,
+                            explain: examQuestion.question.explain,
+                            sort: examQuestion.question.sort,
+                            isSingleChoiceQuestion:
+                                examQuestion.question.isSingleChoiceQuestion,
+                            status: examQuestion.question.status,
+                            countfeedback: examQuestion.question.countfeedback,
+                            isActive: examQuestion.question.isActive,
+                            level: examQuestion.question.level,
+                            skill: examQuestion.question.skill,
+                            section: examQuestion.question.section,
+                            answers: examQuestion.question.answers.map((answer) => ({
+                                id: answer.id,
+                                text: answer.text,
+                                isCorrect: answer.isCorrectAnswer,
+                            })),
+                        });
+                    }),
+                );
+
+                moduleDetails.push({
+                    id: module.id,
+                    name: module.name,
+                    level: module.level,
+                    numberofquestion: module.numberofquestion,
+                    time: module.time,
+                    section: module.section?.name || null,
+                    domains: Array.from(domains.values()),
+                });
+            }
+
+            return { totalNumberOfQuestions, totalTime, modules: moduleDetails };
+        };
+
+        // Lấy tất cả các exam theo status
+        const exams = await findExamsWithQuestions();
+
+        // Lấy thông tin từng exam
+        const result = await Promise.all(
+            exams.map(async (exam) => {
+                const { totalNumberOfQuestions, totalTime, modules } =
+                    await findModuleQuestionsByExamId(exam.id);
+
+                return {
+                    id: exam.id,
+                    title: exam.title,
+                    description: exam.description,
+                    createdat: exam.createdat,
+                    updatedat: exam.updatedat,
+                    status: exam.status,
+                    totalNumberOfQuestions,
+                    totalTime,
+                    examQuestions: modules,
+                    examStructure: exam.examStructure
+                        ? {
+                              id: exam.examStructure.id,
+                              structurename: exam.examStructure.structurename,
+                              description: exam.examStructure.description,
+                              requiredCorrectInModule1RW:
+                                  exam.examStructure.requiredCorrectInModule1RW,
+                              requiredCorrectInModule1M:
+                                  exam.examStructure.requiredCorrectInModule1M,
+                          }
+                        : null,
+                    examType: exam.examType
+                        ? { id: exam.examType.id, name: exam.examType.name }
+                        : null,
+                };
+            }),
+        );
+
+        return result;
     }
 
     async approveOrRejectExam(
