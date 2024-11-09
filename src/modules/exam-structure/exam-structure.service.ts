@@ -30,7 +30,9 @@ export class ExamStructureService {
         private readonly moduleTypeService: ModuleTypeService,
     ) {}
 
-    async save(createExamStructure: CreateExamStructureDto): Promise<CreateExamStructureDto> {
+    async save(
+        createExamStructure: CreateExamStructureDto,
+    ): Promise<CreateExamStructureDto> {
         const {
             examScoreId,
             examStructureType,
@@ -77,7 +79,9 @@ export class ExamStructureService {
 
         await this.examStructureConfigService.save(
             savedExamstructure.id,
-            Array.isArray(examStructureConfig) ? examStructureConfig : [examStructureConfig],
+            Array.isArray(examStructureConfig)
+                ? examStructureConfig
+                : [examStructureConfig],
         );
 
         await this.moduleTypeService.save(

@@ -56,6 +56,7 @@ export class ModuleTypeService extends BaseService<ModuleType> {
                 examStructure: examStructure,
                 level: createModuleTypeDto.level,
                 numberofquestion: createModuleTypeDto.numberOfQuestion,
+                time: createModuleTypeDto.time,
             });
 
             const saveModuleType =
