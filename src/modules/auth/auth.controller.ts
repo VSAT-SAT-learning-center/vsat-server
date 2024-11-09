@@ -19,10 +19,7 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-    constructor(
-        private readonly authService: AuthService,
-        private readonly mailerService: MailerService,
-    ) {}
+    constructor(private readonly authService: AuthService) {}
 
     @Post('login')
     @UseGuards(LocalGuard)
@@ -74,6 +71,19 @@ export class AuthController {
             } else {
                 throw new HttpException('Logout failed', HttpStatus.BAD_REQUEST);
             }
+        } catch (error) {
+            throw new HttpException(
+                error.message || 'Logout failed',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    @Post('test')
+    @UseGuards(JwtAuthGuard)
+    async test(@Request() req) {
+        try {
+            return req.user;
         } catch (error) {
             throw new HttpException(
                 error.message || 'Logout failed',
