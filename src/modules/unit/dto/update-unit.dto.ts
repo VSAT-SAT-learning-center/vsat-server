@@ -50,6 +50,4 @@ export class UpdateUnitDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-
 }

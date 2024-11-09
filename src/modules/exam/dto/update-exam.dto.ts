@@ -1,5 +1,7 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IsString, IsUUID, IsBoolean, IsOptional } from 'class-validator';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
 
 export class UpdateExamDto {
     @IsUUID()
@@ -25,5 +27,14 @@ export class UpdateExamDto {
     @IsBoolean()
     @IsOptional()
     @Expose()
-    status?: boolean;
+    status?: ExamStatus;
+
+    @ApiProperty()
+    @IsOptional()
+    countfeedback?: number;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
 }
