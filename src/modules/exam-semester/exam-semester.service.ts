@@ -46,25 +46,28 @@ export class ExamSemesterService {
             id: semester.id,
             title: semester.title,
             time: semester.time,
+            createdat: semester.createdat,
             // examStructure: semester.examStructures.map((structure) => ({
             //     id: structure.id,
             //     name: structure.structurename,
             //     structureType: structure.examStructureType?.name,
             // })),
-            domainDistributionConfig: semester.domainDistributionConfigs.map((config) => ({
-                id: config.id,
-                domain: config.domain?.content,
-                percentage: config.percent,
-                minQuestion: config.minQuestion,
-                maxQuestion: config.maxQuestion,
-                section: config.domain?.section
-                    ? {
-                          // Check if section exists
-                          id: config.domain.section.id,
-                          name: config.domain.section.name,
-                      }
-                    : null,
-            })),
+            domainDistributionConfig: semester.domainDistributionConfigs.map(
+                (config) => ({
+                    id: config.id,
+                    domain: config.domain?.content,
+                    percentage: config.percent,
+                    minQuestion: config.minQuestion,
+                    maxQuestion: config.maxQuestion,
+                    section: config.domain?.section
+                        ? {
+                              // Check if section exists
+                              id: config.domain.section.id,
+                              name: config.domain.section.name,
+                          }
+                        : null,
+                }),
+            ),
         }));
     }
 
@@ -93,20 +96,22 @@ export class ExamSemesterService {
             //     name: structure.structurename,
             //     structureType: structure.examStructureType?.name,
             // })),
-            domainDistributionConfig: semester.domainDistributionConfigs.map((config) => ({
-                id: config.id,
-                domain: config.domain?.content,
-                percentage: config.percent,
-                minQuestion: config.minQuestion,
-                maxQuestion: config.maxQuestion,
-                section: config.domain?.section
-                    ? {
-                          // Check if section exists
-                          id: config.domain.section.id,
-                          name: config.domain.section.name,
-                      }
-                    : null,
-            })),
+            domainDistributionConfig: semester.domainDistributionConfigs.map(
+                (config) => ({
+                    id: config.id,
+                    domain: config.domain?.content,
+                    percentage: config.percent,
+                    minQuestion: config.minQuestion,
+                    maxQuestion: config.maxQuestion,
+                    section: config.domain?.section
+                        ? {
+                              // Check if section exists
+                              id: config.domain.section.id,
+                              name: config.domain.section.name,
+                          }
+                        : null,
+                }),
+            ),
         };
     }
 
@@ -123,7 +128,7 @@ export class ExamSemesterService {
             message: string;
         }[] = [];
 
-        const { title, time} = createExamSemester;
+        const { title, time } = createExamSemester;
 
         const examSemester = this.examSemesterRepository.create({
             title: title,
@@ -161,13 +166,14 @@ export class ExamSemesterService {
                 }
 
                 // Check for existing config with same title in the same ExamSemester and Domain
-                const existingConfig = await this.domainDistributionConfigRepository.findOne({
-                    where: {
-                        title,
-                        examSemester: { id: savedExamSemester.id },
-                        domain: { id: foundDomain.id },
-                    },
-                });
+                const existingConfig =
+                    await this.domainDistributionConfigRepository.findOne({
+                        where: {
+                            title,
+                            examSemester: { id: savedExamSemester.id },
+                            domain: { id: foundDomain.id },
+                        },
+                    });
 
                 if (existingConfig) {
                     throw new HttpException(
@@ -187,7 +193,8 @@ export class ExamSemesterService {
                 });
 
                 // Save the new config
-                const savedConfig = await this.domainDistributionConfigRepository.save(newConfig);
+                const savedConfig =
+                    await this.domainDistributionConfigRepository.save(newConfig);
                 savedConfigs.push(savedConfig);
             } catch (error) {
                 errors.push({
@@ -217,7 +224,7 @@ export class ExamSemesterService {
         const savedExamSemester = await this.examSemesterRepository.save(newExamSemester);
 
         for (const configDto of createDomainDistributionConfigDtoArray) {
-            const {minQuestion, maxQuestion, percent, domain } = configDto;
+            const { minQuestion, maxQuestion, percent, domain } = configDto;
 
             const foundDomain = await this.domainRepository.findOne({
                 where: { content: domain },
@@ -286,7 +293,14 @@ export class ExamSemesterService {
         const savedExamSemester = await this.examSemesterRepository.save(examSemester);
 
         for (const configDto of updateDomainDistributionConfigDtoArray) {
-            const { id: configId, title, minQuestion, maxQuestion, percent, domain } = configDto;
+            const {
+                id: configId,
+                title,
+                minQuestion,
+                maxQuestion,
+                percent,
+                domain,
+            } = configDto;
 
             const foundDomain = await this.domainRepository.findOne({
                 where: { content: domain },
@@ -295,7 +309,10 @@ export class ExamSemesterService {
                 throw new NotFoundException(`Domain not found: ${domain}`);
             }
 
-            const configInstance = plainToInstance(UpdateDomainDistributionConfigDto, configDto);
+            const configInstance = plainToInstance(
+                UpdateDomainDistributionConfigDto,
+                configDto,
+            );
             const validationErrors = await validate(configInstance);
             if (validationErrors.length > 0) {
                 const validationMessages = validationErrors

@@ -37,7 +37,7 @@ export class DomainDistributionConfigService extends BaseService<DomainDistribut
                     `DomainDistributionConfig with ID ${updateDto.id} not found`,
                 );
             }
-            if (updateDto.percent === undefined) {
+            if (updateDto.percentage === undefined) {
                 throw new HttpException('Percent is undefined', HttpStatus.BAD_REQUEST);
             } else if (updateDto.minQuestion === undefined) {
                 throw new HttpException('Min question is undefined', HttpStatus.BAD_REQUEST);
@@ -46,7 +46,7 @@ export class DomainDistributionConfigService extends BaseService<DomainDistribut
             }
 
             Object.assign(existingDomainDistributionConfig, {
-                percent: updateDto.percent,
+                percent: updateDto.percentage,
                 minQuestion: updateDto.minQuestion,
                 maxQuestion: updateDto.maxQuestion,
             });
