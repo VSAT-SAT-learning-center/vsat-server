@@ -47,10 +47,4 @@ export class CreateExamDto {
     @ValidateNested({ each: true })
     @Type(() => CreateExamQuestionDTO)
     examQuestions: CreateExamQuestionDTO[];
-
-    @ApiProperty({ type: [ModuleConfig] })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => ModuleConfig)
-    moduleConfig: ModuleConfig[];
 }
