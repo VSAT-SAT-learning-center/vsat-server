@@ -11,9 +11,10 @@ import {
 import { Account } from './account.entity';
 import { Exam } from './exam.entity';
 import { Lesson } from './lesson.entity';
+import { ModuleType } from './moduletype.entity';
 import { Question } from './question.entity';
+import { QuizQuestion } from './quizquestion.entity';
 import { Unit } from './unit.entity';
-import { UnitArea } from './unitarea.entity';
 
 @Entity('feedback')
 export class Feedback {
@@ -36,10 +37,6 @@ export class Feedback {
     @JoinColumn({ name: 'unitid' })
     unit: Unit;
 
-    @ManyToOne(() => UnitArea, { nullable: true })
-    @JoinColumn({ name: 'unitareaid' })
-    unitArea: UnitArea;
-
     @ManyToOne(() => Lesson, { nullable: true })
     @JoinColumn({ name: 'lessonid' })
     lesson: Lesson;
@@ -48,9 +45,17 @@ export class Feedback {
     @JoinColumn({ name: 'examid' })
     exam: Exam;
 
+    @ManyToOne(() => ModuleType, { nullable: true })
+    @JoinColumn({ name: 'moduletypeid' })
+    moduleType: ModuleType;
+
     @ManyToOne(() => Question, { nullable: true })
     @JoinColumn({ name: 'questionid' })
     question: Question;
+
+    @ManyToOne(() => QuizQuestion, { nullable: true })
+    @JoinColumn({ name: 'quizquestionid' })
+    quizquestion: QuizQuestion;
 
     @ManyToOne(() => Account)
     @JoinColumn({ name: 'accountfromid' })
@@ -66,7 +71,6 @@ export class Feedback {
     @Column({ type: 'enum', enum: FeedbackStatus })
     status: FeedbackStatus;
 
-    @Column({ type: 'text', nullable: true }) 
+    @Column({ type: 'text', nullable: true })
     reason: string;
 }
-

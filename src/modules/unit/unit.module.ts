@@ -7,6 +7,7 @@ import { PaginationService } from 'src/common/helpers/pagination.service';
 import { LevelModule } from '../level/level.module';
 import { SectionModule } from '../section/section.module';
 import { FeedbackModule } from '../feedback/feedback.module';
+import { DomainModule } from '../domain/domain.module';
 
 @Module({
     imports: [
@@ -14,6 +15,7 @@ import { FeedbackModule } from '../feedback/feedback.module';
         LevelModule,
         SectionModule,
         FeedbackModule,
+        DomainModule
     ],
     controllers: [UnitController],
     providers: [UnitService],

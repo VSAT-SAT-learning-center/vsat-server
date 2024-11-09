@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsString, IsUUID } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsInt, IsString, IsUUID } from 'class-validator';
 
 export class UpdateDomainDistributionConfigDto {
     @ApiProperty()
@@ -12,7 +12,7 @@ export class UpdateDomainDistributionConfigDto {
 
     @IsInt()
     @ApiProperty()
-    percent?: number;
+    percentage?: number;
 
     @IsInt()
     @ApiProperty()

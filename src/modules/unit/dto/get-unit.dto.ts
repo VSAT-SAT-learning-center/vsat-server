@@ -66,6 +66,12 @@ export class LevelDto {
     id: string;
     name: string;
 }
+
+export class DomainDto {
+    id: string;
+    name: string;
+}
+
 export class UnitAreaDto {
     id: string;
     title: string;
@@ -80,6 +86,7 @@ export class UnitResponseDto {
     status?: UnitStatus;
     section: SectionDto;
     level: LevelDto;
+    domain: DomainDto
     unitAreaCount: number;
     lessonCount: number;
     unitAreas: UnitAreaDto[];

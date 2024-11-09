@@ -15,6 +15,11 @@ export class UpdateUnitDto {
   levelId?: string;
 
   @ApiProperty()
+  @IsUUID()
+  @IsOptional()
+  domainId?: string;
+
+  @ApiProperty()
   @IsString()
   @IsOptional()
   title?: string;
@@ -45,6 +50,4 @@ export class UpdateUnitDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-
 }

@@ -1,9 +1,4 @@
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -70,10 +65,7 @@ export class LessonService extends BaseService<Lesson> {
         await this.lessonRepository.save(lesson);
 
         // Gọi LessonContentService để xử lý danh sách LessonContents (thêm, xóa, cập nhật)
-        await this.lessonContentService.saveLessonContents(
-            lesson,
-            lessonContents,
-        );
+        await this.lessonContentService.saveLessonContents(lesson, lessonContents);
 
         return lesson;
     }
@@ -123,10 +115,7 @@ export class LessonService extends BaseService<Lesson> {
     }
 
     // Tìm kiếm và xóa các bài học không còn trong danh sách lessonIds
-    async removeMissingLessons(
-        unitAreaId: string,
-        lessonIds: string[],
-    ): Promise<void> {
+    async removeMissingLessons(unitAreaId: string, lessonIds: string[]): Promise<void> {
         const existingLessons = await this.findLessonsByUnitArea(unitAreaId);
         for (const existingLesson of existingLessons) {
             if (!lessonIds.includes(existingLesson.id)) {
@@ -218,28 +207,20 @@ export class LessonService extends BaseService<Lesson> {
         return await this.lessonRepository.save(newLesson);
     }
 
-    async updateLessonStatus(
-        id: string,
-        updateStatusLessonDto: UpdateLessonStatusDto,
-    ): Promise<Lesson> {
-        const updateLesson = updateStatusLessonDto;
-
+    async updateLessonStatus(id: string, status: boolean): Promise<Lesson> {
         const lesson = await this.findOneById(id);
         if (!lesson) {
             throw new NotFoundException('Lesson not found');
         }
 
-        lesson.status = updateLesson.status;
+        lesson.status = status;
 
         const updatedLesson = await this.lessonRepository.save(lesson);
 
         return updatedLesson;
     }
 
-    async update(
-        id: string,
-        updateLessonDto: UpdateLessonDto,
-    ): Promise<Lesson> {
+    async update(id: string, updateLessonDto: UpdateLessonDto): Promise<Lesson> {
         const { unitAreaId, ...lessonData } = updateLessonDto;
 
         const lesson = await this.findOneById(id);
@@ -264,29 +245,58 @@ export class LessonService extends BaseService<Lesson> {
     }
 
     // Hàm khởi động tiến trình cho bài học khi học sinh bắt đầu học
-    async startLessonProgress(lessonId: string, targetLearningId: string, unitAreaId: string, unitId: string) {
+    async startLessonProgress(
+        lessonId: string,
+        targetLearningId: string,
+        unitAreaId: string,
+        unitId: string,
+    ) {
         // 1. Kiểm tra và tạo `UnitProgress` nếu chưa tồn tại
-        const unitProgress = await this.unitProgressService.startUnitProgress(targetLearningId, unitId);
+        const unitProgress = await this.unitProgressService.startUnitProgress(
+            targetLearningId,
+            unitId,
+        );
         // 2. Kiểm tra và tạo `UnitAreaProgress` nếu chưa tồn tại
-        const unitAreaProgress = await this.unitAreaProgressService.startUnitAreaProgress(targetLearningId, unitAreaId, unitProgress.id);
+        const unitAreaProgress = await this.unitAreaProgressService.startUnitAreaProgress(
+            targetLearningId,
+            unitAreaId,
+            unitProgress.id,
+        );
         // 3. Kiểm tra và tạo `LessonProgress` nếu chưa tồn tại
-        return await this.lessonProgressService.startLessonProgress(lessonId, unitAreaProgress.id, targetLearningId);
+        return await this.lessonProgressService.startLessonProgress(
+            lessonId,
+            unitAreaProgress.id,
+            targetLearningId,
+        );
     }
 
     // Hàm cập nhật tiến trình khi học sinh hoàn thành bài học
-    async completeLessonProgress(lessonId: string, lessonProgressDto: CompleteLessonProgressDto) {
+    async completeLessonProgress(
+        lessonId: string,
+        lessonProgressDto: CompleteLessonProgressDto,
+    ) {
         const { unitId, unitAreaId, targetLearningId } = lessonProgressDto;
         // 1. Cập nhật tiến trình cho bài học
-        const lessonProgress = await this.lessonProgressService.completeLessonProgressNow(lessonId, targetLearningId);
+        const lessonProgress = await this.lessonProgressService.completeLessonProgressNow(
+            lessonId,
+            targetLearningId,
+        );
         const unitAreaProgressId = lessonProgress.unitAreaProgress.id;
 
         // 2. Cập nhật tiến trình UnitAreaProgress dựa trên các bài học
-        const unitProgressId = await this.unitAreaProgressService.updateUnitAreaProgressNow(unitAreaId, unitAreaProgressId);
+        const unitProgressId =
+            await this.unitAreaProgressService.updateUnitAreaProgressNow(
+                unitAreaId,
+                unitAreaProgressId,
+            );
 
         // 3. Cập nhật tiến trình UnitProgress dựa trên UnitArea
-        await this.unitProgressService.updateUnitProgressNow(unitId, targetLearningId, unitProgressId);
+        await this.unitProgressService.updateUnitProgressNow(
+            unitId,
+            targetLearningId,
+            unitProgressId,
+        );
 
         return lessonProgress;
     }
-
 }

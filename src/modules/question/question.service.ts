@@ -72,7 +72,7 @@ export class QuestionService {
     async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId } = feedbackDto;
 
-        await this.updateStatus(questionId, QuestionStatus.REJECT);
+        await this.updateStatus(questionId, QuestionStatus.REJECTED);
 
         return await this.feedbackService.rejectQuestionFeedback(feedbackDto);
     }
@@ -382,7 +382,7 @@ export class QuestionService {
             throw new NotFoundException('Question not found');
         }
 
-        if (status === QuestionStatus.REJECT) {
+        if (status === QuestionStatus.REJECTED) {
             if (question.countfeedback == 3) {
                 question.isActive = false;
             }
@@ -450,7 +450,7 @@ export class QuestionService {
                 'Cannot update question because it is already Pending',
                 HttpStatus.BAD_REQUEST,
             );
-        } else if (question.status === QuestionStatus.REJECT) {
+        } else if (question.status === QuestionStatus.REJECTED) {
             question.status = QuestionStatus.DRAFT;
         }
 

@@ -5,40 +5,47 @@ import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { BaseEntity } from 'typeorm';
 
 export class CreateUnitDto extends BaseEntity {
-  @ApiProperty({
-    description: 'Section ID of the unit',
-    example: '2f51716d-ca78-4536-addc-99fe09442a4d',
-  })
-  @IsUUID()
-  @IsNotEmpty()
-  sectionId: string;
+    @ApiProperty({
+        description: 'Section ID of the unit',
+        example: '2f51716d-ca78-4536-addc-99fe09442a4d',
+    })
+    @IsUUID()
+    @IsNotEmpty()
+    sectionId: string;
 
-  @ApiProperty({
-    example: 'fe93459a-1c3f-4723-9e6f-4336425cd3b0',
-  })
-  @IsUUID()
-  @IsOptional()
-  levelId?: string;
+    @ApiProperty({
+        example: 'fe93459a-1c3f-4723-9e6f-4336425cd3b0',
+    })
+    @IsUUID()
+    @IsOptional()
+    levelId?: string;
 
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  title: string;
+    @ApiProperty({
+        example: 'fe93459a-1c3f-4723-9e6f-4336425cd3b0',
+    })
+    @IsUUID()
+    @IsOptional()
+    domainId?: string;
 
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  description?: string;
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    title: string;
 
-  @ApiProperty({
-    enum: UnitStatus,
-    enumName: 'UnitStatus',
-    example: UnitStatus.DRAFT,
-    default: UnitStatus.DRAFT,
-    required: false,
-  })
-  @IsEnum(UnitStatus)
-  @IsOptional()
-  @Transform(({ value }) => value ?? UnitStatus.DRAFT)
-  status?: UnitStatus;
+    @ApiProperty()
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @ApiProperty({
+        enum: UnitStatus,
+        enumName: 'UnitStatus',
+        example: UnitStatus.DRAFT,
+        default: UnitStatus.DRAFT,
+        required: false,
+    })
+    @IsEnum(UnitStatus)
+    @IsOptional()
+    @Transform(({ value }) => value ?? UnitStatus.DRAFT)
+    status?: UnitStatus;
 }

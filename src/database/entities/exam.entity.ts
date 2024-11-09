@@ -51,6 +51,12 @@ export class Exam {
     })
     status: ExamStatus;
 
+    @Column({ type: 'boolean', default: true })
+    isActive: boolean;
+
+    @Column({ type: 'int', nullable: true })
+    countfeedback: number;
+
     @OneToMany(() => ExamQuestion, (examQuestion) => examQuestion.exam)
     examquestion: ExamQuestion[];
 }

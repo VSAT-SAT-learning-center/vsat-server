@@ -50,7 +50,10 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         }
 
         // Step 2: Verify if the selected answer is correct
-        const isCorrect = await this.quizQuestionService.verifyAnswer(questionId, selectedAnswerId);
+        const isCorrect = await this.quizQuestionService.verifyAnswer(
+            questionId,
+            selectedAnswerId,
+        );
 
         // Step 3: Save or update the answer in QuizAttemptAnswer
         const existingAnswer = await this.quizAttemptAnswerService.findAnswer(
@@ -96,7 +99,9 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         });
 
         if (!quizAttempt) {
-            throw new NotFoundException(`Ongoing Quiz Attempt not found for Quiz ID ${quizId}`);
+            throw new NotFoundException(
+                `Ongoing Quiz Attempt not found for Quiz ID ${quizId}`,
+            );
         }
 
         //Calculate score
@@ -128,10 +133,16 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         const skillsResult = await this.assessSkillProgress(savedQuizAttempt.id);
 
         // Step 4: Recommend Units based on Weak Skills
-        const recommendedUnits = await this.findWeakSkillsByQuizAttempt(savedQuizAttempt.id);
+        const recommendedUnits = await this.findWeakSkillsByQuizAttempt(
+            savedQuizAttempt.id,
+        );
 
         // Step 5: Evaluate Progress Compared to Previous Attempts
-        const progressEvaluation = await this.evaluateQuizProgress(studyProfileId, quizId, score);
+        const progressEvaluation = await this.evaluateQuizProgress(
+            studyProfileId,
+            quizId,
+            score,
+        );
 
         // Step 6: Calculate Course Mastery
         const courseMastery = await this.calculateCourseMastery(studyProfileId);
@@ -190,7 +201,9 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         });
 
         if (!quizAttempt) {
-            throw new NotFoundException(`Quiz Attempt with id ${quizAttemptId} not found`);
+            throw new NotFoundException(
+                `Quiz Attempt with id ${quizAttemptId} not found`,
+            );
         }
 
         // Map to accumulate correct/total counts per skill
@@ -274,10 +287,12 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         }
 
         // Tạo dữ liệu kết quả
-        const skillsSummary = Array.from(skillScores.entries()).map(([skillId, score]) => ({
-            skillId,
-            accuracy: (score.correct / score.total) * 100,
-        }));
+        const skillsSummary = Array.from(skillScores.entries()).map(
+            ([skillId, score]) => ({
+                skillId,
+                accuracy: (score.correct / score.total) * 100,
+            }),
+        );
 
         const skillDetails = skillsSummary; // Có thể tùy chỉnh nếu cần chi tiết hơn
 
@@ -296,7 +311,10 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         if (completedAttempts.length === 0) return 0;
 
         // Tính điểm trung bình của các lần attempt
-        const totalScore = completedAttempts.reduce((sum, attempt) => sum + attempt.score, 0);
+        const totalScore = completedAttempts.reduce(
+            (sum, attempt) => sum + attempt.score,
+            0,
+        );
         return totalScore / completedAttempts.length;
     }
 
@@ -380,7 +398,9 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         });
 
         if (!quizAttempt) {
-            throw new NotFoundException(`Quiz Attempt with ID ${quizAttemptId} not found.`);
+            throw new NotFoundException(
+                `Quiz Attempt with ID ${quizAttemptId} not found.`,
+            );
         }
 
         const answeredQuestions =
@@ -393,27 +413,43 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         return answerQuestionCount === totalQuestions;
     }
 
-    //Return the current progress of the quiz attempt
-    // async getProgress(
-    //     quizAttemptId: string,
-    // ): Promise<{ answeredQuestions: number; totalQuestions: number }> {
-    //     const quizAttempt = await this.quizAttemptRepository.findOne({
-    //         where: { id: quizAttemptId },
-    //         relations: ['quiz', 'quiz.quizQuestions'],
-    //     });
+    async getQuizAttemptStatus(quizAttemptId: string): Promise<any> {
+        // Step 1: Retrieve the Quiz Attempt
+        const quizAttempt = await this.quizAttemptRepository.findOne({
+            where: { id : quizAttemptId },
+            relations: ['quiz', 'quiz.quizQuestions'],
+        });
 
-    //     if (!quizAttempt) {
-    //         throw new NotFoundException(
-    //             `Quiz Attempt with ID ${quizAttemptId} not found.`,
-    //         );
-    //     }
+        if (!quizAttempt) {
+            throw new NotFoundException(
+                `Quiz Attempt with ID ${quizAttemptId} not found`,
+            );
+        }
 
-    //     const answeredQuestions =
-    //         await this.quizAttemptAnswerService.countAnswersByQuizAttempt(
-    //             quizAttemptId,
-    //         );
-    //     const totalQuestions = quizAttempt.quiz.quizQuestions.length;
+        // Step 2: Get all answered questions
+        const answeredQuestions =
+            await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttemptId);
 
-    //     return { answeredQuestions, totalQuestions };
-    // }
+        // Step 3: Determine progress
+        const totalQuestions = quizAttempt.quiz.quizQuestions.length;
+        const answeredCount = answeredQuestions.length;
+        const progressPercentage = (answeredCount / totalQuestions) * 100;
+        const status = quizAttempt.status;
+
+        // Step 4: Structure the response
+        return {
+            quizAttemptId: quizAttempt.id,
+            status,
+            progress: {
+                totalQuestions,
+                answeredQuestions: answeredCount,
+                progressPercentage,
+                questionsAnswered: answeredQuestions.map((a) => ({
+                    questionId: a.quizQuestion.id,
+                    selectedAnswerId: a.studentAnswer,
+                    isCorrect: a.isCorrect,
+                })),
+            },
+        };
+    }
 }
