@@ -15,6 +15,7 @@ import { ExamStatus } from 'src/common/enums/exam-status.enum';
 import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { FeedbackService } from '../feedback/feedback.service';
+import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -31,8 +32,9 @@ export class ExamService extends BaseService<Exam> {
         private readonly questionRepository: Repository<Question>,
         @InjectRepository(Domain)
         private readonly domainRepository: Repository<Domain>,
+        @InjectRepository(DomainDistribution)
+        private readonly domainDistributionRepository: Repository<DomainDistribution>,
         private readonly feedbackService: FeedbackService,
-
         private readonly examQuestionservice: ExamQuestionService,
     ) {
         super(examRepository);
@@ -140,7 +142,7 @@ export class ExamService extends BaseService<Exam> {
             let totalNumberOfQuestions = 0;
             let totalTime = 0;
 
-            const moduleDetails = modules.map((module) => {
+            const moduleDetails = modules.map(async (module) => {
                 if (
                     (module.section?.name === 'Reading & Writing' ||
                         module.section?.name === 'Math') &&
@@ -174,15 +176,9 @@ export class ExamService extends BaseService<Exam> {
                         status: examQuestion.question.status,
                         countfeedback: examQuestion.question.countfeedback,
                         isActive: examQuestion.question.isActive,
-                        level: examQuestion.question.level
-                            ? examQuestion.question.level.name
-                            : null,
-                        skill: examQuestion.question.skill
-                            ? examQuestion.question.skill.content
-                            : null,
-                        section: examQuestion.question.section
-                            ? examQuestion.question.section.name
-                            : null,
+                        level: examQuestion.question.level,
+                        skill: examQuestion.question.skill,
+                        section: examQuestion.question.section,
                         answers: examQuestion.question.answers.map((answer) => ({
                             id: answer.id,
                             text: answer.text,
@@ -191,6 +187,23 @@ export class ExamService extends BaseService<Exam> {
                     });
                 });
 
+                // Lấy thông tin domain distribution cho module
+                const domaindistributions = await this.domainDistributionRepository
+                    .createQueryBuilder('domainDistribution')
+                    .innerJoinAndSelect('domainDistribution.domain', 'domain')
+                    .where('domainDistribution.moduleType.id = :moduleTypeId', {
+                        moduleTypeId: module.id,
+                    })
+                    .getMany();
+
+                // Tạo mảng domaindistribution
+                const domaindistributionDetails = domaindistributions.map(
+                    (distribution) => ({
+                        domain: distribution.domain.content, // lấy content của domain
+                        numberofquestion: distribution.numberofquestion || 0, // lấy số câu hỏi
+                    }),
+                );
+
                 return {
                     id: module.id,
                     name: module.name,
@@ -198,11 +211,14 @@ export class ExamService extends BaseService<Exam> {
                     numberofquestion: module.numberofquestion,
                     time: module.time,
                     section: module.section?.name || null,
-                    domains: Array.from(domains.values()),
+                    domains: Array.from(domains.values()), // thông tin domain từ examquestion
+                    domaindistribution: domaindistributionDetails, // thông tin domain từ domainDistribution
                 };
             });
 
-            return { totalNumberOfQuestions, totalTime, modules: moduleDetails };
+            const modulesWithDetails = await Promise.all(moduleDetails);
+
+            return { totalNumberOfQuestions, totalTime, modules: modulesWithDetails };
         };
 
         const exams = await findExamsWithQuestions();
@@ -242,6 +258,7 @@ export class ExamService extends BaseService<Exam> {
     }
 
     async GetExamWithExamQuestionByStatus(status?: ExamStatus) {
+        // Thêm tham số status
         const findExamsWithQuestions = async () => {
             const query = this.examRepository
                 .createQueryBuilder('exam')
@@ -250,11 +267,12 @@ export class ExamService extends BaseService<Exam> {
                 .leftJoinAndSelect('exam.examType', 'examType')
                 .orderBy('exam.updatedat', 'DESC');
 
-            if (status !== undefined) {
-                query.andWhere('exam.status = :status', { status });
+            if (status) {
+                // Thêm điều kiện lọc theo trạng thái
+                query.where('exam.status = :status', { status });
             }
 
-            return await query.getMany();
+            return await query.getMany(); // Trả về các bài kiểm tra theo điều kiện
         };
 
         const findModuleQuestionsByExamId = async (examId: string) => {
@@ -275,7 +293,7 @@ export class ExamService extends BaseService<Exam> {
             let totalNumberOfQuestions = 0;
             let totalTime = 0;
 
-            const moduleDetails = modules.map((module) => {
+            const moduleDetails = modules.map(async (module) => {
                 if (
                     (module.section?.name === 'Reading & Writing' ||
                         module.section?.name === 'Math') &&
@@ -309,15 +327,9 @@ export class ExamService extends BaseService<Exam> {
                         status: examQuestion.question.status,
                         countfeedback: examQuestion.question.countfeedback,
                         isActive: examQuestion.question.isActive,
-                        level: examQuestion.question.level
-                            ? examQuestion.question.level.name
-                            : null,
-                        skill: examQuestion.question.skill
-                            ? examQuestion.question.skill.content
-                            : null,
-                        section: examQuestion.question.section
-                            ? examQuestion.question.section.name
-                            : null,
+                        level: examQuestion.question.level,
+                        skill: examQuestion.question.skill,
+                        section: examQuestion.question.section,
                         answers: examQuestion.question.answers.map((answer) => ({
                             id: answer.id,
                             text: answer.text,
@@ -326,6 +338,23 @@ export class ExamService extends BaseService<Exam> {
                     });
                 });
 
+                // Lấy thông tin domain distribution cho module
+                const domaindistributions = await this.domainDistributionRepository
+                    .createQueryBuilder('domainDistribution')
+                    .innerJoinAndSelect('domainDistribution.domain', 'domain')
+                    .where('domainDistribution.moduleType.id = :moduleTypeId', {
+                        moduleTypeId: module.id,
+                    })
+                    .getMany();
+
+                // Tạo mảng domaindistribution
+                const domaindistributionDetails = domaindistributions.map(
+                    (distribution) => ({
+                        domain: distribution.domain.content, // lấy content của domain
+                        numberofquestion: distribution.numberofquestion || 0, // lấy số câu hỏi
+                    }),
+                );
+
                 return {
                     id: module.id,
                     name: module.name,
@@ -333,11 +362,14 @@ export class ExamService extends BaseService<Exam> {
                     numberofquestion: module.numberofquestion,
                     time: module.time,
                     section: module.section?.name || null,
-                    domains: Array.from(domains.values()),
+                    domains: Array.from(domains.values()), // thông tin domain từ examquestion
+                    domaindistribution: domaindistributionDetails, // thông tin domain từ domainDistribution
                 };
             });
 
-            return { totalNumberOfQuestions, totalTime, modules: moduleDetails };
+            const modulesWithDetails = await Promise.all(moduleDetails);
+
+            return { totalNumberOfQuestions, totalTime, modules: modulesWithDetails };
         };
 
         const exams = await findExamsWithQuestions();
@@ -421,7 +453,6 @@ export class ExamService extends BaseService<Exam> {
     }
 
     async updateExamStatus(id: string, updateExamDto: UpdateExamDto) {
-
         const exam = await this.findOneById(id);
         if (!exam) {
             throw new NotFoundException('Exam not found');

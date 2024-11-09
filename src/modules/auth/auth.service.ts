@@ -33,11 +33,10 @@ export class AuthService {
     }
 
     createAccessToken(account: any) {
-        console.log(account);
         const payload = {
             id: account.id,
             username: account.username,
-            role: account.role,
+            role: account.role.rolename,
         };
         return this.jwtService.sign(payload, {
             secret: process.env.ACCESS_TOKEN_KEY,
@@ -57,13 +56,10 @@ export class AuthService {
 
     //login
     async login(user: any) {
-        console.log(user.username);
         const findAcc = await this.authRepository.findOne({
             where: { username: user.username },
             relations: ['role'],
         });
-
-        console.log(findAcc);
 
         if (!findAcc) {
             throw new HttpException(
@@ -84,6 +80,7 @@ export class AuthService {
 
         if (findAcc.status === AccountStatus.INACTIVE) {
             const activationToken = this.createAccessToken(findAcc);
+
             await this.sendMail(findAcc.email, activationToken);
         } else if (findAcc.status === AccountStatus.BANNED) {
             throw new HttpException('Account is not permission', HttpStatus.UNAUTHORIZED);
