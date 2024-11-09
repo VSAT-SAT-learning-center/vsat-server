@@ -4,27 +4,19 @@ import {
     Post,
     Body,
     Param,
-    Delete,
-    Query,
-    Put,
     HttpStatus,
     HttpException,
 } from '@nestjs/common';
-import { CreateQuizAttemptDto } from './dto/create-quizattempt.dto';
-import { UpdateQuizAttemptDto } from './dto/update-quizattempt.dto';
 import { QuizAttemptService } from './quiz-attempt.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { QuizAttempt } from 'src/database/entities/quizattempt.entity';
 import { BaseController } from '../base/base.controller';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { RecommendationService } from '../recommendation-service/recommendation.service';
-import { QuizAttemptAnswerService } from '../quiz-attempt-answer/quiz-attempt-answer.service';
 import { QuizService } from '../quiz/quiz.service';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
 import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
-import { SubmitAnswerDto } from './dto/submit-answer.dto';
 import { SaveQuizAttemptProgressDto } from './dto/save-quiz-attempt.dto';
-import { CompleteQuizAttemptResponseDto } from './dto/reponse-complete-quiz-attempt.dto';
 import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 
 @ApiTags('QuizAttempts')

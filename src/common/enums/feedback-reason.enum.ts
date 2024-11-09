@@ -23,5 +23,5 @@ export enum FeedbackReason {
     TAKES_TOO_LONG_TO_SOLVE = 'Takes Too Long to Solve',
     IRRELEVANT_TO_DIGITAL_SAT = 'Irrelevant to Digital SAT',
     CULTURAL_SENSITIVITY_OR_BIAS = 'Cultural Sensitivity or Bias',
-    OTHER = 'Other',
+    OTHER = 'Other', 
 }

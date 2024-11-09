@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { QuizConfig } from './quizconfig.entity';
 import { QuizQuestionItem } from './quizquestionitem.entity';
+import { Unit } from './unit.entity';
 
 @Entity('quiz')
 export class Quiz {
@@ -28,9 +29,9 @@ export class Quiz {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => QuizConfig, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'quizconfigid' })
-    quizconfig: QuizConfig;
+    @ManyToOne(() => Unit)
+    @JoinColumn({ name: 'unitid' })
+    unit: Unit;
 
     @Column({ type: 'int', nullable: true })
     totalquestion: number;
