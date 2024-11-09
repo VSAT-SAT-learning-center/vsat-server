@@ -95,16 +95,6 @@ export class ExamService {
             }
         }
 
-        for (const config of createExamDto.moduleConfig) {
-            if (!moduleMap.has(config.moduleId)) {
-                throw new HttpException('ModuleType is not found', HttpStatus.NOT_FOUND);
-            }
-
-            if (config.time <= 0) {
-                throw new HttpException('Invalid time value', HttpStatus.BAD_REQUEST);
-            }
-        }
-
         const newExam = this.examRepository.create({
             title: createExamDto.title,
             description: createExamDto.description,
@@ -118,7 +108,6 @@ export class ExamService {
             savedExam.id,
             createExamDto.examQuestions,
         );
-        await this.moduleTypeService.saveModuleConfig(createExamDto.moduleConfig);
 
         return savedExam;
     }
