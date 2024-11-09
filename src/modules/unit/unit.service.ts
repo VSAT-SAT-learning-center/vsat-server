@@ -802,4 +802,17 @@ export class UnitService extends BaseService<Unit> {
 
         return await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
     }
+
+    async getUnitWithDomainAndSkills(unitId: string): Promise<Unit> {
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId },
+            relations: ['domain', 'domain.skills'],
+        });
+
+        if (!unit) {
+            throw new NotFoundException(`Unit with ID ${unitId} not found`);
+        }
+
+        return unit;
+    }
 }
