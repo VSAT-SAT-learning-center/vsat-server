@@ -14,17 +14,21 @@ import { GetUnitDTO } from 'src/modules/unit/dto/get-unit.dto';
 
 export class GetQuestionDTO extends BaseDTO {
     @Expose()
+    @ApiProperty()
     id: string;
 
     @Expose()
+    @ApiProperty()
     @Type(() => GetLevelDTO)
     level: GetLevelDTO;
 
     @Expose()
+    @ApiProperty({ type: GetSkillDTO })
     @Type(() => GetSkillDTO)
     skill: GetSkillDTO;
 
     @Expose()
+    @ApiProperty({ type: GetSectionDto })
     @Type(() => GetSectionDto)
     section: Section;
 
@@ -33,24 +37,33 @@ export class GetQuestionDTO extends BaseDTO {
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => GetAnswerDTO)
-    answers: GetAnswerDTO[]; 
+    answers: GetAnswerDTO[];
 
     @Expose()
+    @ApiProperty()
     content: string;
 
     @Expose()
+    @ApiProperty()
+    plainContent: string;
+
+    @Expose()
+    @ApiProperty()
     correctoption: number;
 
     @Expose()
+    @ApiProperty()
     correctanswer: string;
 
     @Expose()
+    @ApiProperty()
     explain: string;
 
     @Expose()
+    @ApiProperty()
     isSingleChoiceQuestion: boolean;
 
     @Expose()
-    status: QuestionStatus
-
+    @ApiProperty()
+    status: QuestionStatus;
 }

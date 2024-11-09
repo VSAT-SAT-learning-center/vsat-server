@@ -1,3 +1,4 @@
+import { ModuleConfig } from 'src/modules/module-type/dto/create-moduleconfig.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsString, IsUUID, IsOptional, IsNotEmpty, IsNumber } from 'class-validator';

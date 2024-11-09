@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from 'src/database/entities/question.entity';
-import { In, IsNull, Repository } from 'typeorm';
+import { ILike, In, IsNull, Like, Repository } from 'typeorm';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
 import { Level } from 'src/database/entities/level.entity';
@@ -30,6 +30,7 @@ import { CreateQuestionExamDto } from './dto/create-question-exam.dto';
 import sanitizeHtml from 'sanitize-html';
 import { validate } from 'class-validator';
 import { CreateAnswerDTO } from '../answer/dto/create-answer.dto';
+import { FetchByContentDTO } from './dto/fetch-question.dto';
 
 @Injectable()
 export class QuestionService {
@@ -92,19 +93,12 @@ export class QuestionService {
         errors: { question: CreateQuestionFileDto; message: string }[];
     }> {
         const savedQuestions: Question[] = [];
-        const errors: { question: CreateQuestionFileDto; message: string }[] =
-            [];
+        const errors: { question: CreateQuestionFileDto; message: string }[] = [];
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
-                const {
-                    level,
-                    skill,
-                    section,
-                    answers,
-                    content,
-                    plainContent,
-                } = createQuestionDto;
+                const { level, skill, section, answers, content, plainContent } =
+                    createQuestionDto;
 
                 const foundLevel = await this.levelRepository.findOne({
                     where: { name: level },
@@ -121,18 +115,13 @@ export class QuestionService {
                 }
 
                 for (const answer of answers) {
-                    const answerInstance = plainToInstance(
-                        CreateAnswerDTO,
-                        answer,
-                    );
+                    const answerInstance = plainToInstance(CreateAnswerDTO, answer);
 
                     const validationErrors = await validate(answerInstance);
 
                     if (validationErrors.length > 0) {
                         const validationMessages = validationErrors
-                            .map((err) =>
-                                Object.values(err.constraints).join(', '),
-                            )
+                            .map((err) => Object.values(err.constraints).join(', '))
                             .join('; ');
                         throw new Error(validationMessages);
                     }
@@ -178,13 +167,9 @@ export class QuestionService {
                     plainContent: normalizedContent,
                 });
 
-                const savedQuestion =
-                    await this.questionRepository.save(newQuestion);
+                const savedQuestion = await this.questionRepository.save(newQuestion);
 
-                await this.answerService.createMultipleAnswers(
-                    savedQuestion.id,
-                    answers,
-                );
+                await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
 
                 savedQuestions.push(savedQuestion);
             } catch (error) {
@@ -229,7 +214,7 @@ export class QuestionService {
         if (!answers || answers.length === 0) {
             throw new Error('Answers array is empty');
         }
-
+        const normalizedAnswers = new Set();
         for (const answer of answers) {
             const answerInstance = plainToInstance(CreateAnswerDTO, answer);
 
@@ -241,6 +226,15 @@ export class QuestionService {
                     .join('; ');
                 throw new Error(validationMessages);
             }
+
+            const normalizedText = this.normalizeContent(answer.text);
+            if (normalizedAnswers.has(normalizedText)) {
+                throw new HttpException(
+                    `Duplicate answer: ${answer.text}`,
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+            normalizedAnswers.add(normalizedText);
         }
 
         const normalizedContent = this.normalizeContent(content);
@@ -250,10 +244,7 @@ export class QuestionService {
         });
 
         if (existingQuestion) {
-            throw new HttpException(
-                `Question already exists`,
-                HttpStatus.BAD_REQUEST,
-            );
+            throw new HttpException(`Question already exists`, HttpStatus.BAD_REQUEST);
         }
 
         if (createQuestionDto.isSingleChoiceQuestion === null) {
@@ -273,23 +264,17 @@ export class QuestionService {
 
         const savedQuestion = await this.questionRepository.save(newQuestion);
 
-        await this.answerService.createMultipleAnswers(
-            savedQuestion.id,
-            answers,
-        );
+        await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
 
         return savedQuestion;
     }
 
-    async saveExamQuestion(
-        createQuestionDtoArray: CreateQuestionExamDto[],
-    ): Promise<{
+    async saveExamQuestion(createQuestionDtoArray: CreateQuestionExamDto[]): Promise<{
         savedQuestions: Question[];
         errors: { question: CreateQuestionExamDto; message: string }[];
     }> {
         const savedQuestions: Question[] = [];
-        const errors: { question: CreateQuestionExamDto; message: string }[] =
-            [];
+        const errors: { question: CreateQuestionExamDto; message: string }[] = [];
 
         for (const createQuestionDto of createQuestionDtoArray) {
             try {
@@ -343,13 +328,9 @@ export class QuestionService {
                     section: foundSection,
                 });
 
-                const savedQuestion =
-                    await this.questionRepository.save(newQuestion);
+                const savedQuestion = await this.questionRepository.save(newQuestion);
 
-                await this.answerService.createMultipleAnswers(
-                    savedQuestion.id,
-                    answers,
-                );
+                await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
 
                 savedQuestions.push(savedQuestion);
             } catch (error) {
@@ -421,8 +402,7 @@ export class QuestionService {
         id: string,
         updateQuestionDto: UpdateQuestionDTO,
     ): Promise<Question> {
-        const { levelId, skillId, sectionId, answers, content } =
-            updateQuestionDto;
+        const { levelId, skillId, sectionId, answers, content } = updateQuestionDto;
 
         const foundLevel = await this.levelRepository.findOne({
             where: { id: levelId },
@@ -439,10 +419,7 @@ export class QuestionService {
         });
 
         if (existingQuestion && existingQuestion.id !== id) {
-            throw new HttpException(
-                `Question is already exists !`,
-                HttpStatus.CONFLICT,
-            );
+            throw new HttpException(`Question is already exists !`, HttpStatus.CONFLICT);
         }
 
         if (!foundLevel) {
@@ -476,7 +453,7 @@ export class QuestionService {
                 'Cannot update question because it is already Pending',
                 HttpStatus.BAD_REQUEST,
             );
-        }else if (question.status === QuestionStatus.REJECT) {
+        } else if (question.status === QuestionStatus.REJECT) {
             question.status = QuestionStatus.DRAFT;
         }
 
@@ -570,7 +547,75 @@ export class QuestionService {
         await this.questionRepository.save(questions);
     }
 
-    async search(){
-        
+    async searchQuestions(
+        page: number,
+        pageSize: number,
+        skillId?: string,
+        domain?: string,
+        level?: string,
+        plainContent?: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+        const status = QuestionStatus.APPROVED;
+        const whereCondition: any = { status };
+
+        if (skillId) {
+            whereCondition.skill = { id: skillId };
+        }
+
+        if (domain) {
+            whereCondition.skill = {
+                ...whereCondition.skill,
+                domain: { content: domain },
+            };
+        }
+
+        if (plainContent) {
+            whereCondition.plainContent = ILike(`%${plainContent}%`);
+        }
+
+        if (level) {
+            whereCondition.level = { name: level };
+        }
+
+        const [questions, total] = await this.questionRepository.findAndCount({
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            skip: skip,
+            take: pageSize,
+            where: whereCondition,
+            order: { updatedat: 'DESC' },
+        });
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetQuestionDTO, questions, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
+    async fetchByContent(contents: string[]): Promise<GetQuestionDTO[]> {
+        const questions = [];
+
+        for (const content of contents) {
+            const question = await this.questionRepository.findOne({
+                where: { plainContent: content },
+                relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            });
+
+            if (!question) {
+                throw new NotFoundException(`Question is not found`);
+            }
+
+            questions.push(question);
+        }
+
+        return plainToInstance(GetQuestionDTO, questions, {
+            excludeExtraneousValues: true,
+        });
     }
 }

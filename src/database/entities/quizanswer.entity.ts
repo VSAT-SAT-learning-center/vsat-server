@@ -36,6 +36,9 @@ export class QuizAnswer {
     @Column({ type: 'text', nullable: true })
     text: string;
 
+    @Column({ type: 'text', nullable: true })
+    plaintext: string;
+
     @Column({ type: 'boolean', default: false })
     isCorrectAnswer: boolean;
 }

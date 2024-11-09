@@ -36,10 +36,6 @@ export class ExamScore {
     @JoinColumn({ name: 'examStructureTypeId' })
     examStructureType: ExamStructureType;
 
-    @OneToMany(
-        () => ExamScoreDetail,
-        (examScoreDetail) => examScoreDetail.examScore,
-    )
+    @OneToMany(() => ExamScoreDetail, (examScoreDetail) => examScoreDetail.examScore)
     examScoreDetails: ExamScoreDetail[];
-
 }

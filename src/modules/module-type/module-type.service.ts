@@ -12,6 +12,7 @@ import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { plainToInstance } from 'class-transformer';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
 import { DomainDistributionService } from '../domain-distribution/domain-distribution.service';
+import { ModuleConfig } from './dto/create-moduleconfig.dto';
 
 @Injectable()
 export class ModuleTypeService extends BaseService<ModuleType> {
@@ -55,9 +56,11 @@ export class ModuleTypeService extends BaseService<ModuleType> {
                 examStructure: examStructure,
                 level: createModuleTypeDto.level,
                 numberofquestion: createModuleTypeDto.numberOfQuestion,
+                time: createModuleTypeDto.time,
             });
 
-            const saveModuleType = await this.moduleTypeRepository.save(createdModuleType);
+            const saveModuleType =
+                await this.moduleTypeRepository.save(createdModuleType);
 
             await this.domainDistributionService.save(
                 saveModuleType.id,
@@ -79,14 +82,11 @@ export class ModuleTypeService extends BaseService<ModuleType> {
         sectionName: string,
     ): Promise<string> {
         // Bước 1: Lấy `examStructureId` từ `ExamAttempt`
-        const examAttempt =
-            await this.examAttemptService.findOneById(examAttemptId);
+        const examAttempt = await this.examAttemptService.findOneById(examAttemptId);
         const examStructureId = examAttempt?.exam?.examStructure?.id;
 
         if (!examStructureId) {
-            throw new Error(
-                'Exam structure not found for the provided attempt',
-            );
+            throw new Error('Exam structure not found for the provided attempt');
         }
 
         // Bước 2: Lấy `ModuleType` với `examStructureId`, `sectionId`, và tên là "Module 2"
@@ -100,5 +100,26 @@ export class ModuleTypeService extends BaseService<ModuleType> {
         });
 
         return moduleType?.level || 'Easy';
+    }
+
+    async saveModuleConfig(moduleConfigs: ModuleConfig[]): Promise<any> {
+        const savedModules = [];
+
+        for (const moduleConfig of moduleConfigs) {
+            const module = await this.moduleTypeRepository.findOne({
+                where: { id: moduleConfig.moduleId },
+            });
+
+            if (!module) {
+                throw new NotFoundException(`Module is not found`);
+            }
+
+            module.time = moduleConfig.time;
+
+            const savedModule = await this.moduleTypeRepository.save(module);
+            savedModules.push(savedModule);
+        }
+
+        return savedModules;
     }
 }

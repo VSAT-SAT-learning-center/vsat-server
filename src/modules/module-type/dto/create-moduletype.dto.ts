@@ -30,6 +30,11 @@ export class CreateModuleTypeDto {
     @ApiProperty()
     numberOfQuestion: number;
 
+    @IsInt()
+    @Expose()
+    @ApiProperty()
+    time: number;
+
     @ApiProperty({ type: [CreateDomainDistributionDto] })
     @Type(() => CreateDomainDistributionDto)
     domainDistribution: CreateDomainDistributionDto;
