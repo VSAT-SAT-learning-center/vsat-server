@@ -12,9 +12,7 @@ import { Exam } from './exam.entity';
 import { Question } from './question.entity';
 import { Account } from './account.entity';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
-import { UnitArea } from './unitarea.entity';
 import { Lesson } from './lesson.entity';
-import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
 import { QuizQuestion } from './quizquestion.entity';
 import { ModuleType } from './moduletype.entity';
 
