@@ -6,8 +6,9 @@ import { Domain } from 'src/database/entities/domain.entity';
 import { Section } from 'src/database/entities/section.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Domain, Section])],
-  providers: [DomainService],
-  controllers: [DomainController],
+    imports: [TypeOrmModule.forFeature([Domain, Section])],
+    providers: [DomainService],
+    controllers: [DomainController],
+    exports: [DomainService]
 })
 export class DomainModule {}

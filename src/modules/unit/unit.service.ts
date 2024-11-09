@@ -14,6 +14,7 @@ import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
 import { Feedback } from 'src/database/entities/feedback.entity';
+import { DomainService } from '../domain/domain.service';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -22,6 +23,7 @@ export class UnitService extends BaseService<Unit> {
         private readonly unitRepository: Repository<Unit>,
         private readonly sectionService: SectionService,
         private readonly levelService: LevelService,
+        private readonly domainService: DomainService,
 
         private readonly feedbackService: FeedbackService,
     ) {
@@ -37,14 +39,20 @@ export class UnitService extends BaseService<Unit> {
         }
 
         const level = await this.levelService.findById(levelId);
-        if (!levelId) {
+        if (!level) {
             throw new NotFoundException('Level not found');
+        }
+
+        const domain = await this.domainService.findOneById(levelId);
+        if (!domain) {
+            throw new NotFoundException('Domain not found');
         }
 
         const newUnit = this.unitRepository.create({
             ...unitData,
             section: section,
             level: level,
+            domain: domain,
         });
 
         return await this.unitRepository.save(newUnit);
@@ -64,8 +72,13 @@ export class UnitService extends BaseService<Unit> {
         }
 
         const level = await this.levelService.findById(levelId);
-        if (!levelId) {
+        if (!level) {
             throw new NotFoundException('Level not found');
+        }
+
+        const domain = await this.domainService.findOneById(levelId);
+        if (!domain) {
+            throw new NotFoundException('Domain not found');
         }
 
         const updatedUnit = this.unitRepository.save({
@@ -73,6 +86,7 @@ export class UnitService extends BaseService<Unit> {
             ...unitData,
             section: section,
             level: level,
+            domain: domain,
         });
 
         return updatedUnit;
@@ -100,11 +114,12 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        // Fetch all Units along with related UnitAreas, Lessons, Section, Level and Domain
         const [units, totalCount] = await this.unitRepository.findAndCount({
             relations: [
                 'section',
                 'level',
+                'domain',
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
@@ -212,6 +227,7 @@ export class UnitService extends BaseService<Unit> {
             relations: [
                 'section',
                 'level',
+                'domain',
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
@@ -255,6 +271,7 @@ export class UnitService extends BaseService<Unit> {
             relations: [
                 'section',
                 'level',
+                'domain',
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
@@ -298,6 +315,7 @@ export class UnitService extends BaseService<Unit> {
             relations: [
                 'section',
                 'level',
+                'domain',
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
@@ -341,6 +359,7 @@ export class UnitService extends BaseService<Unit> {
             relations: [
                 'section',
                 'level',
+                'domain',
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
@@ -383,6 +402,7 @@ export class UnitService extends BaseService<Unit> {
             relations: [
                 'section',
                 'level',
+                'domain',
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
@@ -426,6 +446,7 @@ export class UnitService extends BaseService<Unit> {
                 'section',
                 'level',
                 'unitAreas',
+                'domain',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
             ],
@@ -504,6 +525,7 @@ export class UnitService extends BaseService<Unit> {
             relations: [
                 'section',
                 'level',
+                'domain',
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
@@ -538,84 +560,56 @@ export class UnitService extends BaseService<Unit> {
                           lessons: Array.isArray(unitArea.lessons)
                               ? unitArea.lessons.map((lesson) => ({
                                     id: lesson.id,
-                                    prerequisitelessonid:
-                                        lesson.prerequisitelessonid,
+                                    prerequisitelessonid: lesson.prerequisitelessonid,
                                     type: lesson.type,
                                     title: lesson.title,
-                                    lessonContents: Array.isArray(
-                                        lesson.lessonContents,
-                                    )
-                                        ? lesson.lessonContents.map(
-                                              (content) => ({
-                                                  id: content.id,
-                                                  title: content.title,
-                                                  contentType:
-                                                      content.contentType,
-                                                  contents: Array.isArray(
-                                                      content.contents,
-                                                  )
-                                                      ? content.contents.map(
-                                                            (c) => ({
-                                                                contentId:
-                                                                    c.contentId,
-                                                                text: c.text,
-                                                                examples:
-                                                                    Array.isArray(
-                                                                        c.examples,
-                                                                    )
-                                                                        ? c.examples.map(
-                                                                              (
-                                                                                  e,
-                                                                              ) => ({
-                                                                                  exampleId:
-                                                                                      e.exampleId,
-                                                                                  content:
-                                                                                      e.content,
-                                                                                  explain:
-                                                                                      e.explain ||
-                                                                                      '',
-                                                                              }),
-                                                                          )
-                                                                        : [],
-                                                            }),
+                                    lessonContents: Array.isArray(lesson.lessonContents)
+                                        ? lesson.lessonContents.map((content) => ({
+                                              id: content.id,
+                                              title: content.title,
+                                              contentType: content.contentType,
+                                              contents: Array.isArray(content.contents)
+                                                  ? content.contents.map((c) => ({
+                                                        contentId: c.contentId,
+                                                        text: c.text,
+                                                        examples: Array.isArray(
+                                                            c.examples,
                                                         )
-                                                      : [],
-                                                  question: content.question
-                                                      ? {
-                                                            questionId:
-                                                                content.question
-                                                                    .questionId,
-                                                            prompt: content
-                                                                .question
-                                                                .prompt,
-                                                            correctAnswer:
-                                                                content.question
-                                                                    .correctAnswer,
-                                                            explanation:
-                                                                content.question
-                                                                    .explanation ||
-                                                                '',
-                                                            answers:
-                                                                Array.isArray(
-                                                                    content
-                                                                        .question
-                                                                        .answers,
-                                                                )
-                                                                    ? content.question.answers.map(
-                                                                          (
-                                                                              a,
-                                                                          ) => ({
-                                                                              answerId:
-                                                                                  a.answerId,
-                                                                              text: a.text,
-                                                                              label: a.label,
-                                                                          }),
-                                                                      )
-                                                                    : [],
-                                                        }
-                                                      : null, // Handle null if no question
-                                              }),
-                                          )
+                                                            ? c.examples.map((e) => ({
+                                                                  exampleId: e.exampleId,
+                                                                  content: e.content,
+                                                                  explain:
+                                                                      e.explain || '',
+                                                              }))
+                                                            : [],
+                                                    }))
+                                                  : [],
+                                              question: content.question
+                                                  ? {
+                                                        questionId:
+                                                            content.question.questionId,
+                                                        prompt: content.question.prompt,
+                                                        correctAnswer:
+                                                            content.question
+                                                                .correctAnswer,
+                                                        explanation:
+                                                            content.question
+                                                                .explanation || '',
+                                                        answers: Array.isArray(
+                                                            content.question.answers,
+                                                        )
+                                                            ? content.question.answers.map(
+                                                                  (a) => ({
+                                                                      answerId:
+                                                                          a.answerId,
+                                                                      text: a.text,
+                                                                      label: a.label,
+                                                                  }),
+                                                              )
+                                                            : [],
+                                                    }
+                                                  : null, // Handle null if no question
+                                          }))
                                         : [],
                                 }))
                               : [],
@@ -631,6 +625,12 @@ export class UnitService extends BaseService<Unit> {
                     ? {
                           id: unit.level.id,
                           name: unit.level.name,
+                      }
+                    : null,
+                domain: unit.domain
+                    ? {
+                          id: unit.domain.id,
+                          name: unit.domain.content,
                       }
                     : null,
 
@@ -657,61 +657,43 @@ export class UnitService extends BaseService<Unit> {
                       lessons: Array.isArray(unitArea.lessons)
                           ? unitArea.lessons.map((lesson) => ({
                                 id: lesson.id,
-                                prerequisitelessonid:
-                                    lesson.prerequisitelessonid,
+                                prerequisitelessonid: lesson.prerequisitelessonid,
                                 type: lesson.type,
                                 title: lesson.title,
-                                lessonContents: Array.isArray(
-                                    lesson.lessonContents,
-                                )
+                                lessonContents: Array.isArray(lesson.lessonContents)
                                     ? lesson.lessonContents.map((content) => ({
                                           id: content.id,
                                           title: content.title,
                                           contentType: content.contentType,
-                                          contents: Array.isArray(
-                                              content.contents,
-                                          )
+                                          contents: Array.isArray(content.contents)
                                               ? content.contents.map((c) => ({
                                                     contentId: c.contentId,
                                                     text: c.text,
-                                                    examples: Array.isArray(
-                                                        c.examples,
-                                                    )
-                                                        ? c.examples.map(
-                                                              (e) => ({
-                                                                  exampleId:
-                                                                      e.exampleId,
-                                                                  content:
-                                                                      e.content,
-                                                                  explain:
-                                                                      e.explain ||
-                                                                      '',
-                                                              }),
-                                                          )
+                                                    examples: Array.isArray(c.examples)
+                                                        ? c.examples.map((e) => ({
+                                                              exampleId: e.exampleId,
+                                                              content: e.content,
+                                                              explain: e.explain || '',
+                                                          }))
                                                         : [],
                                                 }))
                                               : [],
                                           question: content.question
                                               ? {
                                                     questionId:
-                                                        content.question
-                                                            .questionId,
-                                                    prompt: content.question
-                                                        .prompt,
+                                                        content.question.questionId,
+                                                    prompt: content.question.prompt,
                                                     correctAnswer:
-                                                        content.question
-                                                            .correctAnswer,
+                                                        content.question.correctAnswer,
                                                     explanation:
-                                                        content.question
-                                                            .explanation || '',
+                                                        content.question.explanation ||
+                                                        '',
                                                     answers: Array.isArray(
-                                                        content.question
-                                                            .answers,
+                                                        content.question.answers,
                                                     )
                                                         ? content.question.answers.map(
                                                               (a) => ({
-                                                                  answerId:
-                                                                      a.answerId,
+                                                                  answerId: a.answerId,
                                                                   text: a.text,
                                                                   label: a.label,
                                                               }),
@@ -735,6 +717,12 @@ export class UnitService extends BaseService<Unit> {
                 ? {
                       id: unit.level.id,
                       name: unit.level.name,
+                  }
+                : null,
+            domain: unit.domain
+                ? {
+                      id: unit.domain.id,
+                      name: unit.domain.content,
                   }
                 : null,
             unitAreaCount: unit.unitAreaCount,
