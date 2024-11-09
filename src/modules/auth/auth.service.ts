@@ -33,6 +33,7 @@ export class AuthService {
     }
 
     createAccessToken(account: any) {
+        console.log(account);
         const payload = {
             id: account.id,
             username: account.username,
@@ -55,11 +56,14 @@ export class AuthService {
     }
 
     //login
-    async validateAccount({ username, password }: AuthDTO) {
+    async login(user: any) {
+        console.log(user.username);
         const findAcc = await this.authRepository.findOne({
-            where: { username },
+            where: { username: user.username },
             relations: ['role'],
         });
+
+        console.log(findAcc);
 
         if (!findAcc) {
             throw new HttpException(
@@ -68,48 +72,27 @@ export class AuthService {
             );
         }
 
-        const isPasswordValid = await bcrypt.compare(
-            password,
-            findAcc.password,
-        );
+        const accessToken = this.createAccessToken(findAcc);
+        const refreshToken = this.createRefreshToken(findAcc);
 
-        if (isPasswordValid) {
-            const accountData = {
-                id: findAcc.id,
-                username: findAcc.username,
-                role: findAcc.role.rolename,
-            };
-
-            const accessToken = this.createAccessToken(accountData);
-            const refreshToken = this.createRefreshToken(accountData);
-
-            if (findAcc.refreshToken) {
-                findAcc.refreshToken = null;
-            }
-
-            findAcc.refreshToken = refreshToken;
-            await this.authRepository.save(findAcc);
-
-            if (findAcc.status === AccountStatus.INACTIVE) {
-                const activationToken = this.createAccessToken(accountData);
-                await this.sendMail(findAcc.email, activationToken);
-            } else if (findAcc.status === AccountStatus.BANNED) {
-                throw new HttpException(
-                    'Account is not permission',
-                    HttpStatus.UNAUTHORIZED,
-                );
-            }
-
-            return {
-                accessToken,
-                refreshToken,
-            };
-        } else {
-            throw new HttpException(
-                'Wrong username or password',
-                HttpStatus.UNAUTHORIZED,
-            );
+        if (findAcc.refreshToken) {
+            findAcc.refreshToken = null;
         }
+
+        findAcc.refreshToken = refreshToken;
+        await this.authRepository.save(findAcc);
+
+        if (findAcc.status === AccountStatus.INACTIVE) {
+            const activationToken = this.createAccessToken(findAcc);
+            await this.sendMail(findAcc.email, activationToken);
+        } else if (findAcc.status === AccountStatus.BANNED) {
+            throw new HttpException('Account is not permission', HttpStatus.UNAUTHORIZED);
+        }
+
+        return {
+            accessToken,
+            refreshToken,
+        };
     }
 
     async validate({ username, password }: AuthDTO): Promise<any> {
@@ -124,10 +107,7 @@ export class AuthService {
             );
         }
 
-        const isPasswordValid = await bcrypt.compare(
-            password,
-            findAcc.password,
-        );
+        const isPasswordValid = await bcrypt.compare(password, findAcc.password);
         if (isPasswordValid) {
             return {
                 id: findAcc.id,
@@ -153,10 +133,7 @@ export class AuthService {
             });
 
             if (!findAcc) {
-                throw new HttpException(
-                    'User not found',
-                    HttpStatus.UNAUTHORIZED,
-                );
+                throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
             }
 
             if (findAcc.refreshToken !== refreshToken) {
@@ -188,10 +165,7 @@ export class AuthService {
                 error instanceof JsonWebTokenError &&
                 error.name === 'TokenExpiredError'
             ) {
-                throw new HttpException(
-                    'Token expired',
-                    HttpStatus.UNAUTHORIZED,
-                );
+                throw new HttpException('Token expired', HttpStatus.UNAUTHORIZED);
             } else {
                 throw new HttpException(
                     'Invalid or expired token',
