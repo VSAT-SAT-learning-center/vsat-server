@@ -8,6 +8,7 @@ import { Question } from 'src/database/entities/question.entity';
 import { Exam } from 'src/database/entities/exam.entity';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Domain } from 'src/database/entities/domain.entity';
+import { UpdateExamQuestion } from './dto/update-examquestion.dto';
 
 @Injectable()
 export class ExamQuestionService {
@@ -22,7 +23,6 @@ export class ExamQuestionService {
         private readonly domainRepository: Repository<Domain>,
         @InjectRepository(Question)
         private readonly questionRepository: Repository<Question>,
-
     ) {}
 
     // async createExamQuestion(
@@ -77,7 +77,10 @@ export class ExamQuestionService {
     //     return savedExamQuestions;
     // }
 
-    async createExamQuestion(examId: string, createExamQuestionDto: CreateExamQuestionDTO[]) {
+    async createExamQuestion(
+        examId: string,
+        createExamQuestionDto: CreateExamQuestionDTO[],
+    ) {
         for (const createExamQuestionData of createExamQuestionDto) {
             const moduleType = await this.moduleTypeRepository.findOne({
                 where: { id: createExamQuestionData.moduleId },
@@ -123,5 +126,63 @@ export class ExamQuestionService {
                 }
             }
         }
+    }
+
+    async updateExamQuestion(updateExamQuestion: UpdateExamQuestion) {
+        const updateDeleteArrays = [];
+
+        for (const updateDeleteExamQuestionData of updateExamQuestion.updateDeleteExamQuestion) {
+            const examQuestion = await this.examQuestionRepository.findOne({
+                where: { question: { id: updateDeleteExamQuestionData.id } },
+            });
+
+            if (!examQuestion) {
+                throw new NotFoundException('Question is not found');
+            }
+
+            updateDeleteArrays.push(examQuestion);
+        }
+
+        await this.examQuestionRepository.delete(updateDeleteArrays);
+
+        const updateQuestionArrays = [];
+
+        for (const updateQuestionData of updateExamQuestion.updateQuestion) {
+            const exam = await this.examRepository.findOne({
+                where: { id: updateQuestionData.examId },
+            });
+
+            const moduleType = await this.moduleTypeRepository.findOne({
+                where: { id: updateQuestionData.moduleTypeId },
+            });
+
+            const question = await this.questionRepository.findOne({
+                where: { id: updateQuestionData.questionId },
+            });
+
+            if (!question) {
+                throw new NotFoundException('Question is not found');
+            }
+
+            if (!exam) {
+                throw new NotFoundException('Exam is not found');
+            }
+
+            if (!moduleType) {
+                throw new NotFoundException('Module is not found');
+            }
+
+            const createQuestion = await this.examQuestionRepository.create({
+                exam: { id: exam.id },
+                moduleType: { id: moduleType.id },
+                question: { id: question.id },
+            });
+
+            const savedQuestion = await this.examQuestionRepository.save(createQuestion);
+
+            updateQuestionArrays.push(savedQuestion);
+        }
+
+        return updateQuestionArrays;
     }
 }

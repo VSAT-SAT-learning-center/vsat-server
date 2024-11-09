@@ -5,6 +5,7 @@ import {
     HttpException,
     HttpStatus,
     Param,
+    Patch,
     Post,
     Put,
     Req,
@@ -16,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { ExamQuestion } from 'src/database/entities/examquestion.entity';
 import { CreateExamQuestionDTO } from './dto/create-examquestion.dto';
+import { UpdateExamQuestion } from './dto/update-examquestion.dto';
 
 @ApiTags('ExamQuestions')
 @Controller('exam-questions')
@@ -46,4 +48,25 @@ export class ExamQuestionController {
     //         );
     //     }
     // }
+
+    @Patch()
+    async updateExamQuestion(@Body() updateExamQuestion: UpdateExamQuestion) {
+        try {
+            const examquestion =
+                await this.examQuestionService.updateExamQuestion(updateExamQuestion);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examquestion,
+                SuccessMessages.update('ExamQuestion'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

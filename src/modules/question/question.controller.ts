@@ -268,10 +268,12 @@ export class QuestionController {
                 SuccessMessages.update('Feedback'),
             );
         } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Error when updating Feedback',
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
             );
         }
     }
@@ -282,10 +284,12 @@ export class QuestionController {
         try {
             return await this.questionService.fetchByContent(fetchByContentDto.contents);
         } catch (error) {
-            return ResponseHelper.error(
-                error,
-                HttpStatus.BAD_REQUEST,
-                'Error when fetching questions by content',
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
             );
         }
     }

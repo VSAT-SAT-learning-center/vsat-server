@@ -19,6 +19,7 @@ import { Exam } from 'src/database/entities/exam.entity';
 import { BaseController } from '../base/base.controller';
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
 
 @ApiTags('Exams')
 @Controller('exams')
@@ -50,6 +51,27 @@ export class ExamController {
     async GetExamWithExamQuestion() {
         try {
             const exam = await this.examService.GetExamWithExamQuestion();
+
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                exam,
+                SuccessMessages.get('Exam'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get(':status')
+    async GetExamWithExamQuestionByStatus(@Param('status') status: ExamStatus) {
+        try {
+            const exam = await this.examService.GetExamWithExamQuestionByStatus(status);
 
             return ResponseHelper.success(
                 HttpStatus.CREATED,
