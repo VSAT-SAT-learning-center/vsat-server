@@ -132,7 +132,7 @@ export class ExamService {
                 .leftJoinAndSelect('question.answers', 'answers')
                 .leftJoinAndSelect('moduleType.section', 'moduleSection')
                 .where('examQuestion.exam.id = :examId', { examId })
-                .orderBy('moduleType.updateat', 'DESC')
+                .orderBy('moduleType.updatedat', 'DESC') // Sửa tên cột `updatedat`
                 .getMany();
 
             let totalNumberOfQuestions = 0;
@@ -146,7 +146,7 @@ export class ExamService {
                     (module.level === null || module.level === 'Easy')
                 ) {
                     totalNumberOfQuestions += module.numberofquestion || 0;
-                    totalTime += module.time || 0;
+                    totalTime += module.time || 0; // Lấy `time` từ `module`
                 }
 
                 const domains = new Map();
@@ -194,7 +194,7 @@ export class ExamService {
                     name: module.name,
                     level: module.level,
                     numberofquestion: module.numberofquestion,
-                    time: module.time,
+                    time: module.time, // Đảm bảo `time` được bao gồm
                     section: module.section?.name || null,
                     domains: Array.from(domains.values()),
                 };
@@ -215,6 +215,8 @@ export class ExamService {
                     title: exam.title,
                     description: exam.description,
                     createdat: exam.createdat,
+                    updateat: exam.updatedat,
+                    status: exam.status,
                     totalNumberOfQuestions,
                     totalTime,
                     examQuestions: modules,
