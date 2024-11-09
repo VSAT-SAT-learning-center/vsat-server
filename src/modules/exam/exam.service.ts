@@ -95,16 +95,6 @@ export class ExamService {
             }
         }
 
-        for (const config of createExamDto.moduleConfig) {
-            if (!moduleMap.has(config.moduleId)) {
-                throw new HttpException('ModuleType is not found', HttpStatus.NOT_FOUND);
-            }
-
-            if (config.time <= 0) {
-                throw new HttpException('Invalid time value', HttpStatus.BAD_REQUEST);
-            }
-        }
-
         const newExam = this.examRepository.create({
             title: createExamDto.title,
             description: createExamDto.description,
@@ -118,7 +108,6 @@ export class ExamService {
             savedExam.id,
             createExamDto.examQuestions,
         );
-        await this.moduleTypeService.saveModuleConfig(createExamDto.moduleConfig);
 
         return savedExam;
     }
@@ -127,6 +116,7 @@ export class ExamService {
         const findExamsWithQuestions = async () => {
             return await this.examRepository.find({
                 relations: ['examquestion', 'examStructure', 'examType'],
+                order: { updatedat: 'DESC' },
             });
         };
 
@@ -142,13 +132,13 @@ export class ExamService {
                 .leftJoinAndSelect('question.answers', 'answers')
                 .leftJoinAndSelect('moduleType.section', 'moduleSection')
                 .where('examQuestion.exam.id = :examId', { examId })
+                .orderBy('moduleType.updateat', 'DESC')
                 .getMany();
 
             let totalNumberOfQuestions = 0;
             let totalTime = 0;
 
             const moduleDetails = modules.map((module) => {
-                // Kiểm tra điều kiện và cộng dồn nếu thoả mãn
                 if (
                     (module.section?.name === 'Reading & Writing' ||
                         module.section?.name === 'Math') &&
@@ -159,7 +149,6 @@ export class ExamService {
                     totalTime += module.time || 0;
                 }
 
-                // Tổ chức các domains
                 const domains = new Map();
                 module.examquestion.forEach((examQuestion) => {
                     const domainName = examQuestion.question.skill?.domain?.content;
@@ -225,6 +214,7 @@ export class ExamService {
                     id: exam.id,
                     title: exam.title,
                     description: exam.description,
+                    createdat: exam.createdat,
                     totalNumberOfQuestions,
                     totalTime,
                     examQuestions: modules,
