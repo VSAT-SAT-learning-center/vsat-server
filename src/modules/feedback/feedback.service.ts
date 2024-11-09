@@ -1,9 +1,4 @@
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Feedback } from 'src/database/entities/feedback.entity';
@@ -16,10 +11,11 @@ import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
-import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
 import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
 import { plainToInstance } from 'class-transformer';
 import { QuizQuestionFeedbackDto } from './dto/quizquestion-feedback.dto';
+import { ExamCensorFeedbackDto } from './dto/exam-feedback.dto';
+import { ModuleTypeService } from '../module-type/module-type.service';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -29,11 +25,13 @@ export class FeedbackService extends BaseService<Feedback> {
         private readonly lessonService: LessonService,
         private readonly feedbackGateway: FeedbacksGateway,
         private readonly accountService: AccountService,
+        private readonly moduleTypeService: ModuleTypeService,
     ) {
         super(feedbackRepository);
     }
 
-    //For consistency and better error handling, it’s good to wrap feedback creation and status updates inside a try-catch block and possibly use Promise.all to parallelize lesson feedback updates.
+    //For consistency and better error handling, it’s good to wrap feedback creation and status updates inside a try-catch block
+    //and possibly use Promise.all to parallelize lesson feedback updates.
     async rejectLearningMaterialFeedback(
         feedbackDto: LearningMaterialFeedbackDto,
     ): Promise<Feedback> {
@@ -41,13 +39,10 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const feedbackPromises = unitFeedback.lessonsFeedback.map(
             async (lessonFeedback) => {
-                const { lessonId, isRejected, content, reason } =
-                    lessonFeedback;
+                const { lessonId, isRejected, content, reason } = lessonFeedback;
 
                 if (isRejected) {
-                    await this.lessonService.updateLessonStatus(lessonId, {
-                        status: false,
-                    });
+                    await this.lessonService.updateLessonStatus(lessonId, false);
 
                     await this.feedbackRepository.save({
                         accountFrom: { id: accountFromId },
@@ -91,9 +86,7 @@ export class FeedbackService extends BaseService<Feedback> {
             // Update each lesson's status to true
             await this.lessonService.updateLessonStatus(
                 lessonFeedback.lessonId,
-                {
-                    status: true, // Set status to true for approved lessons
-                },
+                true, // Set status to true for approved lessons
             );
         }
 
@@ -118,9 +111,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
     async submitLearningMaterial(
         createFeedbackDto: CreateFeedbackUnitDto,
-    ): Promise<
-        { feedbackId: string; accountFrom: string; accountTo: string }[]
-    > {
+    ): Promise<{ feedbackId: string; accountFrom: string; accountTo: string }[]> {
         const feedbackList: {
             feedbackId: string;
             accountFrom: string;
@@ -163,11 +154,8 @@ export class FeedbackService extends BaseService<Feedback> {
         return feedbackList;
     }
 
-    async rejectQuestionFeedback(
-        feedbackDto: QuestionFeedbackDto,
-    ): Promise<Feedback> {
-        const { questionId, content, reason, accountFromId, accountToId } =
-            feedbackDto;
+    async rejectQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
+        const { questionId, content, reason, accountFromId, accountToId } = feedbackDto;
 
         const rejectFeedback = await this.feedbackRepository.save({
             accountFrom: { id: accountFromId },
@@ -188,9 +176,7 @@ export class FeedbackService extends BaseService<Feedback> {
         return rejectFeedback;
     }
 
-    async approveQuestionFeedback(
-        feedbackDto: QuestionFeedbackDto,
-    ): Promise<Feedback> {
+    async approveQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId, content, accountFromId, accountToId } = feedbackDto;
 
         const approvedFeedback = await this.feedbackRepository.save({
@@ -223,7 +209,7 @@ export class FeedbackService extends BaseService<Feedback> {
             content,
             reason,
             status: FeedbackStatus.REJECTED,
-            question: { id: quizQuestionId },
+            quizQuestion: { id: quizQuestionId },
         });
 
         console.log('sending notification to user: ', accountToId);
@@ -242,7 +228,7 @@ export class FeedbackService extends BaseService<Feedback> {
         const { quizQuestionId, content, accountFromId, accountToId } = feedbackDto;
 
         const approvedFeedback = await this.feedbackRepository.save({
-            question: { id: quizQuestionId },
+            quizQuestion: { id: quizQuestionId },
             accountFrom: { id: accountFromId },
             accountTo: { id: accountToId },
             content,
@@ -259,6 +245,82 @@ export class FeedbackService extends BaseService<Feedback> {
         return approvedFeedback;
     }
 
+    async rejectExamFeedback(feedbackDto: ExamCensorFeedbackDto): Promise<Feedback> {
+        const { examFeedback, accountFromId, accountToId } = feedbackDto;
+
+        const feedbackPromises = examFeedback.moduleTypesFeedback.map(
+            async (moduleTypesFeedback) => {
+                const { moduleTypeId, isRejected, content, reason } = moduleTypesFeedback;
+
+                if (isRejected) {
+                    await this.moduleTypeService.updateModuleTypestatus(
+                        moduleTypeId,
+                        false,
+                    );
+
+                    await this.feedbackRepository.save({
+                        accountFrom: { id: accountFromId },
+                        accountTo: { id: accountToId },
+                        moduletype: { id: moduleTypeId },
+                        exam: { id: examFeedback.examId },
+                        content,
+                        reason,
+                        status: FeedbackStatus.REJECTED,
+                    });
+                }
+            },
+        );
+
+        await Promise.all(feedbackPromises);
+
+        // Create feedback entry for the unit
+        const rejectFeedback = await this.feedbackRepository.save({
+            exam: { id: examFeedback.examId },
+            content: 'Rejected due to module issues',
+            status: FeedbackStatus.REJECTED,
+        });
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Exam was rejected`,
+            FeedbackEventType.EXAM_FEEDBACK,
+        );
+
+        return rejectFeedback;
+    }
+
+    async approveExamFeedback(feedbackDto: ExamCensorFeedbackDto): Promise<Feedback> {
+        const { examFeedback, accountFromId, accountToId } = feedbackDto;
+
+        // Approve all lessons by setting their status to true
+        for (const moduleTypeFeedback of examFeedback.moduleTypesFeedback) {
+            // Update each lesson's status to true
+            await this.moduleTypeService.updateModuleTypestatus(
+                moduleTypeFeedback.moduleTypeId,
+                true, // Set status to true for approved lessons
+            );
+        }
+
+        // Create feedback entry for the approved unit
+        const approvedFeedback = await this.feedbackRepository.save({
+            exam: { id: examFeedback.examId },
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
+            content: 'Approved',
+            status: FeedbackStatus.APPROVED,
+        });
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            `Learning material was approved`,
+            FeedbackEventType.EXAM_FEEDBACK,
+        );
+
+        return approvedFeedback;
+    }
+
     async getFeedbackByUserId(userId: string): Promise<Feedback[]> {
         return this.feedbackRepository.find({
             where: [{ accountTo: { id: userId } }],
@@ -267,7 +329,10 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    async getQuestionFeedbackUserId(userId: string, questionId: string): Promise<QuestionFeedbackResponseDto[]> {
+    async getQuestionFeedbackUserId(
+        userId: string,
+        questionId: string,
+    ): Promise<QuestionFeedbackResponseDto[]> {
         const feedback = await this.feedbackRepository.find({
             where: [{ accountTo: { id: userId }, question: { id: questionId } }],
             relations: ['question', 'accountFrom', 'accountTo'],
@@ -277,12 +342,17 @@ export class FeedbackService extends BaseService<Feedback> {
         if (!feedback) {
             throw new Error('Feedback not found');
         }
-    
+
         // Transform the entity to DTO
-        return plainToInstance(QuestionFeedbackResponseDto, feedback, { excludeExtraneousValues: true });
+        return plainToInstance(QuestionFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
     }
 
-    async getLessonFeedbackUserId(userId: string, questionId: string): Promise<QuestionFeedbackResponseDto[]> {
+    async getLessonFeedbackUserId(
+        userId: string,
+        questionId: string,
+    ): Promise<QuestionFeedbackResponseDto[]> {
         const feedback = await this.feedbackRepository.find({
             where: [{ accountTo: { id: userId }, question: { id: questionId } }],
             relations: ['question', 'accountFrom', 'accountTo'],
@@ -292,8 +362,10 @@ export class FeedbackService extends BaseService<Feedback> {
         if (!feedback) {
             throw new Error('Feedback not found');
         }
-    
+
         // Transform the entity to DTO
-        return plainToInstance(QuestionFeedbackResponseDto, feedback, { excludeExtraneousValues: true });
+        return plainToInstance(QuestionFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
     }
 }

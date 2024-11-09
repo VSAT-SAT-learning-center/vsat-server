@@ -42,23 +42,25 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
     @Post(':unitId/start')
     @ApiBody({
         schema: {
-          type: 'object',
-          properties: {
-            studyProfileId: { type: 'string', description: 'ID of the study profile' },
-          },
-          required: ['studyProfileId'],
+            type: 'object',
+            properties: {
+                studyProfileId: {
+                    type: 'string',
+                    description: 'ID of the study profile',
+                },
+            },
+            required: ['studyProfileId'],
         },
-      })
+    })
     async startQuizAttempt(
         @Param('unitId') unitId: string,
         @Body() { studyProfileId }: { studyProfileId: string },
     ) {
         // Step 1: Check if there's an ongoing quiz attempt for this unit and study profile
-        let quizAttempt =
-            await this.quizAttemptService.getOngoingQuizAttemptForUnit(
-                studyProfileId,
-                unitId,
-            );
+        let quizAttempt = await this.quizAttemptService.getOngoingQuizAttemptForUnit(
+            studyProfileId,
+            unitId,
+        );
 
         let quiz;
         if (quizAttempt) {
@@ -75,9 +77,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
 
         // Step 4: Retrieve quiz questions with answers to send to the frontend
         const quizQuestions =
-            await this.quizQuestionItemService.getQuizQuestionsWithAnswers(
-                quiz.id,
-            );
+            await this.quizQuestionItemService.getQuizQuestionsWithAnswers(quiz.id);
 
         // Prepare response data to send quiz details and questions with answers for rendering
         return ResponseHelper.success(
@@ -104,12 +104,8 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
     ) {
         const { questionId, selectedAnswerId } = saveQuizAttemptProgressDto;
         try {
-            const quizAttempt =
-                await this.quizAttemptService.findOneById(quizAttemptId);
-            if (
-                !quizAttempt ||
-                quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS
-            ) {
+            const quizAttempt = await this.quizAttemptService.findOneById(quizAttemptId);
+            if (!quizAttempt || quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS) {
                 throw new HttpException(
                     'Quiz attempt is not in progress or does not exist.',
                     HttpStatus.BAD_REQUEST,
@@ -145,12 +141,8 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
     ) {
         try {
             // Ensure the quiz attempt is in progress
-            const quizAttempt =
-                await this.quizAttemptService.findByQuizId(quizId);
-            if (
-                !quizAttempt ||
-                quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS
-            ) {
+            const quizAttempt = await this.quizAttemptService.findByQuizId(quizId);
+            if (!quizAttempt || quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS) {
                 throw new HttpException(
                     'Quiz attempt is not in progress or does not exist.',
                     HttpStatus.BAD_REQUEST,
@@ -158,10 +150,9 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
             }
 
             // Validate if all questions are answered
-            const allQuestionsAnswered =
-                await this.quizAttemptService.validateCompletion(
-                    quizAttempt.id,
-                );
+            const allQuestionsAnswered = await this.quizAttemptService.validateCompletion(
+                quizAttempt.id,
+            );
             if (!allQuestionsAnswered) {
                 throw new HttpException(
                     'All questions must be answered before completing the quiz.',
@@ -187,8 +178,21 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
 
     @Get(':quizAttemptId/recommendations')
     async getRecommendations(@Param('quizAttemptId') quizAttemptId: string) {
-        return await this.recommendationService.recommendUnitAreas(
-            quizAttemptId,
-        );
+        return await this.recommendationService.recommendUnitAreas(quizAttemptId);
+    }
+
+    @Get(':quizAttemptId/status')
+    async getQuizAttemptStatus(@Param('quizAttemptId') quizAttemptId: string) {
+        try {
+            const response =
+                await this.quizAttemptService.getQuizAttemptStatus(quizAttemptId);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                response,
+                'Quiz attempt status retrieved successfully',
+            );
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
     }
 }
