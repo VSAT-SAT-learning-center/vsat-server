@@ -364,14 +364,14 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         const ongoingQuizAttempt = await this.quizAttemptRepository.findOne({
             where: {
                 studyProfile: { id: studyProfileId },
-                quiz: { quizconfig: { unit: { id: unitId } } },
+                quiz: { unit: { id: unitId } },
                 status: QuizAttemptStatus.IN_PROGRESS,
             },
             relations: [
                 'quiz',
                 'quiz.quizQuestions',
                 'quiz.quizQuestions.quizquestion',
-                'quiz.quizconfig',
+                'quiz.unit',
             ], // Fetch related data for unit and quiz questions
             order: {
                 attemptdatetime: 'DESC', // Get the most recent in-progress attempt if multiple exist
@@ -416,7 +416,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     async getQuizAttemptStatus(quizAttemptId: string): Promise<any> {
         // Step 1: Retrieve the Quiz Attempt
         const quizAttempt = await this.quizAttemptRepository.findOne({
-            where: { id : quizAttemptId },
+            where: { id: quizAttemptId },
             relations: ['quiz', 'quiz.quizQuestions'],
         });
 

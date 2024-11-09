@@ -2,11 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Quiz } from 'src/database/entities/quiz.entity';
 import { Repository } from 'typeorm';
-import { CreateQuizDto } from './dto/create-quiz.dto';
-import { UpdateQuizDto } from './dto/update-quiz.dto';
-import { Unit } from 'src/database/entities/unit.entity';
-import { plainToInstance } from 'class-transformer';
-import { GetQuizDto } from './dto/get-quiz.dto';
 import { QuizConfigService } from '../quiz-config/quiz-config.service';
 import { QuizQuestionService } from '../quizquestion/quiz-question.service';
 import { BaseService } from '../base/base.service';
@@ -138,7 +133,6 @@ export class QuizService extends BaseService<Quiz> {
         const quizQuestions: QuizQuestion[] = [];
 
         const levelId = unit.level.id;
-        const quizConfigId = quizConfigs[0].id;
 
         //Get random question by level and skill
         for (const config of quizConfigs) {
@@ -158,7 +152,7 @@ export class QuizService extends BaseService<Quiz> {
         }
 
         const quiz = this.quizRepository.create({
-            quizconfig: { id: quizConfigId },
+            unit: { id: unitId },
             totalquestion: quizQuestions.length
         });
 
@@ -176,11 +170,11 @@ export class QuizService extends BaseService<Quiz> {
             relations: ['quizconfig', 'quizconfig.unit'],
         });
     
-        if (!quiz || !quiz.quizconfig || !quiz.quizconfig.unit) {
+        if (!quiz || !quiz.unit) {
             throw new NotFoundException(`Unit can not found for Quiz with ID ${quizId}`);
         }
     
-        return quiz.quizconfig.unit;
+        return quiz.unit;
     }
     
 }
