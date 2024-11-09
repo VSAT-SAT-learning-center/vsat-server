@@ -1,6 +1,6 @@
 export enum QuestionStatus {
     PENDING = 'Pending',
-    REJECT = 'Rejected',
+    REJECTED = 'Rejected',
     APPROVED = 'Approved',
     DRAFT = 'Draft',
 }
