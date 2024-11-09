@@ -122,4 +122,17 @@ export class ModuleTypeService extends BaseService<ModuleType> {
 
         return savedModules;
     }
+
+    async updateModuleTypestatus(id: string, status: boolean): Promise<ModuleType> {
+        const moduleType = await this.findOneById(id);
+        if (!moduleType) {
+            throw new NotFoundException('ModuleType not found');
+        }
+
+        moduleType.status = status;
+
+        const updatedModuleType = await this.moduleTypeRepository.save(moduleType);
+
+        return updatedModuleType;
+    }
 }

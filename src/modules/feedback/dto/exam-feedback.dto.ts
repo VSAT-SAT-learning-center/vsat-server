@@ -2,10 +2,9 @@ import { ApiProperty } from '@nestjs/swagger'; // Importing the ApiProperty deco
 import { IsOptional } from 'class-validator';
 import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
 
-
-export class LessonFeedbackDto {
+export class ModuleTypeFeedbackDto {
     @ApiProperty({ example: '0ecf1ec5-bf42-4c51-8e74-3546f2cfd91f' })
-    lessonId: string;
+    moduleTypeId: string;
 
     @ApiProperty()
     isRejected: boolean;
@@ -13,22 +12,22 @@ export class LessonFeedbackDto {
     @ApiProperty({ example: 'The content of the feedback for the lesson' })
     content: string;
 
-    @ApiProperty({ example: FeedbackReason.COMPLEX_EXPLANATION })
+    @ApiProperty({ example: FeedbackReason.FORMATING_ISSUES })
     @IsOptional()
     reason?: string;
 }
 
-export class UnitFeedbackDto {
+export class ExamFeedbackDto {
     @ApiProperty({ example: '0ecf1ec5-bf42-4c51-8e74-3546f2cfd91f' })
-    unitId: string;
+    examId: string;
 
-    @ApiProperty({ type: [LessonFeedbackDto] })
-    lessonsFeedback: LessonFeedbackDto[];
+    @ApiProperty({ type: [ModuleTypeFeedbackDto] })
+    moduleTypesFeedback: ModuleTypeFeedbackDto[];
 }
 
-export class LearningMaterialFeedbackDto {
-    @ApiProperty({ type: UnitFeedbackDto })
-    unitFeedback: UnitFeedbackDto;
+export class ExamCensorFeedbackDto {
+    @ApiProperty({ type: ExamFeedbackDto })
+    examFeedback: ExamFeedbackDto;
 
     @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
     accountFromId: string;

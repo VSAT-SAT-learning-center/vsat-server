@@ -36,7 +36,6 @@ import { StudyProfileModule } from './modules/study-profile/study-profile.module
 import { TargetLearningModule } from './modules/target-learning/target-learning.module';
 import { UnitAreaProgressModule } from './modules/unit-area-progress/unit-area-progress.module';
 import { UnitProgressModule } from './modules/unit-progress/unit-progress.module';
-import { UnitLevelModule } from './modules/unit-level/unit-level.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AnswerModule } from './modules/answer/answer.module';
@@ -90,7 +89,6 @@ import { DomainDistributionConfigModule } from './modules/domain-distribution-co
         UnitModule,
         UnitAreaModule,
         UnitAreaProgressModule,
-        UnitLevelModule,
         UnitProgressModule,
         AnswerModule,
         GptModule,
