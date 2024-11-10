@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -47,12 +47,20 @@ import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-stru
 import { ExamStructureConfigModule } from './modules/exam-structure-config/exam-structure-config.module';
 import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module';
 import { DomainDistributionConfigModule } from './modules/domain-distribution-config/domain-distribution-config.module';
+import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuditSubscriber } from './common/subscriber/audit.subscriber';
+import { PostgresConfigService } from './database/config/postgres.config';
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
             envFilePath: '.env',
+        }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useClass: PostgresConfigService, // Sử dụng PostgresConfigService để đăng ký AuditSubscriber
         }),
         DatabaseModule,
         AccountModule,
@@ -134,4 +142,8 @@ import { DomainDistributionConfigModule } from './modules/domain-distribution-co
     // providers: [PaginationService],
     // exports: [PaginationService]
 })
-export class AppModule {}
+export class AppModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(RequestContextMiddleware).forRoutes('*');
+    }
+}
