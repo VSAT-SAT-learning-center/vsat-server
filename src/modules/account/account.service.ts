@@ -1,9 +1,4 @@
-import {
-    HttpException,
-    HttpStatus,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
 import { ILike, Like, Repository } from 'typeorm';
@@ -29,10 +24,7 @@ export class AccountService extends BaseService<Account> {
         super(accountRepository);
     }
 
-    async generateUsername(
-        firstname: string,
-        lastname: string,
-    ): Promise<string> {
+    async generateUsername(firstname: string, lastname: string): Promise<string> {
         const baseUsername =
             firstname.toLowerCase() +
             lastname
@@ -82,10 +74,7 @@ export class AccountService extends BaseService<Account> {
         }
 
         if (!this.isValidEmail(accountDTO.email)) {
-            throw new HttpException(
-                'Email không hợp lệ',
-                HttpStatus.BAD_REQUEST,
-            );
+            throw new HttpException('Email không hợp lệ', HttpStatus.BAD_REQUEST);
         }
 
         if (email) {
@@ -96,9 +85,7 @@ export class AccountService extends BaseService<Account> {
         }
 
         if (!role) {
-            throw new NotFoundException(
-                `Role ${accountDTO.role} does not exist`,
-            );
+            throw new NotFoundException(`Role ${accountDTO.role} does not exist`);
         }
 
         const generatedUsername = await this.generateUsername(
@@ -121,17 +108,10 @@ export class AccountService extends BaseService<Account> {
         const saveAccount = await this.accountRepository.save(account);
 
         if (!saveAccount) {
-            throw new HttpException(
-                'Fail to save account',
-                HttpStatus.BAD_REQUEST,
-            );
+            throw new HttpException('Fail to save account', HttpStatus.BAD_REQUEST);
         }
 
-        await this.sendWelComeMail(
-            accountDTO.email,
-            randomPassword,
-            generatedUsername,
-        );
+        await this.sendWelComeMail(accountDTO.email, randomPassword, generatedUsername);
 
         return plainToInstance(CreateAccountDTO, saveAccount, {
             excludeExtraneousValues: true,
@@ -147,8 +127,7 @@ export class AccountService extends BaseService<Account> {
     }
 
     generateRandomPassword(length: number): string {
-        const chars =
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let password = '';
         for (let i = 0; i < length; i++) {
             const randomIndex = Math.floor(Math.random() * chars.length);
@@ -182,15 +161,12 @@ export class AccountService extends BaseService<Account> {
         return `${year}-${month}-${day}`;
     }
 
-    async saveFromFile(
-        createAccountFromFileDto: CreateAccountFromFileDTO[],
-    ): Promise<{
+    async saveFromFile(createAccountFromFileDto: CreateAccountFromFileDTO[]): Promise<{
         savedAccounts: CreateAccountFromFileDTO[];
         errors: { account: CreateAccountFromFileDTO; message: string }[];
     }> {
         const savedAccounts: Account[] = [];
-        const errors: { account: CreateAccountFromFileDTO; message: string }[] =
-            [];
+        const errors: { account: CreateAccountFromFileDTO; message: string }[] = [];
         let formattedDate: string | null = null;
         const emailSet = new Set<string>();
 
@@ -259,9 +235,7 @@ export class AccountService extends BaseService<Account> {
                 });
 
                 if (!checkRole) {
-                    throw new NotFoundException(
-                        `Role ${account.role} not found`,
-                    );
+                    throw new NotFoundException(`Role ${account.role} not found`);
                 }
 
                 const email = await this.accountRepository.findOne({
@@ -305,10 +279,7 @@ export class AccountService extends BaseService<Account> {
                 }
 
                 if (!this.isValidEmail(account.email)) {
-                    throw new HttpException(
-                        'Email không hợp lệ',
-                        HttpStatus.BAD_REQUEST,
-                    );
+                    throw new HttpException('Email không hợp lệ', HttpStatus.BAD_REQUEST);
                 }
             } catch (error) {
                 errors.push({
@@ -349,8 +320,7 @@ export class AccountService extends BaseService<Account> {
                     }),
                 });
 
-                const savedAccount =
-                    await this.accountRepository.save(newAccount);
+                const savedAccount = await this.accountRepository.save(newAccount);
 
                 if (!savedAccount) {
                     throw new HttpException(
@@ -375,13 +345,9 @@ export class AccountService extends BaseService<Account> {
         }
 
         return {
-            savedAccounts: plainToInstance(
-                CreateAccountFromFileDTO,
-                savedAccounts,
-                {
-                    excludeExtraneousValues: true,
-                },
-            ),
+            savedAccounts: plainToInstance(CreateAccountFromFileDTO, savedAccounts, {
+                excludeExtraneousValues: true,
+            }),
             errors,
         };
     }
@@ -473,5 +439,46 @@ export class AccountService extends BaseService<Account> {
         return await this.accountRepository.find({
             where: { role: { rolename: 'Manager' } },
         });
+    }
+
+    async changePassword(
+        userId: string,
+        currentPassword: string,
+        newPassword: string,
+    ): Promise<string> {
+        const account = await this.accountRepository.findOneBy({ id: userId });
+        if (!account) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+
+        const isCurrentPasswordValid = await bcrypt.compare(
+            currentPassword,
+            account.password,
+        );
+        if (!isCurrentPasswordValid) {
+            throw new HttpException(
+                'Current password is incorrect',
+                HttpStatus.FORBIDDEN,
+            );
+        }
+
+        const hashedNewPassword = await this.hashPassword(newPassword);
+
+        account.password = hashedNewPassword;
+        await this.accountRepository.save(account);
+
+        return 'Password updated successfully';
+    }
+
+    async findById(id: string): Promise<GetAccountDTO> {
+        const account = await this.accountRepository.findOne({
+            where: { id: id },
+        });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        return plainToInstance(GetAccountDTO, account, { excludeExtraneousValues: true });
     }
 }

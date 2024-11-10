@@ -15,6 +15,8 @@ import { LocalGuard } from '../../common/guards/local.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ApiTags } from '@nestjs/swagger';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -62,8 +64,6 @@ export class AuthController {
         try {
             const userId = req.user['id'];
 
-            console.log(userId);
-
             const result = await this.authService.logout(userId);
 
             if (result) {
@@ -80,15 +80,8 @@ export class AuthController {
     }
 
     @Post('test')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async test(@Request() req) {
-        try {
-            return req.user;
-        } catch (error) {
-            throw new HttpException(
-                error.message || 'Logout failed',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
+        return req.user;
     }
 }
