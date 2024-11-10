@@ -10,6 +10,7 @@ import {
     Put,
     Query,
     Req,
+    Request,
     Res,
     UseGuards,
     ValidationPipe,
@@ -27,6 +28,7 @@ import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Accounts')
 @Controller('account')
@@ -59,9 +61,7 @@ export class AccountController {
     @Post('createAccountFromFile')
     @ApiBody({ type: [CreateAccountFromFileDTO] })
     async createFromFile(
-        @Body(
-            new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
-        )
+        @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
         createAccountFromFileDto: CreateAccountFromFileDTO[],
     ) {
         try {
@@ -77,8 +77,7 @@ export class AccountController {
             if (error.code === '23505') {
                 throw new HttpException(
                     {
-                        message:
-                            'Email already exists. Please use a different email.',
+                        message: 'Email already exists. Please use a different email.',
                     },
                     HttpStatus.BAD_REQUEST,
                 );
@@ -118,10 +117,7 @@ export class AccountController {
     }
 
     @Get()
-    async find(
-        @Query('page') page?: number,
-        @Query('pageSize') pageSize?: number,
-    ) {
+    async find(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
         try {
             const account = await this.accountService.find(page, pageSize);
             return ResponseHelper.success(
@@ -203,6 +199,56 @@ export class AccountController {
                     message: 'An error occurred while searching',
                 },
                 HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('changepassword')
+    @UseGuards(JwtAuthGuard)
+    async changePassword(
+        @Request() req,
+        @Body('currentPassword') currentPassword: string,
+        @Body('newPassword') newPassword: string,
+    ) {
+        try {
+            const saveAccount = await this.accountService.changePassword(
+                req.user.id,
+                currentPassword,
+                newPassword,
+            );
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Password updated successfully',
+                data: saveAccount,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('getUserById')
+    @UseGuards(JwtAuthGuard)
+    async getAccountById(@Request() req) {
+        try {
+            const saveAccount = await this.accountService.findById(req.user.id);
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Get User successfully',
+                data: saveAccount,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
             );
         }
     }
