@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
+import { AuditSubscriber } from 'src/common/subscriber/audit.subscriber';
 
 @Injectable()
 export class PostgresConfigService implements TypeOrmOptionsFactory {
@@ -19,6 +20,7 @@ export class PostgresConfigService implements TypeOrmOptionsFactory {
       logging: this.configService.get<boolean>('POSTGRES_LOGGING', true),
       retryAttempts: this.configService.get<number>('POSTGRES_RETRY_ATTEMPTS'),
       retryDelay: this.configService.get<number>('POSTGRES_RETRY_DELAY'),
+      subscribers: [AuditSubscriber],
     };
   }
 }

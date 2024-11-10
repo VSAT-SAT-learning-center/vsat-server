@@ -46,7 +46,6 @@ export class AuthService {
 
     createRefreshToken(account: any) {
         const payload = { id: account.id, username: account.username };
-        console.log(process.env.REFRESH_TOKEN_KEY);
 
         return this.jwtService.sign(payload, {
             secret: process.env.REFRESH_TOKEN_KEY,
@@ -94,7 +93,7 @@ export class AuthService {
 
     async validate({ username, password }: AuthDTO): Promise<any> {
         const findAcc = await this.authRepository.findOne({
-            where: { username },
+            where: { email: username },
         });
 
         if (!findAcc) {
@@ -108,7 +107,7 @@ export class AuthService {
         if (isPasswordValid) {
             return {
                 id: findAcc.id,
-                username: findAcc.username,
+                email: findAcc.username,
             };
         } else {
             throw new HttpException(

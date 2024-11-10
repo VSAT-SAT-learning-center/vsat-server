@@ -12,6 +12,7 @@ import {
     Post,
     Put,
     Query,
+    UseGuards,
 } from '@nestjs/common';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
@@ -21,6 +22,8 @@ import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { FetchByContentDTO } from './dto/fetch-question.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Questions')
 @Controller('questions')
@@ -28,6 +31,7 @@ export class QuestionController {
     constructor(private readonly questionService: QuestionService) {}
 
     @Post('import-file')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @ApiBody({ type: [CreateQuestionFileDto] })
     async save(@Body() createQuestionDto: CreateQuestionFileDto[]) {
         try {
@@ -49,6 +53,7 @@ export class QuestionController {
     }
 
     @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async saveManual(@Body() createQuestionDto: CreateQuestionDTO) {
         try {
             const saveQuestion = await this.questionService.saveManual(createQuestionDto);
@@ -248,6 +253,7 @@ export class QuestionController {
     }
 
     @Post('censor/:action')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['manager']))
     async approveOrRejectQuestion(
         @Param('action') action: 'approve' | 'reject',
         @Body() feedbackDto: QuestionFeedbackDto,

@@ -10,6 +10,7 @@ import {
     Put,
     Query,
     Req,
+    Request,
     Res,
     UseGuards,
     ValidationPipe,
@@ -27,6 +28,8 @@ import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Accounts')
 @Controller('account')
@@ -37,6 +40,7 @@ export class AccountController {
     ) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async save(@Body() accountDto: CreateAccountDTO) {
         try {
             const saveAccount = await this.accountService.save(accountDto);
@@ -57,11 +61,10 @@ export class AccountController {
     }
 
     @Post('createAccountFromFile')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     @ApiBody({ type: [CreateAccountFromFileDTO] })
     async createFromFile(
-        @Body(
-            new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
-        )
+        @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
         createAccountFromFileDto: CreateAccountFromFileDTO[],
     ) {
         try {
@@ -77,8 +80,7 @@ export class AccountController {
             if (error.code === '23505') {
                 throw new HttpException(
                     {
-                        message:
-                            'Email already exists. Please use a different email.',
+                        message: 'Email already exists. Please use a different email.',
                     },
                     HttpStatus.BAD_REQUEST,
                 );
@@ -95,6 +97,7 @@ export class AccountController {
     }
 
     @Get('activate')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async activateAccount(@Query('token') token: string, @Res() res: Response) {
         try {
             console.log('Received token:', token);
@@ -105,7 +108,7 @@ export class AccountController {
 
             this.accountService.active(userId);
 
-            return res.redirect('https://www.youtube.com/');
+            return res.redirect('http://localhost:3000/');
         } catch (error) {
             throw new HttpException(
                 {
@@ -118,10 +121,8 @@ export class AccountController {
     }
 
     @Get()
-    async find(
-        @Query('page') page?: number,
-        @Query('pageSize') pageSize?: number,
-    ) {
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
+    async find(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
         try {
             const account = await this.accountService.find(page, pageSize);
             return ResponseHelper.success(
@@ -141,6 +142,7 @@ export class AccountController {
     }
 
     @Put('update-status/:id')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     @ApiParam({ name: 'id', type: String, description: 'Account ID' })
     @ApiBody({ type: UpdateAccountStatusDTO })
     async updateStatus(
@@ -169,6 +171,7 @@ export class AccountController {
     }
 
     @Get('/search')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     @ApiQuery({ name: 'name', required: false })
     @ApiQuery({ name: 'page', required: true })
     @ApiQuery({ name: 'pageSize', required: true })
@@ -203,6 +206,56 @@ export class AccountController {
                     message: 'An error occurred while searching',
                 },
                 HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('changepassword')
+    @UseGuards(JwtAuthGuard)
+    async changePassword(
+        @Request() req,
+        @Body('currentPassword') currentPassword: string,
+        @Body('newPassword') newPassword: string,
+    ) {
+        try {
+            const saveAccount = await this.accountService.changePassword(
+                req.user.id,
+                currentPassword,
+                newPassword,
+            );
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Password updated successfully',
+                data: saveAccount,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('getUserById')
+    @UseGuards(JwtAuthGuard)
+    async getAccountById(@Request() req) {
+        try {
+            const saveAccount = await this.accountService.findById(req.user.id);
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Get User successfully',
+                data: saveAccount,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
             );
         }
     }
