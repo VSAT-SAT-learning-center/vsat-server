@@ -25,12 +25,7 @@ export class AccountService extends BaseService<Account> {
     }
 
     async generateUsername(firstname: string, lastname: string): Promise<string> {
-        const baseUsername =
-            firstname.toLowerCase() +
-            lastname
-                .split(' ')
-                .map((word) => word[0].toLowerCase())
-                .join('');
+        const baseUsername = firstname + lastname;
         let username = baseUsername;
 
         let userExists = await this.accountRepository.findOne({
@@ -148,7 +143,7 @@ export class AccountService extends BaseService<Account> {
             subject: 'Welcome to VSAT Learning Center!',
             template: './common/mail/templates/welcome.hbs',
             context: {
-                username: username,
+                username: email,
                 password: password,
             },
         });

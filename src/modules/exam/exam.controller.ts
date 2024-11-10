@@ -10,6 +10,7 @@ import {
     HttpStatus,
     HttpException,
     BadRequestException,
+    UseGuards,
 } from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { CreateExamDto } from './dto/create-exam.dto';
@@ -18,6 +19,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ExamStatus } from 'src/common/enums/exam-status.enum';
 import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Exams')
 @Controller('exams')
@@ -25,6 +28,7 @@ export class ExamController {
     constructor(private readonly examService: ExamService) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async create(@Body() createExamDto: CreateExamDto) {
         try {
             const exam = await this.examService.createExam(createExamDto);

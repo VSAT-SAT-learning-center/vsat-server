@@ -10,6 +10,7 @@ import {
     Post,
     Put,
     Query,
+    UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
@@ -22,6 +23,8 @@ import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
 import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
 import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('QuizQuestions')
 @Controller('quiz-questions')
@@ -29,6 +32,7 @@ export class QuizQuestionController {
     constructor(private readonly quizQuestionService: QuizQuestionService) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async saveManual(@Body() createQuizQuestionDto: CreateQuizQuestionDto) {
         try {
             const saveQuestion =
@@ -162,6 +166,7 @@ export class QuizQuestionController {
     }
 
     @Post('import-file')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @ApiBody({ type: [CreateQuizQuestionFileDto] })
     async save(@Body() createQuestionFileDto: CreateQuizQuestionFileDto[]) {
         try {
@@ -183,6 +188,7 @@ export class QuizQuestionController {
     }
 
     @Post('censor/:action')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['manager']))
     async approveOrRejectQuestion(
         @Param('action') action: 'approve' | 'reject',
         @Body() feedbackDto: QuizQuestionFeedbackDto,
