@@ -46,7 +46,6 @@ export class AuthService {
 
     createRefreshToken(account: any) {
         const payload = { id: account.id, username: account.username };
-        console.log(process.env.REFRESH_TOKEN_KEY);
 
         return this.jwtService.sign(payload, {
             secret: process.env.REFRESH_TOKEN_KEY,
