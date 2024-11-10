@@ -15,6 +15,8 @@ import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { DomainService } from '../domain/domain.service';
+import { plainToInstance } from 'class-transformer';
+import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -803,7 +805,7 @@ export class UnitService extends BaseService<Unit> {
         return await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
     }
 
-    async getUnitWithDomainAndSkills(unitId: string): Promise<Unit> {
+    async getUnitWithDomainAndSkills(unitId: string): Promise<UnitWithSkillsDto> {
         const unit = await this.unitRepository.findOne({
             where: { id: unitId },
             relations: ['domain', 'domain.skills'],
@@ -813,6 +815,13 @@ export class UnitService extends BaseService<Unit> {
             throw new NotFoundException(`Unit with ID ${unitId} not found`);
         }
 
-        return unit;
+        const unitWithSkills = plainToInstance(UnitWithSkillsDto, {
+            id: unit.id,
+            title: unit.title,
+            description: unit.description,
+            skills: unit.domain?.skills.map((skill) => ({ title: skill.content })),
+        });
+
+        return unitWithSkills;
     }
 }

@@ -303,9 +303,7 @@ export class UnitController extends BaseController<Unit> {
     ): Promise<UnitWithSkillsDto> {
         try {
             const unit = await this.unitService.getUnitWithDomainAndSkills(id);
-            return plainToInstance(UnitWithSkillsDto, unit, {
-                excludeExtraneousValues: true,
-            });
+            return unit;
         } catch (error) {
             throw new HttpException(
                 {
