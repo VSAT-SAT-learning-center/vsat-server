@@ -819,7 +819,7 @@ export class UnitService extends BaseService<Unit> {
             id: unit.id,
             title: unit.title,
             description: unit.description,
-            skills: unit.domain?.skills.map((skill) => ({ title: skill.content })),
+            skills: unit.domain?.skills.map((skill) => ({ id: skill.id, title: skill.content })),
         });
 
         return unitWithSkills;

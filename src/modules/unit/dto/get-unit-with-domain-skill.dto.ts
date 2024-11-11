@@ -2,6 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 
 export class SkillContentDto {
+
+  @Expose()
+  @ApiProperty({ example: 'Basic Algebra' })
+  id: string;
+
   @Expose()
   @ApiProperty({ example: 'Basic Algebra' })
   content: string;
