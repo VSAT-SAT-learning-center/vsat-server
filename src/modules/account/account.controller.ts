@@ -4,32 +4,26 @@ import {
     Get,
     HttpException,
     HttpStatus,
-    NotFoundException,
     Param,
     Post,
     Put,
     Query,
-    Req,
     Request,
     Res,
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Account } from 'src/database/entities/account.entity';
-import { AccountService } from './account.service';
-import { CreateAccountDTO } from './dto/create-account.dto';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { JwtService } from '@nestjs/jwt';
+import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
-import { AccountStatus } from 'src/common/enums/account-status.enum';
-import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard } from 'src/common/guards/role.guard';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { AccountService } from './account.service';
+import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
+import { CreateAccountDTO } from './dto/create-account.dto';
+import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
 
 @ApiTags('Accounts')
 @Controller('account')

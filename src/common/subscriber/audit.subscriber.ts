@@ -1,10 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import {
-    EventSubscriber,
     EntitySubscriberInterface,
+    EventSubscriber,
     InsertEvent,
     UpdateEvent,
 } from 'typeorm';
-import { Injectable } from '@nestjs/common';
 import { RequestContext } from '../context/request-context';
 
 @Injectable()

@@ -25,6 +25,7 @@ export class PostgresConfigService implements TypeOrmOptionsFactory {
                 'POSTGRES_RETRY_ATTEMPTS',
             ),
             retryDelay: this.configService.get<number>('POSTGRES_RETRY_DELAY'),
+            subscribers: [AuditSubscriber],
         };
     }
 }
