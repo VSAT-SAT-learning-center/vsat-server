@@ -76,7 +76,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
             );
         }
 
-        // Step 4: (Optional) Update progress status in QuizAttempt
+        // Step 4: Update progress status in QuizAttempt
         await this.updateProgress(quizAttemptId, {
             status: QuizAttemptStatus.IN_PROGRESS,
         });
@@ -153,7 +153,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         // Step 8: Format and Return Data
         return {
             // The student score
-            quizProgress: score,
+            currentScore: score,
             // Độ thành thạo của học sinh qua các bài làm attempt
             courseMastery,
             // The unit identifier that the student is currently working on or will move to next.

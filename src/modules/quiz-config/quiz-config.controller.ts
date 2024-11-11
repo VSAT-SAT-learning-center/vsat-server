@@ -10,7 +10,7 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 export class QuizConfigController {
     constructor(private readonly quizConfigService: QuizConfigService) {}
 
-    @Post('quiz-config')
+    @Post()
     async createQuizConfigForUnit(
         @Body() createQuizConfigForUnitDto: CreateQuizConfigForUnitDto,
     ): Promise<any> {

@@ -8,6 +8,7 @@ import {
     ParseUUIDPipe,
     Post,
     Put,
+    UseGuards,
 } from '@nestjs/common';
 import { ExamSemesterService } from './exam-semester.service';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -23,9 +24,12 @@ import {
     UploadFileExamSemesterDto,
 } from './dto/uploadfile-examsemester.dto';
 import { CreateExamSemeseterDto } from './dto/create-examsemester.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Exam Semesters')
 @Controller('exam-semester')
+@UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'manager']))
 export class ExamSemesterController {
     constructor(private readonly examSemesterService: ExamSemesterService) {}
 

@@ -7,6 +7,7 @@ import {
     HttpStatus,
     Get,
     Query,
+    UseGuards,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -19,6 +20,8 @@ import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { StartLessonProgressDto } from './dto/start-lesson-progress.dto';
 import { CompleteLessonProgressDto } from './dto/complete-lesson-progress.dto';
 import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('Lessons')
 @Controller('lessons')
@@ -30,6 +33,7 @@ export class LessonController extends BaseController<Lesson> {
         super(lessonService, 'Lesson');
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post()
     @ApiBody({ type: UpdateLessonDto })
     async createLessonWithContent(@Body() updateLessonDto: UpdateLessonDto) {
