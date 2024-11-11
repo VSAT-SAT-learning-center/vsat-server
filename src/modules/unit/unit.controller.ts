@@ -12,6 +12,7 @@ import {
     ParseIntPipe,
     BadRequestException,
     HttpException,
+    UseGuards,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -26,6 +27,8 @@ import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
 import { plainToInstance } from 'class-transformer';
 import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('Units')
 @Controller('units')
@@ -34,6 +37,7 @@ export class UnitController extends BaseController<Unit> {
         super(unitService, 'Unit');
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['manager']))
     @Post('/censor/:action')
     async approveOrRejectLearningMaterial(
         @Param('action') action: 'approve' | 'reject',
@@ -132,6 +136,7 @@ export class UnitController extends BaseController<Unit> {
         }
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post(':id/submit')
     @ApiParam({ name: 'id', required: true, description: 'ID of the unit' })
     async submitLearningMaterial(@Param('id') unitId: string) {

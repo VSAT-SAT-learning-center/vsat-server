@@ -167,7 +167,7 @@ export class QuizService extends BaseService<Quiz> {
     async getCurrentUnitForQuiz(quizId: string): Promise<any> {
         const quiz = await this.quizRepository.findOne({
             where: { id: quizId },
-            relations: ['quizconfig', 'quizconfig.unit'],
+            relations: ['unit'],
         });
     
         if (!quiz || !quiz.unit) {
