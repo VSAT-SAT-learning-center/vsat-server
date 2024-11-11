@@ -1,5 +1,3 @@
-import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { QuestionService } from './question.service';
 import {
     BadRequestException,
     Body,
@@ -12,15 +10,20 @@ import {
     Post,
     Put,
     Query,
+    UseGuards,
 } from '@nestjs/common';
-import { CreateQuestionDTO } from './dto/create-question.dto';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
-import { UpdateQuestionDTO } from './dto/update-question.dto';
-import { CreateQuestionFileDto } from './dto/create-question-file.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
+import { CreateQuestionFileDto } from './dto/create-question-file.dto';
+import { CreateQuestionDTO } from './dto/create-question.dto';
 import { FetchByContentDTO } from './dto/fetch-question.dto';
+import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { QuestionService } from './question.service';
 
 @ApiTags('Questions')
 @Controller('questions')
@@ -49,6 +52,7 @@ export class QuestionController {
     }
 
     @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async saveManual(@Body() createQuestionDto: CreateQuestionDTO) {
         try {
             const saveQuestion = await this.questionService.saveManual(createQuestionDto);
