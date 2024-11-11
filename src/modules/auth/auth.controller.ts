@@ -27,6 +27,7 @@ export class AuthController {
     @UseGuards(LocalGuard)
     async login(@Request() req) {
         try {
+            console.log(req.user);
             return this.authService.login(req.user);
         } catch (error) {
             throw new HttpException(
