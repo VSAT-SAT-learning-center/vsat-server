@@ -60,7 +60,7 @@ export class ProgressEvaluationDto {
 
 export class CompleteQuizAttemptResponseDto {
     @ApiProperty()
-    quizProgress: number;
+    currentScore: number;
 
     @ApiProperty()
     courseMastery: number;

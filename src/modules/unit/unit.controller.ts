@@ -12,6 +12,7 @@ import {
     ParseIntPipe,
     BadRequestException,
     HttpException,
+    UseGuards,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -24,6 +25,10 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
+import { plainToInstance } from 'class-transformer';
+import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('Units')
 @Controller('units')
@@ -32,6 +37,7 @@ export class UnitController extends BaseController<Unit> {
         super(unitService, 'Unit');
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['manager']))
     @Post('/censor/:action')
     async approveOrRejectLearningMaterial(
         @Param('action') action: 'approve' | 'reject',
@@ -130,6 +136,7 @@ export class UnitController extends BaseController<Unit> {
         }
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post(':id/submit')
     @ApiParam({ name: 'id', required: true, description: 'ID of the unit' })
     async submitLearningMaterial(@Param('id') unitId: string) {
@@ -290,13 +297,15 @@ export class UnitController extends BaseController<Unit> {
     }
 
     @Get('domain/:id')
-    @ApiOperation({ summary: 'Get Unit with Domain and Skills' })
+    @ApiOperation({ summary: 'Get Unit with Domain and Skill Titles' })
     @ApiResponse({
         status: 200,
-        description: 'Unit with Domain and Skills retrieved successfully',
+        description: 'Unit with Domain and Skill Titles retrieved successfully',
     })
     @ApiResponse({ status: 404, description: 'Unit not found' })
-    async getUnitWithDomainAndSkills(@Param('id') id: string): Promise<Unit> {
+    async getUnitWithDomainAndSkills(
+        @Param('id') id: string,
+    ): Promise<UnitWithSkillsDto> {
         try {
             const unit = await this.unitService.getUnitWithDomainAndSkills(id);
             return unit;

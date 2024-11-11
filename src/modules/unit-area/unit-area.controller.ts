@@ -7,6 +7,7 @@ import {
     Patch,
     HttpStatus,
     Query,
+    UseGuards,
 } from '@nestjs/common';
 import { CreateUnitAreaDto } from './dto/create-unitarea.dto';
 import { UpdateUnitAreaDto } from './dto/update-unitarea.dto';
@@ -18,6 +19,8 @@ import { UnitArea } from 'src/database/entities/unitarea.entity';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { CreateLearningMaterialDto } from './dto/create-learningmaterial.dto';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('UnitAreas')
 @Controller('unit-areas')
@@ -90,8 +93,7 @@ export class UnitAreaController extends BaseController<UnitArea> {
 
     @Get('/by-unit/:unitId')
     async getUnitAreasWithLessons(@Param('unitId') unitId: string) {
-        const unitAreas =
-            await this.unitAreaService.findByUnitIdWithLessons(unitId);
+        const unitAreas = await this.unitAreaService.findByUnitIdWithLessons(unitId);
         return ResponseHelper.success(
             HttpStatus.OK,
             unitAreas,
@@ -99,15 +101,14 @@ export class UnitAreaController extends BaseController<UnitArea> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post('create')
     @ApiBody({ type: CreateLearningMaterialDto })
     async createLearningMaterial(
         @Body() createUnitAreaDtoList: CreateLearningMaterialDto[],
     ) {
         const createdMaterials =
-            await this.unitAreaService.createOrUpdateUnitAreas(
-                createUnitAreaDtoList,
-            );
+            await this.unitAreaService.createOrUpdateUnitAreas(createUnitAreaDtoList);
         return ResponseHelper.success(
             HttpStatus.CREATED,
             createdMaterials,
@@ -135,8 +136,7 @@ export class UnitAreaController extends BaseController<UnitArea> {
 
     @Post()
     async create(@Body() createUnitAreaDto: CreateUnitAreaDto) {
-        const createdUnitArea =
-            await this.unitAreaService.create(createUnitAreaDto);
+        const createdUnitArea = await this.unitAreaService.create(createUnitAreaDto);
         return ResponseHelper.success(
             HttpStatus.CREATED,
             createdUnitArea,
@@ -145,14 +145,8 @@ export class UnitAreaController extends BaseController<UnitArea> {
     }
 
     @Patch(':id')
-    async update(
-        @Param('id') id: string,
-        @Body() updateUnitAreaDto: UpdateUnitAreaDto,
-    ) {
-        const updatedUnitArea = await this.unitAreaService.update(
-            id,
-            updateUnitAreaDto,
-        );
+    async update(@Param('id') id: string, @Body() updateUnitAreaDto: UpdateUnitAreaDto) {
+        const updatedUnitArea = await this.unitAreaService.update(id, updateUnitAreaDto);
         return ResponseHelper.success(
             HttpStatus.OK,
             updatedUnitArea,
