@@ -31,6 +31,7 @@ export class QuestionController {
     constructor(private readonly questionService: QuestionService) {}
 
     @Post('import-file')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @ApiBody({ type: [CreateQuestionFileDto] })
     async save(@Body() createQuestionDto: CreateQuestionFileDto[]) {
         try {
@@ -252,6 +253,7 @@ export class QuestionController {
     }
 
     @Post('censor/:action')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['manager']))
     async approveOrRejectQuestion(
         @Param('action') action: 'approve' | 'reject',
         @Body() feedbackDto: QuestionFeedbackDto,

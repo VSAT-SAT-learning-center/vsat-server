@@ -29,6 +29,7 @@ import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Accounts')
 @Controller('account')
@@ -39,6 +40,7 @@ export class AccountController {
     ) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async save(@Body() accountDto: CreateAccountDTO) {
         try {
             const saveAccount = await this.accountService.save(accountDto);
@@ -59,6 +61,7 @@ export class AccountController {
     }
 
     @Post('createAccountFromFile')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     @ApiBody({ type: [CreateAccountFromFileDTO] })
     async createFromFile(
         @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
@@ -94,6 +97,7 @@ export class AccountController {
     }
 
     @Get('activate')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async activateAccount(@Query('token') token: string, @Res() res: Response) {
         try {
             console.log('Received token:', token);
@@ -104,7 +108,7 @@ export class AccountController {
 
             this.accountService.active(userId);
 
-            return res.redirect('https://www.youtube.com/');
+            return res.redirect('http://localhost:3000/');
         } catch (error) {
             throw new HttpException(
                 {
@@ -117,6 +121,7 @@ export class AccountController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async find(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
         try {
             const account = await this.accountService.find(page, pageSize);
@@ -137,6 +142,7 @@ export class AccountController {
     }
 
     @Put('update-status/:id')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     @ApiParam({ name: 'id', type: String, description: 'Account ID' })
     @ApiBody({ type: UpdateAccountStatusDTO })
     async updateStatus(
@@ -165,6 +171,7 @@ export class AccountController {
     }
 
     @Get('/search')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     @ApiQuery({ name: 'name', required: false })
     @ApiQuery({ name: 'page', required: true })
     @ApiQuery({ name: 'pageSize', required: true })

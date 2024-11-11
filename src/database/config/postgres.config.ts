@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
+import { AuditSubscriber } from 'src/common/subscriber/audit.subscriber';
 
 @Injectable()
 export class PostgresConfigService implements TypeOrmOptionsFactory {

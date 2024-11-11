@@ -93,7 +93,7 @@ export class AuthService {
 
     async validate({ username, password }: AuthDTO): Promise<any> {
         const findAcc = await this.authRepository.findOne({
-            where: { username },
+            where: { email: username },
         });
 
         if (!findAcc) {
@@ -107,7 +107,7 @@ export class AuthService {
         if (isPasswordValid) {
             return {
                 id: findAcc.id,
-                username: findAcc.username,
+                email: findAcc.username,
             };
         } else {
             throw new HttpException(

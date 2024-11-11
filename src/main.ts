@@ -5,6 +5,8 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/exception/exception.filter';
+import { DataSource } from 'typeorm';
+import { AuditSubscriber } from './common/subscriber/audit.subscriber';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -12,6 +14,11 @@ async function bootstrap() {
     });
 
     const PORT = 5000;
+
+    const dataSource = app.get(DataSource);
+    dataSource.setOptions({
+        subscribers: [AuditSubscriber], // Thêm subscriber của bạn vào đây
+    });
 
     // Enable global validation pipe
     app.useGlobalPipes(
