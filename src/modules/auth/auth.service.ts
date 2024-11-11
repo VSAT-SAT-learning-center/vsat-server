@@ -35,7 +35,7 @@ export class AuthService {
     createAccessToken(account: any) {
         const payload = {
             id: account.id,
-            username: account.username,
+            email: account.email,
             role: account.role.rolename,
         };
         return this.jwtService.sign(payload, {
@@ -56,10 +56,11 @@ export class AuthService {
     //login
     async login(user: any) {
         const findAcc = await this.authRepository.findOne({
-            where: { username: user.username },
+            where: { email: user.email },
             relations: ['role'],
         });
 
+        console.log(findAcc);
         if (!findAcc) {
             throw new HttpException(
                 'Wrong username or password',
@@ -107,7 +108,7 @@ export class AuthService {
         if (isPasswordValid) {
             return {
                 id: findAcc.id,
-                email: findAcc.username,
+                email: findAcc.email,
             };
         } else {
             throw new HttpException(
