@@ -97,10 +97,8 @@ export class AccountController {
     }
 
     @Get('activate')
-    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async activateAccount(@Query('token') token: string, @Res() res: Response) {
         try {
-            console.log('Received token:', token);
             const payload = this.jwtService.verify(token, {
                 secret: process.env.ACCESS_TOKEN_KEY,
             });
