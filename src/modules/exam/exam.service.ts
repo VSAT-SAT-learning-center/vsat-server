@@ -18,6 +18,7 @@ import { FeedbackService } from '../feedback/feedback.service';
 import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
 import { ExamQuestion, GetExamDto, QuestionDto, SkillDto } from './dto/get-exam.dto';
 import { plainToInstance } from 'class-transformer';
+import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -36,6 +37,8 @@ export class ExamService extends BaseService<Exam> {
         private readonly domainRepository: Repository<Domain>,
         @InjectRepository(DomainDistribution)
         private readonly domainDistributionRepository: Repository<DomainDistribution>,
+        @InjectRepository(ExamStructureType)
+        private readonly examStructureTypeRepository: Repository<ExamStructureType>,
         private readonly feedbackService: FeedbackService,
         private readonly examQuestionservice: ExamQuestionService,
     ) {
@@ -257,15 +260,28 @@ export class ExamService extends BaseService<Exam> {
         return result;
     }
 
-    async GetExamWithExamQuestionByExamType(examTypeId: string) {
+    async GetExamWithExamQuestionByExamType(examStructureTypeName: string) {
+        const examStructureType = await this.examStructureTypeRepository.findOne({
+            where: { name: examStructureTypeName },
+        });
+    
+        if (!examStructureType) {
+            throw new NotFoundException(`Exam Structure Type "${examStructureTypeName}" not found`);
+        }
+    
         const findExamsWithQuestions = async () => {
             return await this.examRepository.find({
-                relations: ['examquestion', 'examStructure', 'examType'],
-                where: { examType: { id: examTypeId } },
+                relations: [
+                    'examquestion',
+                    'examStructure',
+                    'examStructure.examStructureType',
+                    'examType',
+                ],
+                where: { examStructure: { examStructureType: { id: examStructureType.id } } },
                 order: { updatedat: 'DESC' },
             });
         };
-    
+
         const findModuleQuestionsByExamId = async (examId: string) => {
             const modules = await this.moduleTypeRepository
                 .createQueryBuilder('moduleType')
@@ -280,10 +296,10 @@ export class ExamService extends BaseService<Exam> {
                 .where('examQuestion.exam.id = :examId', { examId })
                 .orderBy('moduleType.updatedat', 'DESC')
                 .getMany();
-    
+
             let totalNumberOfQuestions = 0;
             let totalTime = 0;
-    
+
             const moduleDetails = [];
             for (const module of modules) {
                 if (
@@ -295,14 +311,14 @@ export class ExamService extends BaseService<Exam> {
                     totalNumberOfQuestions += module.numberofquestion || 0;
                     totalTime += module.time || 0;
                 }
-    
+
                 const domains = new Map();
-    
+
                 await Promise.all(
                     module.examquestion.map(async (examQuestion) => {
                         const domainName = examQuestion.question.skill?.domain?.content;
                         const domainID = examQuestion.question.skill?.domain?.id;
-    
+
                         const domaindistribution =
                             await this.domainDistributionRepository.findOne({
                                 where: {
@@ -310,24 +326,26 @@ export class ExamService extends BaseService<Exam> {
                                     moduleType: { id: module.id },
                                 },
                             });
-    
+
                         if (!domainName || !domaindistribution) return;
-    
+
                         if (!domains.has(domainName)) {
                             domains.set(domainName, {
                                 domain: domainName,
-                                numberofquestion: domaindistribution.numberofquestion || 0,
+                                numberofquestion:
+                                    domaindistribution.numberofquestion || 0,
                                 questions: [],
                             });
                         }
-    
+
                         domains.get(domainName)?.questions.push({
                             id: examQuestion.question.id,
                             content: examQuestion.question.content,
                             plainContent: examQuestion.question.plainContent,
                             explain: examQuestion.question.explain,
                             sort: examQuestion.question.sort,
-                            isSingleChoiceQuestion: examQuestion.question.isSingleChoiceQuestion,
+                            isSingleChoiceQuestion:
+                                examQuestion.question.isSingleChoiceQuestion,
                             status: examQuestion.question.status,
                             countfeedback: examQuestion.question.countfeedback,
                             isActive: examQuestion.question.isActive,
@@ -342,7 +360,7 @@ export class ExamService extends BaseService<Exam> {
                         });
                     }),
                 );
-    
+
                 moduleDetails.push({
                     id: module.id,
                     name: module.name,
@@ -353,17 +371,17 @@ export class ExamService extends BaseService<Exam> {
                     domains: Array.from(domains.values()),
                 });
             }
-    
+
             return { totalNumberOfQuestions, totalTime, modules: moduleDetails };
         };
-    
+
         const exams = await findExamsWithQuestions();
-    
+
         const result = await Promise.all(
             exams.map(async (exam) => {
                 const { totalNumberOfQuestions, totalTime, modules } =
                     await findModuleQuestionsByExamId(exam.id);
-    
+
                 return {
                     id: exam.id,
                     title: exam.title,
@@ -391,10 +409,9 @@ export class ExamService extends BaseService<Exam> {
                 };
             }),
         );
-    
+
         return result;
     }
-    
 
     async GetExamWithExamQuestionByStatus(examStatus: ExamStatus) {
         const findExamsWithQuestions = async () => {

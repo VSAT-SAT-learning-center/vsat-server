@@ -12,7 +12,6 @@ import { RequestContext } from '../context/request-context';
 export class AuditSubscriber implements EntitySubscriberInterface {
     beforeInsert(event: InsertEvent<any>) {
         const userId = RequestContext.get('userId');
-        console.log('UserId from RequestContext in beforeInsert:', userId);
         if (userId && event.entity) {
             event.entity.createdby = userId;
         }
@@ -20,7 +19,6 @@ export class AuditSubscriber implements EntitySubscriberInterface {
 
     beforeUpdate(event: UpdateEvent<any>) {
         const userId = RequestContext.get('userId');
-        console.log('UserId from RequestContext in beforeUpdate:', userId);
         if (userId && event.entity) {
             event.entity.updatedby = userId;
         }
