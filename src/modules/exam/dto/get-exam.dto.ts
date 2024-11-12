@@ -14,6 +14,24 @@ import { GetQuestionDTO } from 'src/modules/question/dto/get-question.dto';
 import { GetSectionDto } from 'src/modules/section/dto/get-section.dto';
 import { GetSkillDTO } from 'src/modules/skill/dto/get-skill.to';
 
+export class ExamStructureTypeDto {
+    @Expose()
+    @ApiProperty()
+    id: string;
+
+    @Expose()
+    @ApiProperty()
+    name: string;
+
+    @Expose()
+    @ApiProperty()
+    numberOfReadWrite: number;
+
+    @Expose()
+    @ApiProperty()
+    numberOfMath: number;
+}
+
 export class SkillDto {
     @Expose()
     @ApiProperty({ type: Skill })
@@ -114,4 +132,9 @@ export class GetExamDto {
     @ApiProperty({ type: [ExamQuestion] })
     @IsArray()
     examQuestions: ExamQuestion[];
+
+    @Expose()
+    @ApiProperty({ type: ExamStructureTypeDto })
+    @Type(() => ExamStructureTypeDto)
+    examStructureType: ExamStructureTypeDto;
 }

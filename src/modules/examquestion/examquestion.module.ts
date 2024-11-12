@@ -24,6 +24,7 @@ import { ExamModule } from '../exam/exam.module';
 import { ModuleTypeModule } from '../module-type/module-type.module';
 import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
+import { Account } from 'src/database/entities/account.entity';
 
 @Module({
     imports: [
@@ -41,6 +42,7 @@ import { ExamStructureType } from 'src/database/entities/examstructuretype.entit
             Domain,
             DomainDistribution,
             ExamStructureType,
+            Account,
         ]),
         FeedbackModule,
         ModuleTypeModule,
