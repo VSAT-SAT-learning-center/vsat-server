@@ -164,10 +164,14 @@ export class ExamController {
     }
 
     @Get('getExamByExamType/:name')
-    async GetExamWithExamQuestionByExamType(@Param('name') examTypeName: string) {
+    async GetExamWithExamQuestionByExamType(
+        @Param('name') examStructureTypeName: string,
+    ) {
         try {
             const exam =
-                await this.examService.GetExamWithExamQuestionByExamType(examTypeName);
+                await this.examService.GetExamWithExamQuestionByExamType(
+                    examStructureTypeName,
+                );
 
             return ResponseHelper.success(
                 HttpStatus.OK,
