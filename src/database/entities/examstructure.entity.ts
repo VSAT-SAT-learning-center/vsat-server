@@ -13,6 +13,7 @@ import { ExamStructureType } from './examstructuretype.entity';
 import { ExamStructureConfig } from './examstructureconfig.entity';
 import { ExamSemester } from './examsemeseter.entity';
 import { ModuleType } from './moduletype.entity';
+import { Exam } from './exam.entity';
 
 @Entity('examstructure')
 export class ExamStructure {
@@ -60,4 +61,7 @@ export class ExamStructure {
 
     @OneToMany(() => ExamStructureConfig, (config) => config.examStructure)
     configs: ExamStructureConfig[];
+
+    @OneToMany(() => Exam, (exam) => exam.examStructure)
+    exam: Exam[];
 }
