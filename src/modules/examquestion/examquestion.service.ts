@@ -147,7 +147,6 @@ export class ExamQuestionService {
         await this.examQuestionRepository.delete(updateDeleteArrays);
 
         const updateQuestionArrays = [];
-        let examIdToUpdateStatus = null;
 
         for (const updateQuestionData of updateExamQuestion.updateQuestion) {
             const exam = await this.examRepository.findOne({
@@ -183,15 +182,6 @@ export class ExamQuestionService {
             const savedQuestion = await this.examQuestionRepository.save(createQuestion);
 
             updateQuestionArrays.push(savedQuestion);
-
-            examIdToUpdateStatus = exam.id;
-        }
-
-        if (examIdToUpdateStatus) {
-            await this.examRepository.update(
-                { id: examIdToUpdateStatus },
-                { status: ExamStatus.PENDING },
-            );
         }
 
         return updateQuestionArrays;
