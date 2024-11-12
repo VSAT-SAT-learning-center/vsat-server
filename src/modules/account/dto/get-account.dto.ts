@@ -3,7 +3,7 @@ import { AccountStatus } from 'src/common/enums/account-status.enum';
 
 export class RoleDTO {
     @Expose()
-    role: string;
+    rolename: string;
 }
 
 export class GetAccountDTO {
