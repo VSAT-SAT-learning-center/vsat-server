@@ -12,5 +12,5 @@ export class CreateExamAttemptDto {
 
   @IsInt()
   @IsOptional()
-  score?: number;
+  scoreMath?: number;
 }
