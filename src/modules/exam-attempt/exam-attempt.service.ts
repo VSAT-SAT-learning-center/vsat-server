@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
@@ -14,6 +14,13 @@ import { UnitProgressService } from '../unit-progress/unit-progress.service';
 import { Unit } from 'src/database/entities/unit.entity';
 import { Domain } from 'src/database/entities/domain.entity';
 import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
+import { Exam } from 'src/database/entities/exam.entity';
+import { Account } from 'src/database/entities/account.entity';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { ExamAttemptDetailService } from '../exam-attempt-detail/exam-attempt-detail.service';
+import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
+import { ExamStructure } from 'src/database/entities/examstructure.entity';
+import { ExamScore } from 'src/database/entities/examscore.entity';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -30,9 +37,22 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         private readonly domainRepository: Repository<Domain>,
         @InjectRepository(ExamAttemptDetail)
         private readonly examAttemptDetailRepository: Repository<ExamAttemptDetail>,
+        @InjectRepository(Exam)
+        private readonly examRepository: Repository<Exam>,
+        @InjectRepository(Account)
+        private readonly accountRepository: Repository<Account>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
+        @InjectRepository(ExamScoreDetail)
+        private readonly examScoreDetailRepository: Repository<ExamScoreDetail>,
+        @InjectRepository(ExamStructure)
+        private readonly examStructureRepository: Repository<ExamStructure>,
+        @InjectRepository(ExamScore)
+        private readonly examScoreRepository: Repository<ExamScore>,
 
         private readonly targetLearningService: TargetLearningService,
         private readonly unitProgressService: UnitProgressService,
+        private readonly examAttemptDetailService: ExamAttemptDetailService,
     ) {
         super(examAttemptRepository);
     }
@@ -596,7 +616,100 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return skillCounts;
     }
 
-    async createExamAttempt() {
-        
+    async createExamAttempt(
+        createExamAttemptDto: CreateExamAttemptDto,
+        accountId: string,
+    ) {
+        const exam = await this.examRepository.findOne({
+            where: { id: createExamAttemptDto.examId },
+            relations: [
+                'examStructure',
+                'examStructure.examScore',
+                'examStructure.examScore.examScoreDetails',
+            ],
+        });
+
+        console.log(exam);
+
+        const account = await this.accountRepository.findOne({
+            where: { id: accountId },
+        });
+
+        let scoreRW;
+        let scoreMath;
+
+        if (createExamAttemptDto.isHardRW) {
+            const examScoreDetailRW = await this.examScoreDetailRepository.findOne({
+                where: {
+                    rawscore: createExamAttemptDto.correctAnswerRW,
+                    section: { name: 'Reading & Writing' },
+                    examScore: exam.examStructure.examScore,
+                },
+            });
+
+            scoreRW = examScoreDetailRW.upperscore;
+        }
+        if (!createExamAttemptDto.isHardRW) {
+            const examScoreDetailRW = await this.examScoreDetailRepository.findOne({
+                where: {
+                    rawscore: createExamAttemptDto.correctAnswerRW,
+                    section: { name: 'Reading & Writing' },
+                    examScore: exam.examStructure.examScore,
+                },
+            });
+
+            scoreRW = examScoreDetailRW.lowerscore;
+        }
+        if (createExamAttemptDto.isHardMath) {
+            const examScoreDetailMath = await this.examScoreDetailRepository.findOne({
+                where: {
+                    rawscore: createExamAttemptDto.correctAnswerMath,
+                    section: { name: 'Math' },
+                    examScore: exam.examStructure.examScore,
+                },
+            });
+
+            scoreMath = examScoreDetailMath.upperscore;
+        }
+        if (!createExamAttemptDto.isHardRW) {
+            const examScoreDetailMath = await this.examScoreDetailRepository.findOne({
+                where: {
+                    rawscore: createExamAttemptDto.correctAnswerMath,
+                    section: { name: 'Math' },
+                    examScore: exam.examStructure.examScore,
+                },
+            });
+
+            scoreMath = examScoreDetailMath.lowerscore;
+        }
+
+        if (!exam) {
+            throw new NotFoundException('Exam is not found');
+        }
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: account.id } },
+        });
+
+        const createExamAttempt = await this.examAttemptRepository.create({
+            studyProfile: studyProfile,
+            exam: exam,
+            attemptdatetime: Date.now(),
+            scoreMath: scoreMath,
+            scoreRW: scoreRW,
+        });
+
+        const savedExamAttempt = await this.examAttemptRepository.save(createExamAttempt);
+
+        await this.examAttemptDetailService.check(
+            createExamAttemptDto.createExamAttemptDetail,
+            savedExamAttempt.id,
+        );
+
+        return savedExamAttempt;
     }
 }

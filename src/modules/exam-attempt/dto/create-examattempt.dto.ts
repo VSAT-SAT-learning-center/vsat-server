@@ -1,16 +1,57 @@
-import { IsUUID, IsInt, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
+import {
+    IsUUID,
+    IsInt,
+    IsOptional,
+    ValidateNested,
+    IsArray,
+    IsNumber,
+    IsBoolean,
+} from 'class-validator';
+import { CheckExamAttemptDetail } from 'src/modules/exam-attempt-detail/dto/check-examattemptdetail';
+
+// export class CreateExamAttemptDetail {
+//     @IsUUID()
+//     @ApiProperty()
+//     @Expose()
+//     questionId: string;
+
+//     @ApiProperty()
+//     @Expose()
+//     studentAnswer: string;
+// }
 
 export class CreateExamAttemptDto {
-  @IsUUID()
-  studyProfileId: string;
+    @IsUUID()
+    @ApiProperty()
+    @Expose()
+    examId: string;
 
-  @IsUUID()
-  examId: string;
+    @IsNumber()
+    @ApiProperty()
+    @Expose()
+    correctAnswerRW: number;
 
-  @IsOptional()
-  attemptdatetime: Date;
+    @IsNumber()
+    @ApiProperty()
+    @Expose()
+    correctAnswerMath: number;
 
-  @IsInt()
-  @IsOptional()
-  scoreMath?: number;
+    @ApiProperty()
+    @Expose()
+    @IsBoolean()
+    isHardRW: Boolean;
+
+    @ApiProperty()
+    @Expose()
+    @IsBoolean()
+    isHardMath: Boolean;
+
+    @Expose()
+    @ApiProperty({ type: [CheckExamAttemptDetail] })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => CheckExamAttemptDetail)
+    createExamAttemptDetail: CheckExamAttemptDetail[];
 }
