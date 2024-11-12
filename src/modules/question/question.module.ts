@@ -9,10 +9,11 @@ import { Answerservice } from '../answer/answer.service';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Section } from 'src/database/entities/section.entity';
 import { FeedbackModule } from '../feedback/feedback.module';
+import { Account } from 'src/database/entities/account.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Question, Section, Level, Skill, Answer]),
+        TypeOrmModule.forFeature([Question, Section, Level, Skill, Answer, Account]),
 
         forwardRef(() => FeedbackModule),
     ],

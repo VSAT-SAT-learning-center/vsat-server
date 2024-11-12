@@ -260,24 +260,11 @@ export class ExamService extends BaseService<Exam> {
         return result;
     }
 
-    async GetExamWithExamQuestionByExamType(examStructureTypeName: string) {
-        const examStructureType = await this.examStructureTypeRepository.findOne({
-            where: { name: examStructureTypeName },
-        });
-    
-        if (!examStructureType) {
-            throw new NotFoundException(`Exam Structure Type "${examStructureTypeName}" not found`);
-        }
-    
+    async GetExamWithExamQuestionByExamType(examTypeName: string) {
         const findExamsWithQuestions = async () => {
             return await this.examRepository.find({
-                relations: [
-                    'examquestion',
-                    'examStructure',
-                    'examStructure.examStructureType',
-                    'examType',
-                ],
-                where: { examStructure: { examStructureType: { id: examStructureType.id } } },
+                relations: ['examquestion', 'examStructure', 'examType'],
+                where: { examType: { name: examTypeName } },
                 order: { updatedat: 'DESC' },
             });
         };
@@ -628,7 +615,11 @@ export class ExamService extends BaseService<Exam> {
     async getExamDetails(examId: string): Promise<GetExamDto> {
         const exam = await this.examRepository.findOne({
             where: { id: examId },
-            relations: ['examStructure', 'examType'],
+            relations: [
+                'examStructure',
+                'examStructure.examStructureType', // Add relation for examStructureType
+                'examType',
+            ],
         });
 
         if (!exam) {
@@ -696,6 +687,7 @@ export class ExamService extends BaseService<Exam> {
             requiredCorrectInModule1RW: exam.examStructure?.requiredCorrectInModule1RW,
             requiredCorrectInModule1M: exam.examStructure?.requiredCorrectInModule1M,
             examType: exam.examType?.name,
+            examStructureType: exam.examStructure?.examStructureType.name,
             examQuestions: examQuestions,
         });
 
