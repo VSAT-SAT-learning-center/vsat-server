@@ -1,7 +1,8 @@
 import { Expose, Type } from 'class-transformer';
+import { BaseDTO } from 'src/common/dto/base.dto';
 import { GetAnswerDTO } from 'src/modules/answer/dto/get-answer.dto';
 
-export class GetQuestionWithAnswerDTO {
+export class GetQuestionWithAnswerDTO extends BaseDTO {
     @Expose()
     id: string;
 
