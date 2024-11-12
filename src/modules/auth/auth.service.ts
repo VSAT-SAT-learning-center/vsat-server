@@ -60,7 +60,6 @@ export class AuthService {
             relations: ['role'],
         });
 
-        console.log(findAcc);
         if (!findAcc) {
             throw new HttpException(
                 'Wrong username or password',
