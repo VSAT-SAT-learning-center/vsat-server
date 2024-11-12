@@ -257,11 +257,11 @@ export class ExamService extends BaseService<Exam> {
         return result;
     }
 
-    async GetExamWithExamQuestionByExamType(examTypeId: string) {
+    async GetExamWithExamQuestionByExamType(examTypeName: string) {
         const findExamsWithQuestions = async () => {
             return await this.examRepository.find({
                 relations: ['examquestion', 'examStructure', 'examType'],
-                where: { examType: { id: examTypeId } },
+                where: { examType: { name: examTypeName } },
                 order: { updatedat: 'DESC' },
             });
         };
