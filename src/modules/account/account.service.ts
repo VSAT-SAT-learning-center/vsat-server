@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from 'src/database/entities/account.entity';
-import { ILike, Like, Repository } from 'typeorm';
+import { ILike, Like, Not, Repository } from 'typeorm';
 import { CreateAccountDTO } from './dto/create-account.dto';
 import { plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
@@ -69,7 +69,7 @@ export class AccountService extends BaseService<Account> {
         }
 
         if (!this.isValidEmail(accountDTO.email)) {
-            throw new HttpException('Email không hợp lệ', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Invalid email', HttpStatus.BAD_REQUEST);
         }
 
         if (email) {
@@ -352,6 +352,7 @@ export class AccountService extends BaseService<Account> {
 
         const [accounts, total] = await this.accountRepository.findAndCount({
             relations: ['role'],
+            where: { role: { rolename: Not('Admin') } },
             skip: skip,
             take: pageSize,
         });
@@ -400,6 +401,7 @@ export class AccountService extends BaseService<Account> {
             [accounts, total] = await this.accountRepository.findAndCount({
                 skip: skip,
                 relations: ['role'],
+                where: { role: { rolename: Not('Admin') } },
                 take: pageSize,
                 order: { createdat: sortOrder },
             });
