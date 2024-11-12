@@ -149,6 +149,7 @@ export class UnitController extends BaseController<Unit> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post()
     async create(@Body() createUnitDto: CreateUnitDto) {
         const createdUnit = await this.unitService.create(createUnitDto);
@@ -159,6 +160,7 @@ export class UnitController extends BaseController<Unit> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Patch(':id')
     async update(@Param('id') id: string, @Body() updateUnitDto: UpdateUnitDto) {
         const updatedUnit = await this.unitService.update(id, updateUnitDto);
@@ -169,6 +171,7 @@ export class UnitController extends BaseController<Unit> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Put(':id')
     async updateUnit(
         @Param('id') id: string,
@@ -204,53 +207,53 @@ export class UnitController extends BaseController<Unit> {
         );
     }
 
-    @Post('user/draft')
-    async getDraftUnitsWithDetailsByUserId(
-        @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-        @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-        pageSize: number,
-    ): Promise<PagedUnitResponseDto> {
-        const { userId } = getUnitsByUserIdDto;
+    // @Post('user/draft')
+    // async getDraftUnitsWithDetailsByUserId(
+    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
+    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
+    //     pageSize: number,
+    // ): Promise<PagedUnitResponseDto> {
+    //     const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getDraftUnitWithDetailsByUserId(page, pageSize, userId);
-    }
+    //     return this.unitService.getDraftUnitWithDetailsByUserId(page, pageSize, userId);
+    // }
 
-    @Post('user/pending')
-    async getPendingUnitsWithDetailsByUserId(
-        @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-        @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-        pageSize: number,
-    ): Promise<PagedUnitResponseDto> {
-        const { userId } = getUnitsByUserIdDto;
+    // @Post('user/pending')
+    // async getPendingUnitsWithDetailsByUserId(
+    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
+    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
+    //     pageSize: number,
+    // ): Promise<PagedUnitResponseDto> {
+    //     const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getPendingUnitWithDetailsByUserId(page, pageSize, userId);
-    }
+    //     return this.unitService.getPendingUnitWithDetailsByUserId(page, pageSize, userId);
+    // }
 
-    @Post('user/approve')
-    async getApproveUnitsWithDetailsByUserId(
-        @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-        @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-        pageSize: number,
-    ): Promise<PagedUnitResponseDto> {
-        const { userId } = getUnitsByUserIdDto;
+    // @Post('user/approve')
+    // async getApproveUnitsWithDetailsByUserId(
+    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
+    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
+    //     pageSize: number,
+    // ): Promise<PagedUnitResponseDto> {
+    //     const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getApproveUnitWithDetailsByUserId(page, pageSize, userId);
-    }
+    //     return this.unitService.getApproveUnitWithDetailsByUserId(page, pageSize, userId);
+    // }
 
-    @Post('user/reject')
-    async getRejectUnitsWithDetailsByUserId(
-        @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-        @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-        pageSize: number,
-    ): Promise<PagedUnitResponseDto> {
-        const { userId } = getUnitsByUserIdDto;
+    // @Post('user/reject')
+    // async getRejectUnitsWithDetailsByUserId(
+    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
+    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
+    //     pageSize: number,
+    // ): Promise<PagedUnitResponseDto> {
+    //     const { userId } = getUnitsByUserIdDto;
 
-        return this.unitService.getRejectUnitWithDetailsByUserId(page, pageSize, userId);
-    }
+    //     return this.unitService.getRejectUnitWithDetailsByUserId(page, pageSize, userId);
+    // }
 
     @Post('user/:status')
     async getUnitsWithDetailsByUserId(

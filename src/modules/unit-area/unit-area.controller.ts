@@ -134,6 +134,7 @@ export class UnitAreaController extends BaseController<UnitArea> {
     //     );
     // }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post()
     async create(@Body() createUnitAreaDto: CreateUnitAreaDto) {
         const createdUnitArea = await this.unitAreaService.create(createUnitAreaDto);
@@ -144,6 +145,7 @@ export class UnitAreaController extends BaseController<UnitArea> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Patch(':id')
     async update(@Param('id') id: string, @Body() updateUnitAreaDto: UpdateUnitAreaDto) {
         const updatedUnitArea = await this.unitAreaService.update(id, updateUnitAreaDto);

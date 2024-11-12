@@ -68,6 +68,7 @@ export class LessonController extends BaseController<Lesson> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post()
     async create(@Body() createLessonDto: CreateLessonDto) {
         const createdLesson = await this.lessonService.create(createLessonDto);
@@ -78,6 +79,7 @@ export class LessonController extends BaseController<Lesson> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Patch(':id')
     async update(
         @Param('id') id: string,

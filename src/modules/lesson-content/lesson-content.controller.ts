@@ -6,6 +6,7 @@ import {
     Param,
     Patch,
     HttpStatus,
+    UseGuards,
 } from '@nestjs/common';
 import { LessonContentService } from './lesson-content.service';
 import { CreateLessonContentDto } from './dto/create-lessoncontent.dto';
@@ -15,6 +16,8 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { BaseController } from '../base/base.controller';
 import { LessonContent } from 'src/database/entities/lessoncontent.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('LessonContents')
 @Controller('lesson-contents')
@@ -44,6 +47,7 @@ export class LessonContentController extends BaseController<LessonContent> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post()
     async create(@Body() createLessonContentDto: CreateLessonContentDto) {
         const createdLessonContent = await this.lessonContentService.create(
@@ -56,6 +60,7 @@ export class LessonContentController extends BaseController<LessonContent> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Patch(':id')
     async update(
         @Param('id') id: string,
