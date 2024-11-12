@@ -144,6 +144,7 @@ import { PostgresConfigService } from './database/config/postgres.config';
 })
 export class AppModule {
     configure(consumer: MiddlewareConsumer) {
+        console.log(consumer)
         consumer.apply(RequestContextMiddleware).forRoutes('*');
     }
 }
