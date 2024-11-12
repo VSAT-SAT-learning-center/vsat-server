@@ -1,15 +1,14 @@
-import { plainToInstance } from 'class-transformer';
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
+import { Domain } from 'src/database/entities/domain.entity';
+import { Exam } from 'src/database/entities/exam.entity';
 import { ExamQuestion } from 'src/database/entities/examquestion.entity';
+import { ModuleType } from 'src/database/entities/moduletype.entity';
+import { Question } from 'src/database/entities/question.entity';
 import { Repository } from 'typeorm';
 import { CreateExamQuestionDTO } from './dto/create-examquestion.dto';
-import { Question } from 'src/database/entities/question.entity';
-import { Exam } from 'src/database/entities/exam.entity';
-import { ModuleType } from 'src/database/entities/moduletype.entity';
-import { Domain } from 'src/database/entities/domain.entity';
 import { UpdateExamQuestion } from './dto/update-examquestion.dto';
-import { ExamStatus } from 'src/common/enums/exam-status.enum';
 
 @Injectable()
 export class ExamQuestionService {
