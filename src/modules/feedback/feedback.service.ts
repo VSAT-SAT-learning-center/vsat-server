@@ -1,6 +1,6 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
@@ -12,10 +12,14 @@ import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
-import { plainToInstance } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { QuizQuestionFeedbackDto } from './dto/quizquestion-feedback.dto';
 import { ExamCensorFeedbackDto } from './dto/exam-feedback.dto';
 import { ModuleTypeService } from '../module-type/module-type.service';
+import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
+import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
+import { LessonDto, UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-lesson.dto';
+import { ExamDto, FeedbackDetailResponseDto, QuestionDto, UnitDto } from './dto/get-feedback-details.dto';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -28,6 +32,32 @@ export class FeedbackService extends BaseService<Feedback> {
         private readonly moduleTypeService: ModuleTypeService,
     ) {
         super(feedbackRepository);
+    }
+
+    async getFeedbackDetails(feedbackId: string): Promise<FeedbackDetailResponseDto> {
+        const feedback = await this.feedbackRepository.findOne({
+            where: { id: feedbackId },
+            relations: ['unit', 'lesson', 'exam', 'question', 'quizquestion', 'accountFrom', 'accountTo'],
+        });
+    
+        if (!feedback) {
+            throw new NotFoundException('Feedback not found');
+        }
+    
+        // Transform feedback entity to the response DTO
+        return plainToClass(FeedbackDetailResponseDto, {
+            id: feedback.id,
+            createdat: feedback.createdat,
+            updatedat: feedback.updatedat,
+            content: feedback.content,
+            reason: feedback.reason,
+            lesson: feedback.lesson,
+            unit: feedback.unit,
+            exam: feedback.exam,
+            question: feedback.question,
+            accountFrom: feedback.accountFrom,
+            accountTo: feedback.accountTo,
+        });
     }
 
     //For consistency and better error handling, it’s good to wrap feedback creation and status updates inside a try-catch block
@@ -349,12 +379,11 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    async getLessonFeedbackUserId(
+    async getAllQuestionFeedbackUserId(
         userId: string,
-        questionId: string,
     ): Promise<QuestionFeedbackResponseDto[]> {
         const feedback = await this.feedbackRepository.find({
-            where: [{ accountTo: { id: userId }, question: { id: questionId } }],
+            where: [{ accountTo: { id: userId } }],
             relations: ['question', 'accountFrom', 'accountTo'],
             order: { updatedat: 'DESC' },
         });
@@ -364,6 +393,158 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Transform the entity to DTO
+        return plainToInstance(QuestionFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getExamFeedbackByUserId(
+        userId: string,
+        examId: string,
+    ): Promise<ExamFeedbackResponseDto[]> {
+        const feedback = await this.feedbackRepository.find({
+            where: [{ accountTo: { id: userId }, exam: { id: examId } }],
+            relations: ['exam', 'accountFrom', 'accountTo'],
+            order: { updatedat: 'DESC' },
+        });
+
+        if (!feedback.length) {
+            throw new Error('Feedback not found');
+        }
+
+        // Transform the entity to DTO
+        return plainToInstance(ExamFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getAllExamFeedbackByUserId(userId: string): Promise<ExamFeedbackResponseDto[]> {
+        const feedback = await this.feedbackRepository.find({
+            where: [{ accountTo: { id: userId } }],
+            relations: ['exam', 'accountFrom', 'accountTo'],
+            order: { updatedat: 'DESC' },
+        });
+
+        if (!feedback.length) {
+            throw new Error('Feedback not found');
+        }
+
+        // Transform the entity to DTO
+        return plainToInstance(ExamFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getUnitFeedbackByUserId(
+        userId: string,
+        unitId: string,
+    ): Promise<UnitFeedbackResponseDto[]> {
+        const feedback = await this.feedbackRepository.find({
+            where: [{ accountTo: { id: userId }, unit: { id: unitId } }],
+            relations: ['unit', 'accountFrom', 'accountTo'],
+            order: { updatedat: 'DESC' },
+        });
+
+        if (!feedback.length) {
+            throw new Error('Feedback not found');
+        }
+
+        // Transform the entity to DTO
+        return plainToInstance(UnitFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getUnitFeedbackWithLesson(
+        userId: string,
+        unitId: string,
+    ): Promise<UnitFeedbackWithLessonResponseDto[]> {
+        const feedbacks = await this.feedbackRepository.find({
+            where: [
+                {
+                    accountTo: { id: userId },
+                    unit: { id: unitId },
+                    lesson: { id: Not(IsNull()) },
+                },
+            ],
+            relations: ['unit', 'lesson', 'accountFrom', 'accountTo'],
+            order: { updatedat: 'DESC' },
+        });
+
+        if (!feedbacks.length) {
+            throw new Error('No feedback with lessons found');
+        }
+
+        // Chuyển đổi dữ liệu sang DTO
+        return plainToInstance(UnitFeedbackWithLessonResponseDto, feedbacks, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getLessonFeedbackUserId(
+        userId: string,
+        lessonId: string,
+    ): Promise<QuestionFeedbackResponseDto[]> {
+        const feedback = await this.feedbackRepository.find({
+            where: [{ accountTo: { id: userId }, lesson: { id: lessonId } }],
+            relations: ['question', 'accountFrom', 'accountTo'],
+            order: { updatedat: 'DESC' },
+        });
+
+        if (!feedback) {
+            throw new Error('Feedback not found');
+        }
+
+        // Transform the entity to DTO
+        return plainToInstance(QuestionFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    // Fetch feedback for exams with a dynamic status
+    async getExamFeedbackByStatus(status: FeedbackStatus): Promise<ExamFeedbackResponseDto[]> {
+        if (!Object.values(FeedbackStatus).includes(status)) {
+            throw new BadRequestException('Invalid feedback status');
+        }
+
+        const feedback = await this.feedbackRepository.find({
+            where: { status, exam: { id: Not(IsNull()) } },
+            relations: ['exam', 'accountFrom', 'accountTo'],
+            order: { createdat: 'DESC' },
+        });
+
+        return plainToInstance(ExamFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    // Fetch feedback for units with a dynamic status
+    async getUnitFeedbackByStatus(status: FeedbackStatus): Promise<UnitFeedbackResponseDto[]> {
+        if (!Object.values(FeedbackStatus).includes(status)) {
+            throw new BadRequestException('Invalid feedback status');
+        }
+        const feedback = await this.feedbackRepository.find({
+            where: { status, unit: { id: Not(IsNull()) } },
+            relations: ['unit', 'accountFrom', 'accountTo'],
+            order: { createdat: 'DESC' },
+        });
+
+        return plainToInstance(UnitFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    // Fetch feedback for questions with a dynamic status
+    async getQuestionFeedbackByStatus(status: FeedbackStatus): Promise<QuestionFeedbackResponseDto[]> {
+        if (!Object.values(FeedbackStatus).includes(status)) {
+            throw new BadRequestException('Invalid feedback status');
+        }
+        const feedback = await this.feedbackRepository.find({
+            where: { status, question: { id: Not(IsNull()) } },
+            relations: ['question', 'accountFrom', 'accountTo'],
+            order: { createdat: 'DESC' },
+        });
+
         return plainToInstance(QuestionFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
