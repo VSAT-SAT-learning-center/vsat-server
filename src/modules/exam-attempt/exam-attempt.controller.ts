@@ -179,4 +179,26 @@ export class ExamAttemptController {
             );
         }
     }
+
+    @Get('getExamAttemptByStudyProfileId')
+    @UseGuards(JwtAuthGuard)
+    async getExamAttemptByStudyProfileId(@Request() req) {
+        try {
+            const getExamAtempt =
+                await this.examAttemptService.getExamAttemptByStudyProfileId(req.user.id);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                getExamAtempt,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }
