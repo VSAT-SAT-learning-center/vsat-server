@@ -7,7 +7,7 @@ import {
     Post,
     Put,
 } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { Answerservice } from './answer.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
@@ -15,6 +15,7 @@ import { CheckAnswerDTO } from './dto/check-answer.dto';
 
 @ApiTags('Answers')
 @Controller('answer')
+@ApiBearerAuth('JWT-auth')
 export class AnswerController {
     constructor(private readonly answerService: Answerservice) {}
 

@@ -26,7 +26,9 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         super(targetLearningRepository);
     }
 
-    async save(createTargetLearningDto: CreateTargetLearningDto): Promise<TargetLearning> {
+    async save(
+        createTargetLearningDto: CreateTargetLearningDto,
+    ): Promise<TargetLearning> {
         const level = await this.levelRepository.findOne({
             where: { id: createTargetLearningDto.levelId },
         });
@@ -55,8 +57,18 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             studyProfile: studyProfile,
         });
 
-        const saveTargetLEarning = await this.targetLearningRepository.save(createTargetLearning);
+        const saveTargetLEarning =
+            await this.targetLearningRepository.save(createTargetLearning);
 
         return saveTargetLEarning;
+    }
+
+    async getTargetLearningByStudyProfile(studyProfileId: string) {
+        const target = await this.targetLearningRepository.findOne({
+            where: { studyProfile: { id: studyProfileId } },
+            relations: ['unitprogress'],
+        });
+
+        return target;
     }
 }

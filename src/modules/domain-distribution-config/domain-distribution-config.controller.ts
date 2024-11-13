@@ -1,5 +1,5 @@
 import { Body, Controller, HttpException, HttpStatus, Patch } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { UpdateDomainDistributionConfigDto } from './dto/update-domaindistribution-config.dto';
 import { DomainDistributionConfigService } from './domain-distribution-config.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
@@ -7,6 +7,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 
 @ApiTags('DomainDistributionConfig')
 @Controller('domain-distribution-config')
+@ApiBearerAuth('JWT-auth')
 export class DomainDistributionConfigController {
     constructor(
         private readonly domainDistributionConfigService: DomainDistributionConfigService,

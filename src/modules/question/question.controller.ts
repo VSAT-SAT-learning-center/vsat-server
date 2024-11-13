@@ -1,3 +1,5 @@
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { QuestionService } from './question.service';
 import {
     BadRequestException,
     Body,
@@ -12,7 +14,6 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
@@ -23,10 +24,10 @@ import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { FetchByContentDTO } from './dto/fetch-question.dto';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
-import { QuestionService } from './question.service';
 
 @ApiTags('Questions')
 @Controller('questions')
+@ApiBearerAuth('JWT-auth')
 export class QuestionController {
     constructor(private readonly questionService: QuestionService) {}
 

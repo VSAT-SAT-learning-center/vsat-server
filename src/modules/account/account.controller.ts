@@ -13,20 +13,25 @@ import {
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Account } from 'src/database/entities/account.entity';
+import { AccountService } from './account.service';
+import { CreateAccountDTO } from './dto/create-account.dto';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { AccountService } from './account.service';
+import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
+import { ApiBearerAuth, ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
-import { CreateAccountDTO } from './dto/create-account.dto';
+import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Accounts')
 @Controller('account')
+@ApiBearerAuth('JWT-auth')
 export class AccountController {
     constructor(
         private readonly accountService: AccountService,
