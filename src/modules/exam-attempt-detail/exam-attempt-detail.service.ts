@@ -48,7 +48,7 @@ export class ExamAttemptDetailService {
             });
 
             if (question.isSingleChoiceQuestion === true) {
-                const answer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
+                const answer = answers.find((answer) => answer.plaintext === checkExamAttemptDetail.studentanswer);
 
                 if (!answer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = false;
@@ -56,7 +56,7 @@ export class ExamAttemptDetailService {
                     checkExamAttemptDetail.isCorrect = true;
                 }
             } else if (question.isSingleChoiceQuestion === false) {
-                const correctAnswer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
+                const correctAnswer = answers.find((answer) => answer.plaintext === checkExamAttemptDetail.studentanswer);
 
                 if (correctAnswer) {
                     checkExamAttemptDetail.isCorrect = true;

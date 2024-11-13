@@ -10,6 +10,7 @@ import {
     HttpStatus,
     HttpException,
     Request,
+    UseGuards,
 } from '@nestjs/common';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
 import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
@@ -21,6 +22,8 @@ import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateTargetLearningDto } from '../target-learning/dto/create-targetlearning.dto';
 import { SuccessMessages } from 'src/common/constants/success-messages';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('ExamAttempts')
 @Controller('exam-attempts')
@@ -150,6 +153,7 @@ export class ExamAttemptController {
     }
 
     @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async createExamAttempt(
         @Body() createExamAttemptDto: CreateExamAttemptDto,
         @Request() req,
