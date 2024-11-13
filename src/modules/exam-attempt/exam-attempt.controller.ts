@@ -19,7 +19,7 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateTargetLearningDto } from '../target-learning/dto/create-targetlearning.dto';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
@@ -27,6 +27,7 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('ExamAttempts')
 @Controller('exam-attempts')
+@ApiBearerAuth('JWT-auth')
 export class ExamAttemptController {
     constructor(private readonly examAttemptService: ExamAttemptService) {}
 

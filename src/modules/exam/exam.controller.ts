@@ -16,7 +16,7 @@ import {
 import { ExamService } from './exam.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { ExamStatus } from 'src/common/enums/exam-status.enum';
 import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
@@ -26,6 +26,7 @@ import { GetExamDto } from './dto/get-exam.dto';
 
 @ApiTags('Exams')
 @Controller('exams')
+@ApiBearerAuth('JWT-auth')
 export class ExamController {
     constructor(private readonly examService: ExamService) {}
 

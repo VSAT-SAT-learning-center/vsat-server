@@ -3,12 +3,13 @@ import { DomainService } from './domain.service';
 import { CreateDomainDto } from './dto/create-domain.dto';
 import { UpdateDomainDto } from './dto/update-domain.dto';
 import { BaseController } from '../base/base.controller';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Domain } from 'src/database/entities/domain.entity';
 import { DomainDto } from './dto/domain.dto';
 
 @ApiTags('Domains')
 @Controller('domains')
+@ApiBearerAuth('JWT-auth')
 export class DomainController extends BaseController<Domain> {
   constructor(private readonly domainService: DomainService) {
     super(domainService, 'Domain');

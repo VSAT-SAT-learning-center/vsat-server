@@ -14,12 +14,13 @@ import { AuthService } from './auth.service';
 import { LocalGuard } from '../../common/guards/local.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('auth')
+@ApiBearerAuth('JWT-auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 

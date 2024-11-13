@@ -24,7 +24,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
@@ -33,6 +33,7 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Accounts')
 @Controller('account')
+@ApiBearerAuth('JWT-auth')
 export class AccountController {
     constructor(
         private readonly accountService: AccountService,
