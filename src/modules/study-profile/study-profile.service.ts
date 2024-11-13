@@ -11,4 +11,10 @@ export class StudyProfileService {
         @InjectRepository(StudyProfile)
         private readonly studyProfileRepository: Repository<StudyProfile>,
     ) {}
+
+    async getStudyProfileByAccountId(accountId: string) {
+        return await this.studyProfileRepository.find({
+            where: { account: { id: accountId } },
+        });
+    }
 }

@@ -14,12 +14,13 @@ import { AuthService } from './auth.service';
 import { LocalGuard } from '../../common/guards/local.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('auth')
+@ApiBearerAuth('JWT-auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
@@ -63,7 +64,7 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     async logout(@Request() req) {
         try {
-            const userId = req.user['id'];
+            const userId = req.user.id;
 
             const result = await this.authService.logout(userId);
 
@@ -81,7 +82,7 @@ export class AuthController {
     }
 
     @Post('test')
-    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    @UseGuards(JwtAuthGuard)
     async test(@Request() req) {
         return req.user;
     }

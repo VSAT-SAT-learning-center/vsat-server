@@ -6,10 +6,12 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { Level } from './level.entity';
 import { Section } from './section.entity';
 import { StudyProfile } from './studyprofile.entity';
+import { UnitProgress } from './unitprogress.entity';
 
 @Entity('targetlearning')
 export class TargetLearning {
@@ -39,6 +41,9 @@ export class TargetLearning {
     @ManyToOne(() => StudyProfile)
     @JoinColumn({ name: 'studyprofileid' })
     studyProfile: StudyProfile;
+
+    @OneToMany(() => UnitProgress, (unitprogress) => unitprogress.targetLearning)
+    unitprogress: UnitProgress[];
 
     @Column({ type: 'boolean', default: true })
     status: boolean;

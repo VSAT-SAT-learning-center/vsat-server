@@ -1,4 +1,4 @@
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
 import {
     BadRequestException,
@@ -27,6 +27,7 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Questions')
 @Controller('questions')
+@ApiBearerAuth('JWT-auth')
 export class QuestionController {
     constructor(private readonly questionService: QuestionService) {}
 

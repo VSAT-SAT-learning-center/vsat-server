@@ -17,12 +17,13 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { CheckExamAttemptDetail } from './dto/check-examattemptdetail';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 
 @ApiTags('ExamAttemptDetails')
 @Controller('exam-attempt-details')
+@ApiBearerAuth('JWT-auth')
 export class ExamAttemptDetailController {
     constructor(
         private readonly examAttemptDetailService: ExamAttemptDetailService,

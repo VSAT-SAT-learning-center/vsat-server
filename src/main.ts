@@ -36,12 +36,15 @@ async function bootstrap() {
         .setTitle('API Documentation')
         .setDescription('API documentation for the project')
         .setVersion('1.0')
-        .addBearerAuth() //Add auth if necessary
+        .addBearerAuth(
+            { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+            'JWT-auth', // Custom name for security scheme
+        )
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
-    
+
     // Enable cors
     app.enableCors();
 

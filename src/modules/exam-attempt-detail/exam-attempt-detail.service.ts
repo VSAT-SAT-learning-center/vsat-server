@@ -6,6 +6,7 @@ import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entit
 import { Question } from 'src/database/entities/question.entity';
 import { Repository } from 'typeorm';
 import { CheckExamAttemptDetail } from './dto/check-examattemptdetail';
+import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class ExamAttemptDetailService {
@@ -23,64 +24,91 @@ export class ExamAttemptDetailService {
         private readonly answerRepository: Repository<Answer>,
     ) {}
 
-    async check(checkExamAttemptDetails: CheckExamAttemptDetail[], examAttemptId: string): Promise<CheckExamAttemptDetail[]> {
+    normalizeContent(content: string): string {
+        const strippedContent = sanitizeHtml(content, {
+            allowedTags: [],
+            allowedAttributes: {},
+        });
+
+        return strippedContent.replace(/\s+/g, ' ').trim();
+    }
+
+    async check(
+        checkExamAttemptDetails: CheckExamAttemptDetail[],
+        examAttemptId: string,
+    ): Promise<CheckExamAttemptDetail[]> {
         const results: CheckExamAttemptDetail[] = [];
+        const batchSize = 30;
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+        });
 
-        for (const checkExamAttemptDetail of checkExamAttemptDetails) {
-            const examAttempt = await this.examAttemptRepository.findOne({
-                where: { id: examAttemptId },
-            });
+        if (!examAttempt) {
+            throw new NotFoundException('ExamAttempt not found');
+        }
 
-            const question = await this.questionRepository.findOne({
-                where: { id: checkExamAttemptDetail.questionid },
-            });
+        for (let i = 0; i < checkExamAttemptDetails.length; i += batchSize) {
+            const batch = checkExamAttemptDetails.slice(i, i + batchSize);
+            const batchEntities = [];
 
-            if (!examAttempt) {
-                throw new NotFoundException('ExamAttempt not found');
-            }
+            for (const checkExamAttemptDetail of batch) {
+                const question = await this.questionRepository.findOne({
+                    where: { id: checkExamAttemptDetail.questionid },
+                });
 
-            if (!question) {
-                throw new NotFoundException('Question not found');
-            }
-
-            const answers = await this.answerRepository.find({
-                where: { question: { id: checkExamAttemptDetail.questionid } },
-            });
-
-            if (question.isSingleChoiceQuestion === true) {
-                const answer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
-
-                if (!answer.isCorrectAnswer) {
-                    checkExamAttemptDetail.isCorrect = false;
-                } else if (answer.isCorrectAnswer) {
-                    checkExamAttemptDetail.isCorrect = true;
+                if (!question) {
+                    throw new NotFoundException('Question not found');
                 }
-            } else if (question.isSingleChoiceQuestion === false) {
-                const correctAnswer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
 
-                if (correctAnswer) {
-                    checkExamAttemptDetail.isCorrect = true;
-                } else {
-                    checkExamAttemptDetail.isCorrect = false;
-                }
+                const normalizedText = this.normalizeContent(
+                    checkExamAttemptDetail.studentanswer,
+                );
+
+                const answers = await this.answerRepository.find({
+                    where: { question: { id: checkExamAttemptDetail.questionid } },
+                });
+
+                checkExamAttemptDetail.isCorrect = this.evaluateAnswer(
+                    question.isSingleChoiceQuestion,
+                    answers,
+                    normalizedText,
+                );
+
+                const examAttemptDetailEntity = this.examAttemptDetailRepository.create({
+                    examAttempt: examAttempt,
+                    question: question,
+                    iscorrect: checkExamAttemptDetail.isCorrect,
+                    studentAnswer: checkExamAttemptDetail.studentanswer,
+                });
+
+                batchEntities.push(examAttemptDetailEntity);
+
+                results.push({
+                    ...checkExamAttemptDetail,
+                    isCorrect: checkExamAttemptDetail.isCorrect,
+                });
             }
 
-            const examAttemptDetailEntity = this.examAttemptDetailRepository.create({
-                examAttempt: examAttempt,
-                question: question,
-                iscorrect: checkExamAttemptDetail.isCorrect,
-                studentAnswer: checkExamAttemptDetail.studentanswer,
-            });
-
-            const savedExamAttemptDetail = await this.examAttemptDetailRepository.save(examAttemptDetailEntity);
-
-            results.push({
-                ...checkExamAttemptDetail,
-                isCorrect: savedExamAttemptDetail.iscorrect,
-            });
+            await this.examAttemptDetailRepository.save(batchEntities);
         }
 
         return results;
+    }
+
+    private evaluateAnswer(
+        isSingleChoiceQuestion: boolean,
+        answers: Answer[],
+        normalizedText: string,
+    ): boolean {
+        if (isSingleChoiceQuestion) {
+            const answer = answers.find((answer) => answer.plaintext === normalizedText);
+            return !!answer?.isCorrectAnswer;
+        } else {
+            const correctAnswer = answers.find(
+                (answer) => answer.plaintext === normalizedText,
+            );
+            return !!correctAnswer;
+        }
     }
 
     async countCorrectAnswers(

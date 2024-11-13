@@ -19,6 +19,8 @@ import { DomainDistribution } from 'src/database/entities/domaindistribution.ent
 import { ExamQuestion, GetExamDto, QuestionDto, SkillDto } from './dto/get-exam.dto';
 import { plainToInstance } from 'class-transformer';
 import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
+import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
+import { Account } from 'src/database/entities/account.entity';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -39,6 +41,8 @@ export class ExamService extends BaseService<Exam> {
         private readonly domainDistributionRepository: Repository<DomainDistribution>,
         @InjectRepository(ExamStructureType)
         private readonly examStructureTypeRepository: Repository<ExamStructureType>,
+        @InjectRepository(Account)
+        private readonly accountRepository: Repository<Account>,
         private readonly feedbackService: FeedbackService,
         private readonly examQuestionservice: ExamQuestionService,
     ) {
@@ -229,12 +233,18 @@ export class ExamService extends BaseService<Exam> {
                 const { totalNumberOfQuestions, totalTime, modules } =
                     await findModuleQuestionsByExamId(exam.id);
 
+                const account = await this.accountRepository.findOne({
+                    where: { id: exam.createdby },
+                    select: ['id', 'username'],
+                });
                 return {
                     id: exam.id,
                     title: exam.title,
                     description: exam.description,
                     createdat: exam.createdat,
                     updatedat: exam.updatedat,
+                    createdby: exam.createdby,
+                    account: account,
                     status: exam.status,
                     totalNumberOfQuestions,
                     totalTime,
@@ -368,13 +378,18 @@ export class ExamService extends BaseService<Exam> {
             exams.map(async (exam) => {
                 const { totalNumberOfQuestions, totalTime, modules } =
                     await findModuleQuestionsByExamId(exam.id);
-
+                const account = await this.accountRepository.findOne({
+                    where: { id: exam.createdby },
+                    select: ['id', 'username'],
+                });
                 return {
                     id: exam.id,
                     title: exam.title,
                     description: exam.description,
                     createdat: exam.createdat,
                     updatedat: exam.updatedat,
+                    createby: exam.createdby,
+                    account: account,
                     status: exam.status,
                     totalNumberOfQuestions,
                     totalTime,
@@ -508,13 +523,18 @@ export class ExamService extends BaseService<Exam> {
             exams.map(async (exam) => {
                 const { totalNumberOfQuestions, totalTime, modules } =
                     await findModuleQuestionsByExamId(exam.id);
-
+                const account = await this.accountRepository.findOne({
+                    where: { id: exam.createdby },
+                    select: ['id', 'username'],
+                });
                 return {
                     id: exam.id,
                     title: exam.title,
                     description: exam.description,
                     createdat: exam.createdat,
                     updatedat: exam.updatedat,
+                    createby: exam.createdby,
+                    account: account,
                     status: exam.status,
                     totalNumberOfQuestions,
                     totalTime,
@@ -537,7 +557,9 @@ export class ExamService extends BaseService<Exam> {
             }),
         );
 
-        return result;
+        const examWithAccounts = await populateCreatedBy(result, this.accountRepository);
+
+        return examWithAccounts;
     }
 
     async approveOrRejectExam(
@@ -615,11 +637,7 @@ export class ExamService extends BaseService<Exam> {
     async getExamDetails(examId: string): Promise<GetExamDto> {
         const exam = await this.examRepository.findOne({
             where: { id: examId },
-            relations: [
-                'examStructure',
-                'examStructure.examStructureType', // Add relation for examStructureType
-                'examType',
-            ],
+            relations: ['examStructure', 'examStructure.examStructureType', 'examType'],
         });
 
         if (!exam) {
@@ -682,8 +700,15 @@ export class ExamService extends BaseService<Exam> {
                     ),
             }));
 
+        const account = await this.accountRepository.findOne({
+            where: { id: exam.createdby },
+            select: ['id', 'username'],
+        });
+
         const examDto = plainToInstance(GetExamDto, {
+            id: exam.id,
             title: exam.title,
+            account: account,
             requiredCorrectInModule1RW: exam.examStructure?.requiredCorrectInModule1RW,
             requiredCorrectInModule1M: exam.examStructure?.requiredCorrectInModule1M,
             examType: exam.examType?.name,
