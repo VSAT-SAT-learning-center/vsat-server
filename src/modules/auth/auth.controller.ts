@@ -57,7 +57,7 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     async logout(@Request() req) {
         try {
-            const userId = req.user['id'];
+            const userId = req.user.id;
 
             const result = await this.authService.logout(userId);
 
@@ -75,7 +75,7 @@ export class AuthController {
     }
 
     @Post('test')
-    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    @UseGuards(JwtAuthGuard)
     async test(@Request() req) {
         return req.user;
     }
