@@ -12,6 +12,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import sanitizeHtml from 'sanitize-html';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
+import { Account } from 'src/database/entities/account.entity';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { Level } from 'src/database/entities/level.entity';
@@ -43,6 +44,8 @@ export class QuestionService {
         private readonly skillRepository: Repository<Skill>,
         @InjectRepository(Answer)
         private readonly answerRepository: Repository<Answer>,
+        @InjectRepository(Account)
+        private readonly accountRepository: Repository<Account>,
         private readonly answerService: Answerservice,
         @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
@@ -356,12 +359,11 @@ export class QuestionService {
             skip: skip,
             take: pageSize,
             where: { status },
-            order: {
-                updatedat: 'DESC',
-            },
+            order: { updatedat: 'DESC' },
         });
 
         const totalPages = Math.ceil(total / pageSize);
+
         return {
             data: plainToInstance(GetQuestionDTO, questions, {
                 excludeExtraneousValues: true,
@@ -511,15 +513,32 @@ export class QuestionService {
         const skip = (page - 1) * pageSize;
 
         const [questions, total] = await this.questionRepository.findAndCount({
-            relations: ['answers'],
+            relations: ['answers', 'level', 'skill', 'section'],
             skip: skip,
             take: pageSize,
         });
 
         const totalPages = Math.ceil(total / pageSize);
 
+        // Fetch account details for each question's createdby and map them to the DTO
+        const questionsWithAccounts = await Promise.all(
+            questions.map(async (question) => {
+                let createdbyAccount = null;
+                if (question.createdby) {
+                    createdbyAccount = await this.accountRepository.findOne({
+                        where: { id: question.createdby },
+                    });
+                }
+
+                return {
+                    ...question,
+                    createdby: createdbyAccount, // Replace `createdby` UUID with account details
+                };
+            }),
+        );
+
         return {
-            data: plainToInstance(GetQuestionWithAnswerDTO, questions, {
+            data: plainToInstance(GetQuestionWithAnswerDTO, questionsWithAccounts, {
                 excludeExtraneousValues: true,
             }),
             totalPages: totalPages,
