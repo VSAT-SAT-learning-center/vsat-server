@@ -23,12 +23,12 @@ export class ExamAttemptDetailService {
         private readonly answerRepository: Repository<Answer>,
     ) {}
 
-    async check(checkExamAttemptDetails: CheckExamAttemptDetail[]): Promise<CheckExamAttemptDetail[]> {
+    async check(checkExamAttemptDetails: CheckExamAttemptDetail[], examAttemptId: string): Promise<CheckExamAttemptDetail[]> {
         const results: CheckExamAttemptDetail[] = [];
 
         for (const checkExamAttemptDetail of checkExamAttemptDetails) {
             const examAttempt = await this.examAttemptRepository.findOne({
-                where: { id: checkExamAttemptDetail.examattemptid },
+                where: { id: examAttemptId },
             });
 
             const question = await this.questionRepository.findOne({
@@ -48,17 +48,15 @@ export class ExamAttemptDetailService {
             });
 
             if (question.isSingleChoiceQuestion === true) {
-                const correctAnswer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
+                const answer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
 
-                if (!correctAnswer.isCorrectAnswer) {
+                if (!answer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = false;
-                } else if (correctAnswer.isCorrectAnswer) {
+                } else if (answer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = true;
                 }
             } else if (question.isSingleChoiceQuestion === false) {
                 const correctAnswer = answers.find((answer) => answer.text === checkExamAttemptDetail.studentanswer);
-
-                console.log(correctAnswer);
 
                 if (correctAnswer) {
                     checkExamAttemptDetail.isCorrect = true;

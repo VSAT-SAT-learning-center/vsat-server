@@ -9,6 +9,7 @@ import {
     Put,
     HttpStatus,
     HttpException,
+    Request,
 } from '@nestjs/common';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
 import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
@@ -53,12 +54,13 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptDomainRW/:id')
-    async getExamAtemptDomainRW(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+    async getExamAtemptDomainRW(
+        @Param('id') id: string,
+        @Query('isCorrect') isCorrect: boolean,
+    ) {
         try {
-            const getExamAtemptDomain = await this.examAttemptService.getExamAtemptDomainRW(
-                id,
-                isCorrect,
-            );
+            const getExamAtemptDomain =
+                await this.examAttemptService.getExamAtemptDomainRW(id, isCorrect);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 getExamAtemptDomain,
@@ -76,12 +78,13 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptsSkillRW/:id')
-    async getExamAtemptsSkillRW(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+    async getExamAtemptsSkillRW(
+        @Param('id') id: string,
+        @Query('isCorrect') isCorrect: boolean,
+    ) {
         try {
-            const getExamAtemptSkill = await this.examAttemptService.getExamAtemptsSkillRW(
-                id,
-                isCorrect,
-            );
+            const getExamAtemptSkill =
+                await this.examAttemptService.getExamAtemptsSkillRW(id, isCorrect);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 getExamAtemptSkill,
@@ -99,12 +102,13 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptDomainMath/:id')
-    async getExamAtemptDomainMath(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+    async getExamAtemptDomainMath(
+        @Param('id') id: string,
+        @Query('isCorrect') isCorrect: boolean,
+    ) {
         try {
-            const getExamAtemptDomain = await this.examAttemptService.getExamAtemptDomainMath(
-                id,
-                isCorrect,
-            );
+            const getExamAtemptDomain =
+                await this.examAttemptService.getExamAtemptDomainMath(id, isCorrect);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 getExamAtemptDomain,
@@ -122,16 +126,43 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptsSkillMath/:id')
-    async getExamAtemptsSkillMath(@Param('id') id: string, @Query('isCorrect') isCorrect: boolean) {
+    async getExamAtemptsSkillMath(
+        @Param('id') id: string,
+        @Query('isCorrect') isCorrect: boolean,
+    ) {
         try {
-            const getExamAtemptSkill = await this.examAttemptService.getExamAtemptsSkillMath(
-                id,
-                isCorrect,
-            );
+            const getExamAtemptSkill =
+                await this.examAttemptService.getExamAtemptsSkillMath(id, isCorrect);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 getExamAtemptSkill,
                 SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post()
+    async createExamAttempt(
+        @Body() createExamAttemptDto: CreateExamAttemptDto,
+        @Request() req,
+    ) {
+        try {
+            const createExamAttempt = await this.examAttemptService.createExamAttempt(
+                createExamAttemptDto,
+                req.user.id,
+            );
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                createExamAttempt,
+                SuccessMessages.create('ExamAttempt'),
             );
         } catch (error) {
             throw new HttpException(

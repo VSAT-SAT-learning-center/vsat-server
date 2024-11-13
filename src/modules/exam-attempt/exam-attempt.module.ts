@@ -14,12 +14,31 @@ import { UnitProgressModule } from '../unit-progress/unit-progress.module';
 import { Unit } from 'src/database/entities/unit.entity';
 import { Domain } from 'src/database/entities/domain.entity';
 import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
+import { Account } from 'src/database/entities/account.entity';
+import { ExamAttemptDetailModule } from '../exam-attempt-detail/exam-attempt-detail.module';
+import { ExamStructure } from 'src/database/entities/examstructure.entity';
+import { ExamScore } from 'src/database/entities/examscore.entity';
+import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([ExamAttempt, StudyProfile, Exam, Level, Section, Unit, Domain, ExamAttemptDetail]),
+        TypeOrmModule.forFeature([
+            ExamAttempt,
+            StudyProfile,
+            Exam,
+            Level,
+            Section,
+            Unit,
+            Domain,
+            ExamAttemptDetail,
+            Account,
+            ExamStructure,
+            ExamScore,
+            ExamScoreDetail,
+        ]),
         TargetLearningModule,
         UnitProgressModule,
+        ExamAttemptDetailModule,
     ],
     providers: [ExamAttemptService],
     controllers: [ExamAttemptController],
