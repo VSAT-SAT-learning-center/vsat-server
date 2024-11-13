@@ -362,10 +362,14 @@ export class QuestionService {
             order: { updatedat: 'DESC' },
         });
 
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
         const totalPages = Math.ceil(total / pageSize);
 
         return {
-            data: plainToInstance(GetQuestionDTO, questions, {
+            data: plainToInstance(GetQuestionDTO, questionsWithAccounts, {
                 excludeExtraneousValues: true,
             }),
             totalPages: totalPages,

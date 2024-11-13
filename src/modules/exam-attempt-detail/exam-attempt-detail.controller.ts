@@ -28,29 +28,29 @@ export class ExamAttemptDetailController {
         private readonly examAttemptDetailService: ExamAttemptDetailService,
     ) {}
 
-    @Post('check-answer')
-    @ApiBody({ type: [CheckExamAttemptDetail] })
-    async checkAnswerAttemptDetail(
-        @Body() checkExamAttemptDetail: CheckExamAttemptDetail[],
-    ) {
-        try {
-            const examAttemptDetail = await this.examAttemptDetailService.check(
-                checkExamAttemptDetail,
-            );
+    // @Post('check-answer')
+    // @ApiBody({ type: [CheckExamAttemptDetail] })
+    // async checkAnswerAttemptDetail(
+    //     @Body() checkExamAttemptDetail: CheckExamAttemptDetail[],
+    // ) {
+    //     try {
+    //         const examAttemptDetail = await this.examAttemptDetailService.check(
+    //             checkExamAttemptDetail,
+    //         );
 
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                examAttemptDetail,
-                SuccessMessages.create('ExamAttemptDetail'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
+    //         return ResponseHelper.success(
+    //             HttpStatus.CREATED,
+    //             examAttemptDetail,
+    //             SuccessMessages.create('ExamAttemptDetail'),
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 }
