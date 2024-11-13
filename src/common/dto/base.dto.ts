@@ -10,7 +10,6 @@ export class BaseDTO {
     @Type(() => GetAccountDTO)
     account?: GetAccountDTO;
 
-
     @IsUUID()
     @IsOptional()
     @Expose()
@@ -23,13 +22,13 @@ export class BaseDTO {
     @Expose()
     updatedby?: string;
 
-    @IsUUID()
-    @IsOptional()
-    @Expose()
-    createdat?: string;
+    // @IsUUID()
+    // @IsOptional()
+    // @Expose()
+    // createdat?: string;
 
-    @IsUUID()
-    @IsOptional()
-    @Expose()
-    updatedat?: string;
+    // @IsUUID()
+    // @IsOptional()
+    // @Expose()
+    // updatedat?: string;
 }

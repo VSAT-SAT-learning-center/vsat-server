@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsArray, ValidateNested } from 'class-validator';
+import { BaseDTO } from 'src/common/dto/base.dto';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Domain } from 'src/database/entities/domain.entity';
@@ -116,7 +117,7 @@ export class ExamQuestion {
     questions: QuestionDto[];
 }
 
-export class GetExamDto {
+export class GetExamDto extends BaseDTO {
     @ApiProperty()
     title: string;
 
