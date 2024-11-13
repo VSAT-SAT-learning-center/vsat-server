@@ -13,7 +13,7 @@ export class StudyProfileService {
     ) {}
 
     async getStudyProfileByAccountId(accountId: string) {
-        return await this.studyProfileRepository.findOne({
+        return await this.studyProfileRepository.find({
             where: { account: { id: accountId } },
         });
     }
