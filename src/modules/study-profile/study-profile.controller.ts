@@ -31,7 +31,7 @@ export class StudyProfileController {
     constructor(private readonly studyProfileService: StudyProfileService) {}
 
     @Get()
-    @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student', 'admin']))
     async getStudyProfileByAccountId(@Request() req) {
         try {
             const studyProfile =
