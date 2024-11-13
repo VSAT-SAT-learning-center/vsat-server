@@ -30,6 +30,7 @@ import { CreateQuestionDTO } from './dto/create-question.dto';
 import { GetQuestionDTO } from './dto/get-question.dto';
 import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 
 @Injectable()
 export class QuestionService {
