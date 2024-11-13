@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -21,6 +22,7 @@ import { ExamAttemptDetailService } from '../exam-attempt-detail/exam-attempt-de
 import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -619,7 +621,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     async createExamAttempt(
         createExamAttemptDto: CreateExamAttemptDto,
         accountId: string,
-    ) {
+    ): Promise<CreateExamAttemptDto> {
         const exam = await this.examRepository.findOne({
             where: { id: createExamAttemptDto.examId },
             relations: [
@@ -628,9 +630,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 'examStructure.examScore.examScoreDetails',
             ],
         });
-
-        console.log(exam);
-        console.log('Exam Score ID:', exam.examStructure.examScore?.id);
 
         const account = await this.accountRepository.findOne({
             where: { id: accountId },
@@ -648,8 +647,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 },
             });
 
-            console.log(examScoreDetailRW);
-
             scoreRW = examScoreDetailRW.upperscore;
         }
         if (!createExamAttemptDto.isHardRW) {
@@ -657,10 +654,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerRW,
                     section: { name: 'Reading & Writing' },
-                    examScore: exam.examStructure.examScore,
+                    examScore: { id: exam.examStructure.examScore.id },
                 },
             });
-
             scoreRW = examScoreDetailRW.lowerscore;
         }
         if (createExamAttemptDto.isHardMath) {
@@ -668,7 +664,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerMath,
                     section: { name: 'Math' },
-                    examScore: exam.examStructure.examScore,
+                    examScore: { id: exam.examStructure.examScore.id },
                 },
             });
 
@@ -679,7 +675,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerMath,
                     section: { name: 'Math' },
-                    examScore: exam.examStructure.examScore,
+                    examScore: { id: exam.examStructure.examScore.id },
                 },
             });
 
@@ -701,7 +697,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const createExamAttempt = await this.examAttemptRepository.create({
             studyProfile: studyProfile,
             exam: exam,
-            attemptdatetime: Date.now(),
+            attemptdatetime: new Date(),
             scoreMath: scoreMath,
             scoreRW: scoreRW,
         });
@@ -713,6 +709,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             savedExamAttempt.id,
         );
 
-        return savedExamAttempt;
+        return plainToInstance(CreateExamAttemptDto, {
+            scoreMath: savedExamAttempt.scoreMath,
+            scoreRW: savedExamAttempt.scoreRW,
+            attemptId: savedExamAttempt.id,
+        });
     }
 }
