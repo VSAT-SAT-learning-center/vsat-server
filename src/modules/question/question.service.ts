@@ -528,23 +528,10 @@ export class QuestionService {
 
         const totalPages = Math.ceil(total / pageSize);
 
-        // Fetch account details for each question's createdby and map them to the DTO
-        const questionsWithAccounts = await Promise.all(
-            questions.map(async (question) => {
-                let createdbyAccount = null;
-                if (question.createdby) {
-                    createdbyAccount = await this.accountRepository.findOne({
-                        where: { id: question.createdby },
-                    });
-                }
-
-                return {
-                    ...question,
-                    createdby: createdbyAccount, // Replace `createdby` UUID with account details
-                };
-            }),
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
         );
-
         return {
             data: plainToInstance(GetQuestionWithAnswerDTO, questionsWithAccounts, {
                 excludeExtraneousValues: true,
@@ -612,8 +599,13 @@ export class QuestionService {
 
         const totalPages = Math.ceil(total / pageSize);
 
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
+
         return {
-            data: plainToInstance(GetQuestionDTO, questions, {
+            data: plainToInstance(GetQuestionDTO, questionsWithAccounts, {
                 excludeExtraneousValues: true,
             }),
             totalPages,
@@ -638,7 +630,12 @@ export class QuestionService {
             questions.push(question);
         }
 
-        return plainToInstance(GetQuestionDTO, questions, {
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
+
+        return plainToInstance(GetQuestionDTO, questionsWithAccounts, {
             excludeExtraneousValues: true,
         });
     }
