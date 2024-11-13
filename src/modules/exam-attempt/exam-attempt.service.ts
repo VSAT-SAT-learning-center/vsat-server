@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -21,6 +22,7 @@ import { ExamAttemptDetailService } from '../exam-attempt-detail/exam-attempt-de
 import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -619,7 +621,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     async createExamAttempt(
         createExamAttemptDto: CreateExamAttemptDto,
         accountId: string,
-    ) {
+    ): Promise<CreateExamAttemptDto> {
         const exam = await this.examRepository.findOne({
             where: { id: createExamAttemptDto.examId },
             relations: [
@@ -707,6 +709,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             savedExamAttempt.id,
         );
 
-        return savedExamAttempt;
+        return plainToInstance(CreateExamAttemptDto, {
+            scoreMath: savedExamAttempt.scoreMath,
+            scoreRW: savedExamAttempt.scoreRW,
+            attemptId: savedExamAttempt.id,
+        });
     }
 }

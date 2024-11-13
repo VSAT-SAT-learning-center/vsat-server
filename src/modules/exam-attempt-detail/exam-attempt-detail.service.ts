@@ -6,6 +6,7 @@ import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entit
 import { Question } from 'src/database/entities/question.entity';
 import { Repository } from 'typeorm';
 import { CheckExamAttemptDetail } from './dto/check-examattemptdetail';
+import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class ExamAttemptDetailService {
@@ -23,7 +24,19 @@ export class ExamAttemptDetailService {
         private readonly answerRepository: Repository<Answer>,
     ) {}
 
-    async check(checkExamAttemptDetails: CheckExamAttemptDetail[], examAttemptId: string): Promise<CheckExamAttemptDetail[]> {
+    normalizeContent(content: string): string {
+        const strippedContent = sanitizeHtml(content, {
+            allowedTags: [],
+            allowedAttributes: {},
+        });
+
+        return strippedContent.replace(/\s+/g, ' ').trim();
+    }
+
+    async check(
+        checkExamAttemptDetails: CheckExamAttemptDetail[],
+        examAttemptId: string,
+    ): Promise<CheckExamAttemptDetail[]> {
         const results: CheckExamAttemptDetail[] = [];
 
         for (const checkExamAttemptDetail of checkExamAttemptDetails) {
@@ -34,6 +47,10 @@ export class ExamAttemptDetailService {
             const question = await this.questionRepository.findOne({
                 where: { id: checkExamAttemptDetail.questionid },
             });
+
+            const normalizedText = this.normalizeContent(
+                checkExamAttemptDetail.studentanswer,
+            );
 
             if (!examAttempt) {
                 throw new NotFoundException('ExamAttempt not found');
@@ -48,15 +65,19 @@ export class ExamAttemptDetailService {
             });
 
             if (question.isSingleChoiceQuestion === true) {
-                const answer = answers.find((answer) => answer.plaintext === checkExamAttemptDetail.studentanswer);
-                
+                const answer = answers.find(
+                    (answer) => answer.plaintext === normalizedText,
+                );
+
                 if (!answer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = false;
                 } else if (answer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = true;
                 }
             } else if (question.isSingleChoiceQuestion === false) {
-                const correctAnswer = answers.find((answer) => answer.plaintext === checkExamAttemptDetail.studentanswer);
+                const correctAnswer = answers.find(
+                    (answer) => answer.plaintext === normalizedText,
+                );
 
                 if (correctAnswer) {
                     checkExamAttemptDetail.isCorrect = true;
@@ -72,7 +93,9 @@ export class ExamAttemptDetailService {
                 studentAnswer: checkExamAttemptDetail.studentanswer,
             });
 
-            const savedExamAttemptDetail = await this.examAttemptDetailRepository.save(examAttemptDetailEntity);
+            const savedExamAttemptDetail = await this.examAttemptDetailRepository.save(
+                examAttemptDetailEntity,
+            );
 
             results.push({
                 ...checkExamAttemptDetail,
