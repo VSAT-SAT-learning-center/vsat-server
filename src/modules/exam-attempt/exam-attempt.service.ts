@@ -630,6 +630,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         console.log(exam);
+        console.log('Exam Score ID:', exam.examStructure.examScore?.id);
 
         const account = await this.accountRepository.findOne({
             where: { id: accountId },
@@ -643,9 +644,11 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerRW,
                     section: { name: 'Reading & Writing' },
-                    examScore: exam.examStructure.examScore,
+                    examScore: { id: exam.examStructure.examScore.id },
                 },
             });
+
+            console.log(examScoreDetailRW);
 
             scoreRW = examScoreDetailRW.upperscore;
         }

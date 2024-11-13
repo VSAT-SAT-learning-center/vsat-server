@@ -235,6 +235,7 @@ export class ExamService extends BaseService<Exam> {
 
                 const account = await this.accountRepository.findOne({
                     where: { id: exam.createdby },
+                    select: ['id', 'username'],
                 });
                 return {
                     id: exam.id,
@@ -379,6 +380,7 @@ export class ExamService extends BaseService<Exam> {
                     await findModuleQuestionsByExamId(exam.id);
                 const account = await this.accountRepository.findOne({
                     where: { id: exam.createdby },
+                    select: ['id', 'username'],
                 });
                 return {
                     id: exam.id,
@@ -523,6 +525,7 @@ export class ExamService extends BaseService<Exam> {
                     await findModuleQuestionsByExamId(exam.id);
                 const account = await this.accountRepository.findOne({
                     where: { id: exam.createdby },
+                    select: ['id', 'username'],
                 });
                 return {
                     id: exam.id,
@@ -699,9 +702,11 @@ export class ExamService extends BaseService<Exam> {
 
         const account = await this.accountRepository.findOne({
             where: { id: exam.createdby },
+            select: ['id', 'username'],
         });
 
         const examDto = plainToInstance(GetExamDto, {
+            id: exam.id,
             title: exam.title,
             account: account,
             requiredCorrectInModule1RW: exam.examStructure?.requiredCorrectInModule1RW,
