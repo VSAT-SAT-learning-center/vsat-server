@@ -49,7 +49,7 @@ export class ExamAttemptDetailService {
 
             if (question.isSingleChoiceQuestion === true) {
                 const answer = answers.find((answer) => answer.plaintext === checkExamAttemptDetail.studentanswer);
-
+                
                 if (!answer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = false;
                 } else if (answer.isCorrectAnswer) {

@@ -629,9 +629,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             ],
         });
 
-        console.log(exam);
-        console.log('Exam Score ID:', exam.examStructure.examScore?.id);
-
         const account = await this.accountRepository.findOne({
             where: { id: accountId },
         });
@@ -648,8 +645,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 },
             });
 
-            console.log(examScoreDetailRW);
-
             scoreRW = examScoreDetailRW.upperscore;
         }
         if (!createExamAttemptDto.isHardRW) {
@@ -657,10 +652,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerRW,
                     section: { name: 'Reading & Writing' },
-                    examScore: exam.examStructure.examScore,
+                    examScore: { id: exam.examStructure.examScore.id },
                 },
             });
-
             scoreRW = examScoreDetailRW.lowerscore;
         }
         if (createExamAttemptDto.isHardMath) {
@@ -668,7 +662,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerMath,
                     section: { name: 'Math' },
-                    examScore: exam.examStructure.examScore,
+                    examScore: { id: exam.examStructure.examScore.id },
                 },
             });
 
@@ -679,7 +673,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerMath,
                     section: { name: 'Math' },
-                    examScore: exam.examStructure.examScore,
+                    examScore: { id: exam.examStructure.examScore.id },
                 },
             });
 
@@ -701,7 +695,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const createExamAttempt = await this.examAttemptRepository.create({
             studyProfile: studyProfile,
             exam: exam,
-            attemptdatetime: Date.now(),
+            attemptdatetime: new Date(),
             scoreMath: scoreMath,
             scoreRW: scoreRW,
         });
