@@ -23,6 +23,10 @@ import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { plainToInstance } from 'class-transformer';
+import { ExamService } from '../exam/exam.service';
+import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
+import { ModuleType } from 'src/database/entities/moduletype.entity';
+import { title } from 'process';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -51,6 +55,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         private readonly examStructureRepository: Repository<ExamStructure>,
         @InjectRepository(ExamScore)
         private readonly examScoreRepository: Repository<ExamScore>,
+        @InjectRepository(DomainDistribution)
+        private readonly domainDistributionRepository: Repository<DomainDistribution>,
+        @InjectRepository(ModuleType)
+        private readonly moduleTypeRepository: Repository<ModuleType>,
 
         private readonly targetLearningService: TargetLearningService,
         private readonly unitProgressService: UnitProgressService,
@@ -723,13 +731,258 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const examAttempt = await this.examAttemptRepository.find({
             where: { studyProfile: { id: studyProfile.id } },
-            relations: ['exam', 'studyProfile'],
+            relations: [
+                'exam',
+                'studyProfile',
+                'exam.examquestion',
+                'exam.examquestion.question',
+            ],
         });
 
         if (!examAttempt) {
             throw new NotFoundException('ExamAttempt is not found');
         }
 
-        return examAttempt;
+        const detailedExamAttempts = await Promise.all(
+            examAttempt.map(async (attempt) => {
+                const examDetails = await this.GetExamWithExamQuestionByExamId(
+                    attempt.exam.id,
+                );
+
+                return {
+                    ...attempt,
+                    exam: examDetails,
+                };
+            }),
+        );
+
+        return detailedExamAttempts;
+    }
+
+    async GetExamWithExamQuestionByExamId(examId: string) {
+        const exam = await this.examRepository
+            .createQueryBuilder('exam')
+            .select(['exam.id', 'exam.title'])
+            .where('exam.id = :examId', { examId })
+            .getOne();
+
+        if (!exam) {
+            throw new NotFoundException(`Exam with ID ${examId} not found`);
+        }
+
+        const modules = await this.moduleTypeRepository
+            .createQueryBuilder('moduleType')
+            .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
+            .innerJoinAndSelect('examQuestion.question', 'question')
+            .leftJoinAndSelect('question.level', 'level')
+            .leftJoinAndSelect('question.skill', 'skill')
+            .leftJoinAndSelect('skill.domain', 'domain')
+            .leftJoinAndSelect('question.section', 'section')
+            .leftJoinAndSelect('question.answers', 'answers')
+            .leftJoinAndSelect('moduleType.section', 'moduleSection')
+            .where('examQuestion.exam.id = :examId', { examId })
+            .orderBy('moduleType.updatedat', 'DESC')
+            .getMany();
+
+        let totalNumberOfQuestions = 0;
+        let totalTime = 0;
+
+        const moduleDetails = [];
+        for (const module of modules) {
+            if (
+                (module.section?.name === 'Reading & Writing' ||
+                    module.section?.name === 'Math') &&
+                (module.name === 'Module 1' || module.name === 'Module 2') &&
+                (module.level === null || module.level === 'Easy')
+            ) {
+                totalNumberOfQuestions += module.numberofquestion || 0;
+                totalTime += module.time || 0;
+            }
+        }
+
+        return {
+            examTitle: exam.title,
+            totalNumberOfQuestions,
+            totalTime,
+            modules: moduleDetails,
+        };
+    }
+
+    async getExamAttemptStatistics(examAttemptId: string) {
+        const sections = ['Reading & Writing', 'Math'];
+        const sectionMap = {
+            'Reading & Writing': 'RW',
+            Math: 'Math',
+        };
+        const statistics = {};
+
+        for (const sectionName of sections) {
+            // Lấy mã ngắn gọn từ sectionMap
+            const sectionKey = sectionMap[sectionName];
+
+            const section = await this.sectionRepository.findOne({
+                where: { name: sectionName },
+            });
+
+            if (!section) {
+                throw new Error(`Section with name "${sectionName}" not found.`);
+            }
+
+            const sectionId = section.id;
+
+            const domains = await this.domainRepository.find({
+                where: { section: { id: sectionId } },
+                relations: ['skills'],
+            });
+
+            // Domain
+            const domainCounts = [];
+            for (const domain of domains) {
+                let totalSkill = 0;
+                let totalCorrect = 0;
+                let totalIncorrect = 0;
+
+                for (const skill of domain.skills) {
+                    const totalSkillCount = await this.examAttemptDetailRepository.count({
+                        where: {
+                            examAttempt: { id: examAttemptId },
+                            question: { skill: { id: skill.id } },
+                        },
+                        relations: ['question'],
+                    });
+
+                    totalSkill += totalSkillCount;
+
+                    const correctSkillCount =
+                        await this.examAttemptDetailRepository.count({
+                            where: {
+                                examAttempt: { id: examAttemptId },
+                                iscorrect: true,
+                                question: { skill: { id: skill.id } },
+                            },
+                            relations: ['question'],
+                        });
+
+                    const incorrectSkillCount =
+                        await this.examAttemptDetailRepository.count({
+                            where: {
+                                examAttempt: { id: examAttemptId },
+                                iscorrect: false,
+                                question: { skill: { id: skill.id } },
+                            },
+                            relations: ['question'],
+                        });
+
+                    totalCorrect += correctSkillCount;
+                    totalIncorrect += incorrectSkillCount;
+                }
+
+                const total = totalCorrect + totalIncorrect;
+                const correctPercent = parseFloat(
+                    ((totalCorrect * 100) / (total || 1)).toFixed(2),
+                );
+                const incorrectPercent = parseFloat(
+                    ((totalIncorrect * 100) / (total || 1)).toFixed(2),
+                );
+
+                domainCounts.push({
+                    domainId: domain.id,
+                    domainContent: domain.content,
+                    correctCount: totalCorrect,
+                    incorrectCount: totalIncorrect,
+                    total: total,
+                    correctPercent: correctPercent,
+                    incorrectPercent: incorrectPercent,
+                });
+            }
+
+            // Skill
+            const skillCounts = [];
+            for (const domain of domains) {
+                for (const skill of domain.skills) {
+                    const totalSkillCount = await this.examAttemptDetailRepository.count({
+                        where: {
+                            examAttempt: { id: examAttemptId },
+                            question: { skill: { id: skill.id } },
+                        },
+                        relations: ['question'],
+                    });
+
+                    const correctSkillCount =
+                        await this.examAttemptDetailRepository.count({
+                            where: {
+                                examAttempt: { id: examAttemptId },
+                                iscorrect: true,
+                                question: { skill: { id: skill.id } },
+                            },
+                            relations: ['question'],
+                        });
+
+                    const incorrectSkillCount =
+                        await this.examAttemptDetailRepository.count({
+                            where: {
+                                examAttempt: { id: examAttemptId },
+                                iscorrect: false,
+                                question: { skill: { id: skill.id } },
+                            },
+                            relations: ['question'],
+                        });
+
+                    const total = correctSkillCount + incorrectSkillCount;
+
+                    skillCounts.push({
+                        skillId: skill.id,
+                        skillContent: skill.content,
+                        correctCount: correctSkillCount,
+                        incorrectCount: incorrectSkillCount,
+                        total: total,
+                        correctPercent: parseFloat(
+                            ((correctSkillCount * 100) / (total || 1)).toFixed(2),
+                        ),
+                        incorrectPercent: parseFloat(
+                            ((incorrectSkillCount * 100) / (total || 1)).toFixed(2),
+                        ),
+                    });
+                }
+            }
+
+            // ModuleType
+            const moduleTypeCounts = await this.examAttemptDetailRepository
+                .createQueryBuilder('examAttemptDetail')
+                .leftJoin('examAttemptDetail.question', 'question')
+                .leftJoin('question.examquestion', 'examQuestion')
+                .leftJoin('examQuestion.moduleType', 'moduleType')
+                .leftJoin('moduleType.section', 'section')
+                .select('moduleType.id', 'moduleTypeId')
+                .addSelect('moduleType.name', 'moduleTypeName')
+                .addSelect(
+                    `SUM(CASE WHEN examAttemptDetail.iscorrect = true THEN 1 ELSE 0 END)`,
+                    'correctCount',
+                )
+                .addSelect(
+                    `SUM(CASE WHEN examAttemptDetail.iscorrect = false THEN 1 ELSE 0 END)`,
+                    'incorrectCount',
+                )
+                .addSelect(
+                    `SUM(CASE WHEN examAttemptDetail.iscorrect = true THEN 1 ELSE 0 END) +
+                     SUM(CASE WHEN examAttemptDetail.iscorrect = false THEN 1 ELSE 0 END)`,
+                    'totalCount',
+                )
+                .where('examAttemptDetail.examAttempt = :examAttemptId', {
+                    examAttemptId,
+                })
+                .andWhere('section.id = :sectionId', { sectionId })
+                .groupBy('moduleType.id')
+                .getRawMany();
+
+            // Gán kết quả vào statistics với mã ngắn gọn của section
+            statistics[sectionKey] = {
+                domain: domainCounts,
+                skill: skillCounts,
+                moduleType: moduleTypeCounts,
+            };
+        }
+
+        return statistics;
     }
 }

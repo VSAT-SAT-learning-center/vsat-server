@@ -201,4 +201,28 @@ export class ExamAttemptController {
             );
         }
     }
+
+    @Get('statistics/:id')
+    async getExamAttemptStatistics(
+        @Param('id') id: string,
+    ) {
+        try {
+            const examAttemptStatistics =
+                await this.examAttemptService.getExamAttemptStatistics(id);
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examAttemptStatistics,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

@@ -27,8 +27,8 @@ export class BaseDTO {
     @Expose()
     createdat?: string;
 
-    // @IsUUID()
-    // @IsOptional()
-    // @Expose()
-    // updatedat?: string;
+    @IsUUID()
+    @IsOptional()
+    @Expose()
+    updatedat?: string;
 }
