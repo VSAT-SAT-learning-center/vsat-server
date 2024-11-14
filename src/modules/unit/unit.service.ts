@@ -747,7 +747,7 @@ export class UnitService extends BaseService<Unit> {
         unit.status = UnitStatus.PENDING;
         await this.unitRepository.save(unit);
 
-        this.feedbackService.submitLearningMaterial({
+        this.feedbackService.submitLearningMaterialFeedback({
             unit: unit,
             status: FeedbackStatus.PENDING,
             content: 'Learning material submitted',

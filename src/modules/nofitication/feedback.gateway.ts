@@ -81,11 +81,11 @@ export class FeedbacksGateway
 
     sendNotificationToMultipleUsers(
         userIds: string[],
-        message: string,
+        data: any,
         eventType: FeedbackEventType,
     ) {
         userIds.forEach((userId) => {
-            this.sendNotificationToUser(userId, message, eventType);
+            this.sendNotificationToUser(userId, data, eventType);
         });
     }
     

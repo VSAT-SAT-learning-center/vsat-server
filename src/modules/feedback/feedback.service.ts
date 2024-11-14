@@ -1,11 +1,17 @@
-import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    forwardRef,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
 import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
-import { CreateFeedbackUnitDto } from './dto/create-feedback-unit.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { AccountService } from '../account/account.service';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
@@ -18,8 +24,18 @@ import { ExamCensorFeedbackDto } from './dto/exam-feedback.dto';
 import { ModuleTypeService } from '../module-type/module-type.service';
 import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
 import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
-import { LessonDto, UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-lesson.dto';
-import { ExamDto, FeedbackDetailResponseDto, QuestionDto, UnitDto } from './dto/get-feedback-details.dto';
+import {
+    LessonDto,
+    UnitFeedbackWithLessonResponseDto,
+} from './dto/get-unit-feedback-with-lesson.dto';
+import {
+    ExamDto,
+    FeedbackDetailResponseDto,
+    QuestionDto,
+    UnitDto,
+} from './dto/get-feedback-details.dto';
+import { UserFeedbackResponseDto } from './dto/get-user-feedback-details.dto';
+import { NotificationDataDto } from 'src/common/dto/notification-data.dto';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -37,13 +53,21 @@ export class FeedbackService extends BaseService<Feedback> {
     async getFeedbackDetails(feedbackId: string): Promise<FeedbackDetailResponseDto> {
         const feedback = await this.feedbackRepository.findOne({
             where: { id: feedbackId },
-            relations: ['unit', 'lesson', 'exam', 'question', 'quizquestion', 'accountFrom', 'accountTo'],
+            relations: [
+                'unit',
+                'lesson',
+                'exam',
+                'question',
+                'quizquestion',
+                'accountFrom',
+                'accountTo',
+            ],
         });
-    
+
         if (!feedback) {
             throw new NotFoundException('Feedback not found');
         }
-    
+
         // Transform feedback entity to the response DTO
         return plainToClass(FeedbackDetailResponseDto, {
             id: feedback.id,
@@ -62,85 +86,8 @@ export class FeedbackService extends BaseService<Feedback> {
 
     //For consistency and better error handling, it’s good to wrap feedback creation and status updates inside a try-catch block
     //and possibly use Promise.all to parallelize lesson feedback updates.
-    async rejectLearningMaterialFeedback(
-        feedbackDto: LearningMaterialFeedbackDto,
-    ): Promise<Feedback> {
-        const { unitFeedback, accountFromId, accountToId } = feedbackDto;
-
-        const feedbackPromises = unitFeedback.lessonsFeedback.map(
-            async (lessonFeedback) => {
-                const { lessonId, isRejected, content, reason } = lessonFeedback;
-
-                if (isRejected) {
-                    await this.lessonService.updateLessonStatus(lessonId, false);
-
-                    await this.feedbackRepository.save({
-                        accountFrom: { id: accountFromId },
-                        accountTo: { id: accountToId },
-                        lesson: { id: lessonId },
-                        unit: { id: unitFeedback.unitId },
-                        content,
-                        reason,
-                        status: FeedbackStatus.REJECTED,
-                    });
-                }
-            },
-        );
-
-        await Promise.all(feedbackPromises);
-
-        // Create feedback entry for the unit
-        const rejectFeedback = await this.feedbackRepository.save({
-            unit: { id: unitFeedback.unitId },
-            content: 'Rejected due to lesson issues',
-            status: FeedbackStatus.REJECTED,
-        });
-
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            `Learning material was rejected`,
-            FeedbackEventType.UNIT_FEEDBACK,
-        );
-
-        return rejectFeedback;
-    }
-
-    async approveLearningMaterialFeedback(
-        feedbackDto: LearningMaterialFeedbackDto,
-    ): Promise<Feedback> {
-        const { unitFeedback, accountFromId, accountToId } = feedbackDto;
-
-        // Approve all lessons by setting their status to true
-        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
-            // Update each lesson's status to true
-            await this.lessonService.updateLessonStatus(
-                lessonFeedback.lessonId,
-                true, // Set status to true for approved lessons
-            );
-        }
-
-        // Create feedback entry for the approved unit
-        const approvedFeedback = await this.feedbackRepository.save({
-            unit: { id: unitFeedback.unitId },
-            accountFrom: { id: accountFromId },
-            accountTo: { id: accountToId },
-            content: 'Approved',
-            status: FeedbackStatus.APPROVED,
-        });
-
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            `Learning material was approved`,
-            FeedbackEventType.UNIT_FEEDBACK,
-        );
-
-        return approvedFeedback;
-    }
-
-    async submitLearningMaterial(
-        createFeedbackDto: CreateFeedbackUnitDto,
+    async submitLearningMaterialFeedback(
+        createFeedbackDto: CreateFeedbackDto,
     ): Promise<{ feedbackId: string; accountFrom: string; accountTo: string }[]> {
         const feedbackList: {
             feedbackId: string;
@@ -175,17 +122,164 @@ export class FeedbackService extends BaseService<Feedback> {
 
         await Promise.all(feedbackPromises);
 
+        const nofiticationData: NotificationDataDto = {
+            data: feedbackList,
+            message: 'New learning material was submitted',
+        };
+
         this.feedbackGateway.sendNotificationToMultipleUsers(
             managers.map((manager) => manager.id),
-            `New learning material was submitted`,
+            nofiticationData,
             FeedbackEventType.UNIT_FEEDBACK,
         );
 
         return feedbackList;
     }
 
+    async rejectLearningMaterialFeedback(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<Feedback> {
+        const { unitFeedback, accountFromId, accountToId } = feedbackDto;
+
+        const feedbackPromises = unitFeedback.lessonsFeedback.map(
+            async (lessonFeedback) => {
+                const { lessonId, isRejected, content, reason } = lessonFeedback;
+
+                if (isRejected) {
+                    await this.lessonService.updateLessonStatus(lessonId, false);
+
+                    await this.feedbackRepository.save({
+                        accountFrom: { id: accountFromId },
+                        accountTo: { id: accountToId },
+                        lesson: { id: lessonId },
+                        unit: { id: unitFeedback.unitId },
+                        content,
+                        reason,
+                        status: FeedbackStatus.REJECTED,
+                    });
+                }
+            },
+        );
+
+        await Promise.all(feedbackPromises);
+
+        // Create feedback entry for the unit
+        const rejectFeedback = await this.feedbackRepository.save({
+            unit: { id: unitFeedback.unitId },
+            content: 'Rejected due to lesson issues',
+            status: FeedbackStatus.REJECTED,
+        });
+
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: rejectFeedback.id, unitId: unitFeedback.unitId },
+            message: `Learning material was rejected`,
+        };
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            nofiticationData,
+            FeedbackEventType.UNIT_FEEDBACK,
+        );
+
+        return rejectFeedback;
+    }
+
+    async approveLearningMaterialFeedback(
+        feedbackDto: LearningMaterialFeedbackDto,
+    ): Promise<Feedback> {
+        const { unitFeedback, accountFromId, accountToId } = feedbackDto;
+
+        // Approve all lessons by setting their status to true
+        for (const lessonFeedback of unitFeedback.lessonsFeedback) {
+            // Update each lesson's status to true
+            await this.lessonService.updateLessonStatus(
+                lessonFeedback.lessonId,
+                true, // Set status to true for approved lessons
+            );
+        }
+
+        // Create feedback entry for the approved unit
+        const approvedFeedback = await this.feedbackRepository.save({
+            unit: { id: unitFeedback.unitId },
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
+            content: 'Approved',
+            status: FeedbackStatus.APPROVED,
+        });
+
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: approvedFeedback.id, unitId: unitFeedback.unitId },
+            message: `Learning material was approved`,
+        };
+
+        console.log('sending notification to user: ', accountToId);
+        this.feedbackGateway.sendNotificationToUser(
+            accountToId,
+            nofiticationData,
+            FeedbackEventType.UNIT_FEEDBACK,
+        );
+
+        return approvedFeedback;
+    }
+
+    async submitQuestionFeedback(
+        createFeedbackDto: CreateFeedbackDto,
+    ): Promise<{ feedbackId: string; accountFrom: string }[]> {
+        const feedbackList: {
+            feedbackId: string;
+            accountFrom: string;
+        }[] = [];
+
+        //Notify managers when feedback is submitted
+        const managers = await this.accountService.findManagers();
+        const accountFrom = await this.accountService.findOneById(
+            createFeedbackDto.accountFromId,
+        );
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account not found');
+        }
+
+        // Khởi tạo và lưu feedback
+        createFeedbackDto.accountFrom = accountFrom;
+
+        const feedback = this.feedbackRepository.create(createFeedbackDto);
+        await this.feedbackRepository.save(feedback);
+
+        // Thêm feedback ID và người gửi vào danh sách để trả về
+        feedbackList.push({
+            feedbackId: feedback.id,
+            accountFrom: feedback.accountFrom.id,
+        });
+
+        const nofiticationData: NotificationDataDto = {
+            data: feedbackList,
+            message: `New question was submitted`,
+        };
+
+        this.feedbackGateway.sendNotificationToMultipleUsers(
+            managers.map((manager) => manager.id),
+            nofiticationData,
+            FeedbackEventType.QUESTION_FEEDBACK,
+        );
+
+        return feedbackList;
+    }
+
     async rejectQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
-        const { questionId, content, reason, accountFromId, accountToId } = feedbackDto;
+        const { feedbackId, questionId, content, reason, accountFromId, accountToId } =
+            feedbackDto;
+
+        const feedback = await this.feedbackRepository.findOne({
+            where: { id: feedbackId },
+        });
+
+        if (!feedback || feedback.status === FeedbackStatus.APPROVED) {
+            throw new BadRequestException(
+                'Feedback cannot be rejected in its current state',
+            );
+        }
 
         const rejectFeedback = await this.feedbackRepository.save({
             accountFrom: { id: accountFromId },
@@ -196,10 +290,15 @@ export class FeedbackService extends BaseService<Feedback> {
             question: { id: questionId },
         });
 
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: rejectFeedback.id, questionId: questionId },
+            message: `Question was rejected`,
+        };
+
         console.log('sending notification to user: ', accountToId);
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
-            `Question was rejected`,
+            nofiticationData,
             FeedbackEventType.QUESTION_FEEDBACK,
         );
 
@@ -207,7 +306,16 @@ export class FeedbackService extends BaseService<Feedback> {
     }
 
     async approveQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
-        const { questionId, content, accountFromId, accountToId } = feedbackDto;
+        const { feedbackId, questionId, content, accountFromId, accountToId } =
+            feedbackDto;
+
+        const feedback = await this.feedbackRepository.findOne({
+            where: { id: feedbackId },
+        });
+
+        if (!feedback || feedback.status === FeedbackStatus.APPROVED) {
+            throw new BadRequestException('Feedback has already been approved');
+        }
 
         const approvedFeedback = await this.feedbackRepository.save({
             question: { id: questionId },
@@ -217,10 +325,15 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.APPROVED,
         });
 
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: approvedFeedback.id, questionId: questionId },
+            message: `Question was approved`,
+        };
+
         console.log('sending notification to user: ', accountToId);
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
-            `Question was approved`,
+            nofiticationData,
             FeedbackEventType.QUESTION_FEEDBACK,
         );
 
@@ -242,12 +355,18 @@ export class FeedbackService extends BaseService<Feedback> {
             quizQuestion: { id: quizQuestionId },
         });
 
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: rejectFeedback.id, quizQuestionId: quizQuestionId },
+            message: `Quiz Question was rejected`,
+        };
+
         console.log('sending notification to user: ', accountToId);
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
-            `Question was rejected`,
-            FeedbackEventType.QUESTION_FEEDBACK,
+            nofiticationData,
+            FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
         );
+
 
         return rejectFeedback;
     }
@@ -265,11 +384,16 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.APPROVED,
         });
 
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: approvedFeedback.id, quizQuestionId: quizQuestionId },
+            message: `Quiz Question was Approved`,
+        };
+
         console.log('sending notification to user: ', accountToId);
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
-            `Question was approved`,
-            FeedbackEventType.QUESTION_FEEDBACK,
+            nofiticationData,
+            FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
         );
 
         return approvedFeedback;
@@ -310,10 +434,15 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
         });
 
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: rejectFeedback.id, examId: examFeedback.examId },
+            message: `Exam was rejected`,
+        };
+
         console.log('sending notification to user: ', accountToId);
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
-            `Exam was rejected`,
+            nofiticationData,
             FeedbackEventType.EXAM_FEEDBACK,
         );
 
@@ -341,59 +470,34 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.APPROVED,
         });
 
+        const nofiticationData: NotificationDataDto = {
+            data: { feedbackId: approvedFeedback.id, examId: examFeedback.examId },
+            message: `Exam was approved`,
+        };
+
         console.log('sending notification to user: ', accountToId);
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
-            `Learning material was approved`,
+            nofiticationData,
             FeedbackEventType.EXAM_FEEDBACK,
         );
 
         return approvedFeedback;
     }
 
-    async getFeedbackByUserId(userId: string): Promise<Feedback[]> {
-        return this.feedbackRepository.find({
-            where: [{ accountTo: { id: userId } }],
-            relations: ['unit', 'exam', 'question'],
+    async getFeedbackByUserId(userId: string): Promise<UserFeedbackResponseDto[]> {
+        const feedback = await this.feedbackRepository.find({
+            where: { accountTo: { id: userId } },
+            relations: ['unit', 'exam', 'question', 'accountFrom', 'accountTo'],
             order: { createdat: 'DESC' },
         });
-    }
-
-    async getQuestionFeedbackUserId(
-        userId: string,
-        questionId: string,
-    ): Promise<QuestionFeedbackResponseDto[]> {
-        const feedback = await this.feedbackRepository.find({
-            where: [{ accountTo: { id: userId }, question: { id: questionId } }],
-            relations: ['question', 'accountFrom', 'accountTo'],
-            order: { updatedat: 'DESC' },
-        });
 
         if (!feedback) {
             throw new Error('Feedback not found');
         }
 
-        // Transform the entity to DTO
-        return plainToInstance(QuestionFeedbackResponseDto, feedback, {
-            excludeExtraneousValues: true,
-        });
-    }
-
-    async getAllQuestionFeedbackUserId(
-        userId: string,
-    ): Promise<QuestionFeedbackResponseDto[]> {
-        const feedback = await this.feedbackRepository.find({
-            where: [{ accountTo: { id: userId } }],
-            relations: ['question', 'accountFrom', 'accountTo'],
-            order: { updatedat: 'DESC' },
-        });
-
-        if (!feedback) {
-            throw new Error('Feedback not found');
-        }
-
-        // Transform the entity to DTO
-        return plainToInstance(QuestionFeedbackResponseDto, feedback, {
+        // Transform the feedback entities into DTOs
+        return plainToInstance(UserFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
     }
@@ -502,7 +606,9 @@ export class FeedbackService extends BaseService<Feedback> {
     }
 
     // Fetch feedback for exams with a dynamic status
-    async getExamFeedbackByStatus(status: FeedbackStatus): Promise<ExamFeedbackResponseDto[]> {
+    async getExamFeedbackByStatus(
+        status: FeedbackStatus,
+    ): Promise<ExamFeedbackResponseDto[]> {
         if (!Object.values(FeedbackStatus).includes(status)) {
             throw new BadRequestException('Invalid feedback status');
         }
@@ -519,7 +625,9 @@ export class FeedbackService extends BaseService<Feedback> {
     }
 
     // Fetch feedback for units with a dynamic status
-    async getUnitFeedbackByStatus(status: FeedbackStatus): Promise<UnitFeedbackResponseDto[]> {
+    async getUnitFeedbackByStatus(
+        status: FeedbackStatus,
+    ): Promise<UnitFeedbackResponseDto[]> {
         if (!Object.values(FeedbackStatus).includes(status)) {
             throw new BadRequestException('Invalid feedback status');
         }
@@ -535,7 +643,9 @@ export class FeedbackService extends BaseService<Feedback> {
     }
 
     // Fetch feedback for questions with a dynamic status
-    async getQuestionFeedbackByStatus(status: FeedbackStatus): Promise<QuestionFeedbackResponseDto[]> {
+    async getQuestionFeedbackByStatus(
+        status: FeedbackStatus,
+    ): Promise<QuestionFeedbackResponseDto[]> {
         if (!Object.values(FeedbackStatus).includes(status)) {
             throw new BadRequestException('Invalid feedback status');
         }

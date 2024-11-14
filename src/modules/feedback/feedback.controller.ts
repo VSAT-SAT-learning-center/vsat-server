@@ -33,73 +33,38 @@ export class FeedbackController extends BaseController<Feedback> {
         super(feedbackService, 'Feedback');
     }
 
-    //get feedback by feedback id
-    @Get(':feedbackId')
-    async getFeedbackDetails(@Param('feedbackId') feedbackId: string): Promise<FeedbackDetailResponseDto> {
-        try {
-            const feedbackDetails = await this.feedbackService.getFeedbackDetails(feedbackId);
-            return feedbackDetails;
-        } catch (error) {
-            if (error instanceof NotFoundException) {
-                throw new NotFoundException('Feedback not found');
-            }
-            throw error;
-        }
-    }
-
-    @Get('user/:userId')
-    async getFeedbackByUserId(@Param('userId') userId: string) {
-        const feedback = await this.feedbackService.getFeedbackByUserId(userId);
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            feedback,
-            SuccessMessages.gets('Feedback'),
-        );
-    }
-
-    @Get('question/:questionId')
-    async getQuestionFeedbackByUserId(
-        @Request() req,
-        @Param('questionId') questionId: string,
-    ) {
-        try {
-            const userId = req.user['id'];
-            const feedback = await this.feedbackService.getQuestionFeedbackUserId(
-                userId,
-                questionId,
-            );
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                feedback,
-                SuccessMessages.gets('Feedback'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
-
-    @Get('question/:userId')
-    @ApiParam({ name: 'userId', description: 'ID of the user' })
-    @ApiQuery({ name: 'questionId', required: false })
-    async getQuestionFeedback(
-        @Param('userId') userId: string,
-        @Query('questionId') questionId?: string,
+    // Route cho feedback chung theo status
+    @Get('question')
+    async getQuestionFeedbackByStatus(
+        @Query('status') status: FeedbackStatus,
     ): Promise<QuestionFeedbackResponseDto[]> {
-        if (questionId) {
-            return await this.feedbackService.getQuestionFeedbackUserId(
-                userId,
-                questionId,
-            );
+        if (!status) {
+            throw new BadRequestException('Status is required');
         }
-        return await this.feedbackService.getAllQuestionFeedbackUserId(userId);
+        return this.feedbackService.getQuestionFeedbackByStatus(status);
     }
 
+    @Get('exam')
+    async getExamFeedbackByStatus(
+        @Query('status') status: FeedbackStatus,
+    ): Promise<ExamFeedbackResponseDto[]> {
+        if (!status) {
+            throw new BadRequestException('Status is required');
+        }
+        return this.feedbackService.getExamFeedbackByStatus(status);
+    }
+
+    @Get('unit')
+    async getUnitFeedbackByStatus(
+        @Query('status') status: FeedbackStatus,
+    ): Promise<UnitFeedbackResponseDto[]> {
+        if (!status) {
+            throw new BadRequestException('Status is required');
+        }
+        return this.feedbackService.getUnitFeedbackByStatus(status);
+    }
+
+    // Route cho feedback theo userId và examId hoặc unitId
     @Get('exam/:userId')
     @ApiParam({ name: 'userId', description: 'ID of the user' })
     @ApiQuery({ name: 'examId', required: false })
@@ -126,6 +91,7 @@ export class FeedbackController extends BaseController<Feedback> {
         throw new NotFoundException('Unit ID is required for specific unit feedback');
     }
 
+    // Route cho feedback theo userId và unitId với các lesson
     @Get('unit/:userId/with-lessons')
     @ApiParam({ name: 'userId', description: 'ID of the user' })
     @ApiQuery({ name: 'unitId', required: true })
@@ -136,6 +102,7 @@ export class FeedbackController extends BaseController<Feedback> {
         return await this.feedbackService.getUnitFeedbackWithLesson(userId, unitId);
     }
 
+    // Route cho feedback theo userId và lessonId
     @Get('lesson/:userId')
     @ApiParam({ name: 'userId', description: 'ID of the user' })
     @ApiQuery({ name: 'lessonId', required: true })
@@ -146,33 +113,31 @@ export class FeedbackController extends BaseController<Feedback> {
         return await this.feedbackService.getLessonFeedbackUserId(userId, lessonId);
     }
 
-    @Get('exam')
-    async getExamFeedbackByStatus(
-        @Query('status') status: FeedbackStatus,
-    ): Promise<ExamFeedbackResponseDto[]> {
-        if (!status) {
-            throw new BadRequestException('Status is required');
+    // Route lấy thông tin chi tiết về một feedback
+    @Get(':feedbackId')
+    async getFeedbackDetails(
+        @Param('feedbackId') feedbackId: string,
+    ): Promise<FeedbackDetailResponseDto> {
+        try {
+            const feedbackDetails =
+                await this.feedbackService.getFeedbackDetails(feedbackId);
+            return feedbackDetails;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw new NotFoundException('Feedback not found');
+            }
+            throw error;
         }
-        return this.feedbackService.getExamFeedbackByStatus(status);
     }
 
-    @Get('unit')
-    async getUnitFeedbackByStatus(
-        @Query('status') status: FeedbackStatus,
-    ): Promise<UnitFeedbackResponseDto[]> {
-        if (!status) {
-            throw new BadRequestException('Status is required');
-        }
-        return this.feedbackService.getUnitFeedbackByStatus(status);
-    }
-
-    @Get('question')
-    async getQuestionFeedbackByStatus(
-        @Query('status') status: FeedbackStatus,
-    ): Promise<QuestionFeedbackResponseDto[]> {
-        if (!status) {
-            throw new BadRequestException('Status is required');
-        }
-        return this.feedbackService.getQuestionFeedbackByStatus(status);
+    // Route lấy feedback theo userId
+    @Get('user/:userId')
+    async getFeedbackByUserId(@Param('userId') userId: string) {
+        const feedback = await this.feedbackService.getFeedbackByUserId(userId);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            feedback,
+            SuccessMessages.gets('Feedback'),
+        );
     }
 }
