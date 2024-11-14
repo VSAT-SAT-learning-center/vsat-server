@@ -678,7 +678,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
             scoreMath = examScoreDetailMath.upperscore;
         }
-        if (!createExamAttemptDto.isHardRW) {
+        if (!createExamAttemptDto.isHardMath) {
             const examScoreDetailMath = await this.examScoreDetailRepository.findOne({
                 where: {
                     rawscore: createExamAttemptDto.correctAnswerMath,
