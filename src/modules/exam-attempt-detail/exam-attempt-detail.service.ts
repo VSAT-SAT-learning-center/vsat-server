@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import sanitizeHtml from 'sanitize-html';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { Repository } from 'typeorm';
 import { CheckExamAttemptDetail } from './dto/check-examattemptdetail';
-import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class ExamAttemptDetailService {
@@ -68,6 +68,8 @@ export class ExamAttemptDetailService {
                 const answer = answers.find(
                     (answer) => answer.plaintext === normalizedText,
                 );
+
+                console.log(answer);
 
                 if (!answer.isCorrectAnswer) {
                     checkExamAttemptDetail.isCorrect = false;
