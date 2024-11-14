@@ -7,12 +7,15 @@ import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectRepository(Account)
         private readonly authRepository: Repository<Account>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
         private readonly jwtService: JwtService,
         private readonly mailerService: MailerService,
     ) {}
@@ -65,6 +68,19 @@ export class AuthService {
                 'Wrong username or password',
                 HttpStatus.UNAUTHORIZED,
             );
+        }
+
+        const studyProfile = await this.studyProfileRepository.find({
+            where: { account: { id: findAcc.id } },
+        });
+
+        for (const studyData of studyProfile) {
+            if (!studyData.isTrialExam) {
+                throw new HttpException(
+                    'You do not taken the practice test yet ',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
         }
 
         const accessToken = this.createAccessToken(findAcc);

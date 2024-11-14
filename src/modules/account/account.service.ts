@@ -11,6 +11,8 @@ import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { CreateAccountFromFileDTO } from './dto/create-account-file.dto';
 import { GetAccountDTO } from './dto/get-account.dto';
 import { BaseService } from '../base/base.service';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { StudyProfileService } from '../study-profile/study-profile.service';
 
 @Injectable()
 export class AccountService extends BaseService<Account> {
@@ -20,6 +22,8 @@ export class AccountService extends BaseService<Account> {
         private readonly mailerService: MailerService,
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
+
+        private readonly studyProfileService: StudyProfileService,
     ) {
         super(accountRepository);
     }
@@ -106,7 +110,22 @@ export class AccountService extends BaseService<Account> {
             throw new HttpException('Fail to save account', HttpStatus.BAD_REQUEST);
         }
 
-        await this.sendWelComeMail(accountDTO.email, randomPassword, generatedUsername);
+        console.log(saveAccount.role.rolename);
+
+        if (saveAccount.role.rolename === 'Student') {
+            await this.studyProfileService.create(saveAccount.id);
+        }
+
+        if (
+            saveAccount.role.rolename === 'Student' ||
+            saveAccount.role.rolename === 'Teacher'
+        ) {
+            await this.sendWelComeMail(
+                accountDTO.email,
+                randomPassword,
+                generatedUsername,
+            );
+        }
 
         return plainToInstance(CreateAccountDTO, saveAccount, {
             excludeExtraneousValues: true,
