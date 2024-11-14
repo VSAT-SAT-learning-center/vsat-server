@@ -715,4 +715,21 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             attemptId: savedExamAttempt.id,
         });
     }
+
+    async getExamAttemptByStudyProfileId(accountId: string) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: accountId } },
+        });
+
+        const examAttempt = await this.examAttemptRepository.find({
+            where: { studyProfile: { id: studyProfile.id } },
+            relations: ['exam', 'studyProfile'],
+        });
+
+        if (!examAttempt) {
+            throw new NotFoundException('ExamAttempt is not found');
+        }
+
+        return examAttempt;
+    }
 }

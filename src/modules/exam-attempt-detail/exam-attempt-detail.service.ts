@@ -38,74 +38,77 @@ export class ExamAttemptDetailService {
         examAttemptId: string,
     ): Promise<CheckExamAttemptDetail[]> {
         const results: CheckExamAttemptDetail[] = [];
+        const batchSize = 30;
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+        });
 
-        for (const checkExamAttemptDetail of checkExamAttemptDetails) {
-            const examAttempt = await this.examAttemptRepository.findOne({
-                where: { id: examAttemptId },
-            });
+        if (!examAttempt) {
+            throw new NotFoundException('ExamAttempt not found');
+        }
 
-            const question = await this.questionRepository.findOne({
-                where: { id: checkExamAttemptDetail.questionid },
-            });
+        for (let i = 0; i < checkExamAttemptDetails.length; i += batchSize) {
+            const batch = checkExamAttemptDetails.slice(i, i + batchSize);
+            const batchEntities = [];
 
-            const normalizedText = this.normalizeContent(
-                checkExamAttemptDetail.studentanswer,
-            );
+            for (const checkExamAttemptDetail of batch) {
+                const question = await this.questionRepository.findOne({
+                    where: { id: checkExamAttemptDetail.questionid },
+                });
 
-            if (!examAttempt) {
-                throw new NotFoundException('ExamAttempt not found');
-            }
+                if (!question) {
+                    throw new NotFoundException('Question not found');
+                }
 
-            if (!question) {
-                throw new NotFoundException('Question not found');
-            }
-
-            const answers = await this.answerRepository.find({
-                where: { question: { id: checkExamAttemptDetail.questionid } },
-            });
-
-            if (question.isSingleChoiceQuestion === true) {
-                const answer = answers.find(
-                    (answer) => answer.plaintext === normalizedText,
+                const normalizedText = this.normalizeContent(
+                    checkExamAttemptDetail.studentanswer,
                 );
 
-                console.log(answer);
+                const answers = await this.answerRepository.find({
+                    where: { question: { id: checkExamAttemptDetail.questionid } },
+                });
 
-                if (!answer.isCorrectAnswer) {
-                    checkExamAttemptDetail.isCorrect = false;
-                } else if (answer.isCorrectAnswer) {
-                    checkExamAttemptDetail.isCorrect = true;
-                }
-            } else if (question.isSingleChoiceQuestion === false) {
-                const correctAnswer = answers.find(
-                    (answer) => answer.plaintext === normalizedText,
+                checkExamAttemptDetail.isCorrect = this.evaluateAnswer(
+                    question.isSingleChoiceQuestion,
+                    answers,
+                    normalizedText,
                 );
 
-                if (correctAnswer) {
-                    checkExamAttemptDetail.isCorrect = true;
-                } else {
-                    checkExamAttemptDetail.isCorrect = false;
-                }
+                const examAttemptDetailEntity = this.examAttemptDetailRepository.create({
+                    examAttempt: examAttempt,
+                    question: question,
+                    iscorrect: checkExamAttemptDetail.isCorrect,
+                    studentAnswer: checkExamAttemptDetail.studentanswer,
+                });
+
+                batchEntities.push(examAttemptDetailEntity);
+
+                results.push({
+                    ...checkExamAttemptDetail,
+                    isCorrect: checkExamAttemptDetail.isCorrect,
+                });
             }
 
-            const examAttemptDetailEntity = this.examAttemptDetailRepository.create({
-                examAttempt: examAttempt,
-                question: question,
-                iscorrect: checkExamAttemptDetail.isCorrect,
-                studentAnswer: checkExamAttemptDetail.studentanswer,
-            });
-
-            const savedExamAttemptDetail = await this.examAttemptDetailRepository.save(
-                examAttemptDetailEntity,
-            );
-
-            results.push({
-                ...checkExamAttemptDetail,
-                isCorrect: savedExamAttemptDetail.iscorrect,
-            });
+            await this.examAttemptDetailRepository.save(batchEntities);
         }
 
         return results;
+    }
+
+    private evaluateAnswer(
+        isSingleChoiceQuestion: boolean,
+        answers: Answer[],
+        normalizedText: string,
+    ): boolean {
+        if (isSingleChoiceQuestion) {
+            const answer = answers.find((answer) => answer.plaintext === normalizedText);
+            return !!answer?.isCorrectAnswer;
+        } else {
+            const correctAnswer = answers.find(
+                (answer) => answer.plaintext === normalizedText,
+            );
+            return !!correctAnswer;
+        }
     }
 
     async countCorrectAnswers(

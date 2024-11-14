@@ -1,8 +1,7 @@
 import { Expose, Type } from 'class-transformer';
-import { IsUUID, IsOptional, ValidateNested } from 'class-validator';
+import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
 import { Account } from 'src/database/entities/account.entity';
 import { AccountDTO } from 'src/modules/account/dto/account.dto';
-import { GetAccountDTO } from 'src/modules/account/dto/get-account.dto';
 
 export class BaseDTO {
     @IsOptional()
@@ -23,10 +22,10 @@ export class BaseDTO {
     @Expose()
     updatedby?: string;
 
-    // @IsUUID()
-    // @IsOptional()
-    // @Expose()
-    // createdat?: string;
+    @IsUUID()
+    @IsOptional()
+    @Expose()
+    createdat?: string;
 
     // @IsUUID()
     // @IsOptional()
