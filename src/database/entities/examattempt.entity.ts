@@ -1,38 +1,54 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    ManyToOne,
+    JoinColumn,
+    OneToMany,
+} from 'typeorm';
 import { StudyProfile } from './studyprofile.entity';
 import { Exam } from './exam.entity';
+import { ExamAttemptDetail } from './examattemptdetail.entity';
 
 @Entity('examattempt')
 export class ExamAttempt {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdat: Date;
+    @CreateDateColumn({ type: 'timestamp' })
+    createdat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  createdby: string;
+    @Column({ type: 'uuid', nullable: true })
+    createdby: string;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedat: Date;
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedat: Date;
 
-  @Column({ type: 'uuid', nullable: true })
-  updatedby: string;
+    @Column({ type: 'uuid', nullable: true })
+    updatedby: string;
 
-  @ManyToOne(() => StudyProfile)
-  @JoinColumn({ name: 'studyprofileid' })
-  studyProfile: StudyProfile;
+    @ManyToOne(() => StudyProfile)
+    @JoinColumn({ name: 'studyprofileid' })
+    studyProfile: StudyProfile;
 
-  @ManyToOne(() => Exam)
-  @JoinColumn({ name: 'examid' })
-  exam: Exam;
+    @ManyToOne(() => Exam)
+    @JoinColumn({ name: 'examid' })
+    exam: Exam;
 
-  @Column({ type: 'timestamp', nullable: true })
-  attemptdatetime: Date;
+    @OneToMany(
+        () => ExamAttemptDetail,
+        (examattemptdetail) => examattemptdetail.examAttempt,
+    )
+    examattemptdetail: ExamAttemptDetail[];
 
-  @Column({ type: 'int', nullable: true })
-  scoreMath: number;
+    @Column({ type: 'timestamp', nullable: true })
+    attemptdatetime: Date;
 
-  @Column({ type: 'int', nullable: true })
-  scoreRW: number;
+    @Column({ type: 'int', nullable: true })
+    scoreMath: number;
+
+    @Column({ type: 'int', nullable: true })
+    scoreRW: number;
 }
