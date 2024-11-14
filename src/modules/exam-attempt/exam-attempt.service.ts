@@ -809,15 +809,28 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     }
 
     async getExamAttemptStatistics(examAttemptId: string) {
+        // Truy vấn để lấy thông tin ExamAttempt trước
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+            relations: ['exam'],
+        });
+
+        if (!examAttempt || !examAttempt.exam) {
+            throw new Error(
+                `ExamAttempt or associated Exam not found for id "${examAttemptId}".`,
+            );
+        }
+
+        const examId = examAttempt.exam.id;
+
         const sections = ['Reading & Writing', 'Math'];
         const sectionMap = {
             'Reading & Writing': 'RW',
-            Math: 'Math',
+            Math: 'M',
         };
         const statistics = {};
 
         for (const sectionName of sections) {
-            // Lấy mã ngắn gọn từ sectionMap
             const sectionKey = sectionMap[sectionName];
 
             const section = await this.sectionRepository.findOne({
@@ -946,11 +959,16 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 }
             }
 
-            // ModuleType
             const moduleTypeCounts = await this.examAttemptDetailRepository
                 .createQueryBuilder('examAttemptDetail')
                 .leftJoin('examAttemptDetail.question', 'question')
-                .leftJoin('question.examquestion', 'examQuestion')
+                .leftJoin('examAttemptDetail.examAttempt', 'examAttempt')
+                .leftJoin('examAttempt.exam', 'exam')
+                .leftJoin(
+                    'exam.examquestion',
+                    'examQuestion',
+                    'examQuestion.exam = exam.id AND examQuestion.question = question.id',
+                )
                 .leftJoin('examQuestion.moduleType', 'moduleType')
                 .leftJoin('moduleType.section', 'section')
                 .select('moduleType.id', 'moduleTypeId')
@@ -963,19 +981,15 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     `SUM(CASE WHEN examAttemptDetail.iscorrect = false THEN 1 ELSE 0 END)`,
                     'incorrectCount',
                 )
-                .addSelect(
-                    `SUM(CASE WHEN examAttemptDetail.iscorrect = true THEN 1 ELSE 0 END) +
-                     SUM(CASE WHEN examAttemptDetail.iscorrect = false THEN 1 ELSE 0 END)`,
-                    'totalCount',
-                )
+                .addSelect(`COUNT(examAttemptDetail.id)`, 'totalCount')
                 .where('examAttemptDetail.examAttempt = :examAttemptId', {
                     examAttemptId,
                 })
+                .andWhere('exam.id = :examId', { examId })
                 .andWhere('section.id = :sectionId', { sectionId })
                 .groupBy('moduleType.id')
                 .getRawMany();
 
-            // Gán kết quả vào statistics với mã ngắn gọn của section
             statistics[sectionKey] = {
                 domain: domainCounts,
                 skill: skillCounts,
