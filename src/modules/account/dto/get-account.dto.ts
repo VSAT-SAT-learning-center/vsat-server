@@ -39,5 +39,8 @@ export class GetAccountDTO {
     profilepictureurl: string;
 
     @Expose()
+    isTrialExam: boolean;
+
+    @Expose()
     status: AccountStatus;
 }
