@@ -14,6 +14,8 @@ import { Answer } from './anwser.entity';
 import { Level } from './level.entity';
 import { Section } from './section.entity';
 import { Skill } from './skill.entity';
+import { ExamQuestion } from './examquestion.entity';
+import { ExamAttemptDetail } from './examattemptdetail.entity';
 
 @Entity('question')
 export class Question {
@@ -46,6 +48,12 @@ export class Question {
 
     @OneToMany(() => Answer, (answer) => answer.question)
     answers: Answer[];
+
+    @OneToMany(() => ExamQuestion, (examquestion) => examquestion.question)
+    examquestion: ExamQuestion[];
+
+    @OneToMany(() => ExamAttemptDetail, (examattemptdetail) => examattemptdetail.question)
+    examattemptdetail: ExamAttemptDetail[];
 
     @Column({ type: 'text', nullable: true })
     content: string;

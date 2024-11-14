@@ -23,13 +23,13 @@ export class BaseDTO {
     @Expose()
     updatedby?: string;
 
-    // @IsUUID()
-    // @IsOptional()
-    // @Expose()
-    // createdat?: string;
+    @IsUUID()
+    @IsOptional()
+    @Expose()
+    createdat?: string;
 
-    // @IsUUID()
-    // @IsOptional()
-    // @Expose()
-    // updatedat?: string;
+    @IsUUID()
+    @IsOptional()
+    @Expose()
+    updatedat?: string;
 }
