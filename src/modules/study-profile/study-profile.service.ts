@@ -17,4 +17,13 @@ export class StudyProfileService {
             where: { account: { id: accountId } },
         });
     }
+
+    async create(accountId: string) {
+        const studyProfile = await this.studyProfileRepository.create({
+            account: { id: accountId },
+            startdate: new Date(),
+        });
+
+        return await this.studyProfileRepository.save(studyProfile);
+    }
 }

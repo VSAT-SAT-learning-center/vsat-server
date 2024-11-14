@@ -19,6 +19,8 @@ import { ExamAttemptDetailModule } from '../exam-attempt-detail/exam-attempt-det
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
+import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
+import { ModuleType } from 'src/database/entities/moduletype.entity';
 
 @Module({
     imports: [
@@ -35,6 +37,8 @@ import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
             ExamStructure,
             ExamScore,
             ExamScoreDetail,
+            DomainDistribution,
+            ModuleType,
         ]),
         TargetLearningModule,
         UnitProgressModule,

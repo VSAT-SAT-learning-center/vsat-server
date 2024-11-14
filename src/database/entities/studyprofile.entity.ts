@@ -42,6 +42,9 @@ export class StudyProfile {
     @Column({ type: 'timestamp', nullable: true })
     enddate: Date;
 
+    @Column({ type: 'boolean', default: false })
+    isTrialExam: boolean;
+
     @Column({ type: 'varchar', length: 50, nullable: true })
     status: string;
 }
