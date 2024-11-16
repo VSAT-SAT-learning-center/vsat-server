@@ -24,7 +24,10 @@ export class Answerservice {
             allowedAttributes: {},
         });
 
-        return strippedContent.replace(/\s+/g, ' ').trim();
+        return strippedContent
+            .replace(/\s+/g, ' ')
+            .replace(/\s+([.,!?])/g, '$1')
+            .trim();
     }
 
     async updateAnswer(ids: string[]): Promise<boolean> {
@@ -74,11 +77,17 @@ export class Answerservice {
             }
 
             if (!text) {
-                throw new HttpException(`Answer should not empty`, HttpStatus.BAD_REQUEST);
+                throw new HttpException(
+                    `Answer should not empty`,
+                    HttpStatus.BAD_REQUEST,
+                );
             }
 
             if (isCorrectAnswer === undefined || isCorrectAnswer === null) {
-                throw new HttpException(`isCorrectAnswer should not empty`, HttpStatus.BAD_REQUEST);
+                throw new HttpException(
+                    `isCorrectAnswer should not empty`,
+                    HttpStatus.BAD_REQUEST,
+                );
             }
 
             const normalizedContent = this.normalizeContent(text);
@@ -118,7 +127,9 @@ export class Answerservice {
             });
 
             if (!correctAnswers.length) {
-                throw new NotFoundException(`No correct answers found for question ${questionId}`);
+                throw new NotFoundException(
+                    `No correct answers found for question ${questionId}`,
+                );
             }
 
             const correctAnswerIds = correctAnswers.map((answer) => answer.id);
