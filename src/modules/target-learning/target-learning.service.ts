@@ -28,6 +28,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
 
     async save(
         createTargetLearningDto: CreateTargetLearningDto,
+        studyProfileId: string,
     ): Promise<TargetLearning> {
         const level = await this.levelRepository.findOne({
             where: { id: createTargetLearningDto.levelId },
@@ -38,7 +39,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         });
 
         const studyProfile = await this.studyProfileRepository.findOne({
-            where: { id: createTargetLearningDto.studyProfileId },
+            where: { id: studyProfileId },
         });
 
         if (!level) {

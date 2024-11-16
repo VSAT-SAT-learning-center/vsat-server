@@ -10,6 +10,7 @@ import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { plainToInstance } from 'class-transformer';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
+import { AccountDTO } from '../account/dto/account.dto';
 
 @Injectable()
 export class AuthService {
@@ -90,7 +91,7 @@ export class AuthService {
             throw new HttpException('Account is not permission', HttpStatus.UNAUTHORIZED);
         }
 
-        const account = plainToInstance(GetAccountDTO, findAcc, {
+        const account = plainToInstance(AccountDTO, findAcc, {
             excludeExtraneousValues: true,
         });
 

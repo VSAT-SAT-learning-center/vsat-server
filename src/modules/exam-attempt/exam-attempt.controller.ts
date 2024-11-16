@@ -32,14 +32,17 @@ export class ExamAttemptController {
     constructor(private readonly examAttemptService: ExamAttemptService) {}
 
     @Post(':id')
+    @UseGuards(JwtAuthGuard)
     async recommend(
         @Param('id') examAttemptId: string,
         @Body() createTargetLearningDto: CreateTargetLearningDto,
+        @Request() req,
     ) {
         try {
             const recommend = await this.examAttemptService.recommend(
                 examAttemptId,
                 createTargetLearningDto,
+                req.user.id,
             );
             return ResponseHelper.success(
                 HttpStatus.CREATED,
@@ -203,9 +206,7 @@ export class ExamAttemptController {
     }
 
     @Get('statistics/:id')
-    async getExamAttemptStatistics(
-        @Param('id') id: string,
-    ) {
+    async getExamAttemptStatistics(@Param('id') id: string) {
         try {
             const examAttemptStatistics =
                 await this.examAttemptService.getExamAttemptStatistics(id);

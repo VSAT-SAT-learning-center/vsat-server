@@ -12,6 +12,7 @@ import {
     BadRequestException,
     UseGuards,
     Patch,
+    Request,
 } from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { CreateExamDto } from './dto/create-exam.dto';
@@ -56,6 +57,30 @@ export class ExamController {
     async GetExamWithExamQuestion() {
         try {
             const exam = await this.examService.GetExamWithExamQuestion();
+
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                exam,
+                SuccessMessages.get('Exam'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('/getExamByCreateBy')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    async GetExamWithExamQuestionByCreateBy(@Request() req) {
+        try {
+            const exam = await this.examService.GetExamWithExamQuestionByCreateBy(
+                req.user.id,
+            );
 
             return ResponseHelper.success(
                 HttpStatus.CREATED,
@@ -165,14 +190,10 @@ export class ExamController {
     }
 
     @Get('getExamByExamType/:name')
-    async GetExamWithExamQuestionByExamType(
-        @Param('name') examTypeName: string,
-    ) {
+    async GetExamWithExamQuestionByExamType(@Param('name') examTypeName: string) {
         try {
             const exam =
-                await this.examService.GetExamWithExamQuestionByExamType(
-                    examTypeName,
-                );
+                await this.examService.GetExamWithExamQuestionByExamType(examTypeName);
 
             return ResponseHelper.success(
                 HttpStatus.OK,

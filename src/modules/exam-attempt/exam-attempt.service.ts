@@ -70,7 +70,17 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     async recommend(
         examAttemptId: string,
         createTargetLearningDto: CreateTargetLearningDto,
+        accountId: string,
     ) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: accountId } },
+            order: {createdat: 'ASC'},
+        });
+
+        if (!studyProfile) {
+            throw new NotFoundException('StudyProfile is not found');
+        }
+
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
             relations: ['studyProfile'],
@@ -277,6 +287,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 const targetLearning = await this.targetLearningService.save(
                     createTargetLearningDto,
+                    studyProfile.id,
                 );
 
                 console.log(targetLearning);
@@ -301,6 +312,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     const targetLearning = await this.targetLearningService.save(
                         createTargetLearningDto,
+                        studyProfile.id,
                     );
 
                     await this.unitProgressService.startMultipleUnitProgress(
@@ -321,6 +333,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     const targetLearning = await this.targetLearningService.save(
                         createTargetLearningDto,
+                        studyProfile.id,
                     );
 
                     await this.unitProgressService.startMultipleUnitProgress(
@@ -336,6 +349,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     const targetLearning = await this.targetLearningService.save(
                         createTargetLearningDto,
+                        studyProfile.id,
                     );
 
                     await this.unitProgressService.startMultipleUnitProgress(
@@ -357,6 +371,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 const targetLearning = await this.targetLearningService.save(
                     createTargetLearningDto,
+                    studyProfile.id,
                 );
 
                 await this.unitProgressService.startMultipleUnitProgress(
@@ -377,6 +392,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     const targetLearning = await this.targetLearningService.save(
                         createTargetLearningDto,
+                        studyProfile.id,
                     );
 
                     await this.unitProgressService.startMultipleUnitProgress(
@@ -397,6 +413,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     const targetLearning = await this.targetLearningService.save(
                         createTargetLearningDto,
+                        studyProfile.id,
                     );
 
                     await this.unitProgressService.startMultipleUnitProgress(
@@ -412,6 +429,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     const targetLearning = await this.targetLearningService.save(
                         createTargetLearningDto,
+                        studyProfile.id,
                     );
 
                     await this.unitProgressService.startMultipleUnitProgress(
