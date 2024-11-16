@@ -161,6 +161,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
             // Summary of skills assessed in the quiz, detailing accuracy per skill and total correct answers.
             skillsSummary: skillsResult.skillsSummary,
             // Detailed performance metrics for each skill, including accuracy and proficiency level.
+            // Will be implement in the future
             skillDetails: skillsResult.skillDetails,
             // A list of recommended units (or unit areas) that focus on skills the student needs to improve.
             recommendedLessons: recommendedUnits,
@@ -263,40 +264,80 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     async assessSkillProgress(
         quizAttemptId: string,
     ): Promise<{ skillsSummary: any; skillDetails: any }> {
-        // Lấy các câu trả lời trong QuizAttempt
+        // Get current answers for the quiz attempt
         const answers =
             await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttemptId);
         const skillScores = new Map<string, { correct: number; total: number }>();
 
-        // Xử lý từng câu trả lời
         for (const answer of answers) {
             const skillId = answer.quizQuestion.skill.id;
-            const isCorrect = answer.isCorrect;
-
-            // Khởi tạo nếu chưa có skillId trong map
             if (!skillScores.has(skillId)) {
                 skillScores.set(skillId, { correct: 0, total: 0 });
             }
 
-            // Cập nhật điểm kỹ năng
             const skillScore = skillScores.get(skillId);
-            if (skillScore) {
-                skillScore.total += 1;
-                if (isCorrect) skillScore.correct += 1;
-            }
+            skillScore.total += 1;
+            if (answer.isCorrect) skillScore.correct += 1;
         }
 
-        // Tạo dữ liệu kết quả
-        const skillsSummary = Array.from(skillScores.entries()).map(
+        // Calculate current accuracy
+        const currentSkillsSummary = Array.from(skillScores.entries()).map(
             ([skillId, score]) => ({
                 skillId,
-                accuracy: (score.correct / score.total) * 100,
+                currentAccuracy: (score.correct / score.total) * 100,
             }),
         );
 
-        const skillDetails = skillsSummary; // Có thể tùy chỉnh nếu cần chi tiết hơn
+        // Fetch the previous attempt for comparison
+        const previousAttempt =
+            await this.getPreviousAttempt(quizAttemptId);
+        let previousSkillsSummary = [];
 
-        return { skillsSummary, skillDetails };
+        if (previousAttempt) {
+            const previousAnswers =
+                await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(
+                    previousAttempt.id,
+                );
+
+            const previousSkillScores = new Map<
+                string,
+                { correct: number; total: number }
+            >();
+
+            for (const answer of previousAnswers) {
+                const skillId = answer.quizQuestion.skill.id;
+                if (!previousSkillScores.has(skillId)) {
+                    previousSkillScores.set(skillId, { correct: 0, total: 0 });
+                }
+
+                const skillScore = previousSkillScores.get(skillId);
+                skillScore.total += 1;
+                if (answer.isCorrect) skillScore.correct += 1;
+            }
+
+            previousSkillsSummary = Array.from(previousSkillScores.entries()).map(
+                ([skillId, score]) => ({
+                    skillId,
+                    previousAccuracy: (score.correct / score.total) * 100,
+                }),
+            );
+        }
+
+        // Merge current and previous summaries
+        const skillsSummary = currentSkillsSummary.map((current) => {
+            const previous = previousSkillsSummary.find(
+                (p) => p.skillId === current.skillId,
+            );
+            return {
+                ...current,
+                previousAccuracy: previous ? previous.previousAccuracy : null,
+                improvement: previous
+                    ? current.currentAccuracy - previous.previousAccuracy
+                    : null,
+            };
+        });
+
+        return { skillsSummary, skillDetails: skillsSummary };
     }
 
     async calculateCourseMastery(studyProfileId: string): Promise<number> {
@@ -451,5 +492,33 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
                 })),
             },
         };
+    }
+
+    // In QuizAttemptService
+
+    async getPreviousAttempt(currentQuizAttemptId: string): Promise<QuizAttempt | null> {
+        // Find the current quiz attempt to get quiz and studyProfile information
+        const currentAttempt = await this.quizAttemptRepository.findOne({
+            where: { id: currentQuizAttemptId },
+            relations: ['quiz', 'studyProfile'],
+        });
+
+        if (!currentAttempt) {
+            throw new NotFoundException(
+                `Quiz Attempt with ID ${currentQuizAttemptId} not found`,
+            );
+        }
+
+        // Find the latest previous attempt for the same quiz and study profile
+        const previousAttempt = await this.quizAttemptRepository.findOne({
+            where: {
+                quiz: { id: currentAttempt.quiz.id },
+                studyProfile: { id: currentAttempt.studyProfile.id },
+                status: QuizAttemptStatus.COMPLETED,
+            },
+            order: { attemptdatetime: 'DESC' },
+        });
+
+        return previousAttempt || null;
     }
 }

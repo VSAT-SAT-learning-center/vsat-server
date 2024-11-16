@@ -64,64 +64,79 @@ export class FeedbackController extends BaseController<Feedback> {
         return this.feedbackService.getUnitFeedbackByStatus(status);
     }
 
-    // Route cho feedback theo userId và examId hoặc unitId
-    @Get('exam/:userId')
-    @ApiParam({ name: 'userId', description: 'ID of the user' })
+    // GET /feedbacks/exam?examId=123
+    @Get('exam')
     @ApiQuery({ name: 'examId', required: false })
     async getExamFeedback(
-        @Param('userId') userId: string,
+        @Request() req: any,
         @Query('examId') examId?: string,
     ): Promise<ExamFeedbackResponseDto[]> {
+        const userId = req.user?.id; // Lấy userId từ request
+        if (!userId) {
+            throw new NotFoundException('User ID not found in request');
+        }
+
         if (examId) {
             return await this.feedbackService.getExamFeedbackByUserId(userId, examId);
         }
         return await this.feedbackService.getAllExamFeedbackByUserId(userId);
     }
 
-    @Get('unit/:userId')
-    @ApiParam({ name: 'userId', description: 'ID of the user' })
+    // GET /feedbacks/unit?unitId=123
+    @Get('unit')
     @ApiQuery({ name: 'unitId', required: false })
     async getUnitFeedback(
-        @Param('userId') userId: string,
+        @Request() req: any,
         @Query('unitId') unitId?: string,
     ): Promise<UnitFeedbackResponseDto[]> {
+        const userId = req.user?.id; // Lấy userId từ request
+        if (!userId) {
+            throw new NotFoundException('User ID not found in request');
+        }
+
         if (unitId) {
             return await this.feedbackService.getUnitFeedbackByUserId(userId, unitId);
         }
         throw new NotFoundException('Unit ID is required for specific unit feedback');
     }
 
-    // Route cho feedback theo userId và unitId với các lesson
-    @Get('unit/:userId/with-lessons')
-    @ApiParam({ name: 'userId', description: 'ID of the user' })
+    // GET /feedbacks/unit/with-lessons?unitId=123
+    @Get('unit/with-lessons')
     @ApiQuery({ name: 'unitId', required: true })
     async getUnitFeedbackWithLesson(
-        @Param('userId') userId: string,
+        @Request() req: any,
         @Query('unitId') unitId: string,
     ): Promise<UnitFeedbackWithLessonResponseDto[]> {
+        const userId = req.user?.id; // Lấy userId từ request
+        if (!userId) {
+            throw new NotFoundException('User ID not found in request');
+        }
+
         return await this.feedbackService.getUnitFeedbackWithLesson(userId, unitId);
     }
 
-    // Route cho feedback theo userId và lessonId
-    @Get('lesson/:userId')
-    @ApiParam({ name: 'userId', description: 'ID of the user' })
+    // GET /feedbacks/lesson?lessonId=123
+    @Get('lesson')
     @ApiQuery({ name: 'lessonId', required: true })
     async getLessonFeedback(
-        @Param('userId') userId: string,
+        @Request() req: any,
         @Query('lessonId') lessonId: string,
     ): Promise<QuestionFeedbackResponseDto[]> {
+        const userId = req.user?.id; // Lấy userId từ request
+        if (!userId) {
+            throw new NotFoundException('User ID not found in request');
+        }
+
         return await this.feedbackService.getLessonFeedbackUserId(userId, lessonId);
     }
 
-    // Route lấy thông tin chi tiết về một feedback
+    // GET /feedbacks/:feedbackId
     @Get(':feedbackId')
     async getFeedbackDetails(
         @Param('feedbackId') feedbackId: string,
     ): Promise<FeedbackDetailResponseDto> {
         try {
-            const feedbackDetails =
-                await this.feedbackService.getFeedbackDetails(feedbackId);
-            return feedbackDetails;
+            return await this.feedbackService.getFeedbackDetails(feedbackId);
         } catch (error) {
             if (error instanceof NotFoundException) {
                 throw new NotFoundException('Feedback not found');
@@ -130,14 +145,15 @@ export class FeedbackController extends BaseController<Feedback> {
         }
     }
 
-    // Route lấy feedback theo userId
-    @Get('user/:userId')
-    async getFeedbackByUserId(@Param('userId') userId: string) {
+    // GET /feedbacks/user
+    @Get('user')
+    async getFeedbackByUserId(@Request() req: any) {
+        const userId = req.user?.id; // Lấy userId từ request
+        if (!userId) {
+            throw new NotFoundException('User ID not found in request');
+        }
+
         const feedback = await this.feedbackService.getFeedbackByUserId(userId);
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            feedback,
-            SuccessMessages.gets('Feedback'),
-        );
+        return feedback;
     }
 }
