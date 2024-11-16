@@ -8,6 +8,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { plainToInstance } from 'class-transformer';
+import { GetAccountDTO } from '../account/dto/get-account.dto';
 
 @Injectable()
 export class AuthService {
@@ -70,19 +72,6 @@ export class AuthService {
             );
         }
 
-        const studyProfile = await this.studyProfileRepository.find({
-            where: { account: { id: findAcc.id } },
-        });
-
-        for (const studyData of studyProfile) {
-            if (!studyData.isTrialExam) {
-                throw new HttpException(
-                    'You do not taken the practice test yet ',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-        }
-
         const accessToken = this.createAccessToken(findAcc);
         const refreshToken = this.createRefreshToken(findAcc);
 
@@ -101,9 +90,14 @@ export class AuthService {
             throw new HttpException('Account is not permission', HttpStatus.UNAUTHORIZED);
         }
 
+        const account = plainToInstance(GetAccountDTO, findAcc, {
+            excludeExtraneousValues: true,
+        });
+
         return {
             accessToken,
             refreshToken,
+            account,
         };
     }
 
