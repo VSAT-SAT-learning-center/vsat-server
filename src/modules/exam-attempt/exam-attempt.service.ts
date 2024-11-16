@@ -819,6 +819,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         }
 
         return {
+            id: exam.id,
             examTitle: exam.title,
             totalNumberOfQuestions,
             totalTime,
