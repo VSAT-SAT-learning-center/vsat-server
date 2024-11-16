@@ -123,4 +123,28 @@ export class ExamAttemptDetailService {
             },
         });
     }
+
+    async countCorrectAnswersBySection(examAttemptId: string): Promise<{ [section: string]: number }> {
+        const mathCount = await this.examAttemptDetailRepository.count({
+            where: {
+                examAttempt: { id: examAttemptId },
+                question: { section: { name: 'Math' } },
+                iscorrect: true,
+            },
+        });
+    
+        const readingWritingCount = await this.examAttemptDetailRepository.count({
+            where: {
+                examAttempt: { id: examAttemptId },
+                question: { section: { name: 'Reading & Writing' } },
+                iscorrect: true,
+            },
+        });
+    
+        return {
+            Math: mathCount,
+            'Reading & Writing': readingWritingCount,
+        };
+    }
+    
 }

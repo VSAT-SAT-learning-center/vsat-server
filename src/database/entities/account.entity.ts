@@ -67,7 +67,6 @@ export class Account {
     @Column({
         type: 'enum',
         enum: AccountStatus,
-        default: AccountStatus.INACTIVE,
     })
     status: AccountStatus;
 

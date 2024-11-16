@@ -96,12 +96,23 @@ export class AccountService extends BaseService<Account> {
 
         const hashedPassword = await this.hashPassword(randomPassword);
 
+        let active = AccountStatus.INACTIVE;
+
+        if (
+            role.rolename === 'Staff' ||
+            role.rolename === 'Manager' ||
+            role.rolename === 'Admin'
+        ) {
+            active = AccountStatus.ACTIVE;
+        }
+
         const account = await this.accountRepository.create({
             ...accountDTO,
             password: hashedPassword,
             username: generatedUsername,
             role: role,
             dateofbirth: formattedDate,
+            status: active,
         });
 
         const saveAccount = await this.accountRepository.save(account);
@@ -110,22 +121,11 @@ export class AccountService extends BaseService<Account> {
             throw new HttpException('Fail to save account', HttpStatus.BAD_REQUEST);
         }
 
-        console.log(saveAccount.role.rolename);
-
         if (saveAccount.role.rolename === 'Student') {
             await this.studyProfileService.create(saveAccount.id);
         }
 
-        if (
-            saveAccount.role.rolename === 'Student' ||
-            saveAccount.role.rolename === 'Teacher'
-        ) {
-            await this.sendWelComeMail(
-                accountDTO.email,
-                randomPassword,
-                generatedUsername,
-            );
-        }
+        await this.sendWelComeMail(accountDTO.email, randomPassword, generatedUsername);
 
         return plainToInstance(CreateAccountDTO, saveAccount, {
             excludeExtraneousValues: true,

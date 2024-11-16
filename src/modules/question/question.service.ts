@@ -73,9 +73,13 @@ export class QuestionService {
             allowedTags: [],
             allowedAttributes: {},
         });
-
-        return strippedContent.replace(/\s+/g, ' ').trim();
+    
+        return strippedContent
+            .replace(/\s+/g, ' ')
+            .replace(/\s+([.,!?])/g, '$1')
+            .trim();
     }
+    
 
     async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId } = feedbackDto;
