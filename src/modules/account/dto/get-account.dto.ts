@@ -1,24 +1,23 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
 
-export class RoleDTO {
-    @Expose()
-    rolename: string;
-}
 
 export class GetAccountDTO {
     @Expose()
     id: string;
 
     @Expose()
-    @Type(() => RoleDTO)
-    role: RoleDTO;
+    @Transform(({ obj }) => obj.role?.rolename)
+    role: string;
 
     @Expose()
     firstname: string;
 
     @Expose()
     lastname: string;
+
+    @Expose()
+    username: string;
 
     @Expose()
     gender: boolean;
