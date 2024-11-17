@@ -565,4 +565,22 @@ export class AccountService extends BaseService<Account> {
 
         return plainToInstance(GetAccountDTO, account, { excludeExtraneousValues: true });
     }
+
+    async updateIsTrialExam(id: string, status: boolean) {
+        const account = await this.accountRepository.findOne({
+            where: { id: id },
+            relations: ['role'],
+        });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        account.isTrialExam = status;
+
+        const updateAccount = await this.accountRepository.save(account);
+        return plainToInstance(GetAccountDTO, updateAccount, {
+            excludeExtraneousValues: true,
+        });
+    }
 }

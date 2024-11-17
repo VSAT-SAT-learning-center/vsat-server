@@ -258,4 +258,28 @@ export class AccountController {
             );
         }
     }
+
+    @Put('updateIsTrialExam/:status')
+    @UseGuards(JwtAuthGuard)
+    async updateStatusById(@Request() req, @Param('status') status: boolean) {
+        try {
+            const update = await this.accountService.updateIsTrialExam(
+                req.user.id,
+                status,
+            );
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Update User successfully',
+                data: update,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }
