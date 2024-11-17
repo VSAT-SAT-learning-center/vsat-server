@@ -15,6 +15,9 @@ export class StudyProfile {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({ type: 'uuid', nullable: true })
+    teacherId: string;
+
     @CreateDateColumn({ type: 'timestamp' })
     createdat: Date;
 

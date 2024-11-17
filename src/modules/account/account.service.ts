@@ -603,4 +603,25 @@ export class AccountService extends BaseService<Account> {
             excludeExtraneousValues: true,
         });
     }
+
+    async getTeacher(page: number, pageSize: number) {
+        const skip = (page - 1) * pageSize;
+
+        const [teacher, total] = await this.accountRepository.findAndCount({
+            skip: skip,
+            take: pageSize,
+            where: { role: { rolename: 'Teacher' } },
+        });
+
+        const totalPages = total / pageSize;
+
+        return {
+            data: plainToInstance(GetAccountDTO, teacher, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
 }
