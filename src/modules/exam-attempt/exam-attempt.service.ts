@@ -28,6 +28,7 @@ import { DomainDistribution } from 'src/database/entities/domaindistribution.ent
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { title } from 'process';
 import { StudyProfileService } from '../study-profile/study-profile.service';
+import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -305,11 +306,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 console.log('case 1 Math');
 
-                result.Math =
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        unitIdFoundationsMath,
-                    );
+                result.Math = await this.unitProgressService.startMultipleUnitProgress(
+                    targetLearning.id,
+                    unitIdFoundationsMath,
+                );
 
                 break;
 
@@ -327,10 +327,11 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         studyProfile.id,
                     );
 
-                    result.Math = await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        top3UnitIdMediumMath,
-                    );
+                    result.Math =
+                        await this.unitProgressService.startMultipleUnitProgress(
+                            targetLearning.id,
+                            top3UnitIdMediumMath,
+                        );
                 }
                 break;
 
@@ -388,11 +389,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     studyProfile.id,
                 );
 
-                result.RW =
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        unitIdFoundationsRW,
-                    );
+                result.RW = await this.unitProgressService.startMultipleUnitProgress(
+                    targetLearning.id,
+                    unitIdFoundationsRW,
+                );
 
                 break;
 
@@ -410,11 +410,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         studyProfile.id,
                     );
 
-                    result.RW =
-                        await this.unitProgressService.startMultipleUnitProgress(
-                            targetLearning.id,
-                            top3UnitIdMediumsRW,
-                        );
+                    result.RW = await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        top3UnitIdMediumsRW,
+                    );
                 }
                 break;
 
@@ -432,11 +431,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         studyProfile.id,
                     );
 
-                    result.RW =
-                        await this.unitProgressService.startMultipleUnitProgress(
-                            targetLearning.id,
-                            unitIdMediumsRW,
-                        );
+                    result.RW = await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        unitIdMediumsRW,
+                    );
                 } else if (examAttempt.scoreRW < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -449,11 +447,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         studyProfile.id,
                     );
 
-                    result.RW =
-                        await this.unitProgressService.startMultipleUnitProgress(
-                            targetLearning.id,
-                            top3UnitIdAdvanceRW,
-                        );
+                    result.RW = await this.unitProgressService.startMultipleUnitProgress(
+                        targetLearning.id,
+                        top3UnitIdAdvanceRW,
+                    );
                 }
                 break;
         }
@@ -746,6 +743,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             attemptdatetime: new Date(),
             scoreMath: scoreMath,
             scoreRW: scoreRW,
+            status: true,
         });
 
         const savedExamAttempt = await this.examAttemptRepository.save(createExamAttempt);
@@ -765,6 +763,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     async getExamAttemptByStudyProfileId(accountId: string) {
         const studyProfile = await this.studyProfileRepository.findOne({
             where: { account: { id: accountId } },
+            order: { createdat: 'ASC' },
         });
 
         const examAttempt = await this.examAttemptRepository.find({
@@ -1037,5 +1036,15 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         }
 
         return statistics;
+    }
+
+    async assignExam(assignExamAttemptDto: AssignExamAttemptDto) {
+        const create = this.examAttemptRepository.create({
+            exam: { id: assignExamAttemptDto.examId },
+            studyProfile: { id: assignExamAttemptDto.studyProfileId },
+            attemptdatetime: assignExamAttemptDto.attempDate,
+        });
+
+        return await this.examAttemptRepository.save(create);
     }
 }

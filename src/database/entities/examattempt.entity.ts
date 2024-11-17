@@ -51,4 +51,7 @@ export class ExamAttempt {
 
     @Column({ type: 'int', nullable: true })
     scoreRW: number;
+
+    @Column({ type: 'boolean', default: false })
+    status: boolean;
 }
