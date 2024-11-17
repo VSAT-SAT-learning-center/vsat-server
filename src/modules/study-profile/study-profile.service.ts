@@ -26,4 +26,17 @@ export class StudyProfileService {
 
         return await this.studyProfileRepository.save(studyProfile);
     }
+
+    async saveTarget(targetRW: number, targetMath: number, accountId: string) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: accountId } },
+            order: { createdat: 'ASC' },
+        });
+
+        studyProfile.targetscoreMath = targetMath;
+        studyProfile.targetscoreRW = targetRW;
+
+        const save = await this.studyProfileRepository.save(studyProfile);
+        return save;
+    }
 }

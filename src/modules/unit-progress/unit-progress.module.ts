@@ -7,10 +7,11 @@ import { UnitModule } from '../unit/unit.module';
 import { UnitAreaModule } from '../unit-area/unit-area.module';
 import { UnitAreaProgressModule } from '../unit-area-progress/unit-area-progress.module';
 import { TargetLearningModule } from '../target-learning/target-learning.module';
+import { Unit } from 'src/database/entities/unit.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UnitProgress]),
+        TypeOrmModule.forFeature([UnitProgress, Unit]),
         TargetLearningModule,
         UnitAreaModule,
         forwardRef(() => UnitModule),
