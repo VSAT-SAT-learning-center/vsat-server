@@ -706,11 +706,15 @@ export class FeedbackService extends BaseService<Feedback> {
             where,
             relations: [
                 'unit',
+                'unit.section',
+                'unit.level',
+                'unit.domain',
                 'unit.unitAreas',
                 'unit.unitAreas.lessons',
                 'unit.unitAreas.lessons.lessonContents',
                 'accountFrom',
                 'accountTo',
+                'lesson',
             ],
             order: { createdat: 'DESC' },
             skip: (page - 1) * limit,
@@ -750,6 +754,15 @@ export class FeedbackService extends BaseService<Feedback> {
                                     prerequisitelessonid: lesson.prerequisitelessonid,
                                     type: lesson.type,
                                     title: lesson.title,
+                                    status: lesson.status,
+                                    reason:
+                                        feedback.lesson?.id === lesson.id
+                                            ? feedback.reason
+                                            : null,
+                                    content:
+                                        feedback.lesson?.id === lesson.id
+                                            ? feedback.content
+                                            : null,
                                     lessonContents: Array.isArray(lesson.lessonContents)
                                         ? lesson.lessonContents.map((content) => ({
                                               id: content.id,
@@ -820,7 +833,6 @@ export class FeedbackService extends BaseService<Feedback> {
                           name: unit.domain.content,
                       }
                     : null,
-
                 // Include counts for unitAreas and lessons
                 unitAreaCount: unit.unitAreas.length,
                 lessonCount: unit.unitAreas.reduce(
@@ -1201,6 +1213,77 @@ export class FeedbackService extends BaseService<Feedback> {
             totalItems,
             totalPages: Math.ceil(totalItems / limit),
             currentPage: page,
+        };
+    }
+
+    async getRejectFeedbackByQuestionId(
+        userId: string,
+        questionId: string,
+        // page: number = 1,
+        // limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        // totalPages: number;
+        // currentPage: number;
+    }> {
+        if (!questionId) {
+            throw new BadRequestException('Question ID is required');
+        }
+
+        const where: any = {
+            question: { id: questionId },
+            status: FeedbackStatus.REJECTED,
+            accountTo: { id: userId },
+        };
+
+        // Fetch feedback with pagination
+        const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
+            where,
+            relations: ['question', 'accountFrom', 'accountTo'],
+            order: { createdat: 'DESC' },
+            // skip: (page - 1) * limit,
+            // take: limit,
+        });
+
+        // Map feedbacks to the desired structure
+        const data = feedbacks.map((feedback) => ({
+            id: feedback.id,
+            content: feedback.content,
+            reason: feedback.reason,
+            status: feedback.status,
+            createdat: feedback.createdat,
+            updatedat: feedback.updatedat,
+            //nếu muốn get thêm question
+            // question: feedback.question
+            //     ? {
+            //           id: feedback.question.id,
+            //           content: feedback.question.content,
+            //           plainContent: feedback.question.plainContent,
+            //           explain: feedback.question.explain,
+            //       }
+            //     : null,
+            accountFrom: feedback.accountFrom
+                ? {
+                      id: feedback.accountFrom.id,
+                      username: feedback.accountFrom.username,
+                      email: feedback.accountFrom.email,
+                  }
+                : null,
+            accountTo: feedback.accountTo
+                ? {
+                      id: feedback.accountTo.id,
+                      username: feedback.accountTo.username,
+                      email: feedback.accountTo.email,
+                  }
+                : null,
+        }));
+
+        return {
+            data,
+            totalItems,
+            // totalPages: Math.ceil(totalItems / limit),
+            // currentPage: page,
         };
     }
 }

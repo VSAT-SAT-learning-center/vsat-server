@@ -122,8 +122,46 @@ export class FeedbackController extends BaseController<Feedback> {
         );
     }
 
+    @Get('question/reason/:questionId')
+    async getRejectFeedbackByQuestionId(
+        @Request() req,
+        @Param('questionId') questionId: string,
+        // @Query('page') page: number = 1,
+        // @Query('limit') limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        // totalPages: number;
+        // currentPage: number;
+    }> {
+        const userId = req.user.id;
+        return this.feedbackService.getRejectFeedbackByQuestionId(
+            userId,
+            questionId,
+            // page,
+            // limit,
+        );
+    }
+
     @Get('quizquestion')
     async searchQuizQuestionFeedbackByStatus(
+/**
+ * Searches for question feedback based on the provided status and filters.
+ * 
+ * @param status - The feedback status to filter by.
+ * @param req - The request object containing user information.
+ * @param search - Optional search term to filter feedback content.
+ * @param level - Optional level ID to filter feedback by question level.
+ * @param skill - Optional skill ID to filter feedback by question skill.
+ * @param section - Optional section ID to filter feedback by question section.
+ * @param page - The page number for pagination (default is 1).
+ * @param limit - The number of items per page for pagination (default is 10).
+ * @returns A Promise that resolves to an object containing:
+ *          - data: An array of feedback data.
+ *          - totalItems: The total number of feedback items.
+ *          - totalPages: The total number of pages.
+ *          - currentPage: The current page number.
+ */
         @Query('status') status: FeedbackStatus,
         @Request() req,
         @Query('search') search?: string,
