@@ -236,7 +236,7 @@ export class AccountController {
         }
     }
 
-    @Post('getUserById')
+    @Get('getUserById')
     @UseGuards(JwtAuthGuard)
     async getAccountById(@Request() req) {
         try {
