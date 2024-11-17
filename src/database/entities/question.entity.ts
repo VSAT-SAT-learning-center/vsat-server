@@ -16,6 +16,7 @@ import { Section } from './section.entity';
 import { Skill } from './skill.entity';
 import { ExamQuestion } from './examquestion.entity';
 import { ExamAttemptDetail } from './examattemptdetail.entity';
+import { Feedback } from './feedback.entity';
 
 @Entity('question')
 export class Question {
@@ -82,4 +83,7 @@ export class Question {
 
     @Column({ type: 'boolean', default: true })
     isActive: boolean;
+
+    @OneToMany(() => Feedback, (feedback) => feedback.question)
+    feedbacks: Feedback[];
 }

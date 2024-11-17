@@ -6,7 +6,7 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Not, Repository } from 'typeorm';
+import { IsNull, Like, Not, Repository } from 'typeorm';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
@@ -36,6 +36,7 @@ import {
 } from './dto/get-feedback-details.dto';
 import { UserFeedbackResponseDto } from './dto/get-user-feedback-details.dto';
 import { NotificationDataDto } from 'src/common/dto/notification-data.dto';
+import { Unit } from 'src/database/entities/unit.entity';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -367,7 +368,6 @@ export class FeedbackService extends BaseService<Feedback> {
             FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
         );
 
-
         return rejectFeedback;
     }
 
@@ -658,5 +658,549 @@ export class FeedbackService extends BaseService<Feedback> {
         return plainToInstance(QuestionFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
+    }
+
+    async searchLearningMaterialFeedbackByStatus(
+        status: FeedbackStatus,
+        userId: string,
+        search?: string,
+        domain?: string,
+        section?: string,
+        level?: string,
+        page: number = 1,
+        limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        if (!status) {
+            throw new BadRequestException('Status is required');
+        }
+
+        const where: any = {
+            ...(status === FeedbackStatus.PENDING
+                ? { accountFrom: { id: userId } }
+                : { accountTo: { id: userId } }),
+            status,
+        };
+
+        where.unit = {
+            ...(search && { title: Like(`%${search}%`) }),
+            id: Not(IsNull()),
+        };
+
+        if (domain) {
+            where.domain = { id: domain };
+        }
+        if (section) {
+            where.section = { id: section };
+        }
+        if (level) {
+            where.level = { id: level };
+        }
+
+        // Truy vấn dữ liệu feedback
+        const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
+            where,
+            relations: [
+                'unit',
+                'unit.unitAreas',
+                'unit.unitAreas.lessons',
+                'unit.unitAreas.lessons.lessonContents',
+                'accountFrom',
+                'accountTo',
+            ],
+            order: { createdat: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        const data = feedbacks.map((feedback) => {
+            const unit = feedback.unit;
+
+            return {
+                id: unit.id,
+                title: unit.title,
+                description: unit.description,
+                createdat: unit.createdat,
+                status: unit.status,
+                accountFrom: feedback.accountFrom
+                    ? {
+                          id: feedback.accountFrom.id,
+                          username: feedback.accountFrom.username,
+                          email: feedback.accountFrom.email,
+                      }
+                    : null,
+                accountTo: feedback.accountTo
+                    ? {
+                          id: feedback.accountTo.id,
+                          username: feedback.accountTo.username,
+                          email: feedback.accountTo.email,
+                      }
+                    : null,
+                unitAreas: Array.isArray(unit.unitAreas)
+                    ? unit.unitAreas.map((unitArea) => ({
+                          id: unitArea.id,
+                          title: unitArea.title,
+                          lessons: Array.isArray(unitArea.lessons)
+                              ? unitArea.lessons.map((lesson) => ({
+                                    id: lesson.id,
+                                    prerequisitelessonid: lesson.prerequisitelessonid,
+                                    type: lesson.type,
+                                    title: lesson.title,
+                                    lessonContents: Array.isArray(lesson.lessonContents)
+                                        ? lesson.lessonContents.map((content) => ({
+                                              id: content.id,
+                                              title: content.title,
+                                              contentType: content.contentType,
+                                              contents: Array.isArray(content.contents)
+                                                  ? content.contents.map((c) => ({
+                                                        contentId: c.contentId,
+                                                        text: c.text,
+                                                        examples: Array.isArray(
+                                                            c.examples,
+                                                        )
+                                                            ? c.examples.map((e) => ({
+                                                                  exampleId: e.exampleId,
+                                                                  content: e.content,
+                                                                  explain:
+                                                                      e.explain || '',
+                                                              }))
+                                                            : [],
+                                                    }))
+                                                  : [],
+                                              question: content.question
+                                                  ? {
+                                                        questionId:
+                                                            content.question.questionId,
+                                                        prompt: content.question.prompt,
+                                                        correctAnswer:
+                                                            content.question
+                                                                .correctAnswer,
+                                                        explanation:
+                                                            content.question
+                                                                .explanation || '',
+                                                        answers: Array.isArray(
+                                                            content.question.answers,
+                                                        )
+                                                            ? content.question.answers.map(
+                                                                  (a) => ({
+                                                                      answerId:
+                                                                          a.answerId,
+                                                                      text: a.text,
+                                                                      label: a.label,
+                                                                  }),
+                                                              )
+                                                            : [],
+                                                    }
+                                                  : null, // Handle null if no question
+                                          }))
+                                        : [],
+                                }))
+                              : [],
+                      }))
+                    : [],
+                section: unit.section
+                    ? {
+                          id: unit.section.id,
+                          name: unit.section.name,
+                      }
+                    : null,
+                level: unit.level
+                    ? {
+                          id: unit.level.id,
+                          name: unit.level.name,
+                      }
+                    : null,
+                domain: unit.domain
+                    ? {
+                          id: unit.domain.id,
+                          name: unit.domain.content,
+                      }
+                    : null,
+
+                // Include counts for unitAreas and lessons
+                unitAreaCount: unit.unitAreas.length,
+                lessonCount: unit.unitAreas.reduce(
+                    (count, area) => count + area.lessons.length,
+                    0,
+                ),
+            };
+        });
+
+        return {
+            data,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit),
+            currentPage: page,
+        };
+    }
+
+    async searchExamFeedbackByStatus(
+        status: FeedbackStatus,
+        userId: string,
+        search?: string,
+        examType?: string,
+        examStructure?: string,
+        page: number = 1,
+        limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        if (!status) {
+            throw new BadRequestException('Status is required');
+        }
+
+        const where: any = {
+            ...(status === FeedbackStatus.PENDING
+                ? { accountFrom: { id: userId } }
+                : { accountTo: { id: userId } }),
+            status,
+        };
+
+        where.exam = {
+            ...(search && { title: Like(`%${search}%`) }),
+            id: Not(IsNull()),
+        };
+
+        if (examType) {
+            where['exam.examType'] = { id: examType };
+        }
+        if (examStructure) {
+            where['exam.examStructure'] = { id: examStructure };
+        }
+
+        const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
+            where,
+            relations: [
+                'exam',
+                'exam.examType',
+                'exam.examStructure',
+                'exam.examStructure.examSemester',
+                'exam.examStructure.examStructureType',
+                'exam.examquestion',
+                'exam.examquestion.moduleType',
+                'exam.examquestion.question',
+                'accountFrom',
+                'accountTo',
+            ],
+            order: { createdat: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        const data = feedbacks.map((feedback) => {
+            const exam = feedback.exam;
+
+            return {
+                id: exam.id,
+                title: exam.title,
+                description: exam.description,
+                createdat: exam.createdat,
+                status: feedback.status,
+                accountFrom: feedback.accountFrom
+                    ? {
+                          id: feedback.accountFrom.id,
+                          username: feedback.accountFrom.username,
+                          email: feedback.accountFrom.email,
+                      }
+                    : null,
+                accountTo: feedback.accountTo
+                    ? {
+                          id: feedback.accountTo.id,
+                          username: feedback.accountTo.username,
+                          email: feedback.accountTo.email,
+                      }
+                    : null,
+                examType: exam.examType
+                    ? {
+                          id: exam.examType.id,
+                          name: exam.examType.name,
+                          status: exam.examType.status,
+                      }
+                    : null,
+                examStructure: exam.examStructure
+                    ? {
+                          id: exam.examStructure.id,
+                          structurename: exam.examStructure.structurename,
+                          description: exam.examStructure.description,
+                          examSemester: exam.examStructure.examSemester
+                              ? {
+                                    id: exam.examStructure.examSemester.id,
+                                    title: exam.examStructure.examSemester.title,
+                                }
+                              : null,
+                          examStructureType: exam.examStructure.examStructureType
+                              ? {
+                                    id: exam.examStructure.examStructureType.id,
+                                    name: exam.examStructure.examStructureType.name,
+                                }
+                              : null,
+                      }
+                    : null,
+                questionCount: Array.isArray(exam.examquestion)
+                    ? exam.examquestion.length
+                    : 0,
+            };
+        });
+
+        return {
+            data,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit),
+            currentPage: page,
+        };
+    }
+
+    async searchQuestionFeedbackByStatus(
+        status: FeedbackStatus,
+        userId: string,
+        search?: string,
+        level?: string,
+        skill?: string,
+        section?: string,
+        page: number = 1,
+        limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        if (!status) {
+            throw new BadRequestException('Status is required');
+        }
+
+        const where: any = {
+            ...(status === FeedbackStatus.PENDING
+                ? { accountFrom: { id: userId } }
+                : { accountTo: { id: userId } }),
+            status,
+        };
+
+        where.question = {
+            ...(search && { content: Like(`%${search}%`) }),
+            id: Not(IsNull()),
+        };
+
+        if (level) {
+            where['question.level'] = { id: level };
+        }
+        if (skill) {
+            where['question.skill'] = { id: skill };
+        }
+        if (section) {
+            where['question.section'] = { id: section };
+        }
+
+        // Truy vấn dữ liệu feedback
+        const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
+            where,
+            relations: [
+                'question',
+                'question.level',
+                'question.skill',
+                'question.section',
+                'question.answers',
+                'accountFrom',
+                'accountTo',
+            ],
+            order: { createdat: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        const data = feedbacks.map((feedback) => {
+            const question = feedback.question;
+
+            return {
+                id: question.id,
+                content: question.content,
+                plainContent: question.plainContent,
+                explain: question.explain,
+                createdat: question.createdat,
+                status: feedback.status,
+                accountFrom: feedback.accountFrom
+                    ? {
+                          id: feedback.accountFrom.id,
+                          username: feedback.accountFrom.username,
+                          email: feedback.accountFrom.email,
+                      }
+                    : null,
+                accountTo: feedback.accountTo
+                    ? {
+                          id: feedback.accountTo.id,
+                          username: feedback.accountTo.username,
+                          email: feedback.accountTo.email,
+                      }
+                    : null,
+                level: question.level
+                    ? {
+                          id: question.level.id,
+                          name: question.level.name,
+                      }
+                    : null,
+                skill: question.skill
+                    ? {
+                          id: question.skill.id,
+                          content: question.skill.content,
+                      }
+                    : null,
+                section: question.section
+                    ? {
+                          id: question.section.id,
+                          name: question.section.name,
+                      }
+                    : null,
+                answers: Array.isArray(question.answers)
+                    ? question.answers.map((answer) => ({
+                          id: answer.id,
+                          text: answer.text,
+                          plaintext: answer.plaintext,
+                          isCorrectAnswer: answer.isCorrectAnswer,
+                      }))
+                    : [],
+                answerCount: Array.isArray(question.answers)
+                    ? question.answers.length
+                    : 0,
+            };
+        });
+
+        return {
+            data,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit),
+            currentPage: page,
+        };
+    }
+
+    async searchQuizQuestionFeedbackByStatus(
+        status: FeedbackStatus,
+        userId: string,
+        search?: string,
+        level?: string,
+        skill?: string,
+        section?: string,
+        page: number = 1,
+        limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        if (!status) {
+            throw new BadRequestException('Status is required');
+        }
+        if (!userId) {
+            throw new BadRequestException('User ID is required');
+        }
+
+        const where: any = {
+            ...(status === FeedbackStatus.PENDING
+                ? { accountFrom: { id: userId } }
+                : { accountTo: { id: userId } }),
+            status,
+        };
+
+        where.quizquestion = {
+            ...(search && { content: Like(`%${search}%`) }),
+            id: Not(IsNull()),
+        };
+
+        if (level) {
+            where['quizquestion.level'] = { id: level };
+        }
+        if (skill) {
+            where['quizquestion.skill'] = { id: skill };
+        }
+        if (section) {
+            where['quizquestion.section'] = { id: section };
+        }
+
+        // Truy vấn dữ liệu feedback
+        const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
+            where,
+            relations: [
+                'quizquestion',
+                'quizquestion.level',
+                'quizquestion.skill',
+                'quizquestion.section',
+                'quizquestion.answers',
+                'accountFrom',
+                'accountTo',
+            ],
+            order: { createdat: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        const data = feedbacks.map((feedback) => {
+            const quizQuestion = feedback.quizquestion;
+
+            return {
+                id: quizQuestion.id,
+                content: quizQuestion.content,
+                plainContent: quizQuestion.plainContent,
+                explain: quizQuestion.explain,
+                createdat: quizQuestion.createdat,
+                status: feedback.status,
+                accountFrom: feedback.accountFrom
+                    ? {
+                          id: feedback.accountFrom.id,
+                          username: feedback.accountFrom.username,
+                          email: feedback.accountFrom.email,
+                      }
+                    : null,
+                accountTo: feedback.accountTo
+                    ? {
+                          id: feedback.accountTo.id,
+                          username: feedback.accountTo.username,
+                          email: feedback.accountTo.email,
+                      }
+                    : null,
+                level: quizQuestion.level
+                    ? {
+                          id: quizQuestion.level.id,
+                          name: quizQuestion.level.name,
+                      }
+                    : null,
+                skill: quizQuestion.skill
+                    ? {
+                          id: quizQuestion.skill.id,
+                          content: quizQuestion.skill.content,
+                      }
+                    : null,
+                section: quizQuestion.section
+                    ? {
+                          id: quizQuestion.section.id,
+                          name: quizQuestion.section.name,
+                      }
+                    : null,
+                answers: Array.isArray(quizQuestion.answers)
+                    ? quizQuestion.answers.map((answer) => ({
+                          id: answer.id,
+                          text: answer.text,
+                          plaintext: answer.plaintext,
+                          isCorrectAnswer: answer.isCorrectAnswer,
+                      }))
+                    : [],
+                answerCount: Array.isArray(quizQuestion.answers)
+                    ? quizQuestion.answers.length
+                    : 0,
+            };
+        });
+
+        return {
+            data,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit),
+            currentPage: page,
+        };
     }
 }

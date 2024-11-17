@@ -51,6 +51,7 @@ import { RequestContextMiddleware } from './common/middleware/request-context.mi
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditSubscriber } from './common/subscriber/audit.subscriber';
 import { PostgresConfigService } from './database/config/postgres.config';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
     imports: [
@@ -106,7 +107,6 @@ import { PostgresConfigService } from './database/config/postgres.config';
         ExamStructureConfigModule,
         ExamSemesterModule,
         DomainDistributionConfigModule,
-
         MailerModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
@@ -133,12 +133,8 @@ import { PostgresConfigService } from './database/config/postgres.config';
             }),
             inject: [ConfigService],
         }),
-
-        ExamSemesterModule,
-
-        DomainDistributionConfigModule,
     ],
-    providers: [FeedbacksGateway],
+    providers: [FeedbacksGateway, JwtService],
     // providers: [PaginationService],
     // exports: [PaginationService]
 })

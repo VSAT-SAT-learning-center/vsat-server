@@ -13,6 +13,7 @@ import {
     BadRequestException,
     HttpException,
     UseGuards,
+    Request,
 } from '@nestjs/common';
 import { UnitService } from './unit.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -42,12 +43,14 @@ export class UnitController extends BaseController<Unit> {
     async approveOrRejectLearningMaterial(
         @Param('action') action: 'approve' | 'reject',
         @Body() feedbackDto: LearningMaterialFeedbackDto,
+        @Request() req,
     ) {
         if (action !== 'approve' && action !== 'reject') {
             throw new BadRequestException('Invalid action. Use "approve" or "reject".');
         }
 
         try {
+            feedbackDto.accountFromId = req.user.id;
             const feedbacks = this.unitService.approveOrRejectLearningMaterial(
                 feedbackDto,
                 action,

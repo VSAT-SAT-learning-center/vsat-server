@@ -7,6 +7,7 @@ import { AccountModule } from '../account/account.module';
 import { LessonModule } from '../lesson/lesson.module';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 import { ModuleTypeModule } from '../module-type/module-type.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
     imports: [
@@ -16,7 +17,7 @@ import { ModuleTypeModule } from '../module-type/module-type.module';
         ModuleTypeModule,
         forwardRef(() => LessonModule),
     ],
-    providers: [FeedbackService, FeedbacksGateway],
+    providers: [FeedbackService, FeedbacksGateway, JwtService],
     controllers: [FeedbackController],
     exports: [FeedbackService],
 })

@@ -11,6 +11,7 @@ import {
     Request,
     Query,
     NotFoundException,
+    UseGuards,
 } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { BaseController } from '../base/base.controller';
@@ -25,62 +26,179 @@ import { UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
+import { Unit } from 'src/database/entities/unit.entity';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
+@UseGuards(JwtAuthGuard)
 export class FeedbackController extends BaseController<Feedback> {
     constructor(private readonly feedbackService: FeedbackService) {
         super(feedbackService, 'Feedback');
     }
 
-    // Route cho feedback chung theo status
-    @Get('question')
-    async getQuestionFeedbackByStatus(
+    @Get('learning-material')
+    async searchFeedbackByStatus(
         @Query('status') status: FeedbackStatus,
-    ): Promise<QuestionFeedbackResponseDto[]> {
-        if (!status) {
-            throw new BadRequestException('Status is required');
-        }
-        return this.feedbackService.getQuestionFeedbackByStatus(status);
+        @Request() req,
+        @Query('search') search?: string,
+        @Query('domain') domain?: string,
+        @Query('section') section?: string,
+        @Query('level') level?: string,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        const userId = req.user.id;
+        return this.feedbackService.searchLearningMaterialFeedbackByStatus(
+            status,
+            userId,
+            search,
+            domain,
+            section,
+            level,
+            page,
+            limit,
+        );
     }
 
     @Get('exam')
-    async getExamFeedbackByStatus(
+    async searchExamFeedbackByStatus(
         @Query('status') status: FeedbackStatus,
-    ): Promise<ExamFeedbackResponseDto[]> {
-        if (!status) {
-            throw new BadRequestException('Status is required');
-        }
-        return this.feedbackService.getExamFeedbackByStatus(status);
+        @Request() req,
+        @Query('search') search?: string,
+        @Query('examType') examType?: string,
+        @Query('examStructure') examStructure?: string,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        const userId = req.user.id;
+        return this.feedbackService.searchExamFeedbackByStatus(
+            status,
+            userId,
+            search,
+            examType,
+            examStructure,
+            page,
+            limit,
+        );
     }
 
-    @Get('unit')
-    async getUnitFeedbackByStatus(
+    @Get('question')
+    async searchQuestionFeedbackByStatus(
         @Query('status') status: FeedbackStatus,
-    ): Promise<UnitFeedbackResponseDto[]> {
-        if (!status) {
-            throw new BadRequestException('Status is required');
-        }
-        return this.feedbackService.getUnitFeedbackByStatus(status);
+        @Request() req,
+        @Query('search') search?: string,
+        @Query('level') level?: string,
+        @Query('skill') skill?: string,
+        @Query('section') section?: string,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        const userId = req.user.id;
+        return this.feedbackService.searchQuestionFeedbackByStatus(
+            status,
+            userId,
+            search,
+            level,
+            skill,
+            section,
+            page,
+            limit,
+        );
     }
+
+    @Get('quizquestion')
+    async searchQuizQuestionFeedbackByStatus(
+        @Query('status') status: FeedbackStatus,
+        @Request() req,
+        @Query('search') search?: string,
+        @Query('level') level?: string,
+        @Query('skill') skill?: string,
+        @Query('section') section?: string,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+    }> {
+        const userId = req.user.id;
+        return this.feedbackService.searchQuizQuestionFeedbackByStatus(
+            status,
+            userId,
+            search,
+            level,
+            skill,
+            section,
+            page,
+            limit,
+        );
+    }
+
+    // Route cho feedback chung theo status
+    // @Get('question')
+    // async getQuestionFeedbackByStatus(
+    //     @Query('status') status: FeedbackStatus,
+    // ): Promise<QuestionFeedbackResponseDto[]> {
+    //     if (!status) {
+    //         throw new BadRequestException('Status is required');
+    //     }
+    //     return this.feedbackService.getQuestionFeedbackByStatus(status);
+    // }
+
+    // @Get('exam')
+    // async getExamFeedbackByStatus(
+    //     @Query('status') status: FeedbackStatus,
+    // ): Promise<ExamFeedbackResponseDto[]> {
+    //     if (!status) {
+    //         throw new BadRequestException('Status is required');
+    //     }
+    //     return this.feedbackService.getExamFeedbackByStatus(status);
+    // }
+
+    // @Get('unit')
+    // async getUnitFeedbackByStatus(
+    //     @Query('status') status: FeedbackStatus,
+    // ): Promise<UnitFeedbackResponseDto[]> {
+    //     if (!status) {
+    //         throw new BadRequestException('Status is required');
+    //     }
+    //     return this.feedbackService.getUnitFeedbackByStatus(status);
+    // }
 
     // GET /feedbacks/exam?examId=123
-    @Get('exam')
-    @ApiQuery({ name: 'examId', required: false })
-    async getExamFeedback(
-        @Request() req: any,
-        @Query('examId') examId?: string,
-    ): Promise<ExamFeedbackResponseDto[]> {
-        const userId = req.user?.id; // Lấy userId từ request
-        if (!userId) {
-            throw new NotFoundException('User ID not found in request');
-        }
+    // @Get('exam')
+    // @ApiQuery({ name: 'examId', required: false })
+    // async getExamFeedback(
+    //     @Request() req: any,
+    //     @Query('examId') examId?: string,
+    // ): Promise<ExamFeedbackResponseDto[]> {
+    //     const userId = req.user?.id; // Lấy userId từ request
+    //     if (!userId) {
+    //         throw new NotFoundException('User ID not found in request');
+    //     }
 
-        if (examId) {
-            return await this.feedbackService.getExamFeedbackByUserId(userId, examId);
-        }
-        return await this.feedbackService.getAllExamFeedbackByUserId(userId);
-    }
+    //     if (examId) {
+    //         return await this.feedbackService.getExamFeedbackByUserId(userId, examId);
+    //     }
+    //     return await this.feedbackService.getAllExamFeedbackByUserId(userId);
+    // }
 
     // GET /feedbacks/unit?unitId=123
     @Get('unit')
@@ -89,7 +207,9 @@ export class FeedbackController extends BaseController<Feedback> {
         @Request() req: any,
         @Query('unitId') unitId?: string,
     ): Promise<UnitFeedbackResponseDto[]> {
-        const userId = req.user?.id; // Lấy userId từ request
+        console.log(req);
+        console.log(req.user);
+        const userId = req.user.id; // Lấy userId từ request
         if (!userId) {
             throw new NotFoundException('User ID not found in request');
         }
@@ -107,7 +227,7 @@ export class FeedbackController extends BaseController<Feedback> {
         @Request() req: any,
         @Query('unitId') unitId: string,
     ): Promise<UnitFeedbackWithLessonResponseDto[]> {
-        const userId = req.user?.id; // Lấy userId từ request
+        const userId = req.user.id; // Lấy userId từ request
         if (!userId) {
             throw new NotFoundException('User ID not found in request');
         }
