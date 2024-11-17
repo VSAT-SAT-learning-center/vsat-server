@@ -91,7 +91,7 @@ export class AuthService {
             throw new HttpException('Account is not permission', HttpStatus.UNAUTHORIZED);
         }
 
-        const account = plainToInstance(AccountDTO, findAcc, {
+        const account = plainToInstance(GetAccountDTO, findAcc, {
             excludeExtraneousValues: true,
         });
 

@@ -27,6 +27,7 @@ import { ExamService } from '../exam/exam.service';
 import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { title } from 'process';
+import { StudyProfileService } from '../study-profile/study-profile.service';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -63,6 +64,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         private readonly targetLearningService: TargetLearningService,
         private readonly unitProgressService: UnitProgressService,
         private readonly examAttemptDetailService: ExamAttemptDetailService,
+        private readonly studyProfileService: StudyProfileService,
     ) {
         super(examAttemptRepository);
     }
@@ -74,372 +76,122 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     ) {
         const studyProfile = await this.studyProfileRepository.findOne({
             where: { account: { id: accountId } },
-            order: {createdat: 'ASC'},
+            order: { createdat: 'ASC' },
         });
-
+    
         if (!studyProfile) {
             throw new NotFoundException('StudyProfile is not found');
         }
-
+    
+        await this.studyProfileService.saveTarget(
+            createTargetLearningDto.targetLearningRW,
+            createTargetLearningDto.targetLearningMath,
+            accountId,
+        );
+    
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
             relations: ['studyProfile'],
         });
-
-        const domainsRW = await this.domainRepository.find({
-            where: { section: { name: 'Reading & Writing' } },
-            relations: ['skills'],
-        });
-
-        const domainErrorCounts = [];
-
-        for (const domain of domainsRW) {
-            let totalErrors = 0;
-            let totalSkills = 0;
-
-            for (const skill of domain.skills) {
-                const allSkills = await this.examAttemptDetailRepository.count({
-                    where: {
-                        examAttempt: { id: examAttemptId },
-                        question: { skill: { id: skill.id } },
-                    },
-                    relations: ['question'],
-                });
-
-                totalSkills += allSkills;
-
-                const skillErrorCount = await this.examAttemptDetailRepository.count({
-                    where: {
-                        examAttempt: { id: examAttemptId },
-                        iscorrect: false,
-                        question: { skill: { id: skill.id } },
-                    },
-                    relations: ['question'],
-                });
-
-                totalErrors += skillErrorCount;
-            }
-
-            const percent = (totalErrors * 100) / totalSkills;
-
-            domainErrorCounts.push({
-                id: domain.id,
-                domain: domain.content,
-                totalErrors,
-                percent,
-            });
-        }
-
-        domainErrorCounts.sort((a, b) => b.percent - a.percent);
-        const top3DomainsRW = domainErrorCounts.slice(0, 3);
-
-        const top3DomainIdsRW = top3DomainsRW.map((domain) => domain.id);
-
-        //Math
-        const domainErrorCountsMath = [];
-        const domainsMath = await this.domainRepository.find({
-            where: { section: { name: 'Math' } },
-            relations: ['skills'],
-        });
-
-        for (const domain of domainsMath) {
-            let totalErrors = 0;
-            let totalSkills = 0;
-
-            for (const skill of domain.skills) {
-                const allSkills = await this.examAttemptDetailRepository.count({
-                    where: {
-                        examAttempt: { id: examAttemptId },
-                        question: { skill: { id: skill.id } },
-                    },
-                    relations: ['question'],
-                });
-
-                totalSkills += allSkills;
-
-                const skillErrorCount = await this.examAttemptDetailRepository.count({
-                    where: {
-                        examAttempt: { id: examAttemptId },
-                        iscorrect: false,
-                        question: { skill: { id: skill.id } },
-                    },
-                    relations: ['question'],
-                });
-
-                totalErrors += skillErrorCount;
-            }
-
-            const percent = (totalErrors * 100) / totalSkills;
-
-            domainErrorCountsMath.push({
-                id: domain.id,
-                domain: domain.content,
-                totalErrors,
-                percent,
-            });
-        }
-
-        domainErrorCountsMath.sort((a, b) => b.percent - a.percent);
-        const top3DomainsMath = domainErrorCountsMath.slice(0, 3);
-
-        const top3DomainsMathIds = top3DomainsMath.map((domain) => domain.id);
-
+    
         const [foundation, medium, advance] = await Promise.all([
             this.levelRepository.findOne({ where: { name: 'Foundation' } }),
             this.levelRepository.findOne({ where: { name: 'Medium' } }),
             this.levelRepository.findOne({ where: { name: 'Advance' } }),
         ]);
-
+    
         const [math, RW] = await Promise.all([
             this.sectionRepository.findOne({ where: { name: 'Math' } }),
             this.sectionRepository.findOne({ where: { name: 'Reading & Writing' } }),
         ]);
-
-        const domainIdsRW = domainsRW.map((domain) => domain.id);
-
-        const domainIdsMath = domainsMath.map((domain) => domain.id);
-
-        //RW
-        const allUnitsFoundationRW = await this.unitRepository.find({
-            where: {
-                section: { id: RW.id },
-                level: { id: foundation.id },
-                domain: { id: In(domainIdsRW) },
-            },
-        });
-
-        const allUnitsMediumRW = await this.unitRepository.find({
-            where: {
-                section: { id: RW.id },
-                level: { id: medium.id },
-                domain: { id: In(domainIdsRW) },
-            },
-        });
-
-        const top3UnitsMediumRW = await this.unitRepository.find({
-            where: {
-                section: { id: RW.id },
-                level: { id: medium.id },
-                domain: { id: In(top3DomainIdsRW) },
-            },
-        });
-
-        const top3UnitsAdvanceRW = await this.unitRepository.find({
-            where: {
-                section: { id: RW.id },
-                level: { id: advance.id },
-                domain: { id: In(top3DomainIdsRW) },
-            },
-        });
-
-        //Math
-
-        const allUnitsFoundationMath = await this.unitRepository.find({
-            where: {
-                section: { id: math.id },
-                level: { id: foundation.id },
-                domain: { id: In(domainIdsMath) },
-            },
-        });
-
-        const allUnitsMediumMath = await this.unitRepository.find({
-            where: {
-                section: { id: math.id },
-                level: { id: medium.id },
-                domain: { id: In(domainIdsMath) },
-            },
-        });
-
-        const top3UnitsMediumMath = await this.unitRepository.find({
-            where: {
-                section: { id: math.id },
-                level: { id: medium.id },
-                domain: { id: In(top3DomainsMathIds) },
-            },
-        });
-
-        const top3UnitsAdvanceMath = await this.unitRepository.find({
-            where: {
-                section: { id: math.id },
-                level: { id: advance.id },
-                domain: { id: In(top3DomainsMathIds) },
-            },
-        });
-
-        // RW
-        const unitIdFoundationsRW = allUnitsFoundationRW.map((unit) => unit.id);
-        const unitIdMediumsRW = allUnitsMediumRW.map((unit) => unit.id);
-        const top3UnitIdMediumsRW = top3UnitsMediumRW.map((unit) => unit.id);
-        const top3UnitIdAdvanceRW = top3UnitsAdvanceRW.map((unit) => unit.id);
-
-        //Math
-        const unitIdFoundationsMath = allUnitsFoundationMath.map((unit) => unit.id);
-        const unitIdMediumMath = allUnitsMediumMath.map((unit) => unit.id);
-        const top3UnitIdMediumMath = top3UnitsMediumMath.map((unit) => unit.id);
-        const top3UnitIdAdvanceMath = top3UnitsAdvanceMath.map((unit) => unit.id);
-
-        //Math
-        switch (true) {
-            case examAttempt.scoreMath < 400:
-                createTargetLearningDto.levelId = foundation.id;
-
-                createTargetLearningDto.sectionId = math.id;
-
-                const targetLearning = await this.targetLearningService.save(
-                    createTargetLearningDto,
-                    studyProfile.id,
-                );
-
-                console.log(targetLearning);
-
-                console.log('case 1 Math');
-
-                await this.unitProgressService.startMultipleUnitProgress(
-                    targetLearning.id,
-                    unitIdFoundationsMath,
-                );
-
-                break;
-
-            case examAttempt.studyProfile.targetscoreMath >= 400 &&
-                examAttempt.studyProfile.targetscoreMath < 600:
-                if (examAttempt.scoreMath < 600) {
-                    createTargetLearningDto.levelId = medium.id;
-
-                    createTargetLearningDto.sectionId = math.id;
-
-                    console.log('case 2 Math');
-
-                    const targetLearning = await this.targetLearningService.save(
-                        createTargetLearningDto,
-                        studyProfile.id,
-                    );
-
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        top3UnitIdMediumMath,
-                    );
-                }
-                break;
-
-            case examAttempt.studyProfile.targetscoreMath >= 600 &&
-                examAttempt.studyProfile.targetscoreMath < 800:
-                if (examAttempt.scoreMath > 400 && examAttempt.scoreMath < 600) {
-                    createTargetLearningDto.levelId = medium.id;
-
-                    createTargetLearningDto.sectionId = math.id;
-
-                    console.log('case 3 Math');
-
-                    const targetLearning = await this.targetLearningService.save(
-                        createTargetLearningDto,
-                        studyProfile.id,
-                    );
-
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        unitIdMediumMath,
-                    );
-                } else if (examAttempt.scoreMath < 800) {
-                    createTargetLearningDto.levelId = advance.id;
-
-                    createTargetLearningDto.sectionId = math.id;
-
-                    console.log('case 4 Math');
-
-                    const targetLearning = await this.targetLearningService.save(
-                        createTargetLearningDto,
-                        studyProfile.id,
-                    );
-
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        top3UnitIdAdvanceMath,
-                    );
-                }
-                break;
+    
+        const recommendedUnits: { Math: any[]; RW: any[] } = { Math: [], RW: [] };
+    
+        // Handle Math section
+        if (examAttempt.scoreMath < 400) {
+            createTargetLearningDto.levelId = foundation.id;
+            createTargetLearningDto.sectionId = math.id;
+    
+            const targetLearning = await this.targetLearningService.save(
+                createTargetLearningDto,
+                studyProfile.id,
+            );
+    
+            const units = await this.unitProgressService.startMultipleUnitProgress(
+                targetLearning.id,
+                await this.unitRepository
+                    .find({ where: { section: math, level: foundation }, select: ['id', 'title'] })
+                    .then((units) => units.map((u) => u.id)),
+            );
+    
+            recommendedUnits.Math.push(...units);
+        } else if (
+            examAttempt.studyProfile.targetscoreMath >= 400 &&
+            examAttempt.studyProfile.targetscoreMath < 600 &&
+            examAttempt.scoreMath < 600
+        ) {
+            createTargetLearningDto.levelId = medium.id;
+            createTargetLearningDto.sectionId = math.id;
+    
+            const targetLearning = await this.targetLearningService.save(
+                createTargetLearningDto,
+                studyProfile.id,
+            );
+    
+            const units = await this.unitProgressService.startMultipleUnitProgress(
+                targetLearning.id,
+                await this.unitRepository
+                    .find({ where: { section: math, level: medium }, select: ['id', 'title'] })
+                    .then((units) => units.map((u) => u.id)),
+            );
+    
+            recommendedUnits.Math.push(...units);
         }
-
-        //RW
-        switch (true) {
-            case examAttempt.scoreRW < 400:
-                createTargetLearningDto.levelId = foundation.id;
-
-                createTargetLearningDto.sectionId = RW.id;
-
-                console.log('case 1 RW');
-
-                const targetLearning = await this.targetLearningService.save(
-                    createTargetLearningDto,
-                    studyProfile.id,
-                );
-
-                await this.unitProgressService.startMultipleUnitProgress(
-                    targetLearning.id,
-                    unitIdFoundationsRW,
-                );
-
-                break;
-
-            case examAttempt.studyProfile.targetscoreRW >= 400 &&
-                examAttempt.studyProfile.targetscoreRW < 600:
-                if (examAttempt.scoreRW < 600) {
-                    createTargetLearningDto.levelId = medium.id;
-
-                    createTargetLearningDto.sectionId = RW.id;
-
-                    console.log('case 2 RW');
-
-                    const targetLearning = await this.targetLearningService.save(
-                        createTargetLearningDto,
-                        studyProfile.id,
-                    );
-
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        top3UnitIdMediumsRW,
-                    );
-                }
-                break;
-
-            case examAttempt.studyProfile.targetscoreRW >= 600 &&
-                examAttempt.studyProfile.targetscoreRW < 800:
-                if (examAttempt.scoreRW > 400 && examAttempt.scoreRW < 600) {
-                    createTargetLearningDto.levelId = medium.id;
-
-                    createTargetLearningDto.sectionId = RW.id;
-
-                    console.log('case 3 RW');
-
-                    const targetLearning = await this.targetLearningService.save(
-                        createTargetLearningDto,
-                        studyProfile.id,
-                    );
-
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        unitIdMediumsRW,
-                    );
-                } else if (examAttempt.scoreRW < 800) {
-                    createTargetLearningDto.levelId = advance.id;
-
-                    createTargetLearningDto.sectionId = RW.id;
-
-                    console.log('case 4 RW');
-
-                    const targetLearning = await this.targetLearningService.save(
-                        createTargetLearningDto,
-                        studyProfile.id,
-                    );
-
-                    await this.unitProgressService.startMultipleUnitProgress(
-                        targetLearning.id,
-                        top3UnitIdAdvanceRW,
-                    );
-                }
-                break;
+    
+        // Handle RW section
+        if (examAttempt.scoreRW < 400) {
+            createTargetLearningDto.levelId = foundation.id;
+            createTargetLearningDto.sectionId = RW.id;
+    
+            const targetLearning = await this.targetLearningService.save(
+                createTargetLearningDto,
+                studyProfile.id,
+            );
+    
+            const units = await this.unitProgressService.startMultipleUnitProgress(
+                targetLearning.id,
+                await this.unitRepository
+                    .find({ where: { section: RW, level: foundation }, select: ['id', 'title'] })
+                    .then((units) => units.map((u) => u.id)),
+            );
+    
+            recommendedUnits.RW.push(...units);
+        } else if (
+            examAttempt.studyProfile.targetscoreRW >= 400 &&
+            examAttempt.studyProfile.targetscoreRW < 600 &&
+            examAttempt.scoreRW < 600
+        ) {
+            createTargetLearningDto.levelId = medium.id;
+            createTargetLearningDto.sectionId = RW.id;
+    
+            const targetLearning = await this.targetLearningService.save(
+                createTargetLearningDto,
+                studyProfile.id,
+            );
+    
+            const units = await this.unitProgressService.startMultipleUnitProgress(
+                targetLearning.id,
+                await this.unitRepository
+                    .find({ where: { section: RW, level: medium }, select: ['id', 'title'] })
+                    .then((units) => units.map((u) => u.id)),
+            );
+    
+            recommendedUnits.RW.push(...units);
         }
+    
+        return recommendedUnits;
     }
+    
 
     async findOneById(examAttemptId: string): Promise<ExamAttempt> {
         return this.examAttemptRepository.findOne({

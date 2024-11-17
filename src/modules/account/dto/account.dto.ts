@@ -1,4 +1,5 @@
 import { Expose } from 'class-transformer';
+import { AccountStatus } from 'src/common/enums/account-status.enum';
 
 export class AccountDTO {
     @Expose()
@@ -9,4 +10,7 @@ export class AccountDTO {
 
     @Expose()
     email: string;
+
+    @Expose()
+    status: AccountStatus;
 }
