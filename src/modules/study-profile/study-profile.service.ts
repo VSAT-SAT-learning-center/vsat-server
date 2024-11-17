@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { BaseService } from '../base/base.service';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
+import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 
 @Injectable()
 export class StudyProfileService {
@@ -35,6 +36,7 @@ export class StudyProfileService {
 
         studyProfile.targetscoreMath = targetMath;
         studyProfile.targetscoreRW = targetRW;
+        studyProfile.status = StudyProfileStatus.ACTIVE;
 
         const save = await this.studyProfileRepository.save(studyProfile);
         return save;
