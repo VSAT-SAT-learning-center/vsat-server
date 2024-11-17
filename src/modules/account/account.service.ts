@@ -13,6 +13,7 @@ import { GetAccountDTO } from './dto/get-account.dto';
 import { BaseService } from '../base/base.service';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { StudyProfileService } from '../study-profile/study-profile.service';
+import { UpdateAccountDTO } from './dto/update-account.dto';
 
 @Injectable()
 export class AccountService extends BaseService<Account> {
@@ -580,6 +581,25 @@ export class AccountService extends BaseService<Account> {
 
         const updateAccount = await this.accountRepository.save(account);
         return plainToInstance(GetAccountDTO, updateAccount, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async updateAccount(updateAccount: UpdateAccountDTO, accountId: string) {
+        const account = await this.accountRepository.findOne({
+            where: { id: accountId },
+        });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        account.firstname = updateAccount.firstname;
+        account.lastname = updateAccount.lastname;
+        account.phonenumber = updateAccount.phoneNumber;
+
+        const updateAcc = await this.accountRepository.save(account);
+        return plainToInstance(GetAccountDTO, updateAcc, {
             excludeExtraneousValues: true,
         });
     }
