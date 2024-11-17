@@ -7,8 +7,16 @@ export class CreateTargetLearningDto {
 
     sectionId: string;
 
-    @IsUUID()
+    // @IsUUID()
+    // @Expose()
+    // @ApiProperty({ example: '42c5a718-67f1-4c24-ba81-feecb9deb1f0' })
+    // studyProfileId: string;
+
     @Expose()
-    @ApiProperty({ example: '42c5a718-67f1-4c24-ba81-feecb9deb1f0' })
-    studyProfileId: string;
+    @ApiProperty()
+    targetLearningRW: number;
+
+    @ApiProperty()
+    @Expose()
+    targetLearningMath: number;
 }
