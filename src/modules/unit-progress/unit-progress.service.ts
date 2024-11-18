@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
 import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
 import { UnitProgress } from 'src/database/entities/unitprogress.entity';
@@ -10,6 +10,7 @@ import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progres
 import { UnitAreaService } from '../unit-area/unit-area.service';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 import { TargetLearningService } from '../target-learning/target-learning.service';
+import { Unit } from 'src/database/entities/unit.entity';
 
 @Injectable()
 export class UnitProgressService extends BaseService<UnitProgress> {
@@ -35,7 +36,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             throw new NotFoundException('Unit not found');
         }
 
-        const targetLearning = await this.targetLearningService.findOneById(targetLearningId);
+        const targetLearning =
+            await this.targetLearningService.findOneById(targetLearningId);
 
         if (!targetLearning) {
             throw new NotFoundException('TargetLearning not found');
@@ -50,7 +52,10 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return await this.unitProgressRepository.save(newUnitProgress);
     }
 
-    async update(id: string, updateUnitProgressDto: UpdateUnitProgressDto): Promise<UnitProgress> {
+    async update(
+        id: string,
+        updateUnitProgressDto: UpdateUnitProgressDto,
+    ): Promise<UnitProgress> {
         const { unitId, targetLearningId, ...unitProgressData } = updateUnitProgressDto;
 
         const unitProgress = await this.findOneById(id);
@@ -63,7 +68,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             throw new NotFoundException('Unit not found');
         }
 
-        const targetLearning = await this.targetLearningService.findOneById(targetLearningId);
+        const targetLearning =
+            await this.targetLearningService.findOneById(targetLearningId);
         if (!targetLearning) {
             throw new NotFoundException('TargetLearning not found');
         }
@@ -78,7 +84,10 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return updatedUnitProgress;
     }
 
-    async updateUnitProgress(unitId: string, targetLearningId: string): Promise<UnitProgress> {
+    async updateUnitProgress(
+        unitId: string,
+        targetLearningId: string,
+    ): Promise<UnitProgress> {
         const progress = await this.unitAreaProgressService.calculateUnitProgress(unitId);
 
         let unitProgress = await this.unitProgressRepository.findOne({
@@ -101,7 +110,11 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return this.unitProgressRepository.save(unitProgress);
     }
 
-    async updateUnitProgressNow(unitId: string, targetLearningId: string, unitProgressId: string) {
+    async updateUnitProgressNow(
+        unitId: string,
+        targetLearningId: string,
+        unitProgressId: string,
+    ) {
         // Lấy UnitProgress dựa trên UnitId và targetLearningId
         const unitProgress = await this.unitProgressRepository.findOne({
             where: {
@@ -131,7 +144,9 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         // }
 
         // Tính toán phần trăm hoàn thành dựa trên số UnitArea đã hoàn thành
-        const totalUnitAreas = (await this.unitAreaService.findByUnitIdWithLessons(unitId)).length;
+        const totalUnitAreas = (
+            await this.unitAreaService.findByUnitIdWithLessons(unitId)
+        ).length;
 
         if (totalUnitAreas === 0) {
             throw new NotFoundException('No UnitAreas found for this Unit');
@@ -207,5 +222,23 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         }
 
         return unitProgressList;
+    }
+
+    async getRecentlyLearnedUnits(targetLearningId: string): Promise<Unit[]> {
+        // Tìm các `UnitProgress` đã có trạng thái IN_PROGRESS hoặc COMPLETED, sắp xếp theo thời gian cập nhật gần đây
+        const recentUnits = await this.unitProgressRepository.find({
+            where: {
+                targetLearning: { id: targetLearningId },
+                status: In([ProgressStatus.PROGRESSING, ProgressStatus.COMPLETED]),
+            },
+            order: {
+                updatedat: 'DESC', // Sắp xếp từ gần nhất đến xa nhất
+            },
+            relations: ['unit'], // Lấy quan hệ đến `unit`
+            take: 5, // Lấy tối đa 5 `unit` gần đây
+        });
+
+        // Trả về danh sách các `unit`
+        return recentUnits.map((unitProgress) => unitProgress.unit);
     }
 }

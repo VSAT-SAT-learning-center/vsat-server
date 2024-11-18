@@ -52,6 +52,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditSubscriber } from './common/subscriber/audit.subscriber';
 import { PostgresConfigService } from './database/config/postgres.config';
 import { JwtService } from '@nestjs/jwt';
+import { ProgressModule } from './modules/progress/progress.module';
 
 @Module({
     imports: [
@@ -107,6 +108,7 @@ import { JwtService } from '@nestjs/jwt';
         ExamStructureConfigModule,
         ExamSemesterModule,
         DomainDistributionConfigModule,
+        ProgressModule,
         MailerModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({

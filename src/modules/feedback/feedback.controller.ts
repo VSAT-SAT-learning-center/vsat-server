@@ -16,7 +16,7 @@ import {
 import { FeedbackService } from './feedback.service';
 import { BaseController } from '../base/base.controller';
 import { Feedback } from 'src/database/entities/feedback.entity';
-import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
@@ -37,6 +37,7 @@ export class FeedbackController extends BaseController<Feedback> {
         super(feedbackService, 'Feedback');
     }
 
+    @ApiOperation({ summary: 'Search learning material feedback by status' })
     @Get('learning-material')
     async searchFeedbackByStatus(
         @Query('status') status: FeedbackStatus,
@@ -66,6 +67,7 @@ export class FeedbackController extends BaseController<Feedback> {
         );
     }
 
+    @ApiOperation({ summary: 'Search exam feedback by status' })
     @Get('exam')
     async searchExamFeedbackByStatus(
         @Query('status') status: FeedbackStatus,
@@ -93,6 +95,7 @@ export class FeedbackController extends BaseController<Feedback> {
         );
     }
 
+    @ApiOperation({ summary: 'Search question feedback by status' })
     @Get('question')
     async searchQuestionFeedbackByStatus(
         @Query('status') status: FeedbackStatus,
@@ -122,46 +125,9 @@ export class FeedbackController extends BaseController<Feedback> {
         );
     }
 
-    @Get('question/reason/:questionId')
-    async getRejectFeedbackByQuestionId(
-        @Request() req,
-        @Param('questionId') questionId: string,
-        // @Query('page') page: number = 1,
-        // @Query('limit') limit: number = 10,
-    ): Promise<{
-        data: any[];
-        totalItems: number;
-        // totalPages: number;
-        // currentPage: number;
-    }> {
-        const userId = req.user.id;
-        return this.feedbackService.getRejectFeedbackByQuestionId(
-            userId,
-            questionId,
-            // page,
-            // limit,
-        );
-    }
-
+    @ApiOperation({ summary: 'Search quiz question feedback by status' })
     @Get('quizquestion')
     async searchQuizQuestionFeedbackByStatus(
-/**
- * Searches for question feedback based on the provided status and filters.
- * 
- * @param status - The feedback status to filter by.
- * @param req - The request object containing user information.
- * @param search - Optional search term to filter feedback content.
- * @param level - Optional level ID to filter feedback by question level.
- * @param skill - Optional skill ID to filter feedback by question skill.
- * @param section - Optional section ID to filter feedback by question section.
- * @param page - The page number for pagination (default is 1).
- * @param limit - The number of items per page for pagination (default is 10).
- * @returns A Promise that resolves to an object containing:
- *          - data: An array of feedback data.
- *          - totalItems: The total number of feedback items.
- *          - totalPages: The total number of pages.
- *          - currentPage: The current page number.
- */
         @Query('status') status: FeedbackStatus,
         @Request() req,
         @Query('search') search?: string,
@@ -186,6 +152,28 @@ export class FeedbackController extends BaseController<Feedback> {
             section,
             page,
             limit,
+        );
+    }
+
+    @ApiOperation({ summary: 'Get feedback details by question id' })
+    @Get('question/reason/:questionId')
+    async getRejectFeedbackByQuestionId(
+        @Request() req,
+        @Param('questionId') questionId: string,
+        // @Query('page') page: number = 1,
+        // @Query('limit') limit: number = 10,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+        // totalPages: number;
+        // currentPage: number;
+    }> {
+        const userId = req.user.id;
+        return this.feedbackService.getRejectFeedbackByQuestionId(
+            userId,
+            questionId,
+            // page,
+            // limit,
         );
     }
 
@@ -239,55 +227,56 @@ export class FeedbackController extends BaseController<Feedback> {
     // }
 
     // GET /feedbacks/unit?unitId=123
-    @Get('unit')
-    @ApiQuery({ name: 'unitId', required: false })
-    async getUnitFeedback(
-        @Request() req: any,
-        @Query('unitId') unitId?: string,
-    ): Promise<UnitFeedbackResponseDto[]> {
-        console.log(req);
-        console.log(req.user);
-        const userId = req.user.id; // Lấy userId từ request
-        if (!userId) {
-            throw new NotFoundException('User ID not found in request');
-        }
+    // @Get('unit')
+    // @ApiQuery({ name: 'unitId', required: false })
+    // async getUnitFeedback(
+    //     @Request() req: any,
+    //     @Query('unitId') unitId?: string,
+    // ): Promise<UnitFeedbackResponseDto[]> {
+    //     console.log(req);
+    //     console.log(req.user);
+    //     const userId = req.user.id; // Lấy userId từ request
+    //     if (!userId) {
+    //         throw new NotFoundException('User ID not found in request');
+    //     }
 
-        if (unitId) {
-            return await this.feedbackService.getUnitFeedbackByUserId(userId, unitId);
-        }
-        throw new NotFoundException('Unit ID is required for specific unit feedback');
-    }
+    //     if (unitId) {
+    //         return await this.feedbackService.getUnitFeedbackByUserId(userId, unitId);
+    //     }
+    //     throw new NotFoundException('Unit ID is required for specific unit feedback');
+    // }
 
-    // GET /feedbacks/unit/with-lessons?unitId=123
-    @Get('unit/with-lessons')
-    @ApiQuery({ name: 'unitId', required: true })
-    async getUnitFeedbackWithLesson(
-        @Request() req: any,
-        @Query('unitId') unitId: string,
-    ): Promise<UnitFeedbackWithLessonResponseDto[]> {
-        const userId = req.user.id; // Lấy userId từ request
-        if (!userId) {
-            throw new NotFoundException('User ID not found in request');
-        }
+    // // GET /feedbacks/unit/with-lessons?unitId=123
+    // @Get('unit/with-lessons')
+    // @ApiQuery({ name: 'unitId', required: true })
+    // async getUnitFeedbackWithLesson(
+    //     @Request() req: any,
+    //     @Query('unitId') unitId: string,
+    // ): Promise<UnitFeedbackWithLessonResponseDto[]> {
+    //     const userId = req.user.id; // Lấy userId từ request
+    //     if (!userId) {
+    //         throw new NotFoundException('User ID not found in request');
+    //     }
 
-        return await this.feedbackService.getUnitFeedbackWithLesson(userId, unitId);
-    }
+    //     return await this.feedbackService.getUnitFeedbackWithLesson(userId, unitId);
+    // }
 
-    // GET /feedbacks/lesson?lessonId=123
-    @Get('lesson')
-    @ApiQuery({ name: 'lessonId', required: true })
-    async getLessonFeedback(
-        @Request() req: any,
-        @Query('lessonId') lessonId: string,
-    ): Promise<QuestionFeedbackResponseDto[]> {
-        const userId = req.user?.id; // Lấy userId từ request
-        if (!userId) {
-            throw new NotFoundException('User ID not found in request');
-        }
+    // // GET /feedbacks/lesson?lessonId=123
+    // @Get('lesson')
+    // @ApiQuery({ name: 'lessonId', required: true })
+    // async getLessonFeedback(
+    //     @Request() req: any,
+    //     @Query('lessonId') lessonId: string,
+    // ): Promise<QuestionFeedbackResponseDto[]> {
+    //     const userId = req.user?.id; // Lấy userId từ request
+    //     if (!userId) {
+    //         throw new NotFoundException('User ID not found in request');
+    //     }
 
-        return await this.feedbackService.getLessonFeedbackUserId(userId, lessonId);
-    }
+    //     return await this.feedbackService.getLessonFeedbackUserId(userId, lessonId);
+    // }
 
+    @ApiOperation({ summary: 'Get feedback details' })
     // GET /feedbacks/:feedbackId
     @Get(':feedbackId')
     async getFeedbackDetails(
@@ -303,6 +292,7 @@ export class FeedbackController extends BaseController<Feedback> {
         }
     }
 
+    @ApiOperation({ summary: 'Get user feedback' })
     // GET /feedbacks/user
     @Get('user')
     async getFeedbackByUserId(@Request() req: any) {

@@ -1,12 +1,4 @@
-import {
-    Body,
-    Controller,
-    Get,
-    HttpStatus,
-    Param,
-    Patch,
-    Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { UnitProgress } from 'src/database/entities/unitprogress.entity';
@@ -16,7 +8,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
 import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
 
-@ApiTags('UnitProgress')
+// @ApiTags('UnitProgress')
 @Controller('unit-progress')
 export class UnitProgressController extends BaseController<UnitProgress> {
     constructor(private readonly unitProgressService: UnitProgressService) {
@@ -37,9 +29,7 @@ export class UnitProgressController extends BaseController<UnitProgress> {
 
     @Post()
     async create(@Body() createUnitProgressDto: CreateUnitProgressDto) {
-        const createdUnit = await this.unitProgressService.create(
-            createUnitProgressDto,
-        );
+        const createdUnit = await this.unitProgressService.create(createUnitProgressDto);
         return ResponseHelper.success(
             HttpStatus.CREATED,
             createdUnit,
@@ -68,9 +58,7 @@ export class UnitProgressController extends BaseController<UnitProgress> {
         @Param('unitId') unitId: string,
         @Param('targetLearningId') targetLearningId: string,
     ): Promise<UnitProgress> {
-        return this.unitProgressService.updateUnitProgress(
-            unitId,
-            targetLearningId,
-        );
+        return this.unitProgressService.updateUnitProgress(unitId, targetLearningId);
     }
+
 }

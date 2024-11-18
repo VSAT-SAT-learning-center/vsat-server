@@ -8,8 +8,12 @@ export class SaveQuizAttemptProgressDto {
     questionId: string;
 
     @ApiProperty({
-        description: 'The ID of the answer selected by the student for the given question.',
         example: 'answer-id-456',
     })
-    selectedAnswerId: string;
+    studentdAnswerId: string;
+
+    @ApiProperty({
+        example: 'answer-id-456',
+    })
+    studentdAnswerText: string;
 }

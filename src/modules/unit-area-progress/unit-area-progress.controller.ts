@@ -20,7 +20,7 @@ import { BaseController } from '../base/base.controller';
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 
-@ApiTags('UnitAreaProgress')
+// @ApiTags('UnitAreaProgress')
 @Controller('unit-area-progress')
 export class UnitAreaProgressController extends BaseController<UnitAreaProgress> {
     constructor(private readonly unitAreaProgressService: UnitAreaProgressService) {

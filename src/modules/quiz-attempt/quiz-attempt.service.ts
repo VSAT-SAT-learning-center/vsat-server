@@ -10,6 +10,9 @@ import { QuizAttemptAnswerService } from '../quiz-attempt-answer/quiz-attempt-an
 import { QuizQuestionService } from '../quizquestion/quiz-question.service';
 import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
 import { CompleteQuizAttemptResponseDto } from './dto/reponse-complete-quiz-attempt.dto';
+import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
+import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
+import sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class QuizAttemptService extends BaseService<QuizAttempt> {
@@ -19,6 +22,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         private readonly quizService: QuizService,
         private readonly quizAttemptAnswerService: QuizAttemptAnswerService,
         private readonly quizQuestionService: QuizQuestionService,
+        private readonly quizQuestionItemService: QuizQuestionItemService,
     ) {
         super(quizAttemptRepository);
     }
@@ -38,7 +42,8 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     async saveQuizAttemptProgress(
         quizAttemptId: string,
         questionId: string,
-        selectedAnswerId: string,
+        studentAnswerId: string,
+        studentAnswerText: string,
     ): Promise<void> {
         // Step 1: Fetch the existing QuizAttempt
         const quizAttempt = await this.quizAttemptRepository.findOne({
@@ -52,7 +57,8 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         // Step 2: Verify if the selected answer is correct
         const isCorrect = await this.quizQuestionService.verifyAnswer(
             questionId,
-            selectedAnswerId,
+            studentAnswerId,
+            studentAnswerText,
         );
 
         // Step 3: Save or update the answer in QuizAttemptAnswer
@@ -63,7 +69,12 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
 
         if (existingAnswer) {
             // Update existing answer
-            existingAnswer.studentAnswer = selectedAnswerId;
+            if (studentAnswerText) {
+                existingAnswer.studentAnswerText = studentAnswerText;
+            } else {
+                existingAnswer.studentAnswerId = studentAnswerId;
+            }
+
             existingAnswer.isCorrect = isCorrect;
             await this.quizAttemptAnswerService.updateQuizAttemptAnswer(existingAnswer);
         } else {
@@ -71,8 +82,51 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
             await this.quizAttemptAnswerService.saveQuizAttemptAnswer(
                 quizAttemptId,
                 questionId,
-                selectedAnswerId,
+                studentAnswerId,
+                studentAnswerText,
                 isCorrect,
+            );
+        }
+
+        // Step 4: Update progress status in QuizAttempt
+        await this.updateProgress(quizAttemptId, {
+            status: QuizAttemptStatus.IN_PROGRESS,
+        });
+    }
+
+    async skipQuizAttemptProgress(
+        quizAttemptId: string,
+        questionId: string,
+    ): Promise<void> {
+        // Step 1: Fetch the existing QuizAttempt
+        const quizAttempt = await this.quizAttemptRepository.findOne({
+            where: { id: quizAttemptId },
+        });
+
+        if (!quizAttempt) {
+            throw new NotFoundException(`QuizAttempt with ID ${quizAttemptId} not found`);
+        }
+
+        // Step 3: Save or update the answer in QuizAttemptAnswer
+        const existingAnswer = await this.quizAttemptAnswerService.findAnswer(
+            quizAttemptId,
+            questionId,
+        );
+
+        if (existingAnswer) {
+            // Update existing answer
+            existingAnswer.studentAnswerId = null;
+            existingAnswer.studentAnswerText = null;
+            existingAnswer.isCorrect = false;
+            await this.quizAttemptAnswerService.updateQuizAttemptAnswer(existingAnswer);
+        } else {
+            // Insert a new answer if not found
+            await this.quizAttemptAnswerService.saveQuizAttemptAnswer(
+                quizAttemptId,
+                questionId,
+                null,
+                null,
+                false,
             );
         }
 
@@ -111,7 +165,8 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         for (const answer of quizAttempt.answers) {
             const isCorrect = await this.quizQuestionService.verifyAnswer(
                 answer.quizQuestion.id,
-                answer.studentAnswer,
+                answer.studentAnswerId,
+                answer.studentAnswerText,
             );
 
             // Update the correctness status of each answer in QuizAttemptAnswer
@@ -289,8 +344,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         );
 
         // Fetch the previous attempt for comparison
-        const previousAttempt =
-            await this.getPreviousAttempt(quizAttemptId);
+        const previousAttempt = await this.getPreviousAttempt(quizAttemptId);
         let previousSkillsSummary = [];
 
         if (previousAttempt) {
@@ -487,7 +541,8 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
                 progressPercentage,
                 questionsAnswered: answeredQuestions.map((a) => ({
                     questionId: a.quizQuestion.id,
-                    selectedAnswerId: a.studentAnswer,
+                    studentAnswerId: a.studentAnswerId,
+                    studentAnswerText: a.studentAnswerText,
                     isCorrect: a.isCorrect,
                 })),
             },
@@ -495,7 +550,6 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     }
 
     // In QuizAttemptService
-
     async getPreviousAttempt(currentQuizAttemptId: string): Promise<QuizAttempt | null> {
         // Find the current quiz attempt to get quiz and studyProfile information
         const currentAttempt = await this.quizAttemptRepository.findOne({
@@ -520,5 +574,54 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         });
 
         return previousAttempt || null;
+    }
+
+    async resetQuizAttempt(resetQuizAttempt: ResetQuizAttemptProgressDto): Promise<any> {
+        const { quizAttemptId, studyProfileId, unitId } = resetQuizAttempt;
+
+        let ongoingAttempt;
+
+        // Step 1: Find the current ongoing quiz attempt
+        // Step 1: Find the current ongoing quiz attempt
+        if (!quizAttemptId) {
+            ongoingAttempt = await this.getOngoingQuizAttemptForUnit(
+                studyProfileId,
+                unitId,
+            );
+
+            if (!ongoingAttempt) {
+                throw new NotFoundException('No ongoing quiz attempt found to reset.');
+            }
+        } else {
+            ongoingAttempt = await this.quizAttemptRepository.findOne({
+                where: { id: quizAttemptId },
+            });
+
+            if (!ongoingAttempt) {
+                throw new NotFoundException(
+                    `Quiz attempt with ID ${quizAttemptId} not found.`,
+                );
+            }
+        }
+
+        // Step 2: update the ongoing quiz attempt to abandoned
+        ongoingAttempt.status = QuizAttemptStatus.ABANDONED;
+        await this.quizAttemptRepository.save(ongoingAttempt);
+
+        // Step 3: Create a new quiz and start a new quiz attempt
+        const newQuiz = await this.quizService.createQuiz(unitId);
+        const newQuizAttempt = await this.startQuizAttempt(studyProfileId, newQuiz.id);
+
+        // Step 4: Retrieve quiz questions and answers for the new quiz
+        const quizQuestions =
+            await this.quizQuestionItemService.getQuizQuestionsWithAnswers(newQuiz.id);
+
+        // Step 5: Prepare and return new quiz details
+        return {
+            quizAttemptId: newQuizAttempt.id,
+            quizId: newQuiz.id,
+            totalQuestions: newQuiz.totalquestion,
+            questions: quizQuestions,
+        };
     }
 }
