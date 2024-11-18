@@ -7,7 +7,7 @@ import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
 import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { BaseService } from '../base/base.service';
-import { TargetLearningService } from '../target-learning/target-learning.service';
+import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
 import { CreateTargetLearningDto } from '../target-learning/dto/create-targetlearning.dto';
 import { Level } from 'src/database/entities/level.entity';
 import { Section } from 'src/database/entities/section.entity';
@@ -29,6 +29,7 @@ import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { title } from 'process';
 import { StudyProfileService } from '../study-profile/study-profile.service';
 import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
+import { TargetLearningService } from '../target-learning/target-learning.service';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -62,6 +63,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         @InjectRepository(ModuleType)
         private readonly moduleTypeRepository: Repository<ModuleType>,
 
+        private readonly targetLearningDetailService: TargetLearningDetailService,
         private readonly targetLearningService: TargetLearningService,
         private readonly unitProgressService: UnitProgressService,
         private readonly examAttemptDetailService: ExamAttemptDetailService,
@@ -80,6 +82,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             order: { createdat: 'ASC' },
         });
 
+        console.log(examAttemptId)
+
+        const target = await this.targetLearningService.save(studyProfile.id, examAttemptId);
+
         if (!studyProfile) {
             throw new NotFoundException('StudyProfile is not found');
         }
@@ -92,7 +98,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
-            relations: ['studyProfile'],
+            relations: ['targetlearning', 'targetlearning.studyProfile'],
         });
 
         const domainsRW = await this.domainRepository.find({
@@ -299,9 +305,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 createTargetLearningDto.sectionId = math.id;
 
-                const targetLearning = await this.targetLearningService.save(
+                const targetLearning = await this.targetLearningDetailService.save(
                     createTargetLearningDto,
-                    studyProfile.id,
+                    target.id
                 );
 
                 console.log('case 1 Math');
@@ -313,8 +319,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 break;
 
-            case examAttempt.studyProfile.targetscoreMath >= 400 &&
-                examAttempt.studyProfile.targetscoreMath < 600:
+            case examAttempt.targetlearning.studyProfile.targetscoreMath >= 400 &&
+                examAttempt.targetlearning.studyProfile.targetscoreMath < 600:
                 if (examAttempt.scoreMath < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
@@ -322,9 +328,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     console.log('case 2 Math');
 
-                    const targetLearning = await this.targetLearningService.save(
+                    const targetLearning = await this.targetLearningDetailService.save(
                         createTargetLearningDto,
-                        studyProfile.id,
+                        target.id
                     );
 
                     result.Math =
@@ -335,8 +341,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 }
                 break;
 
-            case examAttempt.studyProfile.targetscoreMath >= 600 &&
-                examAttempt.studyProfile.targetscoreMath < 800:
+            case examAttempt.targetlearning.studyProfile.targetscoreMath >= 600 &&
+                examAttempt.targetlearning.studyProfile.targetscoreMath < 800:
                 if (examAttempt.scoreMath > 400 && examAttempt.scoreMath < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
@@ -344,9 +350,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     console.log('case 3 Math');
 
-                    const targetLearning = await this.targetLearningService.save(
+                    const targetLearning = await this.targetLearningDetailService.save(
                         createTargetLearningDto,
-                        studyProfile.id,
+                        target.id
                     );
 
                     result.Math =
@@ -361,9 +367,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     console.log('case 4 Math');
 
-                    const targetLearning = await this.targetLearningService.save(
+                    const targetLearning = await this.targetLearningDetailService.save(
                         createTargetLearningDto,
-                        studyProfile.id,
+                        target.id
                     );
 
                     result.Math =
@@ -384,9 +390,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 console.log('case 1 RW');
 
-                const targetLearning = await this.targetLearningService.save(
+                const targetLearning = await this.targetLearningDetailService.save(
                     createTargetLearningDto,
-                    studyProfile.id,
+                    target.id
                 );
 
                 result.RW = await this.unitProgressService.startMultipleUnitProgress(
@@ -396,8 +402,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                 break;
 
-            case examAttempt.studyProfile.targetscoreRW >= 400 &&
-                examAttempt.studyProfile.targetscoreRW < 600:
+            case examAttempt.targetlearning.studyProfile.targetscoreRW >= 400 &&
+                examAttempt.targetlearning.studyProfile.targetscoreRW < 600:
                 if (examAttempt.scoreRW < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
@@ -405,9 +411,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     console.log('case 2 RW');
 
-                    const targetLearning = await this.targetLearningService.save(
+                    const targetLearning = await this.targetLearningDetailService.save(
                         createTargetLearningDto,
-                        studyProfile.id,
+                        target.id
                     );
 
                     result.RW = await this.unitProgressService.startMultipleUnitProgress(
@@ -417,8 +423,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 }
                 break;
 
-            case examAttempt.studyProfile.targetscoreRW >= 600 &&
-                examAttempt.studyProfile.targetscoreRW < 800:
+            case examAttempt.targetlearning.studyProfile.targetscoreRW >= 600 &&
+                examAttempt.targetlearning.studyProfile.targetscoreRW < 800:
                 if (examAttempt.scoreRW > 400 && examAttempt.scoreRW < 600) {
                     createTargetLearningDto.levelId = medium.id;
 
@@ -426,9 +432,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     console.log('case 3 RW');
 
-                    const targetLearning = await this.targetLearningService.save(
+                    const targetLearning = await this.targetLearningDetailService.save(
                         createTargetLearningDto,
-                        studyProfile.id,
+                        target.id
                     );
 
                     result.RW = await this.unitProgressService.startMultipleUnitProgress(
@@ -442,9 +448,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
                     console.log('case 4 RW');
 
-                    const targetLearning = await this.targetLearningService.save(
+                    const targetLearning = await this.targetLearningDetailService.save(
                         createTargetLearningDto,
-                        studyProfile.id,
+                        target.id
                     );
 
                     result.RW = await this.unitProgressService.startMultipleUnitProgress(
@@ -738,7 +744,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         const createExamAttempt = await this.examAttemptRepository.create({
-            studyProfile: studyProfile,
             exam: exam,
             attemptdatetime: new Date(),
             scoreMath: scoreMath,
@@ -760,41 +765,41 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
     }
 
-    async getExamAttemptByStudyProfileId(accountId: string) {
-        const studyProfile = await this.studyProfileRepository.findOne({
-            where: { account: { id: accountId } },
-            order: { createdat: 'ASC' },
-        });
+    // async getExamAttemptByStudyProfileId(accountId: string) {
+    //     const studyProfile = await this.studyProfileRepository.findOne({
+    //         where: { account: { id: accountId } },
+    //         order: { createdat: 'ASC' },
+    //     });
 
-        const examAttempt = await this.examAttemptRepository.find({
-            where: { studyProfile: { id: studyProfile.id } },
-            relations: [
-                'exam',
-                'studyProfile',
-                'exam.examquestion',
-                'exam.examquestion.question',
-            ],
-        });
+    //     const examAttempt = await this.examAttemptRepository.find({
+    //         where: { studyProfile: { id: studyProfile.id } },
+    //         relations: [
+    //             'exam',
+    //             'studyProfile',
+    //             'exam.examquestion',
+    //             'exam.examquestion.question',
+    //         ],
+    //     });
 
-        if (!examAttempt) {
-            throw new NotFoundException('ExamAttempt is not found');
-        }
+    //     if (!examAttempt) {
+    //         throw new NotFoundException('ExamAttempt is not found');
+    //     }
 
-        const detailedExamAttempts = await Promise.all(
-            examAttempt.map(async (attempt) => {
-                const examDetails = await this.GetExamWithExamQuestionByExamId(
-                    attempt.exam.id,
-                );
+    //     const detailedExamAttempts = await Promise.all(
+    //         examAttempt.map(async (attempt) => {
+    //             const examDetails = await this.GetExamWithExamQuestionByExamId(
+    //                 attempt.exam.id,
+    //             );
 
-                return {
-                    ...attempt,
-                    exam: examDetails,
-                };
-            }),
-        );
+    //             return {
+    //                 ...attempt,
+    //                 exam: examDetails,
+    //             };
+    //         }),
+    //     );
 
-        return detailedExamAttempts;
-    }
+    //     return detailedExamAttempts;
+    // }
 
     async GetExamWithExamQuestionByExamId(examId: string) {
         const exam = await this.examRepository
@@ -1038,13 +1043,13 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return statistics;
     }
 
-    async assignExam(assignExamAttemptDto: AssignExamAttemptDto) {
-        const create = this.examAttemptRepository.create({
-            exam: { id: assignExamAttemptDto.examId },
-            studyProfile: { id: assignExamAttemptDto.studyProfileId },
-            attemptdatetime: assignExamAttemptDto.attempDate,
-        });
+    // async assignExam(assignExamAttemptDto: AssignExamAttemptDto) {
+    //     const create = this.examAttemptRepository.create({
+    //         exam: { id: assignExamAttemptDto.examId },
+    //         studyProfile: { id: assignExamAttemptDto.studyProfileId },
+    //         attemptdatetime: assignExamAttemptDto.attempDate,
+    //     });
 
-        return await this.examAttemptRepository.save(create);
-    }
+    //     return await this.examAttemptRepository.save(create);
+    // }
 }

@@ -5,9 +5,10 @@ import { Account } from 'src/database/entities/account.entity';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { StudyProfileService } from './study-profile.service';
 import { StudyProfileController } from './study-profile.controller';
+import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([StudyProfile, Account])],
+    imports: [TypeOrmModule.forFeature([StudyProfile, Account, TargetLearning])],
     providers: [StudyProfileService],
     controllers: [StudyProfileController],
     exports: [StudyProfileService],

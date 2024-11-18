@@ -22,6 +22,8 @@ import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { StudyProfileService } from '../study-profile/study-profile.service';
+import { TargetLearningDetailModule } from '../target-learning-detail/target-learning-detail.module';
+import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 @Module({
     imports: [
@@ -40,12 +42,14 @@ import { StudyProfileService } from '../study-profile/study-profile.service';
             ExamScoreDetail,
             DomainDistribution,
             ModuleType,
+            TargetLearning,
         ]),
+        TargetLearningDetailModule,
         TargetLearningModule,
         UnitProgressModule,
         ExamAttemptDetailModule,
     ],
-    providers: [ExamAttemptService, StudyProfileService],
+    providers: [ExamAttemptService, StudyProfileService, TargetLearningService],
     controllers: [ExamAttemptController],
     exports: [ExamAttemptService],
 })

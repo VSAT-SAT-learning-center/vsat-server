@@ -25,27 +25,4 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 @ApiBearerAuth('JWT-auth')
 export class TargetLearningController {
     constructor(private readonly targetLearningService: TargetLearningService) {}
-
-    @Get(':studyProfile')
-    async getTargetLearningByStudyProfile(@Param('studyProfile') studyProfile: string) {
-        try {
-            const target =
-                await this.targetLearningService.getTargetLearningByStudyProfile(
-                    studyProfile,
-                );
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                target,
-                SuccessMessages.get('TargetLearning'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
 }
