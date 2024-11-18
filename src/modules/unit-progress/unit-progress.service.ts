@@ -32,92 +32,6 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         super(unitProgressRepository);
     }
 
-    async create(createUnitProgressDto: CreateUnitProgressDto): Promise<UnitProgress> {
-        const { unitId, targetLearningDetailId, ...unitProgressData } =
-            createUnitProgressDto;
-
-        const unit = await this.unitService.findOneById(unitId);
-        if (!unit) {
-            throw new NotFoundException('Unit not found');
-        }
-
-        const targetLearning = await this.targetLearningDetailRepository.findOne({
-            where: { id: targetLearningDetailId },
-        });
-
-        if (!targetLearning) {
-            throw new NotFoundException('TargetLearning not found');
-        }
-
-        const newUnitProgress = this.unitProgressRepository.create({
-            ...unitProgressData,
-            targetLearningDetail: targetLearning,
-            unit: unit,
-        });
-
-        return await this.unitProgressRepository.save(newUnitProgress);
-    }
-
-    async update(
-        id: string,
-        updateUnitProgressDto: UpdateUnitProgressDto,
-    ): Promise<UnitProgress> {
-        const { unitId, targetLearningDetailId, ...unitProgressData } =
-            updateUnitProgressDto;
-
-        const unitProgress = await this.findOneById(id);
-        if (!unitProgress) {
-            throw new NotFoundException('UnitProgress not found');
-        }
-
-        const unit = await this.unitService.findOneById(unitId);
-        if (!unit) {
-            throw new NotFoundException('Unit not found');
-        }
-
-        const targetLearning = await this.targetLearningDetailRepository.findOne({
-            where: { id: targetLearningDetailId },
-        });
-        if (!targetLearning) {
-            throw new NotFoundException('TargetLearning not found');
-        }
-
-        const updatedUnitProgress = this.unitProgressRepository.save({
-            //...unit,
-            ...unitProgressData,
-            targetLearning: targetLearning,
-            unit: unit,
-        });
-
-        return updatedUnitProgress;
-    }
-
-    async updateUnitProgress(
-        unitId: string,
-        targetLearningId: string,
-    ): Promise<UnitProgress> {
-        const progress = await this.unitAreaProgressService.calculateUnitProgress(unitId);
-
-        let unitProgress = await this.unitProgressRepository.findOne({
-            where: {
-                unit: { id: unitId },
-                targetLearningDetail: { id: targetLearningId },
-            },
-        });
-
-        if (unitProgress) {
-            unitProgress.progress = progress;
-        } else {
-            unitProgress = this.unitProgressRepository.create({
-                unit: { id: unitId },
-                targetLearningDetail: { id: targetLearningId },
-                progress,
-            });
-        }
-
-        return this.unitProgressRepository.save(unitProgress);
-    }
-
     async updateUnitProgressNow(
         unitId: string,
         targetLearningId: string,
@@ -256,11 +170,11 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         }));
     }
 
-    async getRecentlyLearnedUnits(targetLearningId: string): Promise<Unit[]> {
+    async getRecentlyLearnedUnits(targetLearningDetail: string): Promise<Unit[]> {
         // Tìm các `UnitProgress` đã có trạng thái IN_PROGRESS hoặc COMPLETED, sắp xếp theo thời gian cập nhật gần đây
         const recentUnits = await this.unitProgressRepository.find({
             where: {
-                targetLearning: { id: targetLearningId },
+                targetLearningDetail: { id: targetLearningDetail },
                 status: In([ProgressStatus.PROGRESSING, ProgressStatus.COMPLETED]),
             },
             order: {

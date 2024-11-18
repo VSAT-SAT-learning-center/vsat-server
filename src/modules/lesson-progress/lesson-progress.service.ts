@@ -173,7 +173,7 @@ export class LessonProgressService extends BaseService<LessonProgress> {
     async startLessonProgress(
         lessonId: string,
         unitAreaProgressId: string,
-        targetLearningId: string,
+        targetLearningDetailsId: string,
     ) {
         // Kiểm tra xem đã có LessonProgress chưa
         let lessonProgress = await this.lessonProgressRepository.findOne({
@@ -188,7 +188,7 @@ export class LessonProgressService extends BaseService<LessonProgress> {
             lessonProgress = this.lessonProgressRepository.create({
                 lesson: { id: lessonId },
                 unitAreaProgress: { id: unitAreaProgressId },
-                targetLearning: { id: targetLearningId },
+                targetLearningDetails: { id: targetLearningDetailsId },
                 progress: 0,
                 status: ProgressStatus.PROGRESSING,
             });
@@ -201,12 +201,12 @@ export class LessonProgressService extends BaseService<LessonProgress> {
 
     async completeLessonProgressNow(
         lessonId: string,
-        targetLearningId: string,
+        targetLearningDetailsId: string,
     ) {
         const lessonProgress = await this.lessonProgressRepository.findOne({
             where: {
                 lesson: { id: lessonId },
-                targetLearning: { id: targetLearningId },
+                targetLearningDetails: { id: targetLearningDetailsId },
             },
             relations: ['unitAreaProgress'],
         });
