@@ -6,6 +6,8 @@ import { BaseService } from '../base/base.service';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
+import { plainToInstance } from 'class-transformer';
+import { GetAccountDTO } from '../account/dto/get-account.dto';
 
 @Injectable()
 export class StudyProfileService {
@@ -71,6 +73,7 @@ export class StudyProfileService {
 
         const [studyProfiles, total] = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account')
             .where('studyProfile.status = :status', { status: StudyProfileStatus.ACTIVE })
             .andWhere('studyProfile.teacherId IS NULL')
             .skip(skip)
@@ -80,8 +83,19 @@ export class StudyProfileService {
 
         const totalPages = Math.ceil(total / pageSize);
 
+        const studyProfile = studyProfiles.map((profile) => {
+            const account = plainToInstance(GetAccountDTO, profile.account, {
+                excludeExtraneousValues: true,
+            });
+
+            return {
+                ...profile,
+                account,
+            };
+        });
+
         return {
-            data: studyProfiles,
+            data: studyProfile,
             totalPages: totalPages,
             currentPage: page,
             totalItems: total,
@@ -97,6 +111,7 @@ export class StudyProfileService {
 
         const [studyProfiles, total] = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account')
             .where('studyProfile.status = :status', {
                 status: StudyProfileStatus.ACTIVE,
                 teacherId: teacherId,
@@ -109,8 +124,19 @@ export class StudyProfileService {
 
         const totalPages = Math.ceil(total / pageSize);
 
+        const studyProfile = studyProfiles.map((profile) => {
+            const account = plainToInstance(GetAccountDTO, profile.account, {
+                excludeExtraneousValues: true,
+            });
+
+            return {
+                ...profile,
+                account,
+            };
+        });
+
         return {
-            data: studyProfiles,
+            data: studyProfile,
             totalPages: totalPages,
             currentPage: page,
             totalItems: total,
