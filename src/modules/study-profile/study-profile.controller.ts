@@ -53,6 +53,36 @@ export class StudyProfileController {
         }
     }
 
+    @Get('/getStudyProfileWithAccountId')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student', 'admin']))
+    async getStudyProfileWithAccountId(
+        @Request() req,
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+    ) {
+        try {
+            const studyProfile =
+                await this.studyProfileService.getStudyProfileWithAccountId(
+                    req.user.id,
+                    page,
+                    pageSize,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                studyProfile,
+                SuccessMessages.get('StudyProfile'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
     @Get('getStudyProfile')
     //@UseGuards(JwtAuthGuard)
     async get(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
