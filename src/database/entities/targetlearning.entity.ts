@@ -40,7 +40,8 @@ export class TargetLearning {
     enddate: Date;
 
     @OneToOne(() => ExamAttempt, (examattempt) => examattempt.targetlearning)
-    examattempt: ExamAttempt[];
+    //@JoinColumn({ name: 'examattemptid' })
+    examattempt: ExamAttempt;
 
     @ManyToOne(() => StudyProfile)
     @JoinColumn({ name: 'studyprofileid' })
