@@ -1,21 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import {
-    IsUUID,
-    IsInt,
-    IsString,
-    IsOptional,
-    Min,
-    Max,
-    IsEnum,
-} from 'class-validator';
+import { IsUUID, IsInt, IsString, IsOptional, Min, Max, IsEnum } from 'class-validator';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 
 export class UpdateUnitProgressDto {
     @ApiProperty({ description: 'des', example: 'String' })
     @IsUUID()
     @IsOptional()
-    targetLearningId?: string;
+    targetLearningDetailId?: string;
 
     @ApiProperty({ description: 'des', example: 'String' })
     @IsUUID()

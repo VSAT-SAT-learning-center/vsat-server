@@ -12,7 +12,7 @@ import { StudyProfile } from './studyprofile.entity';
 import { Unit } from './unit.entity';
 import { UnitAreaProgress } from './unitareaprogress.entity';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
-import { TargetLearning } from './targetlearning.entity';
+import { TargetLearningDetail } from './targetlearningdetail.entity';
 
 @Entity('unitprogress')
 export class UnitProgress {
@@ -31,9 +31,9 @@ export class UnitProgress {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => TargetLearning)
-    @JoinColumn({ name: 'targetlearningid' })
-    targetLearning: TargetLearning;
+    @ManyToOne(() => TargetLearningDetail)
+    @JoinColumn({ name: 'targetlearningdetailid' })
+    targetLearningDetail: TargetLearningDetail;
 
     @ManyToOne(() => Unit)
     @JoinColumn({ name: 'unitid' })

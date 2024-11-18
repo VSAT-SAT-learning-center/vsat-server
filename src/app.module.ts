@@ -51,6 +51,7 @@ import { RequestContextMiddleware } from './common/middleware/request-context.mi
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditSubscriber } from './common/subscriber/audit.subscriber';
 import { PostgresConfigService } from './database/config/postgres.config';
+import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
 
 @Module({
     imports: [
@@ -106,6 +107,7 @@ import { PostgresConfigService } from './database/config/postgres.config';
         ExamStructureConfigModule,
         ExamSemesterModule,
         DomainDistributionConfigModule,
+        TargetLearningDetailModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -144,7 +146,7 @@ import { PostgresConfigService } from './database/config/postgres.config';
 })
 export class AppModule {
     configure(consumer: MiddlewareConsumer) {
-        console.log(consumer)
+        console.log(consumer);
         consumer.apply(RequestContextMiddleware).forRoutes('*');
     }
 }
