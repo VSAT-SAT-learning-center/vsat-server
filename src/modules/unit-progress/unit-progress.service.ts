@@ -11,12 +11,15 @@ import { UnitAreaService } from '../unit-area/unit-area.service';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 import { TargetLearningService } from '../target-learning/target-learning.service';
 import { Unit } from 'src/database/entities/unit.entity';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 @Injectable()
 export class UnitProgressService extends BaseService<UnitProgress> {
     constructor(
         @InjectRepository(UnitProgress)
         private readonly unitProgressRepository: Repository<UnitProgress>,
+        @InjectRepository(Unit)
+        private readonly unitRepository: Repository<Unit>,
         @Inject(forwardRef(() => UnitService))
         private readonly unitService: UnitService,
         private readonly targetLearningService: TargetLearningService,
@@ -197,23 +200,37 @@ export class UnitProgressService extends BaseService<UnitProgress> {
 
     async startMultipleUnitProgress(targetLearningId: string, unitIds: string[]) {
         const unitProgressList = [];
+        const unitsWithProgress = [];
+
         for (const unitId of unitIds) {
             let unitProgress = await this.unitProgressRepository.findOne({
                 where: {
                     unit: { id: unitId },
                     targetLearning: { id: targetLearningId },
                 },
+                relations: ['unit', 'unit.level'],
             });
 
             if (!unitProgress) {
+                const unit = await this.unitRepository.findOne({
+                    where: { id: unitId, status: UnitStatus.APPROVED },
+                    relations: ['level'],
+                });
+
+                if (!unit) {
+                    throw new NotFoundException(`Unit with id "${unitId}" not found.`);
+                }
+
                 unitProgress = this.unitProgressRepository.create({
-                    unit: { id: unitId },
+                    unit,
                     targetLearning: { id: targetLearningId },
                     progress: 0,
                     status: ProgressStatus.NOT_STARTED,
                 });
 
                 unitProgressList.push(unitProgress);
+            } else {
+                unitsWithProgress.push(unitProgress);
             }
         }
 
@@ -221,7 +238,17 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             await this.unitProgressRepository.save(unitProgressList);
         }
 
-        return unitProgressList;
+        return [...unitProgressList, ...unitsWithProgress].map((unitProgress) => ({
+            id: unitProgress.id,
+            progress: unitProgress.progress,
+            status: unitProgress.status,
+            unit: {
+                id: unitProgress.unit.id,
+                title: unitProgress.unit.title,
+                description: unitProgress.unit.description,
+                level: unitProgress.unit.level,
+            },
+        }));
     }
 
     async getRecentlyLearnedUnits(targetLearningId: string): Promise<Unit[]> {

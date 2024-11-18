@@ -87,11 +87,16 @@ export class AuthService {
             const activationToken = this.createAccessToken(findAcc);
 
             await this.sendMail(findAcc.email, activationToken);
+
+            throw new HttpException(
+                'The account is inactive. Please activate your account through the email link provided.',
+                HttpStatus.BAD_REQUEST,
+            );
         } else if (findAcc.status === AccountStatus.BANNED) {
             throw new HttpException('Account is not permission', HttpStatus.UNAUTHORIZED);
         }
 
-        const account = plainToInstance(AccountDTO, findAcc, {
+        const account = plainToInstance(GetAccountDTO, findAcc, {
             excludeExtraneousValues: true,
         });
 

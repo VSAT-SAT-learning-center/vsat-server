@@ -13,6 +13,7 @@ import { GetAccountDTO } from './dto/get-account.dto';
 import { BaseService } from '../base/base.service';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { StudyProfileService } from '../study-profile/study-profile.service';
+import { UpdateAccountDTO } from './dto/update-account.dto';
 
 @Injectable()
 export class AccountService extends BaseService<Account> {
@@ -106,6 +107,29 @@ export class AccountService extends BaseService<Account> {
             active = AccountStatus.ACTIVE;
         }
 
+        let imgUrl;
+        if (role.rolename === 'Admin') {
+            imgUrl = 'https://cdn-icons-png.flaticon.com/512/9703/9703596.png';
+        }
+        if (role.rolename === 'Manager') {
+            imgUrl = 'https://cdn-icons-png.flaticon.com/512/2552/2552801.png';
+        }
+        if (role.rolename === 'Staff') {
+            imgUrl = 'https://cdn-icons-png.flaticon.com/512/1535/1535835.png';
+        }
+        if (role.rolename === 'Teacher' && accountDTO.gender === true) {
+            imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174185.png';
+        }
+        if (role.rolename === 'Teacher' && accountDTO.gender === false) {
+            imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174175.png';
+        }
+        if (role.rolename === 'Student' && accountDTO.gender === true) {
+            imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174163.png';
+        }
+        if (role.rolename === 'student' && accountDTO.gender === false) {
+            imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174160.png';
+        }
+
         const account = await this.accountRepository.create({
             ...accountDTO,
             password: hashedPassword,
@@ -113,6 +137,7 @@ export class AccountService extends BaseService<Account> {
             role: role,
             dateofbirth: formattedDate,
             status: active,
+            profilepictureurl: imgUrl,
         });
 
         const saveAccount = await this.accountRepository.save(account);
@@ -312,6 +337,10 @@ export class AccountService extends BaseService<Account> {
 
         for (const account of createAccountFromFileDto) {
             try {
+                const role = await this.roleRepository.findOne({
+                    where: { rolename: account.role },
+                });
+
                 const generatedUsername = await this.generateUsername(
                     account.firstname,
                     account.lastname,
@@ -319,6 +348,39 @@ export class AccountService extends BaseService<Account> {
 
                 const randomPassword = this.generateRandomPassword(8);
                 const hashedPassword = await this.hashPassword(randomPassword);
+
+                let active = AccountStatus.INACTIVE;
+
+                if (
+                    role.rolename === 'Staff' ||
+                    role.rolename === 'Manager' ||
+                    role.rolename === 'Admin'
+                ) {
+                    active = AccountStatus.ACTIVE;
+                }
+
+                let imgUrl = null;
+                if (role.rolename === 'Admin') {
+                    imgUrl = 'https://cdn-icons-png.flaticon.com/512/9703/9703596.png';
+                }
+                if (role.rolename === 'Manager') {
+                    imgUrl = 'https://cdn-icons-png.flaticon.com/512/2552/2552801.png';
+                }
+                if (role.rolename === 'Staff') {
+                    imgUrl = 'https://cdn-icons-png.flaticon.com/512/1535/1535835.png';
+                }
+                if (role.rolename === 'Teacher' && account.gender === true) {
+                    imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174185.png';
+                }
+                if (role.rolename === 'Teacher' && account.gender === false) {
+                    imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174175.png';
+                }
+                if (role.rolename === 'Student' && account.gender === true) {
+                    imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174163.png';
+                }
+                if (role.rolename === 'student' && account.gender === false) {
+                    imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174160.png';
+                }
 
                 const newAccount = this.accountRepository.create({
                     username: generatedUsername,
@@ -332,6 +394,8 @@ export class AccountService extends BaseService<Account> {
                     role: await this.roleRepository.findOne({
                         where: { rolename: account.role },
                     }),
+                    status: active,
+                    profilepictureurl: imgUrl,
                 });
 
                 const savedAccount = await this.accountRepository.save(newAccount);
@@ -341,6 +405,10 @@ export class AccountService extends BaseService<Account> {
                         'Fail to save account',
                         HttpStatus.BAD_REQUEST,
                     );
+                }
+
+                if (savedAccount.role.rolename === 'Student') {
+                    await this.studyProfileService.create(savedAccount.id);
                 }
 
                 await this.sendWelComeMail(
@@ -489,6 +557,7 @@ export class AccountService extends BaseService<Account> {
     async findById(id: string): Promise<GetAccountDTO> {
         const account = await this.accountRepository.findOne({
             where: { id: id },
+            relations: ['role'],
         });
 
         if (!account) {
@@ -496,5 +565,63 @@ export class AccountService extends BaseService<Account> {
         }
 
         return plainToInstance(GetAccountDTO, account, { excludeExtraneousValues: true });
+    }
+
+    async updateIsTrialExam(id: string, status: boolean) {
+        const account = await this.accountRepository.findOne({
+            where: { id: id },
+            relations: ['role'],
+        });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        account.isTrialExam = status;
+
+        const updateAccount = await this.accountRepository.save(account);
+        return plainToInstance(GetAccountDTO, updateAccount, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async updateAccount(updateAccount: UpdateAccountDTO, accountId: string) {
+        const account = await this.accountRepository.findOne({
+            where: { id: accountId },
+        });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        account.firstname = updateAccount.firstname;
+        account.lastname = updateAccount.lastname;
+        account.phonenumber = updateAccount.phoneNumber;
+
+        const updateAcc = await this.accountRepository.save(account);
+        return plainToInstance(GetAccountDTO, updateAcc, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getTeacher(page: number, pageSize: number) {
+        const skip = (page - 1) * pageSize;
+
+        const [teacher, total] = await this.accountRepository.findAndCount({
+            skip: skip,
+            take: pageSize,
+            where: { role: { rolename: 'Teacher' } },
+        });
+
+        const totalPages = total / pageSize;
+
+        return {
+            data: plainToInstance(GetAccountDTO, teacher, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
     }
 }

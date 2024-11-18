@@ -8,11 +8,15 @@ import {
     JoinColumn,
 } from 'typeorm';
 import { Account } from './account.entity';
+import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 
 @Entity('studyprofile')
 export class StudyProfile {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column({ type: 'uuid', nullable: true })
+    teacherId: string;
 
     @CreateDateColumn({ type: 'timestamp' })
     createdat: Date;
@@ -42,6 +46,10 @@ export class StudyProfile {
     @Column({ type: 'timestamp', nullable: true })
     enddate: Date;
 
-    @Column({ type: 'varchar', length: 50, nullable: true })
-    status: string;
+    @Column({
+        type: 'enum',
+        enum: StudyProfileStatus,
+        default: StudyProfileStatus.INACTIVE,
+    })
+    status: StudyProfileStatus;
 }

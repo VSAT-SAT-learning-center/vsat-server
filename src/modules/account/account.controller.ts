@@ -30,6 +30,7 @@ import { AccountStatus } from 'src/common/enums/account-status.enum';
 import { UpdateAccountStatusDTO } from './dto/update-account-status.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard } from 'src/common/guards/role.guard';
+import { UpdateAccountDTO } from './dto/update-account.dto';
 
 @ApiTags('Accounts')
 @Controller('account')
@@ -238,7 +239,7 @@ export class AccountController {
         }
     }
 
-    @Post('getUserById')
+    @Get('getUserById')
     @UseGuards(JwtAuthGuard)
     async getAccountById(@Request() req) {
         try {
@@ -247,6 +248,74 @@ export class AccountController {
                 statusCode: HttpStatus.OK,
                 message: 'Get User successfully',
                 data: saveAccount,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Put('updateIsTrialExam/:status')
+    @UseGuards(JwtAuthGuard)
+    async updateStatusById(@Request() req, @Param('status') status: boolean) {
+        try {
+            const update = await this.accountService.updateIsTrialExam(
+                req.user.id,
+                status,
+            );
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Update User Successfully',
+                data: update,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Put('updateAccount')
+    @UseGuards(JwtAuthGuard)
+    async updateAccount(@Request() req, @Body() updateAccount: UpdateAccountDTO) {
+        try {
+            const update = await this.accountService.updateAccount(
+                updateAccount,
+                req.user.id,
+            );
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Update User Successfully',
+                data: update,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getTeacher')
+    async getTeacher(@Query('page') page: number, @Query('pageSize') pageSize: number) {
+        try {
+            const get = await this.accountService.getTeacher(page, pageSize);
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Get User Successfully',
+                data: get,
             };
         } catch (error) {
             throw new HttpException(
