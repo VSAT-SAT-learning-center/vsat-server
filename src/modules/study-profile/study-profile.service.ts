@@ -69,16 +69,48 @@ export class StudyProfileService {
     async get(page: number, pageSize: number): Promise<any> {
         const skip = (page - 1) * pageSize;
 
-        const [studyprofile, total] = await this.studyProfileRepository.findAndCount({
-            skip: skip,
-            take: pageSize,
-            where: { status: StudyProfileStatus.ACTIVE },
-        });
+        const [studyProfiles, total] = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .where('studyProfile.status = :status', { status: StudyProfileStatus.ACTIVE })
+            .andWhere('studyProfile.teacherId IS NULL')
+            .skip(skip)
+            .take(pageSize)
+            .orderBy('studyProfile.updatedat', 'DESC')
+            .getManyAndCount();
 
         const totalPages = Math.ceil(total / pageSize);
 
         return {
-            data: studyprofile,
+            data: studyProfiles,
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
+    async getWithTeacher(
+        page: number,
+        pageSize: number,
+        teacherId: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [studyProfiles, total] = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .where('studyProfile.status = :status', {
+                status: StudyProfileStatus.ACTIVE,
+                teacherId: teacherId,
+            })
+            .andWhere('studyProfile.teacherId IS NOT NULL')
+            .skip(skip)
+            .take(pageSize)
+            .orderBy('studyProfile.updatedat', 'DESC')
+            .getManyAndCount();
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: studyProfiles,
             totalPages: totalPages,
             currentPage: page,
             totalItems: total,
