@@ -53,12 +53,12 @@ export class UnitProgressController extends BaseController<UnitProgress> {
         );
     }
 
-    @Patch(':unitId/:targetLearningId')
-    async updateUnitProgress(
-        @Param('unitId') unitId: string,
-        @Param('targetLearningId') targetLearningId: string,
-    ): Promise<UnitProgress> {
-        return this.unitProgressService.updateUnitProgress(unitId, targetLearningId);
-    }
+    // @Patch(':unitId/:targetLearningId')
+    // async updateUnitProgress(
+    //     @Param('unitId') unitId: string,
+    //     @Param('targetLearningId') targetLearningId: string,
+    // ): Promise<UnitProgress> {
+    //     return this.unitProgressService.updateUnitProgress(unitId, targetLearningId);
+    // }
 
 }

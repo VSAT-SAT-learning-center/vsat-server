@@ -95,6 +95,32 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return unitProgress;
     }
 
+    // async updateUnitProgress(
+    //     unitId: string,
+    //     targetLearningId: string,
+    // ): Promise<UnitProgress> {
+    //     const progress = await this.unitAreaProgressService.calculateUnitProgress(unitId);
+
+    //     let unitProgress = await this.unitProgressRepository.findOne({
+    //         where: {
+    //             unit: { id: unitId },
+    //             targetLearningDetail: { id: targetLearningId },
+    //         },
+    //     });
+
+    //     if (unitProgress) {
+    //         unitProgress.progress = progress;
+    //     } else {
+    //         unitProgress = this.unitProgressRepository.create({
+    //             unit: { id: unitId },
+    //             targetLearningDetail: { id: targetLearningId },
+    //             progress,
+    //         });
+    //     }
+
+    //     return this.unitProgressRepository.save(unitProgress);
+    // }
+
     async startUnitProgress(targetLearningId: string, unitId: string) {
         let unitProgress = await this.unitProgressRepository.findOne({
             where: {
@@ -187,4 +213,76 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         // Trả về danh sách các `unit`
         return recentUnits.map((unitProgress) => unitProgress.unit);
     }
+
+    async getAllUnitProgress(targetLearningDetailId: string): Promise<any[]> {
+        // Step 1: Lấy tất cả UnitProgress dựa theo targetLearningDetailId
+        const unitProgresses = await this.unitProgressRepository.find({
+            where: { targetLearningDetail: { id: targetLearningDetailId } },
+            relations: [
+                'unit', // Fetch thông tin Unit
+                'unit.level', // Nếu cần level liên quan
+                'unit.domain', // Nếu cần domain liên quan
+                'unitAreaProgresses', // Fetch UnitAreaProgress liên quan
+                'unitAreaProgresses.unitArea', // Fetch UnitArea chi tiết
+                'unitAreaProgresses.lessonProgresses', // Fetch LessonProgress liên quan
+                'unitAreaProgresses.lessonProgresses.lesson', // Fetch Lesson chi tiết
+            ],
+        });
+
+        // Step 2: Format dữ liệu trả về
+        const response = unitProgresses.map((unitProgress) => {
+            return {
+                unitId: unitProgress.unit.id,
+                unitTitle: unitProgress.unit.title,
+                progress: unitProgress.progress || 0,
+                status: unitProgress.status,
+                unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
+                    unitAreaId: unitAreaProgress.unitArea.id,
+                    unitAreaTitle: unitAreaProgress.unitArea.title,
+                    progress: unitAreaProgress.progress || 0,
+                    status: unitAreaProgress.status,
+                    lessons: unitAreaProgress.lessonProgresses.map((lessonProgress) => ({
+                        lessonId: lessonProgress.lesson.id,
+                        lessonTitle: lessonProgress.lesson.title,
+                        progress: lessonProgress.progress || 0,
+                        status: lessonProgress.status,
+                    })),
+                })),
+            };
+        });
+
+        return response;
+    }
+    //example reponse: 
+    // [
+    //     {
+    //         "unitId": "unit-123",
+    //         "unitTitle": "About the digital SAT",
+    //         "progress": 75,
+    //         "status": "IN_PROGRESS",
+    //         "unitAreas": [
+    //             {
+    //                 "unitAreaId": "area-456",
+    //                 "unitAreaTitle": "Introduction",
+    //                 "progress": 50,
+    //                 "status": "IN_PROGRESS",
+    //                 "lessons": [
+    //                     {
+    //                         "lessonId": "lesson-789",
+    //                         "lessonTitle": "About the digital SAT",
+    //                         "progress": 100,
+    //                         "status": "COMPLETED"
+    //                     },
+    //                     {
+    //                         "lessonId": "lesson-987",
+    //                         "lessonTitle": "SAT Overview",
+    //                         "progress": 50,
+    //                         "status": "IN_PROGRESS"
+    //                     }
+    //                 ]
+    //             }
+    //         ]
+    //     }
+    // ]
+    
 }
