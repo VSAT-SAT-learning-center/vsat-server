@@ -31,7 +31,7 @@ export class ExamAttempt {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @OneToOne(() => TargetLearning)
+    @OneToOne(() => TargetLearning, (targetlearning) => targetlearning.examattempt)
     @JoinColumn({ name: 'targetlearningid' })
     targetlearning: TargetLearning;
 

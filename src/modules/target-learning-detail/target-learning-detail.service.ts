@@ -19,6 +19,7 @@ export class TargetLearningDetailService {
 
     async save(
         createTargetLearningDto: CreateTargetLearningDetailDto,
+        targetLearningId: string,
     ): Promise<TargetLearningDetail> {
         const level = await this.levelRepository.findOne({
             where: { id: createTargetLearningDto.levelId },
@@ -38,6 +39,7 @@ export class TargetLearningDetailService {
         const createTargetLearning = await this.targetLearningDetailRepository.create({
             level: level,
             section: section,
+            targetlearning: { id: targetLearningId },
         });
 
         const saveTargetLEarning =
