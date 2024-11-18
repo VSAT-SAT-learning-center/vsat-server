@@ -7,17 +7,15 @@ import {
     ManyToOne,
     JoinColumn,
     OneToMany,
-    OneToOne,
 } from 'typeorm';
 import { Level } from './level.entity';
 import { Section } from './section.entity';
 import { StudyProfile } from './studyprofile.entity';
 import { UnitProgress } from './unitprogress.entity';
-import { ExamAttempt } from './examattempt.entity';
-import { TargetLearningDetail } from './targetlearningdetail.entity';
+import { TargetLearning } from './targetlearning.entity';
 
-@Entity('targetlearning')
-export class TargetLearning {
+@Entity('targetlearningdetail')
+export class TargetLearningDetail {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -33,24 +31,20 @@ export class TargetLearning {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @UpdateDateColumn({ type: 'timestamp' })
-    startdate: Date;
+    @ManyToOne(() => Level)
+    @JoinColumn({ name: 'levelid' })
+    level: Level;
 
-    @UpdateDateColumn({ type: 'timestamp' })
-    enddate: Date;
+    @ManyToOne(() => Section)
+    @JoinColumn({ name: 'sectionid' })
+    section: Section;
 
-    @OneToOne(() => ExamAttempt, (examattempt) => examattempt.targetlearning)
-    examattempt: ExamAttempt[];
+    @ManyToOne(() => TargetLearning)
+    @JoinColumn({ name: 'targetlearningid' })
+    targetlearning: TargetLearning;
 
-    @ManyToOne(() => StudyProfile)
-    @JoinColumn({ name: 'studyprofileid' })
-    studyProfile: StudyProfile;
-
-    @OneToMany(
-        () => TargetLearningDetail,
-        (targetlearningdetail) => targetlearningdetail.targetlearning,
-    )
-    targetlearningdetail: TargetLearningDetail[];
+    @OneToMany(() => UnitProgress, (unitprogress) => unitprogress.targetLearningDetail)
+    unitprogress: UnitProgress[];
 
     @Column({ type: 'boolean', default: true })
     status: boolean;

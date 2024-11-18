@@ -7,10 +7,12 @@ import {
     ManyToOne,
     JoinColumn,
     OneToMany,
+    OneToOne,
 } from 'typeorm';
 import { StudyProfile } from './studyprofile.entity';
 import { Exam } from './exam.entity';
 import { ExamAttemptDetail } from './examattemptdetail.entity';
+import { TargetLearning } from './targetlearning.entity';
 
 @Entity('examattempt')
 export class ExamAttempt {
@@ -29,9 +31,9 @@ export class ExamAttempt {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => StudyProfile)
-    @JoinColumn({ name: 'studyprofileid' })
-    studyProfile: StudyProfile;
+    @OneToOne(() => TargetLearning)
+    @JoinColumn({ name: 'targetlearningid' })
+    targetlearning: TargetLearning;
 
     @ManyToOne(() => Exam)
     @JoinColumn({ name: 'examid' })

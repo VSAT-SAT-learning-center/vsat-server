@@ -184,27 +184,27 @@ export class ExamAttemptController {
         }
     }
 
-    @Get('getExamAttemptByStudyProfileId')
-    @UseGuards(JwtAuthGuard)
-    async getExamAttemptByStudyProfileId(@Request() req) {
-        try {
-            const getExamAtempt =
-                await this.examAttemptService.getExamAttemptByStudyProfileId(req.user.id);
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                getExamAtempt,
-                SuccessMessages.get('ExamAttempt'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
+    // @Get('getExamAttemptByStudyProfileId')
+    // @UseGuards(JwtAuthGuard)
+    // async getExamAttemptByStudyProfileId(@Request() req) {
+    //     try {
+    //         const getExamAtempt =
+    //             await this.examAttemptService.getExamAttemptByStudyProfileId(req.user.id);
+    //         return ResponseHelper.success(
+    //             HttpStatus.OK,
+    //             getExamAtempt,
+    //             SuccessMessages.get('ExamAttempt'),
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 
     @Get('statistics/:id')
     async getExamAttemptStatistics(@Param('id') id: string) {
@@ -228,25 +228,25 @@ export class ExamAttemptController {
         }
     }
 
-    @Post('assignExam')
-    async assignExam(@Body() assignExamAttemptDto: AssignExamAttemptDto) {
-        try {
-            const examAttempt =
-                await this.examAttemptService.assignExam(assignExamAttemptDto);
+    // @Post('assignExam')
+    // async assignExam(@Body() assignExamAttemptDto: AssignExamAttemptDto) {
+    //     try {
+    //         const examAttempt =
+    //             await this.examAttemptService.assignExam(assignExamAttemptDto);
 
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                examAttempt,
-                SuccessMessages.create('ExamAttempt'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
+    //         return ResponseHelper.success(
+    //             HttpStatus.OK,
+    //             examAttempt,
+    //             SuccessMessages.create('ExamAttempt'),
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 }

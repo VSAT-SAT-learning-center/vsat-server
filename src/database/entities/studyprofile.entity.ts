@@ -6,9 +6,11 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { Account } from './account.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
+import { TargetLearning } from './targetlearning.entity';
 
 @Entity('studyprofile')
 export class StudyProfile {
@@ -33,6 +35,9 @@ export class StudyProfile {
     @ManyToOne(() => Account)
     @JoinColumn({ name: 'accountid' })
     account: Account;
+
+    @OneToMany(() => TargetLearning, (targetlearning) => targetlearning.studyProfile)
+    targetlearning: TargetLearning[];
 
     @Column({ type: 'int', nullable: true })
     targetscoreMath: number;

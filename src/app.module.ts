@@ -49,10 +49,10 @@ import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module
 import { DomainDistributionConfigModule } from './modules/domain-distribution-config/domain-distribution-config.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuditSubscriber } from './common/subscriber/audit.subscriber';
 import { PostgresConfigService } from './database/config/postgres.config';
 import { JwtService } from '@nestjs/jwt';
 import { ProgressModule } from './modules/progress/progress.module';
+import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
 
 @Module({
     imports: [
@@ -109,6 +109,8 @@ import { ProgressModule } from './modules/progress/progress.module';
         ExamSemesterModule,
         DomainDistributionConfigModule,
         ProgressModule,
+        TargetLearningDetailModule,
+
         MailerModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
@@ -142,7 +144,7 @@ import { ProgressModule } from './modules/progress/progress.module';
 })
 export class AppModule {
     configure(consumer: MiddlewareConsumer) {
-        console.log(consumer)
+        console.log(consumer);
         consumer.apply(RequestContextMiddleware).forRoutes('*');
     }
 }
