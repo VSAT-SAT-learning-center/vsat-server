@@ -22,6 +22,38 @@ export class StudyProfileService {
         });
     }
 
+    async getStudyProfileWithAccountId(accountId: string, page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+    
+        const [studyProfiles, total] = await this.studyProfileRepository.findAndCount({
+            where: { account: { id: accountId } },
+            relations: ['account'],
+            skip,
+            take: pageSize,
+            order: { updatedat: 'DESC' },
+        });
+    
+        const studyProfilesWithAccount = studyProfiles.map((profile) => {
+            const account = plainToInstance(GetAccountDTO, profile.account, {
+                excludeExtraneousValues: true,
+            });
+    
+            return {
+                ...profile,
+                account,
+            };
+        });
+    
+        const totalPages = Math.ceil(total / pageSize);
+    
+        return {
+            data: studyProfilesWithAccount,
+            currentPage: page,
+            totalItems: total,
+            totalPages,
+        };
+    }
+
     async create(accountId: string) {
         const studyProfile = await this.studyProfileRepository.create({
             account: { id: accountId },
@@ -75,7 +107,6 @@ export class StudyProfileService {
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account')
             .where('studyProfile.status = :status', { status: StudyProfileStatus.ACTIVE })
-            .andWhere('studyProfile.teacherId IS NULL')
             .skip(skip)
             .take(pageSize)
             .orderBy('studyProfile.updatedat', 'DESC')
