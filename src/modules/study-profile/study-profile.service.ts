@@ -29,6 +29,7 @@ export class StudyProfileService {
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
+
         const [studyProfiles, total] = await this.studyProfileRepository.findAndCount({
             where: { account: { id: accountId } },
             relations: ['account'],
@@ -49,6 +50,7 @@ export class StudyProfileService {
         });
 
         const totalPages = Math.ceil(total / pageSize);
+
 
         return {
             data: studyProfilesWithAccount,
