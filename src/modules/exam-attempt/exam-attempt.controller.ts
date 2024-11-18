@@ -118,7 +118,7 @@ export class ExamAttemptController {
                 await this.examAttemptService.getExamAtemptDomainMath(id, isCorrect);
             return ResponseHelper.success(
                 HttpStatus.OK,
-                getExamAtemptDomain,
+                getExamAtemptDomain,  
                 SuccessMessages.get('ExamAttempt'),
             );
         } catch (error) {

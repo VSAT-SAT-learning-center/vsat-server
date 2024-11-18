@@ -11,6 +11,8 @@ import { UnitAreaService } from '../unit-area/unit-area.service';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 import { TargetLearningService } from '../target-learning/target-learning.service';
 import { Unit } from 'src/database/entities/unit.entity';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 @Injectable()
 export class UnitProgressService extends BaseService<UnitProgress> {
@@ -212,7 +214,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
 
             if (!unitProgress) {
                 const unit = await this.unitRepository.findOne({
-                    where: { id: unitId },
+                    where: { id: unitId, status: UnitStatus.APPROVED },
+                    relations: ['level'],
                 });
 
                 if (!unit) {
@@ -237,8 +240,15 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         }
 
         return [...unitProgressList, ...unitsWithProgress].map((unitProgress) => ({
-            ...unitProgress,
-            unit: unitProgress.unit,
+            id: unitProgress.id,
+            progress: unitProgress.progress,
+            status: unitProgress.status,
+            unit: {
+                id: unitProgress.unit.id,
+                title: unitProgress.unit.title,
+                description: unitProgress.unit.description,
+                level: unitProgress.unit.level,
+            },
         }));
     }
 }
