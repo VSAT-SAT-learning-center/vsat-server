@@ -198,7 +198,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
                 unitArea: { id: unitAreaId },
                 unitProgress: {
                     id: unitProgressId,
-                    targetLearning: { id: targetLearningId },
+                    targetLearningDetail: { id: targetLearningId },
                 },
             },
         });

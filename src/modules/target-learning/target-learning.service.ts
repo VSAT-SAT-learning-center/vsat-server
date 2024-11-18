@@ -7,69 +7,36 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 import { BaseService } from '../base/base.service';
 import { plainToInstance } from 'class-transformer';
-import { Level } from 'src/database/entities/level.entity';
-import { Section } from 'src/database/entities/section.entity';
-import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 
 @Injectable()
-export class TargetLearningService extends BaseService<TargetLearning> {
+export class TargetLearningService {
     constructor(
         @InjectRepository(TargetLearning)
         private readonly targetLearningRepository: Repository<TargetLearning>,
-        @InjectRepository(Level)
-        private readonly levelRepository: Repository<Level>,
-        @InjectRepository(Section)
-        private readonly sectionRepository: Repository<Section>,
-        @InjectRepository(StudyProfile)
-        private readonly studyProfileRepository: Repository<StudyProfile>,
-    ) {
-        super(targetLearningRepository);
-    }
+        @InjectRepository(ExamAttempt)
+        private readonly examAttemptRepository: Repository<ExamAttempt>,
+    ) {}
 
-    async save(
-        createTargetLearningDto: CreateTargetLearningDto,
-        studyProfileId: string,
-    ): Promise<TargetLearning> {
-        const level = await this.levelRepository.findOne({
-            where: { id: createTargetLearningDto.levelId },
+    async save(studyProfileId: string, examAttemptId: string) {
+        const startdate = new Date();
+        const enddate = new Date();
+        enddate.setDate(startdate.getDate() + 30);
+
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
         });
 
-        const section = await this.sectionRepository.findOne({
-            where: { id: createTargetLearningDto.sectionId },
+        const create = await this.targetLearningRepository.create({
+            startdate: new Date(),
+            enddate: enddate,
+            studyProfile: { id: studyProfileId },
         });
 
-        const studyProfile = await this.studyProfileRepository.findOne({
-            where: { id: studyProfileId },
-        });
+        const saveTarget = await this.targetLearningRepository.save(create);
 
-        if (!level) {
-            throw new NotFoundException('Level is not found');
-        }
-        if (!section) {
-            throw new NotFoundException('Section is not found');
-        }
-        if (!studyProfile) {
-            throw new NotFoundException('StudyProfile is not found');
-        }
-
-        const createTargetLearning = await this.targetLearningRepository.create({
-            level: level,
-            section: section,
-            studyProfile: studyProfile,
-        });
-
-        const saveTargetLEarning =
-            await this.targetLearningRepository.save(createTargetLearning);
-
-        return saveTargetLEarning;
-    }
-
-    async getTargetLearningByStudyProfile(studyProfileId: string) {
-        const target = await this.targetLearningRepository.findOne({
-            where: { studyProfile: { id: studyProfileId } },
-            relations: ['unitprogress'],
-        });
-
-        return target;
+        examAttempt.targetlearning.id = saveTarget.id;
+        await this.examAttemptRepository.save(examAttempt);
+        return saveTarget;
     }
 }

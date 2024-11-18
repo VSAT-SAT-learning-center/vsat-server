@@ -22,9 +22,13 @@ export class StudyProfileService {
         });
     }
 
-    async getStudyProfileWithAccountId(accountId: string, page: number, pageSize: number): Promise<any> {
+    async getStudyProfileWithAccountId(
+        accountId: string,
+        page: number,
+        pageSize: number,
+    ): Promise<any> {
         const skip = (page - 1) * pageSize;
-    
+
         const [studyProfiles, total] = await this.studyProfileRepository.findAndCount({
             where: { account: { id: accountId } },
             relations: ['account'],
@@ -32,20 +36,20 @@ export class StudyProfileService {
             take: pageSize,
             order: { updatedat: 'DESC' },
         });
-    
+
         const studyProfilesWithAccount = studyProfiles.map((profile) => {
             const account = plainToInstance(GetAccountDTO, profile.account, {
                 excludeExtraneousValues: true,
             });
-    
+
             return {
                 ...profile,
                 account,
             };
         });
-    
+
         const totalPages = Math.ceil(total / pageSize);
-    
+
         return {
             data: studyProfilesWithAccount,
             currentPage: page,
@@ -63,11 +67,17 @@ export class StudyProfileService {
         return await this.studyProfileRepository.save(studyProfile);
     }
 
-    async saveTarget(targetRW: number, targetMath: number, accountId: string) {
+    async saveTarget(
+        targetRW: number,
+        targetMath: number,
+        accountId: string,
+    ) {
         const studyProfile = await this.studyProfileRepository.findOne({
             where: { account: { id: accountId } },
             order: { createdat: 'ASC' },
+            relations: ['targetlearning'],
         });
+
 
         studyProfile.targetscoreMath = targetMath;
         studyProfile.targetscoreRW = targetRW;

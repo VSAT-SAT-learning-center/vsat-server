@@ -104,8 +104,8 @@ export class StudyProfileController {
         }
     }
 
-    @Post('assignTeacher')
-    //@UseGuards(JwtAuthGuard)
+    @Put('assignTeacher')
+    @UseGuards(JwtAuthGuard)
     async asignTeacher(@Body() assignStudyProfile: AssignStudyProfile) {
         try {
             const studyProfile =
@@ -127,17 +127,17 @@ export class StudyProfileController {
     }
 
     @Get('getStudyProfileWithTeacher')
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async getWithTeacher(
+        @Request() req,
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
-        @Query('teacherId') teacherId?: string,
     ) {
         try {
             const studyProfile = await this.studyProfileService.getWithTeacher(
                 page,
                 pageSize,
-                teacherId,
+                req.user.id,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,

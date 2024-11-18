@@ -232,7 +232,7 @@ export class LessonProgressService extends BaseService<LessonProgress> {
             where: {
                 unitAreaProgress: {
                     unitProgress: {
-                        targetLearning: { id: targetLearningId },
+                        targetLearningDetail: { id: targetLearningId },
                     },
                 },
                 status: ProgressStatus.COMPLETED,
@@ -254,7 +254,7 @@ export class LessonProgressService extends BaseService<LessonProgress> {
             where: {
                 unitAreaProgress: {
                     unitProgress: {
-                        targetLearning: { id: targetLearningId },
+                        targetLearningDetail: { id: targetLearningId },
                     },
                 },
                 status: ProgressStatus.PROGRESSING, // Lọc theo trạng thái Progressing

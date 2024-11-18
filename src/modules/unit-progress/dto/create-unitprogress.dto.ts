@@ -16,7 +16,7 @@ export class CreateUnitProgressDto {
     @ApiProperty()
     @IsUUID()
     @IsNotEmpty()
-    targetLearningId: string;
+    targetLearningDetailId: string;
 
     @ApiProperty()
     @IsUUID()
