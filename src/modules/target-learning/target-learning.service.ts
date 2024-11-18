@@ -25,7 +25,12 @@ export class TargetLearningService {
 
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
+            relations: ['targetlearning']
         });
+
+        if (!examAttempt) {
+            throw new Error('ExamAttempt not found');
+        }
 
         const create = await this.targetLearningRepository.create({
             startdate: new Date(),
@@ -35,7 +40,7 @@ export class TargetLearningService {
 
         const saveTarget = await this.targetLearningRepository.save(create);
 
-        examAttempt.targetlearning.id = saveTarget.id;
+        examAttempt.targetlearning = saveTarget;
         await this.examAttemptRepository.save(examAttempt);
         return saveTarget;
     }
