@@ -891,7 +891,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
             const domains = await this.domainRepository.find({
                 where: { section: { id: sectionId } },
-                relations: ['skills'],
+                relations: ['skills', 'skills.domain'],
             });
 
             // Domain
@@ -992,6 +992,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     skillCounts.push({
                         skillId: skill.id,
                         skillContent: skill.content,
+                        domain: skill.domain,
                         correctCount: correctSkillCount,
                         incorrectCount: incorrectSkillCount,
                         total: total,
