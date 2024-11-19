@@ -22,10 +22,11 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         private readonly unitProgressRepository: Repository<UnitProgress>,
         @InjectRepository(Unit)
         private readonly unitRepository: Repository<Unit>,
-        @InjectRepository(TargetLearningDetail) // Ensure this is injected
+        @InjectRepository(TargetLearningDetail)
         private readonly targetLearningDetailRepository: Repository<TargetLearningDetail>,
         @Inject(forwardRef(() => UnitService))
         private readonly unitService: UnitService,
+        @Inject(forwardRef(() => UnitAreaService))
         private readonly unitAreaService: UnitAreaService,
         @Inject(forwardRef(() => UnitAreaProgressService))
         private readonly unitAreaProgressService: UnitAreaProgressService,
