@@ -1,5 +1,5 @@
 import sanitizeHtml from 'sanitize-html';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
@@ -64,8 +64,11 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         private readonly moduleTypeRepository: Repository<ModuleType>,
 
         private readonly targetLearningDetailService: TargetLearningDetailService,
+        @Inject(forwardRef(() => TargetLearningService))
         private readonly targetLearningService: TargetLearningService,
+        @Inject(forwardRef(() => UnitProgressService))
         private readonly unitProgressService: UnitProgressService,
+        @Inject(forwardRef(() => ExamAttemptDetailService))
         private readonly examAttemptDetailService: ExamAttemptDetailService,
         private readonly studyProfileService: StudyProfileService,
     ) {
