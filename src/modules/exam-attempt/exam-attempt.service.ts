@@ -1037,6 +1037,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 .getRawMany();
 
             statistics[sectionKey] = {
+                score: sectionKey === 'RW' ? examAttempt.scoreRW : examAttempt.scoreMath,
                 domain: domainCounts,
                 skill: skillCounts,
                 moduleType: moduleTypeCounts,

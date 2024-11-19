@@ -16,6 +16,7 @@ import { plainToInstance } from 'class-transformer';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @Injectable()
 export class TargetLearningService {

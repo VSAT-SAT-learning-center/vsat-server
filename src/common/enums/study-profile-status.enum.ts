@@ -1,5 +1,5 @@
 export enum StudyProfileStatus {
     INACTIVE = 'Inactive',
     ACTIVE = 'Active',
-    COMPLETE = 'Complete',
+    COMPLETED = 'Completed',
 }
