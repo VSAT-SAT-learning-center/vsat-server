@@ -1088,7 +1088,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     relations: ['exam'],
                 });
 
-                examAttempArrs.push(exampAttempt);
+                const exam = await this.GetExamWithExamQuestionByExamId(exampAttempt.exam.id);
+
+                examAttempArrs.push(exampAttempt, exam);
             }
         }
 
