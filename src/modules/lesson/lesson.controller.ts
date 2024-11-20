@@ -18,7 +18,7 @@ import { BaseController } from '../base/base.controller';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { StartLessonProgressDto } from './dto/start-lesson-progress.dto';
-import { CompleteLessonProgressDto } from './dto/complete-lesson-progress.dto';
+import { CompleteLessonProgressDto } from '../lesson-progress/dto/complete-lesson-progress.dto';
 import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
@@ -28,6 +28,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 export class LessonController extends BaseController<Lesson> {
     constructor(
         private readonly lessonService: LessonService,
+        private readonly lessonProgressService: LessonProgressService,
     ) {
         super(lessonService, 'Lesson');
     }
@@ -88,12 +89,12 @@ export class LessonController extends BaseController<Lesson> {
         @Param('lessonId') lessonId: string,
         @Body() lessonProgressDto: StartLessonProgressDto,
     ) {
-        const { targetLearningId, unitAreaId, unitId } = lessonProgressDto;
+        const { targetLearningDetailsId, unitAreaId, unitId } = lessonProgressDto;
 
         // Gọi service để khởi động tiến trình bài học
-        const lessonProgress = await this.lessonService.startLessonProgress(
+        const lessonProgress = await this.lessonProgressService.startProgress(
             lessonId,
-            targetLearningId,
+            targetLearningDetailsId,
             unitAreaId,
             unitId,
         );
@@ -111,7 +112,7 @@ export class LessonController extends BaseController<Lesson> {
         @Body() lessonProgressDto: CompleteLessonProgressDto,
     ) {
         // Gọi service để cập nhật tiến trình khi học sinh hoàn thành bài học
-        const result = await this.lessonService.completeLessonProgress(
+        const result = await this.lessonProgressService.completeLessonProgress(
             lessonId,
             lessonProgressDto,
         );

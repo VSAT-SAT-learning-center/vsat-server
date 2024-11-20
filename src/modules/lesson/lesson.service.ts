@@ -14,7 +14,7 @@ import { LessonProgressService } from '../lesson-progress/lesson-progress.servic
 import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
 import { UnitProgressService } from '../unit-progress/unit-progress.service';
 import { Exception } from 'handlebars';
-import { CompleteLessonProgressDto } from './dto/complete-lesson-progress.dto';
+import { CompleteLessonProgressDto } from '../lesson-progress/dto/complete-lesson-progress.dto';
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
@@ -22,11 +22,6 @@ export class LessonService extends BaseService<Lesson> {
         @InjectRepository(Lesson)
         private readonly lessonRepository: Repository<Lesson>,
         private readonly unitAreaService: UnitAreaService,
-
-        @Inject(forwardRef(() => LessonProgressService))
-        private readonly lessonProgressService: LessonProgressService,
-        private readonly unitAreaProgressService: UnitAreaProgressService,
-        private readonly unitProgressService: UnitProgressService,
 
         @Inject(forwardRef(() => LessonContentService))
         private readonly lessonContentService: LessonContentService,
@@ -244,59 +239,4 @@ export class LessonService extends BaseService<Lesson> {
         await this.lessonRepository.remove(lesson);
     }
 
-    // Hàm khởi động tiến trình cho bài học khi học sinh bắt đầu học
-    async startLessonProgress(
-        lessonId: string,
-        targetLearningId: string,
-        unitAreaId: string,
-        unitId: string,
-    ) {
-        // 1. Kiểm tra và tạo `UnitProgress` nếu chưa tồn tại
-        const unitProgress = await this.unitProgressService.startUnitProgress(
-            targetLearningId,
-            unitId,
-        );
-        // 2. Kiểm tra và tạo `UnitAreaProgress` nếu chưa tồn tại
-        const unitAreaProgress = await this.unitAreaProgressService.startUnitAreaProgress(
-            targetLearningId,
-            unitAreaId,
-            unitProgress.id,
-        );
-        // 3. Kiểm tra và tạo `LessonProgress` nếu chưa tồn tại
-        return await this.lessonProgressService.startLessonProgress(
-            lessonId,
-            unitAreaProgress.id,
-            targetLearningId,
-        );
-    }
-
-    // Hàm cập nhật tiến trình khi học sinh hoàn thành bài học
-    async completeLessonProgress(
-        lessonId: string,
-        lessonProgressDto: CompleteLessonProgressDto,
-    ) {
-        const { unitId, unitAreaId, targetLearningId } = lessonProgressDto;
-        // 1. Cập nhật tiến trình cho bài học
-        const lessonProgress = await this.lessonProgressService.completeLessonProgressNow(
-            lessonId,
-            targetLearningId,
-        );
-        const unitAreaProgressId = lessonProgress.unitAreaProgress.id;
-
-        // 2. Cập nhật tiến trình UnitAreaProgress dựa trên các bài học
-        const unitProgressId =
-            await this.unitAreaProgressService.updateUnitAreaProgressNow(
-                unitAreaId,
-                unitAreaProgressId,
-            );
-
-        // 3. Cập nhật tiến trình UnitProgress dựa trên UnitArea
-        await this.unitProgressService.updateUnitProgressNow(
-            unitId,
-            targetLearningId,
-            unitProgressId,
-        );
-
-        return lessonProgress;
-    }
 }

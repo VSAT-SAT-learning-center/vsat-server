@@ -45,8 +45,8 @@ export class UnitService extends BaseService<Unit> {
 
         // Transform the fetched data to include domain, level, and counts
         return units.map((unit) => ({
-            id: unit.id,
-            title: unit.title,
+            unitId: unit.id,
+            unitTitle: unit.title,
             description: unit.description,
             section: {
                 id: unit.section?.id,

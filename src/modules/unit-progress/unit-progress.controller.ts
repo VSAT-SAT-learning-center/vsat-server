@@ -19,15 +19,18 @@ import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
 import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
 import { SyncUnitProgressDto } from './dto/sync-updateprogress.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('UnitProgress')
 @Controller('unit-progress')
+//@UseGuards(JwtAuthGuard)
 export class UnitProgressController extends BaseController<UnitProgress> {
     constructor(private readonly unitProgressService: UnitProgressService) {
         super(unitProgressService, 'UnitProgress');
     }
 
     @Get('details/:unitProgressId')
+    @ApiOperation({ summary: 'Get unit progress detail' })
     async getUnitProgressDetail(@Param('unitProgressId') unitProgressId: string) {
         try {
             const unitProgressDetail =
@@ -44,6 +47,7 @@ export class UnitProgressController extends BaseController<UnitProgress> {
     }
 
     @Get(':targetLearningDetailId')
+    @ApiOperation({ summary: 'Get all unit progress in target learning details' })
     async getAllUnitProgress(
         @Param('targetLearningDetailId') targetLearningDetailId: string,
     ) {
@@ -103,13 +107,13 @@ export class UnitProgressController extends BaseController<UnitProgress> {
         );
     }
 
-    @UseGuards(JwtAuthGuard)
     @Post('sync')
     @ApiBody({
         description: 'Payload for syncing unit progresses',
         type: SyncUnitProgressDto,
     })
     @ApiOperation({ summary: 'Sync unit progresses' })
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'teacher']))
     async syncUnitProgress(@Body() syncUnitProgressDto: SyncUnitProgressDto) {
         const { targetLearningDetailId, unitProgresses } = syncUnitProgressDto;
         const result = [];
@@ -130,34 +134,53 @@ export class UnitProgressController extends BaseController<UnitProgress> {
     }
 
     //@UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
-    @UseGuards(JwtAuthGuard)
     @Post('multiple-sync')
     @ApiBody({
         description: 'Payload for syncing multiple unit progresses',
         type: SyncUnitProgressDto, // Directly refer to the DTO
         isArray: true, // Since the method expects an array of SyncUnitProgressDto
     })
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'teacher']))
     @ApiOperation({ summary: 'Sync multiple unit progresses' })
     async syncMultipleUnitProgress(@Body() syncUnitProgressesDto: SyncUnitProgressDto[]) {
-        const result = [];
         try {
-            for (const syncUnitProgressDto of syncUnitProgressesDto) {
-                const { targetLearningDetailId, unitProgresses } = syncUnitProgressDto;
-                const syncResult = await this.unitProgressService.syncUnitProgress(
+            const allUnitProgressDtos = syncUnitProgressesDto.flatMap((dto) =>
+                dto.unitProgresses.map((progress) => ({
+                    ...progress,
+                    targetLearningDetailId: dto.targetLearningDetailId,
+                })),
+            );
+
+            const groupedByTargetLearningDetailId = allUnitProgressDtos.reduce(
+                (map, progress) => {
+                    if (!map.has(progress.targetLearningDetailId)) {
+                        map.set(progress.targetLearningDetailId, []);
+                    }
+                    map.get(progress.targetLearningDetailId).push(progress);
+                    return map;
+                },
+                new Map<string, any[]>(),
+            );
+
+            const results = [];
+            for (const [
+                targetLearningDetailId,
+                unitProgresses,
+            ] of groupedByTargetLearningDetailId.entries()) {
+                const result = await this.unitProgressService.syncUnitProgress(
                     targetLearningDetailId,
                     unitProgresses,
                 );
-                result.push(syncResult);
+                results.push(result);
             }
 
             return ResponseHelper.success(
                 HttpStatus.OK,
-                result,
+                results,
                 'Unit progress synchronized successfully',
             );
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
     }
-    
 }
