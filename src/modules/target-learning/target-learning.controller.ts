@@ -9,6 +9,8 @@ import {
     Put,
     HttpStatus,
     HttpException,
+    Inject,
+    forwardRef,
 } from '@nestjs/common';
 import { CreateTargetLearningDto } from './dto/create-targetlearning.dto';
 import { UpdateTargetLearningDto } from './dto/update-targetlearning.dto';
@@ -20,6 +22,7 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
+import { UnitService } from '../unit/unit.service';
 
 @ApiTags('TargetLearnings')
 @Controller('target-learnings')
@@ -28,6 +31,8 @@ export class TargetLearningController {
     constructor(
         private readonly targetLearningService: TargetLearningService,
         private readonly targetLearningDetailService: TargetLearningDetailService,
+        @Inject(forwardRef(() => UnitService))
+        private readonly unitService: UnitService,
     ) {}
 
     @Get('getStatisticByTargetLearning')
@@ -97,5 +102,12 @@ export class TargetLearningController {
                 error.status || HttpStatus.BAD_REQUEST,
             );
         }
+    }
+
+    @Get('unit/:sectionId')
+    async getUnitsBySectionAndLevel(
+        @Param('sectionId') sectionId: string
+    ): Promise<any> {
+        return this.unitService.findAllBySectionAndLevel(sectionId);
     }
 }
