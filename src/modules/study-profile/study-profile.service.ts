@@ -9,6 +9,7 @@ import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
 import { plainToInstance } from 'class-transformer';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @Injectable()
 export class StudyProfileService {
@@ -215,4 +216,41 @@ export class StudyProfileService {
 
         return targetLearningArrs;
     }
+
+    async getStudyProfileWithTargetLearningDetailWithStatus(accountId: string) {
+        const studyProfiles = await this.studyProfileRepository.find({
+            where: { account: { id: accountId } },
+        });
+    
+        const targetLearningArrs = [];
+    
+        for (const studyProfile of studyProfiles) {
+            const targetLearnings = await this.targetLearningRepository.find({
+                where: { studyProfile: { id: studyProfile.id } },
+                relations: [
+                    'targetlearningdetail',
+                    'targetlearningdetail.level',
+                    'targetlearningdetail.section',
+                    'targetlearningdetail.unitprogress',
+                ],
+            });
+    
+            const filteredTargetLearnings = targetLearnings
+                .filter((targetLearning) => targetLearning.status !== TargetLearningStatus.COMPLETED)
+                .map((targetLearning) => ({
+                    ...targetLearning,
+                    targetlearningdetail: targetLearning.targetlearningdetail
+                        .filter((detail) => detail.status !== TargetLearningStatus.COMPLETED)
+                        .map((detail) => ({
+                            ...detail,
+                            unitprogressCount: detail.unitprogress?.length || 0,
+                        })),
+                }));
+    
+            targetLearningArrs.push(...filteredTargetLearnings);
+        }
+    
+        return targetLearningArrs;
+    }
+    
 }
