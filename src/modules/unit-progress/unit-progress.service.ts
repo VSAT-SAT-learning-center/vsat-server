@@ -541,7 +541,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         // Fetch UnitAreas and their Lessons in one query
         const allUnitAreas = await this.unitAreaRepository.find({
             where: { unit: { id: In(allUnitIds) } },
-            relations: ['lessons'],
+            relations: ['unit','lessons'],
         });
 
         // Map UnitAreas by Unit ID for quick lookup
