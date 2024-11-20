@@ -508,10 +508,6 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             status: TargetLearningStatus.ACTIVE, // Set status to active
         });
 
-        await this.targetLearningRepository.update(targetLearningId, {
-            status: TargetLearningStatus.ACTIVE, // Set status to active
-        });
-
         // Step 2: Delete all existing UnitProgress for this TargetLearningDetail
         await this.unitProgressRepository.delete({
             targetLearningDetail: { id: targetLearningDetailId },
