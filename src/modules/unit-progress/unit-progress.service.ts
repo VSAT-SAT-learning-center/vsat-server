@@ -153,93 +153,93 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             await this.unitProgressRepository.save(unitProgressList);
         }
 
-        const allUnitProgresses = [...unitProgressList, ...unitsWithProgress];
+        // const allUnitProgresses = [...unitProgressList, ...unitsWithProgress];
 
-        const allUnitIds = allUnitProgresses.map((unitProgress) => unitProgress.unit.id);
+        // const allUnitIds = allUnitProgresses.map((unitProgress) => unitProgress.unit.id);
 
-        const allUnitAreas = await this.unitAreaRepository.find({
-            where: { unit: { id: In(allUnitIds) } },
-            relations: ['lessons'],
-        });
+        // const allUnitAreas = await this.unitAreaRepository.find({
+        //     where: { unit: { id: In(allUnitIds) } },
+        //     relations: ['lessons'],
+        // });
 
-        const allUnitAreaProgresses = await this.unitAreaProgressRepository.find({
-            where: {
-                unitProgress: { id: In(allUnitProgresses.map((up) => up.id)) },
-            },
-            relations: ['unitArea'],
-        });
+        // const allUnitAreaProgresses = await this.unitAreaProgressRepository.find({
+        //     where: {
+        //         unitProgress: { id: In(allUnitProgresses.map((up) => up.id)) },
+        //     },
+        //     relations: ['unitArea'],
+        // });
 
-        const allLessonProgresses = await this.lessonProgressRepository.find({
-            where: {
-                unitAreaProgress: {
-                    id: In(allUnitAreaProgresses.map((uap) => uap.id)),
-                },
-            },
-            relations: ['lesson'],
-        });
+        // const allLessonProgresses = await this.lessonProgressRepository.find({
+        //     where: {
+        //         unitAreaProgress: {
+        //             id: In(allUnitAreaProgresses.map((uap) => uap.id)),
+        //         },
+        //     },
+        //     relations: ['lesson'],
+        // });
 
-        const unitAreaProgressMap = new Map(
-            allUnitAreaProgresses.map((uap) => [
-                `${uap.unitArea.id}-${uap.unitProgress.id}`,
-                uap,
-            ]),
-        );
-        const lessonProgressMap = new Map(
-            allLessonProgresses.map((lp) => [
-                `${lp.lesson.id}-${lp.unitAreaProgress.id}`,
-                lp,
-            ]),
-        );
+        // const unitAreaProgressMap = new Map(
+        //     allUnitAreaProgresses.map((uap) => [
+        //         `${uap.unitArea.id}-${uap.unitProgress.id}`,
+        //         uap,
+        //     ]),
+        // );
+        // const lessonProgressMap = new Map(
+        //     allLessonProgresses.map((lp) => [
+        //         `${lp.lesson.id}-${lp.unitAreaProgress.id}`,
+        //         lp,
+        //     ]),
+        // );
 
-        const newUnitAreaProgresses = [];
-        const newLessonProgresses = [];
+        // const newUnitAreaProgresses = [];
+        // const newLessonProgresses = [];
 
-        for (const unitProgress of allUnitProgresses) {
-            const unitAreas = allUnitAreas.filter(
-                (unitArea) => unitArea.unit.id === unitProgress.unit.id,
-            );
+        // for (const unitProgress of allUnitProgresses) {
+        //     const unitAreas = allUnitAreas.filter(
+        //         (unitArea) => unitArea.unit.id === unitProgress.unit.id,
+        //     );
 
-            for (const unitArea of unitAreas) {
-                const unitAreaProgressKey = `${unitArea.id}-${unitProgress.id}`;
-                let unitAreaProgress = unitAreaProgressMap.get(unitAreaProgressKey);
+        //     for (const unitArea of unitAreas) {
+        //         const unitAreaProgressKey = `${unitArea.id}-${unitProgress.id}`;
+        //         let unitAreaProgress = unitAreaProgressMap.get(unitAreaProgressKey);
 
-                if (!unitAreaProgress) {
-                    unitAreaProgress = this.unitAreaProgressRepository.create({
-                        unitArea: { id: unitArea.id },
-                        unitProgress: { id: unitProgress.id },
-                        progress: 0,
-                        status: ProgressStatus.NOT_STARTED,
-                    });
+        //         if (!unitAreaProgress) {
+        //             unitAreaProgress = this.unitAreaProgressRepository.create({
+        //                 unitArea: { id: unitArea.id },
+        //                 unitProgress: { id: unitProgress.id },
+        //                 progress: 0,
+        //                 status: ProgressStatus.NOT_STARTED,
+        //             });
 
-                    newUnitAreaProgresses.push(unitAreaProgress);
-                    unitAreaProgressMap.set(unitAreaProgressKey, unitAreaProgress);
-                }
+        //             newUnitAreaProgresses.push(unitAreaProgress);
+        //             unitAreaProgressMap.set(unitAreaProgressKey, unitAreaProgress);
+        //         }
 
-                for (const lesson of unitArea.lessons) {
-                    const lessonProgressKey = `${lesson.id}-${unitAreaProgress.id}`;
-                    if (!lessonProgressMap.has(lessonProgressKey)) {
-                        const lessonProgress = this.lessonProgressRepository.create({
-                            lesson: { id: lesson.id },
-                            unitAreaProgress: { id: unitAreaProgress.id },
-                            targetLearningDetails: { id: targetLearningDetailId },
-                            progress: 0,
-                            status: ProgressStatus.NOT_STARTED,
-                        });
+        //         for (const lesson of unitArea.lessons) {
+        //             const lessonProgressKey = `${lesson.id}-${unitAreaProgress.id}`;
+        //             if (!lessonProgressMap.has(lessonProgressKey)) {
+        //                 const lessonProgress = this.lessonProgressRepository.create({
+        //                     lesson: { id: lesson.id },
+        //                     unitAreaProgress: { id: unitAreaProgress.id },
+        //                     targetLearningDetails: { id: targetLearningDetailId },
+        //                     progress: 0,
+        //                     status: ProgressStatus.NOT_STARTED,
+        //                 });
 
-                        newLessonProgresses.push(lessonProgress);
-                        lessonProgressMap.set(lessonProgressKey, lessonProgress);
-                    }
-                }
-            }
-        }
+        //                 newLessonProgresses.push(lessonProgress);
+        //                 lessonProgressMap.set(lessonProgressKey, lessonProgress);
+        //             }
+        //         }
+        //     }
+        // }
 
-        if (newUnitAreaProgresses.length > 0) {
-            await this.unitAreaProgressRepository.save(newUnitAreaProgresses);
-        }
+        // if (newUnitAreaProgresses.length > 0) {
+        //     await this.unitAreaProgressRepository.save(newUnitAreaProgresses);
+        // }
 
-        if (newLessonProgresses.length > 0) {
-            await this.lessonProgressRepository.save(newLessonProgresses);
-        }
+        // if (newLessonProgresses.length > 0) {
+        //     await this.lessonProgressRepository.save(newLessonProgresses);
+        // }
 
         return [...unitProgressList, ...unitsWithProgress].map((unitProgress) => ({
             id: unitProgress.id,
