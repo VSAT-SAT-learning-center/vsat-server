@@ -16,6 +16,8 @@ import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
 import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { UnitArea } from 'src/database/entities/unitarea.entity';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
+import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 @Injectable()
 export class UnitProgressService extends BaseService<UnitProgress> {
@@ -24,6 +26,10 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         private readonly unitProgressRepository: Repository<UnitProgress>,
         @InjectRepository(Unit)
         private readonly unitRepository: Repository<Unit>,
+
+        @InjectRepository(TargetLearning)
+        private readonly targetLearningRepository: Repository<TargetLearning>,
+
         @InjectRepository(TargetLearningDetail)
         private readonly targetLearningDetailRepository: Repository<TargetLearningDetail>,
 
@@ -419,66 +425,101 @@ export class UnitProgressService extends BaseService<UnitProgress> {
     }
 
     async syncUnitProgress(
-        targetLearningDetailId: string,
-        unitProgressDtos: { unitId: string; progress: number; status: ProgressStatus }[],
+        targetLearningId: string,
+        sectionId: string,
+        unitProgressDtos: { unitId: string }[],
     ): Promise<UpdateUnitProgressDto[]> {
-        const existingUnitProgresses = await this.unitProgressRepository.find({
-            where: { targetLearningDetail: { id: targetLearningDetailId } },
-            relations: ['unit'],
+        // Step 1: Find TargetLearningDetail based on targetLearningId and sectionId
+        const targetLearningDetail = await this.targetLearningDetailRepository.findOne({
+            where: {
+                targetlearning: { id: targetLearningId },
+                section: { id: sectionId },
+            },
         });
 
-        const existingUnitProgressMap = new Map(
-            existingUnitProgresses.map((up) => [up.unit.id, up]),
-        );
-
-        const unitProgressesToInsert = [];
-        const unitProgressesToUpdate = [];
-        const incomingUnitIds = new Set(unitProgressDtos.map((dto) => dto.unitId));
-
-        for (const dto of unitProgressDtos) {
-            if (existingUnitProgressMap.has(dto.unitId)) {
-                const existingUnitProgress = existingUnitProgressMap.get(dto.unitId);
-                existingUnitProgress.progress = dto.progress;
-                existingUnitProgress.status = dto.status;
-                unitProgressesToUpdate.push(existingUnitProgress);
-            } else {
-                const newUnitProgress = this.unitProgressRepository.create({
-                    unit: { id: dto.unitId },
-                    targetLearningDetail: { id: targetLearningDetailId },
-                    progress: dto.progress,
-                    status: dto.status,
-                });
-                unitProgressesToInsert.push(newUnitProgress);
-            }
+        if (!targetLearningDetail) {
+            throw new NotFoundException(
+                `TargetLearningDetail not found for targetLearningId "${targetLearningId}" and sectionId "${sectionId}".`,
+            );
         }
 
-        const unitProgressesToDelete = existingUnitProgresses.filter(
-            (up) => !incomingUnitIds.has(up.unit.id),
-        );
+        const targetLearningDetailId = targetLearningDetail.id;
 
-        if (unitProgressesToDelete.length > 0) {
-            await this.unitProgressRepository.remove(unitProgressesToDelete);
-        }
+        // // Step 2: Existing UnitProgress processing remains the same
+        // const existingUnitProgresses = await this.unitProgressRepository.find({
+        //     where: { targetLearningDetail: { id: targetLearningDetailId } },
+        //     relations: ['unit'],
+        // });
 
-        if (unitProgressesToUpdate.length > 0) {
-            await this.unitProgressRepository.save(unitProgressesToUpdate);
-        }
+        // const existingUnitProgressMap = new Map(
+        //     existingUnitProgresses.map((up) => [up.unit.id, up]),
+        // );
 
-        if (unitProgressesToInsert.length > 0) {
-            await this.unitProgressRepository.save(unitProgressesToInsert);
-        }
+        // const unitProgressesToInsert = [];
+        // const incomingUnitIds = new Set(unitProgressDtos.map((dto) => dto.unitId));
 
-        const updatedUnitProgresses = await this.unitProgressRepository.find({
-            where: { targetLearningDetail: { id: targetLearningDetailId } },
-            relations: ['unit'],
+        // for (const dto of unitProgressDtos) {
+        //     if (!existingUnitProgressMap.has(dto.unitId)) {
+        //         const newUnitProgress = this.unitProgressRepository.create({
+        //             unit: { id: dto.unitId },
+        //             targetLearningDetail: { id: targetLearningDetailId },
+        //             progress: 0,
+        //             status: ProgressStatus.NOT_STARTED,
+        //         });
+        //         unitProgressesToInsert.push(newUnitProgress);
+        //     }
+        // }
+
+        // const unitProgressesToDelete = existingUnitProgresses.filter(
+        //     (up) => !incomingUnitIds.has(up.unit.id),
+        // );
+
+        // if (unitProgressesToDelete.length > 0) {
+        //     await this.unitProgressRepository.remove(unitProgressesToDelete);
+        // }
+
+        // if (unitProgressesToInsert.length > 0) {
+        //     await this.unitProgressRepository.save(unitProgressesToInsert);
+        // }
+
+        // const updatedUnitProgresses = await this.unitProgressRepository.find({
+        //     where: { targetLearningDetail: { id: targetLearningDetailId } },
+        //     relations: ['unit'],
+        // });
+
+        await this.targetLearningDetailRepository.update(targetLearningDetailId, {
+            status: TargetLearningStatus.ACTIVE, // Set status to active
         });
 
+        await this.targetLearningRepository.update(targetLearningId, {
+            status: TargetLearningStatus.ACTIVE, // Set status to active
+        });
+
+        // Step 2: Delete all existing UnitProgress for this TargetLearningDetail
+        await this.unitProgressRepository.delete({
+            targetLearningDetail: { id: targetLearningDetailId },
+        });
+
+        // Step 3: Insert new UnitProgress entries
+        const newUnitProgresses = unitProgressDtos.map((dto) =>
+            this.unitProgressRepository.create({
+                unit: { id: dto.unitId },
+                targetLearningDetail: { id: targetLearningDetailId },
+                progress: 0,
+                status: ProgressStatus.NOT_STARTED,
+            }),
+        );
+
+        const savedUnitProgresses =
+            await this.unitProgressRepository.save(newUnitProgresses);
+
+        // Step 3: Initialize UnitArea and Lesson Progresses
         await this.initializeUnitAreaAndLessonProgresses(
-            updatedUnitProgresses,
+            savedUnitProgresses,
             targetLearningDetailId,
         );
 
-        return updatedUnitProgresses.map((unitProgress) => ({
+        return savedUnitProgresses.map((unitProgress) => ({
             id: unitProgress.id,
             progress: unitProgress.progress,
             status: unitProgress.status,
@@ -494,13 +535,13 @@ export class UnitProgressService extends BaseService<UnitProgress> {
     async initializeUnitAreaAndLessonProgresses(
         allUnitProgresses: UnitProgress[],
         targetLearningDetailId: string,
-    ): Promise<void> {
+    ): Promise<any> {
         const allUnitIds = allUnitProgresses.map((unitProgress) => unitProgress.unit.id);
 
         // Fetch UnitAreas and their Lessons in one query
         const allUnitAreas = await this.unitAreaRepository.find({
             where: { unit: { id: In(allUnitIds) } },
-            relations: ['lessons'],
+            relations: ['unit','lessons'],
         });
 
         // Map UnitAreas by Unit ID for quick lookup
@@ -552,6 +593,6 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 : Promise.resolve([]),
         ]);
 
-        return;
+        return savedUnitAreaProgresses;
     }
 }

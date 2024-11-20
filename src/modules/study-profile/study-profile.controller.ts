@@ -146,4 +146,52 @@ export class StudyProfileController {
             );
         }
     }
+
+    @Get('getStudyProfileWithTargetLearningDetail')
+    @UseGuards(JwtAuthGuard)
+    async getStudyProfileWithTargetLearningDetail(@Request() req) {
+        try {
+            const studyProfile =
+                await this.studyProfileService.getStudyProfileWithTargetLearningDetail(
+                    req.user.id,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                studyProfile,
+                SuccessMessages.get('StudyProfile'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getStudyProfileWithTargetLearningDetailWithStatus')
+    @UseGuards(JwtAuthGuard)
+    async getStudyProfileWithTargetLearningDetailWithStatus(@Request() req) {
+        try {
+            const studyProfile =
+                await this.studyProfileService.getStudyProfileWithTargetLearningDetailWithStatus(
+                    req.user.id,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                studyProfile,
+                SuccessMessages.get('StudyProfile'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

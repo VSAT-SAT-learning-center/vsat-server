@@ -55,7 +55,7 @@ export class TargetLearningDetailService {
     async getAllUnitProgress(targetLearningId: string): Promise<any[]> {
         // Step 1: Fetch all TargetLearningDetails for the given TargetLearning ID
         const targetLearningDetails = await this.targetLearningDetailRepository.find({
-            where: { targetlearning: { id: targetLearningId }, status: true },
+            where: { targetlearning: { id: targetLearningId } },
             relations: ['section', 'level', 'unitprogress', 'unitprogress.unit'],
         });
 

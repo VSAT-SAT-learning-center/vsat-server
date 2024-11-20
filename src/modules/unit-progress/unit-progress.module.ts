@@ -13,6 +13,7 @@ import { UnitArea } from 'src/database/entities/unitarea.entity';
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
 import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail.entity';
+import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 @Module({
     imports: [
@@ -23,6 +24,7 @@ import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail
             UnitAreaProgress,
             LessonProgress,
             TargetLearningDetail,
+            TargetLearning
         ]),
         TargetLearningDetailModule, // Ensure this is imported
         forwardRef(() => TargetLearningModule),
