@@ -1,23 +1,21 @@
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
-import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
+import { TargetLearning } from 'src/database/entities/targetlearning.entity';
+import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail.entity';
+import { Unit } from 'src/database/entities/unit.entity';
+import { UnitArea } from 'src/database/entities/unitarea.entity';
+import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
 import { UnitProgress } from 'src/database/entities/unitprogress.entity';
+import { In, Repository } from 'typeorm';
 import { BaseService } from '../base/base.service';
-import { UnitService } from '../unit/unit.service';
 import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
-import { ProgressStatus } from 'src/common/enums/progress-status.enum';
-import { TargetLearningService } from '../target-learning/target-learning.service';
-import { Unit } from 'src/database/entities/unit.entity';
-import { UnitStatus } from 'src/common/enums/unit-status.enum';
-import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail.entity';
-import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
-import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
-import { UnitArea } from 'src/database/entities/unitarea.entity';
-import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
-import { TargetLearning } from 'src/database/entities/targetlearning.entity';
+import { UnitService } from '../unit/unit.service';
+import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
 
 @Injectable()
 export class UnitProgressService extends BaseService<UnitProgress> {
@@ -114,6 +112,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
     }
 
     async startMultipleUnitProgress(targetLearningDetailId: string, unitIds: string[]) {
+        console.log(targetLearningDetailId);
         const unitProgressList = [];
         const unitsWithProgress = [];
 
@@ -159,7 +158,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
 
         const allUnitAreas = await this.unitAreaRepository.find({
             where: { unit: { id: In(allUnitIds) } },
-            relations: ['lessons'],
+            relations: ['lessons', 'unit'],
         });
 
         const allUnitAreaProgresses = await this.unitAreaProgressRepository.find({
@@ -198,6 +197,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             const unitAreas = allUnitAreas.filter(
                 (unitArea) => unitArea.unit.id === unitProgress.unit.id,
             );
+
+            console.log(unitAreas)
 
             for (const unitArea of unitAreas) {
                 const unitAreaProgressKey = `${unitArea.id}-${unitProgress.id}`;
@@ -300,8 +301,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 description: unitProgress.unit.description,
                 progress: unitProgress.progress || 0,
                 status: unitProgress.status,
-                unitAreaCount, 
-                lessonCount, 
+                unitAreaCount,
+                lessonCount,
                 unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
                     unitAreaProgressId: unitAreaProgress.id,
                     unitAreaId: unitAreaProgress.unitArea.id,

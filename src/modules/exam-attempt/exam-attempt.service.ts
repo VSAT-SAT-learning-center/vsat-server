@@ -462,10 +462,13 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         target.id,
                     );
 
+                    console.log(targetLearning)
+
                     result.RW = await this.unitProgressService.startMultipleUnitProgress(
                         targetLearning.id,
                         top3UnitIdAdvanceRW,
                     );
+                    
                 }
                 break;
         }
