@@ -1,12 +1,23 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpStatus,
+    Param,
+    Patch,
+    UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ProgressService } from './progress.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { UpdateLessonProgressStatusDto } from '../lesson-progress/dto/update-lessonprogress-status.dto';
 import { UnitProgressService } from '../unit-progress/unit-progress.service';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Progress')
 @Controller('progress')
+@UseGuards(JwtAuthGuard, new RoleGuard(['student', 'teacher']))
 export class ProgressController {
     constructor(
         private readonly progressService: ProgressService,
@@ -32,6 +43,7 @@ export class ProgressController {
     // }
 
     @Get(':targetLearningId/recent-units')
+    @ApiOperation({ summary: 'Get recently learned units' })
     async getRecentlyLearnedUnits(@Param('targetLearningId') targetLearningId: string) {
         const recentUnits =
             await this.unitProgressService.getRecentlyLearnedUnits(targetLearningId);
