@@ -1,6 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { Lesson } from 'src/database/entities/lesson.entity';
-import { Question } from 'src/database/entities/question.entity';
+import { Exam } from 'src/database/entities/exam.entity';
 
 export class AccountDto {
     @Expose()
@@ -10,7 +9,8 @@ export class AccountDto {
     lastname: string;
 }
 
-export class LessonFeedbackResponseDto {
+
+export class ExamFeedbackResponseDto {
     @Expose()
     id: string;
 
@@ -21,7 +21,8 @@ export class LessonFeedbackResponseDto {
     updatedat: Date;
 
     @Expose()
-    lesson: Lesson;
+    exam: Exam;
+    
     @Expose()
     @Type(() => AccountDto)
     accountFrom: AccountDto;

@@ -28,7 +28,6 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 export class LessonController extends BaseController<Lesson> {
     constructor(
         private readonly lessonService: LessonService,
-        private readonly lessonProgressService: LessonProgressService,
     ) {
         super(lessonService, 'Lesson');
     }
@@ -58,16 +57,11 @@ export class LessonController extends BaseController<Lesson> {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const unit = await this.lessonService.findOneById(id, [
-            'lessonContents',
-        ]);
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            unit,
-            SuccessMessages.get('Lesson'),
-        );
+        const unit = await this.lessonService.findOneById(id, ['lessonContents']);
+        return ResponseHelper.success(HttpStatus.OK, unit, SuccessMessages.get('Lesson'));
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post()
     async create(@Body() createLessonDto: CreateLessonDto) {
         const createdLesson = await this.lessonService.create(createLessonDto);
@@ -78,15 +72,10 @@ export class LessonController extends BaseController<Lesson> {
         );
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Patch(':id')
-    async update(
-        @Param('id') id: string,
-        @Body() updateLessonDto: UpdateLessonDto,
-    ) {
-        const updatedLesson = await this.lessonService.update(
-            id,
-            updateLessonDto,
-        );
+    async update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
+        const updatedLesson = await this.lessonService.update(id, updateLessonDto);
         return ResponseHelper.success(
             HttpStatus.OK,
             updatedLesson,
@@ -131,41 +120,6 @@ export class LessonController extends BaseController<Lesson> {
             statusCode: HttpStatus.CREATED,
             message: 'Lesson completed and progress updated successfully',
             data: result,
-        };
-    }
-
-    @Get('recent')
-    async getRecentCompletedLessons(
-        @Query('targetLearningId') targetLearningId: string,
-        @Query('limit') limit: number = 5,
-    ) {
-        const recentLessons =
-            await this.lessonProgressService.getRecentCompletedLessons(
-                targetLearningId,
-                limit,
-            );
-
-        return {
-            message: 'Recent completed lessons retrieved successfully',
-            recentLessons,
-        };
-    }
-
-    @Get('recent/progressing')
-    async getRecentProgressingLessons(
-        @Query('targetLearningId') targetLearningId: string,
-        @Query('limit') limit: number = 5,
-    ) {
-        // Gọi service để lấy danh sách các bài học đang học gần đây
-        const recentLessons =
-            await this.lessonProgressService.getRecentProgressingLessons(
-                targetLearningId,
-                limit,
-            );
-
-        return {
-            message: 'Recent progressing lessons retrieved successfully',
-            recentLessons,
         };
     }
 }

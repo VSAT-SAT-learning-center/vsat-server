@@ -41,9 +41,18 @@ export class UnitAreaProgress {
     @Column({ type: 'int', nullable: true })
     progress: number;
 
-    @Column({ type: 'enum', enum: ProgressStatus, default: ProgressStatus.NOT_STARTED, nullable: true })
+    @Column({
+        type: 'enum',
+        enum: ProgressStatus,
+        default: ProgressStatus.NOT_STARTED,
+        nullable: true,
+    })
     status: ProgressStatus;
 
-    @OneToMany(() => LessonProgress, (lessonProgresses) => lessonProgresses.unitAreaProgress, { cascade: true })
+    @OneToMany(
+        () => LessonProgress,
+        (lessonProgresses) => lessonProgresses.unitAreaProgress,
+        { cascade: true },
+    )
     lessonProgresses: LessonProgress[];
 }

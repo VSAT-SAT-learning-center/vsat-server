@@ -7,7 +7,7 @@ import { Question } from 'src/database/entities/question.entity';
 import { Unit } from 'src/database/entities/unit.entity';
 
 
-export class CreateFeedbackUnitDto {
+export class CreateFeedbackDto {
   @ApiProperty()
   @IsUUID()
   @IsOptional()

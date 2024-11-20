@@ -8,7 +8,7 @@ import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { BaseController } from '../base/base.controller';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('LessonProgress')
+// @ApiTags('LessonProgress')
 @Controller('lesson-progress')
 export class LessonProgressController extends BaseController<LessonProgress> {
   constructor(private readonly lessonProgressService: LessonProgressService) {

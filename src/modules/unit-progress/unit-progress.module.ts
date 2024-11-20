@@ -9,13 +9,25 @@ import { UnitAreaProgressModule } from '../unit-area-progress/unit-area-progress
 import { TargetLearningModule } from '../target-learning/target-learning.module';
 import { TargetLearningDetailModule } from '../target-learning-detail/target-learning-detail.module';
 import { Unit } from 'src/database/entities/unit.entity';
+import { UnitArea } from 'src/database/entities/unitarea.entity';
+import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
+import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UnitProgress, Unit, TargetLearningDetail]),
+        TypeOrmModule.forFeature([
+            UnitProgress,
+            Unit,
+            UnitArea,
+            UnitAreaProgress,
+            LessonProgress,
+            TargetLearningDetail,
+        ]),
+        TargetLearningDetailModule, // Ensure this is imported
         forwardRef(() => TargetLearningModule),
         forwardRef(() => UnitAreaModule),
+        forwardRef(() => UnitModule),
         forwardRef(() => UnitAreaProgressModule),
         forwardRef(() => UnitModule),
     ],
