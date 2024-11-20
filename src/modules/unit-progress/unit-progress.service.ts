@@ -286,16 +286,19 @@ export class UnitProgressService extends BaseService<UnitProgress> {
 
         const response = unitProgresses.map((unitProgress) => {
             return {
+                unitProgressId: unitProgress.id,
                 unitId: unitProgress.unit.id,
                 unitTitle: unitProgress.unit.title,
                 progress: unitProgress.progress || 0,
                 status: unitProgress.status,
                 unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
+                    unitAreaProgressId: unitAreaProgress.id,
                     unitAreaId: unitAreaProgress.unitArea.id,
                     unitAreaTitle: unitAreaProgress.unitArea.title,
                     progress: unitAreaProgress.progress || 0,
                     status: unitAreaProgress.status,
                     lessons: unitAreaProgress.lessonProgresses.map((lessonProgress) => ({
+                        lessonProgressId: lessonProgress.id,
                         lessonId: lessonProgress.lesson.id,
                         lessonTitle: lessonProgress.lesson.title,
                         progress: lessonProgress.progress || 0,
@@ -360,17 +363,20 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         }
 
         return {
+            unitProgressId: unitProgress.id,
             unitId: unitProgress.unit.id,
             unitTitle: unitProgress.unit.title,
             unitDescription: unitProgress.unit.description,
             progress: unitProgress.progress || 0,
             status: unitProgress.status,
             unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
+                unitAreaProgressId: unitAreaProgress.id,
                 unitAreaId: unitAreaProgress.unitArea.id,
                 unitAreaTitle: unitAreaProgress.unitArea.title,
                 progress: unitAreaProgress.progress || 0,
                 status: unitAreaProgress.status,
                 lessons: unitAreaProgress.lessonProgresses.map((lessonProgress) => ({
+                    lessonProgressId: lessonProgress.id,
                     lessonId: lessonProgress.lesson.id,
                     lessonTitle: lessonProgress.lesson.title,
                     progress: lessonProgress.progress || 0,
@@ -541,7 +547,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         // Fetch UnitAreas and their Lessons in one query
         const allUnitAreas = await this.unitAreaRepository.find({
             where: { unit: { id: In(allUnitIds) } },
-            relations: ['unit','lessons'],
+            relations: ['unit', 'lessons'],
         });
 
         // Map UnitAreas by Unit ID for quick lookup
@@ -557,11 +563,13 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         // Prepare bulk inserts for UnitAreaProgress and LessonProgress
         const newUnitAreaProgresses: UnitAreaProgress[] = [];
         const newLessonProgresses: LessonProgress[] = [];
+        const unitAreaProgressToSave = new Map<string, UnitAreaProgress>();
 
         for (const unitProgress of allUnitProgresses) {
             const unitAreas = unitAreaMap.get(unitProgress.unit.id) || [];
 
             for (const unitArea of unitAreas) {
+                // Create UnitAreaProgress
                 const unitAreaProgress = this.unitAreaProgressRepository.create({
                     unitArea: { id: unitArea.id },
                     unitProgress: { id: unitProgress.id },
@@ -570,10 +578,14 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 });
                 newUnitAreaProgresses.push(unitAreaProgress);
 
+                // Use the UnitAreaProgress key for corresponding LessonProgress records
+                const unitAreaProgressKey = `${unitArea.id}-${unitProgress.id}`;
+                unitAreaProgressToSave.set(unitAreaProgressKey, unitAreaProgress);
+
                 for (const lesson of unitArea.lessons) {
                     const lessonProgress = this.lessonProgressRepository.create({
                         lesson: { id: lesson.id },
-                        unitAreaProgress,
+                        unitAreaProgress, // Directly associate with UnitAreaProgress
                         targetLearningDetails: { id: targetLearningDetailId },
                         progress: 0,
                         status: ProgressStatus.NOT_STARTED,
@@ -583,15 +595,26 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             }
         }
 
-        // Batch save UnitAreaProgress and LessonProgress
-        const [savedUnitAreaProgresses] = await Promise.all([
-            newUnitAreaProgresses.length > 0
-                ? this.unitAreaProgressRepository.save(newUnitAreaProgresses)
-                : Promise.resolve([]),
-            newLessonProgresses.length > 0
-                ? this.lessonProgressRepository.save(newLessonProgresses)
-                : Promise.resolve([]),
-        ]);
+        // Batch save UnitAreaProgress records to get IDs
+        const savedUnitAreaProgresses =
+            await this.unitAreaProgressRepository.save(newUnitAreaProgresses);
+
+        // Map saved UnitAreaProgress IDs back to their respective keys for LessonProgress creation
+        savedUnitAreaProgresses.forEach((saved) => {
+            const key = `${saved.unitArea.id}-${saved.unitProgress.id}`;
+            unitAreaProgressToSave.set(key, saved);
+        });
+
+        // Adjust LessonProgress to ensure correct UnitAreaProgress associations
+        for (const lessonProgress of newLessonProgresses) {
+            const key = `${lessonProgress.unitAreaProgress.unitArea.id}-${lessonProgress.unitAreaProgress.unitProgress.id}`;
+            lessonProgress.unitAreaProgress = unitAreaProgressToSave.get(key);
+        }
+
+        // Save LessonProgress records
+        if (newLessonProgresses.length > 0) {
+            await this.lessonProgressRepository.save(newLessonProgresses);
+        }
 
         return savedUnitAreaProgresses;
     }
