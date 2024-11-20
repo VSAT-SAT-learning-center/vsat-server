@@ -65,8 +65,9 @@ export class GetQuestionDTO extends BaseDTO {
     isSingleChoiceQuestion: boolean;
 
     @Expose()
+    countfeedback: number;
+
+    @Expose()
     @ApiProperty()
     status: QuestionStatus;
-
-
 }
