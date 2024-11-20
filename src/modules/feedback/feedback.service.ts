@@ -1246,6 +1246,10 @@ export class FeedbackService extends BaseService<Feedback> {
             // take: limit,
         });
 
+        if (feedbacks.length === 0) {
+            throw new NotFoundException('No feedbacks found');
+        }
+
         // Map feedbacks to the desired structure
         const data = feedbacks.map((feedback) => ({
             id: feedback.id,

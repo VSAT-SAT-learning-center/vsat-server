@@ -82,6 +82,7 @@ export class TargetLearningDetailService {
                 'unitAreaProgresses',
                 'unitAreaProgresses.unitArea',
                 'unitAreaProgresses.lessonProgresses',
+                'unitAreaProgresses.lessonProgresses.lesson',
                 'targetLearningDetail',
             ],
         });
