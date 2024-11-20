@@ -9,6 +9,8 @@ import {
     Put,
     HttpStatus,
     HttpException,
+    Request,
+    UseGuards,
 } from '@nestjs/common';
 import { CreateTargetLearningDto } from './dto/create-targetlearning.dto';
 import { UpdateTargetLearningDto } from './dto/update-targetlearning.dto';
@@ -20,6 +22,8 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('TargetLearnings')
 @Controller('target-learnings')
@@ -82,11 +86,37 @@ export class TargetLearningController {
     ) {
         try {
             const unitProgresses =
-                await this.targetLearningDetailService.getAllUnitProgress(targetLearningId);
+                await this.targetLearningDetailService.getAllUnitProgress(
+                    targetLearningId,
+                );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 unitProgresses,
                 SuccessMessages.get('UnitProgresses'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getTargetLearningByAccount')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
+    async getTargetLearningByAccount(@Request() req) {
+        try {
+            const targetLearning =
+                await this.targetLearningService.getTargetLearningByStudyProfile(
+                    req.user.id,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                targetLearning,
+                SuccessMessages.get('TargetLearning'),
             );
         } catch (error) {
             throw new HttpException(
