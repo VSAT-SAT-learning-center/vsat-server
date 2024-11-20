@@ -33,6 +33,17 @@ export class UnitService extends BaseService<Unit> {
         super(unitRepository);
     }
 
+    async findAllBySectionAndLevel(sectionId: string, levelId: string): Promise<Unit[]> {
+        return await this.unitRepository.find({
+            where: {
+                isActive: true,
+                status: UnitStatus.APPROVED,
+                section: { id: sectionId },
+                level: { id: levelId },
+            },
+        });
+    }
+
     async create(createUnitDto: CreateUnitDto): Promise<Unit> {
         const { sectionId, levelId, domainId, ...unitData } = createUnitDto;
 
@@ -829,7 +840,10 @@ export class UnitService extends BaseService<Unit> {
             id: unit.id,
             title: unit.title,
             description: unit.description,
-            skills: unit.domain?.skills.map((skill) => ({ id: skill.id, title: skill.content })),
+            skills: unit.domain?.skills.map((skill) => ({
+                id: skill.id,
+                title: skill.content,
+            })),
         });
 
         return unitWithSkills;
