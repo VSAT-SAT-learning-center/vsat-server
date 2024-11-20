@@ -228,6 +228,29 @@ export class ExamAttemptController {
         }
     }
 
+    @Get('getExamAttemptByStudyProfile')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
+    async getExamAttemptByStudyProfile(@Request() req) {
+        try {
+            const examAttempt =
+                await this.examAttemptService.getExamAttemptByStudyProfile(req.user.id);
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examAttempt,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
     // @Post('assignExam')
     // async assignExam(@Body() assignExamAttemptDto: AssignExamAttemptDto) {
     //     try {
