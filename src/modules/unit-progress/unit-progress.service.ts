@@ -285,6 +285,14 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         });
 
         const response = unitProgresses.map((unitProgress) => {
+            // Calculate counts for unitAreas and lessons
+            const unitAreaCount = unitProgress.unitAreaProgresses.length;
+            const lessonCount = unitProgress.unitAreaProgresses.reduce(
+                (total, unitAreaProgress) =>
+                    total + (unitAreaProgress.lessonProgresses?.length || 0),
+                0,
+            );
+
             return {
                 unitProgressId: unitProgress.id,
                 unitId: unitProgress.unit.id,
@@ -292,6 +300,8 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 description: unitProgress.unit.description,
                 progress: unitProgress.progress || 0,
                 status: unitProgress.status,
+                unitAreaCount, 
+                lessonCount, 
                 unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
                     unitAreaProgressId: unitAreaProgress.id,
                     unitAreaId: unitAreaProgress.unitArea.id,
