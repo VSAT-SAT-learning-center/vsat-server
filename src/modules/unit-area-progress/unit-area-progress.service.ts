@@ -99,8 +99,9 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         }
 
         // Lấy tổng số bài học thuộc UnitArea
-        const totalLessons = (await this.lessonService.findByUnitAreaId(unitAreaProgress.unitArea.id))
-            .length;
+        const totalLessons = (
+            await this.lessonService.findByUnitAreaId(unitAreaProgress.unitArea.id)
+        ).length;
 
         if (totalLessons === 0) {
             throw new NotFoundException('No lessons found for this UnitArea');
@@ -165,7 +166,6 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
     }
 
     async getUnitAreaProgressDetails(unitAreaProgressId: string): Promise<any> {
-        // 1. Lấy thông tin UnitAreaProgress
         const unitAreaProgress = await this.unitAreaProgressRepository.findOne({
             where: { id: unitAreaProgressId },
             relations: [
@@ -173,55 +173,71 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
                 'unitArea.lessons',
                 'lessonProgresses',
                 'lessonProgresses.lesson',
-                'lessonProgresses.lesson.lessonContents',
+                'lessonProgresses.lesson.lessonContents', // Ensure lessonContents are fetched
             ],
         });
 
         if (!unitAreaProgress) {
             throw new NotFoundException(
-                `UnitAreaProgress with ID ${unitAreaProgressId} not found`,
+                `UnitAreaProgress with ID ${unitAreaProgressId} not found.`,
             );
         }
 
-        // 2. Transform dữ liệu trả về
-        const lessonDetails = unitAreaProgress.unitArea.lessons.map((lesson) => {
-            const lessonProgress = unitAreaProgress.lessonProgresses.find(
-                (lp) => lp.lesson.id === lesson.id,
+        console.log(JSON.stringify(unitAreaProgress, null, 2));
+        // Transform lessons to include lessonContents
+        const lessonDetails = (unitAreaProgress.unitArea?.lessons || []).map((lesson) => {
+            const lessonProgress = unitAreaProgress.lessonProgresses?.find(
+                (lp) => lp.lesson?.id === lesson.id,
             );
 
             return {
                 id: lesson.id,
                 title: lesson.title,
-                status: lessonProgress ? lessonProgress.status : null,
-                progress: lessonProgress ? lessonProgress.progress : 0,
-                contents: lesson.lessonContents.map((content) => ({
+                prerequisitelessonid: lesson.prerequisitelessonid || null,
+                type: lesson.type || 'Unknown',
+                status: lessonProgress?.status || null,
+                progress: lessonProgress?.progress || 0,
+                lessonContents: (lessonProgress.lesson.lessonContents || []).map((content) => ({
                     id: content.id,
                     title: content.title,
                     contentType: content.contentType,
-                    url: content.url,
-                    image: content.image,
+                    url: content.url || null,
+                    image: content.image || null,
+                    contents: (content.contents || []).map((c) => ({
+                        contentId: c.contentId,
+                        text: c.text,
+                        examples: (c.examples || []).map((example) => ({
+                            exampleId: example.exampleId,
+                            content: example.content,
+                            explain: example.explain || '',
+                        })),
+                    })),
                     question: content.question
                         ? {
                               questionId: content.question.questionId,
                               prompt: content.question.prompt,
                               correctAnswer: content.question.correctAnswer,
                               explanation: content.question.explanation || '',
-                              answers: content.question.answers || [],
+                              answers: (content.question.answers || []).map((answer) => ({
+                                  answerId: answer.answerId,
+                                  text: answer.text,
+                                  label: answer.label,
+                              })),
                           }
                         : null,
                 })),
             };
         });
 
-        // 3. Kết quả trả về
+        // Return the transformed response
         return {
             unitAreaProgress: {
                 id: unitAreaProgress.id,
-                progress: unitAreaProgress.progress,
-                status: unitAreaProgress.status,
+                progress: unitAreaProgress.progress || 0,
+                status: unitAreaProgress.status || null,
                 unitArea: {
-                    id: unitAreaProgress.unitArea.id,
-                    title: unitAreaProgress.unitArea.title,
+                    id: unitAreaProgress.unitArea?.id || null,
+                    title: unitAreaProgress.unitArea?.title || 'Unknown',
                 },
             },
             lessons: lessonDetails,

@@ -10,6 +10,7 @@ import { plainToInstance } from 'class-transformer';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
+import { TargetLearningDetailStatus } from 'src/common/enums/target-learning-status-enum';
 
 @Injectable()
 export class StudyProfileService {
@@ -226,26 +227,54 @@ export class StudyProfileService {
     
         for (const studyProfile of studyProfiles) {
             const targetLearnings = await this.targetLearningRepository.find({
-                where: { studyProfile: { id: studyProfile.id } },
+                where: {
+                    studyProfile: { id: studyProfile.id },
+                    status: TargetLearningStatus.ACTIVE,
+                },
                 relations: [
                     'targetlearningdetail',
                     'targetlearningdetail.level',
                     'targetlearningdetail.section',
                     'targetlearningdetail.unitprogress',
+                    // 'targetlearningdetail.unitprogress.unitAreaProgresses',
+                    'targetlearningdetail.unitprogress.unitAreaProgresses.lessonProgresses',
                 ],
             });
     
-            const filteredTargetLearnings = targetLearnings
-                .filter((targetLearning) => targetLearning.status !== TargetLearningStatus.COMPLETED)
-                .map((targetLearning) => ({
+            const filteredTargetLearnings = targetLearnings.map((targetLearning) => {
+                const updatedDetails = targetLearning.targetlearningdetail.map((detail) => {
+                    const unitprogressCount = detail.unitprogress?.length || 0;
+    
+                    const lessonProgressCount = detail.unitprogress.reduce(
+                        (sum, unitProgress) =>
+                            sum +
+                            unitProgress.unitAreaProgresses.reduce(
+                                (areaSum, unitArea) =>
+                                    areaSum + (unitArea.lessonProgresses?.length || 0),
+                                0,
+                            ),
+                        0,
+                    );
+    
+                    // const updatedUnitProgress = detail.unitprogress.map((unitProgress) => ({
+                    //     unitarea: unitProgress.unitAreaProgresses.map((unitArea) => ({
+                    //         lessonprogressCount: unitArea.lessonProgresses?.length || 0,
+                    //     })),
+                    // }));
+    
+                    return {
+                        ...detail,
+                        unitprogressCount,
+                        lessonProgressCount,
+                        //unitprogress: updatedUnitProgress,
+                    };
+                });
+    
+                return {
                     ...targetLearning,
-                    targetlearningdetail: targetLearning.targetlearningdetail
-                        .filter((detail) => detail.status !== TargetLearningStatus.COMPLETED)
-                        .map((detail) => ({
-                            ...detail,
-                            unitprogressCount: detail.unitprogress?.length || 0,
-                        })),
-                }));
+                    targetlearningdetail: updatedDetails,
+                };
+            });
     
             targetLearningArrs.push(...filteredTargetLearnings);
         }
