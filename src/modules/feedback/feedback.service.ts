@@ -1216,16 +1216,9 @@ export class FeedbackService extends BaseService<Feedback> {
         };
     }
 
-    async getRejectFeedbackByQuestionId(
-        userId: string,
-        questionId: string,
-        // page: number = 1,
-        // limit: number = 10,
-    ): Promise<{
+    async getRejectFeedbackByQuestionId(questionId: string): Promise<{
         data: any[];
         totalItems: number;
-        // totalPages: number;
-        // currentPage: number;
     }> {
         if (!questionId) {
             throw new BadRequestException('Question ID is required');
@@ -1234,7 +1227,6 @@ export class FeedbackService extends BaseService<Feedback> {
         const where: any = {
             question: { id: questionId },
             status: FeedbackStatus.REJECTED,
-            accountTo: { id: userId },
         };
 
         // Fetch feedback with pagination
@@ -1242,9 +1234,11 @@ export class FeedbackService extends BaseService<Feedback> {
             where,
             relations: ['question', 'accountFrom', 'accountTo'],
             order: { createdat: 'DESC' },
-            // skip: (page - 1) * limit,
-            // take: limit,
         });
+
+        if (feedbacks.length === 0) {
+            throw new NotFoundException('No feedbacks found');
+        }
 
         // Map feedbacks to the desired structure
         const data = feedbacks.map((feedback) => ({
@@ -1284,6 +1278,60 @@ export class FeedbackService extends BaseService<Feedback> {
             totalItems,
             // totalPages: Math.ceil(totalItems / limit),
             // currentPage: page,
+        };
+    }
+
+    async getRejectFeedbackByExamId(questionId: string): Promise<{
+        data: any[];
+        totalItems: number;
+    }> {
+        if (!questionId) {
+            throw new BadRequestException('Exam ID is required');
+        }
+
+        const where: any = {
+            question: { id: questionId },
+            status: FeedbackStatus.REJECTED,
+        };
+
+        // Fetch feedback with pagination
+        const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
+            where,
+            relations: ['exam', 'accountFrom', 'accountTo'],
+            order: { createdat: 'DESC' },
+        });
+
+        if (feedbacks.length === 0) {
+            throw new NotFoundException('No feedbacks found');
+        }
+
+        // Map feedbacks to the desired structure
+        const data = feedbacks.map((feedback) => ({
+            id: feedback.id,
+            content: feedback.content,
+            reason: feedback.reason,
+            status: feedback.status,
+            createdat: feedback.createdat,
+            updatedat: feedback.updatedat,
+            accountFrom: feedback.accountFrom
+                ? {
+                      id: feedback.accountFrom.id,
+                      username: feedback.accountFrom.username,
+                      email: feedback.accountFrom.email,
+                  }
+                : null,
+            accountTo: feedback.accountTo
+                ? {
+                      id: feedback.accountTo.id,
+                      username: feedback.accountTo.username,
+                      email: feedback.accountTo.email,
+                  }
+                : null,
+        }));
+
+        return {
+            data,
+            totalItems,
         };
     }
 }

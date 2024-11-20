@@ -28,10 +28,11 @@ import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
 import { Unit } from 'src/database/entities/unit.entity';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'manager']))
 export class FeedbackController extends BaseController<Feedback> {
     constructor(private readonly feedbackService: FeedbackService) {
         super(feedbackService, 'Feedback');
@@ -158,22 +159,26 @@ export class FeedbackController extends BaseController<Feedback> {
     @ApiOperation({ summary: 'Get feedback details by question id' })
     @Get('question/reason/:questionId')
     async getRejectFeedbackByQuestionId(
-        @Request() req,
         @Param('questionId') questionId: string,
-        // @Query('page') page: number = 1,
-        // @Query('limit') limit: number = 10,
     ): Promise<{
         data: any[];
         totalItems: number;
-        // totalPages: number;
-        // currentPage: number;
     }> {
-        const userId = req.user.id;
-        return this.feedbackService.getRejectFeedbackByQuestionId(
-            userId,
+        return this.feedbackService.getRejectFeedbackByExamId(
             questionId,
-            // page,
-            // limit,
+        );
+    }
+
+    @ApiOperation({ summary: 'Search exam feedback by status' })
+    @Get('exam/reason/:examId')
+    async getRejectFeedbackByExamId(
+        @Param('examId') examId: string
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+    }> {
+        return this.feedbackService.getRejectFeedbackByExamId(
+            examId,
         );
     }
 
@@ -275,7 +280,6 @@ export class FeedbackController extends BaseController<Feedback> {
 
     //     return await this.feedbackService.getLessonFeedbackUserId(userId, lessonId);
     // }
-
     @ApiOperation({ summary: 'Get feedback details' })
     // GET /feedbacks/:feedbackId
     @Get(':feedbackId')
