@@ -289,6 +289,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 unitProgressId: unitProgress.id,
                 unitId: unitProgress.unit.id,
                 unitTitle: unitProgress.unit.title,
+                description: unitProgress.unit.description,
                 progress: unitProgress.progress || 0,
                 status: unitProgress.status,
                 unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
