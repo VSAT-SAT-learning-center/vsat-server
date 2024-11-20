@@ -102,6 +102,12 @@ export class TargetLearningDetailService {
                 .map((unitProgress) => ({
                     unitId: unitProgress.unit.id,
                     unitTitle: unitProgress.unit.title,
+                    level: unitProgress.unit.level
+                        ? {
+                              id: unitProgress.unit.level.id,
+                              name: unitProgress.unit.level.name,
+                          }
+                        : null,
                     progress: unitProgress.progress || 0,
                     status: unitProgress.status,
                     unitAreaCount: unitProgress.unit.unitAreas.length,

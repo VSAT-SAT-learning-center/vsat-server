@@ -7,12 +7,14 @@ import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { ExamAttemptModule } from '../exam-attempt/exam-attempt.module';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { TargetLearningDetailModule } from '../target-learning-detail/target-learning-detail.module';
+import { UnitModule } from '../unit/unit.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([TargetLearning, ExamAttempt, StudyProfile]),
         forwardRef(() => ExamAttemptModule),
-        TargetLearningDetailModule
+        TargetLearningDetailModule,
+        forwardRef(() => UnitModule),
     ],
     providers: [TargetLearningService],
     controllers: [TargetLearningController],

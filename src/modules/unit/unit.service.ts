@@ -33,6 +33,37 @@ export class UnitService extends BaseService<Unit> {
         super(unitRepository);
     }
 
+    async findAllBySectionAndLevel(sectionId: string): Promise<any[]> {
+        const units = await this.unitRepository.find({
+            where: {
+                isActive: true,
+                status: UnitStatus.APPROVED,
+                section: { id: sectionId }
+            },
+            relations: ['section', 'level', 'unitAreas', 'unitAreas.lessons'],
+        });
+
+        // Transform the fetched data to include domain, level, and counts
+        return units.map((unit) => ({
+            id: unit.id,
+            title: unit.title,
+            description: unit.description,
+            section: {
+                id: unit.section?.id,
+                title: unit.section?.name,
+            },
+            level: {
+                id: unit.level?.id,
+                name: unit.level?.name,
+            },
+            unitAreaCount: unit.unitAreas.length,
+            lessonCount: unit.unitAreas.reduce(
+                (lessonCount, unitArea) => lessonCount + (unitArea.lessons?.length || 0),
+                0,
+            ),
+        }));
+    }
+
     async create(createUnitDto: CreateUnitDto): Promise<Unit> {
         const { sectionId, levelId, domainId, ...unitData } = createUnitDto;
 
@@ -829,7 +860,10 @@ export class UnitService extends BaseService<Unit> {
             id: unit.id,
             title: unit.title,
             description: unit.description,
-            skills: unit.domain?.skills.map((skill) => ({ id: skill.id, title: skill.content })),
+            skills: unit.domain?.skills.map((skill) => ({
+                id: skill.id,
+                title: skill.content,
+            })),
         });
 
         return unitWithSkills;
