@@ -28,10 +28,11 @@ import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
 import { Unit } from 'src/database/entities/unit.entity';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'manager']))
 export class FeedbackController extends BaseController<Feedback> {
     constructor(private readonly feedbackService: FeedbackService) {
         super(feedbackService, 'Feedback');
