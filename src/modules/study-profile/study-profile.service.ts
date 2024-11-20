@@ -8,12 +8,15 @@ import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
 import { plainToInstance } from 'class-transformer';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
+import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 @Injectable()
 export class StudyProfileService {
     constructor(
         @InjectRepository(StudyProfile)
         private readonly studyProfileRepository: Repository<StudyProfile>,
+        @InjectRepository(TargetLearning)
+        private readonly targetLearningRepository: Repository<TargetLearning>,
     ) {}
 
     async getStudyProfileByAccountId(accountId: string) {
@@ -28,7 +31,6 @@ export class StudyProfileService {
         pageSize: number,
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
-
 
         const [studyProfiles, total] = await this.studyProfileRepository.findAndCount({
             where: { account: { id: accountId } },
@@ -51,7 +53,6 @@ export class StudyProfileService {
 
         const totalPages = Math.ceil(total / pageSize);
 
-
         return {
             data: studyProfilesWithAccount,
             currentPage: page,
@@ -69,17 +70,12 @@ export class StudyProfileService {
         return await this.studyProfileRepository.save(studyProfile);
     }
 
-    async saveTarget(
-        targetRW: number,
-        targetMath: number,
-        accountId: string,
-    ) {
+    async saveTarget(targetRW: number, targetMath: number, accountId: string) {
         const studyProfile = await this.studyProfileRepository.findOne({
             where: { account: { id: accountId } },
             order: { createdat: 'ASC' },
             relations: ['targetlearning'],
         });
-
 
         studyProfile.targetscoreMath = targetMath;
         studyProfile.targetscoreRW = targetRW;
@@ -184,5 +180,39 @@ export class StudyProfileService {
             currentPage: page,
             totalItems: total,
         };
+    }
+
+    async getStudyProfileWithTargetLearningDetail(accountId: string) {
+        const studyProfiles = await this.studyProfileRepository.find({
+            where: { account: { id: accountId } },
+        });
+
+        const targetLearningArrs = [];
+
+        for (const studyProfile of studyProfiles) {
+            const targetLearnings = await this.targetLearningRepository.find({
+                where: { studyProfile: { id: studyProfile.id } },
+                relations: [
+                    'targetlearningdetail',
+                    'targetlearningdetail.level',
+                    'targetlearningdetail.section',
+                    'targetlearningdetail.unitprogress',
+                ],
+            });
+
+            const formattedTargetLearnings = targetLearnings.map((targetLearning) => ({
+                ...targetLearning,
+                targetlearningdetail: targetLearning.targetlearningdetail.map(
+                    (detail) => ({
+                        ...detail,
+                        unitprogressCount: detail.unitprogress?.length || 0,
+                    }),
+                ),
+            }));
+
+            targetLearningArrs.push(...formattedTargetLearnings);
+        }
+
+        return targetLearningArrs;
     }
 }
