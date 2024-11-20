@@ -5,16 +5,5 @@ export class CompleteLessonProgressDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  targetLearningId: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  unitId: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  unitAreaId: string;
-
+  targetLearningDetailsId: string
 }

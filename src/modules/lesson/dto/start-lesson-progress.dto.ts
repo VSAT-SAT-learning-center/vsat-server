@@ -5,7 +5,7 @@ export class StartLessonProgressDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  targetLearningId: string;
+  targetLearningDetailsId: string;
 
   @ApiProperty()
   @IsString()

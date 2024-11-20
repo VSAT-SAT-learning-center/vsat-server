@@ -85,7 +85,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         return updatedUnitAreaProgress;
     }
 
-    async updateUnitAreaProgressNow(unitAreaId: string, unitAreaProgressId: string) {
+    async updateUnitAreaProgressNow(unitAreaProgressId: string) {
         // Lấy UnitAreaProgress dựa trên UnitAreaId và targetLearningId
         const unitAreaProgress = await this.unitAreaProgressRepository.findOne({
             where: {
@@ -99,7 +99,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         }
 
         // Lấy tổng số bài học thuộc UnitArea
-        const totalLessons = (await this.lessonService.findByUnitAreaId(unitAreaId))
+        const totalLessons = (await this.lessonService.findByUnitAreaId(unitAreaProgress.unitArea.id))
             .length;
 
         if (totalLessons === 0) {
@@ -134,7 +134,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
     }
 
     async startUnitAreaProgress(
-        targetLearningId: string,
+        targetLearningDetailsId: string,
         unitAreaId: string,
         unitProgressId: string,
     ) {
@@ -144,7 +144,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
                 unitArea: { id: unitAreaId },
                 unitProgress: {
                     id: unitProgressId,
-                    targetLearningDetail: { id: targetLearningId },
+                    targetLearningDetail: { id: targetLearningDetailsId },
                 },
             },
         });

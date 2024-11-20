@@ -7,12 +7,14 @@ import { LessonProgressService } from './lesson-progress.service';
 import { LessonProgressController } from './lesson-progress.controller';
 import { UnitAreaProgressModule } from '../unit-area-progress/unit-area-progress.module';
 import { LessonModule } from '../lesson/lesson.module';
+import { UnitProgressModule } from '../unit-progress/unit-progress.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([LessonProgress]),
         forwardRef(() => LessonModule),
         forwardRef(() => UnitAreaProgressModule),
+        forwardRef(() => UnitProgressModule)
     ],
     providers: [LessonProgressService],
     controllers: [LessonProgressController],
