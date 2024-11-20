@@ -27,6 +27,30 @@ export class UnitAreaProgressController extends BaseController<UnitAreaProgress>
         super(unitAreaProgressService, 'UnitAreaProgress');
     }
 
+    @Get(':unitAreaProgressId/details')
+    @ApiParam({
+        name: 'unitAreaProgressId',
+        description: 'ID of the UnitAreaProgress',
+    })
+    @ApiOperation({ summary: 'Get UnitAreaProgress with content' })
+    async getUnitAreaProgressDetails(
+        @Param('unitAreaProgressId') unitAreaProgressId: string,
+    ) {
+        try {
+            const result =
+                await this.unitAreaProgressService.getUnitAreaProgressDetails(
+                    unitAreaProgressId,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                result,
+                'UnitAreaProgress details retrieved successfully',
+            );
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @Post()
     async create(@Body() createUnitAreaProgressDto: CreateUnitAreaProgressDto) {
         const createdUnit = await this.unitAreaProgressService.create(
@@ -53,29 +77,5 @@ export class UnitAreaProgressController extends BaseController<UnitAreaProgress>
             updatedUnitArea,
             SuccessMessages.update('UnitAreaProgress'),
         );
-    }
-
-    @Get(':unitAreaProgressId/details')
-    @ApiParam({
-        name: 'unitAreaProgressId',
-        description: 'ID of the UnitAreaProgress',
-    })
-    @ApiOperation({ summary: 'Get UnitAreaProgress with content' })
-    async getUnitAreaProgressDetails(
-        @Param('unitAreaProgressId') unitAreaProgressId: string,
-    ) {
-        try {
-            const result =
-                await this.unitAreaProgressService.getUnitAreaProgressDetails(
-                    unitAreaProgressId,
-                );
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                result,
-                'UnitAreaProgress details retrieved successfully',
-            );
-        } catch (error) {
-            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-        }
     }
 }
