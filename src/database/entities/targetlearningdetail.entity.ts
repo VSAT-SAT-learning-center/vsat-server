@@ -13,6 +13,7 @@ import { Section } from './section.entity';
 import { StudyProfile } from './studyprofile.entity';
 import { UnitProgress } from './unitprogress.entity';
 import { TargetLearning } from './targetlearning.entity';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @Entity('targetlearningdetail')
 export class TargetLearningDetail {
@@ -46,6 +47,6 @@ export class TargetLearningDetail {
     @OneToMany(() => UnitProgress, (unitprogress) => unitprogress.targetLearningDetail)
     unitprogress: UnitProgress[];
 
-    @Column({ type: 'boolean', default: true })
-    status: boolean;
+    @Column({ type: 'enum', enum: TargetLearningStatus, default: TargetLearningStatus.INACTIVE })
+    status: TargetLearningStatus;
 }

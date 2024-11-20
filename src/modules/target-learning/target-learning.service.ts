@@ -19,7 +19,7 @@ import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @Injectable()
-export class TargetLearningService {
+export class TargetLearningService extends BaseService<TargetLearning> {
     constructor(
         @InjectRepository(TargetLearning)
         private readonly targetLearningRepository: Repository<TargetLearning>,
@@ -30,7 +30,9 @@ export class TargetLearningService {
 
         @Inject(forwardRef(() => ExamAttemptService))
         private readonly examAttemptService: ExamAttemptService,
-    ) {}
+    ) {
+        super(targetLearningRepository);
+    }
 
     async save(studyProfileId: string, examAttemptId: string) {
         const startdate = new Date();
@@ -82,7 +84,7 @@ export class TargetLearningService {
     async getTargetLearningByStudyProfile(studyProfileId: string) {
         const targetLearning = await this.targetLearningRepository.find({
             where: { studyProfile: { id: studyProfileId } },
-            relations: ['targetlearningdetail']
+            relations: ['targetlearningdetail'],
         });
 
         return targetLearning;
