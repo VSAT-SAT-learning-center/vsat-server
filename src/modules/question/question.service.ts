@@ -31,6 +31,7 @@ import { GetQuestionDTO } from './dto/get-question.dto';
 import { GetQuestionWithAnswerDTO } from './dto/get-with-answer-question.dto';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()
 export class QuestionService {
@@ -270,6 +271,13 @@ export class QuestionService {
         const savedQuestion = await this.questionRepository.save(newQuestion);
 
         await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
+
+        this.feedbackService.submitQuestionFeedback({
+            question: savedQuestion,
+            status: FeedbackStatus.PENDING,
+            content: 'Question submitted',
+            accountFromId: savedQuestion.createdby,
+        });
 
         return savedQuestion;
     }

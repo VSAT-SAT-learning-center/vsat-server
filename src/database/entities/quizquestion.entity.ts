@@ -14,6 +14,7 @@ import { Level } from './level.entity';
 import { Section } from './section.entity';
 import { QuizAnswer } from './quizanswer.entity';
 import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
+import { Feedback } from './feedback.entity';
 
 @Entity('quizquestion')
 export class QuizQuestion {
@@ -71,4 +72,7 @@ export class QuizQuestion {
 
     @Column({ type: 'boolean', default: true })
     isActive: boolean;
+
+    @OneToMany(() => Feedback, (feedback) => feedback.quizquestion)
+    feedbacks: Feedback[];
 }

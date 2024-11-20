@@ -1,4 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
     WebSocketGateway,
     WebSocketServer,
@@ -7,44 +8,44 @@ import {
     OnGatewayDisconnect,
     SubscribeMessage,
 } from '@nestjs/websockets';
+import { Console } from 'console';
 import { Server, Socket } from 'socket.io';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { Feedback } from 'src/database/entities/feedback.entity';
 
-@WebSocketGateway(3001, { namespace: '/feedbacks', cors: { origin: '*' } })
+@WebSocketGateway(5001, { namespace: '/feedbacks', cors: { origin: '*' } })
 export class FeedbacksGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
     @WebSocketServer() server: Server;
     private users: Map<string, Socket> = new Map(); // Store active users
 
+    constructor(private readonly jwtService: JwtService) {}
+
     afterInit(server: Server) {
         console.log('WebSocket server initialized');
     }
 
-    handleConnection(client: Socket) {
+    async handleConnection(client: Socket) {
         try {
             const token = client.handshake.query.token as string;
             if (!token) {
                 throw new UnauthorizedException('No token provided');
             }
 
-            console.log('Client connected: ' + client.id);
-            const userId = client.handshake.query.userId;
-            if (userId) {
-                this.users.set(userId as string, client);
-                console.log(`User connected: ${userId}`);
+            // Verify the token
+            const payload = this.jwtService.verify(token, {
+                secret: process.env.ACCESS_TOKEN_KEY,
+            });
+            if (!payload || !payload.id) {
+                throw new UnauthorizedException('Invalid token');
             }
 
-            // // Verify the token using JWT service
-            // const payload = this.jwtService.verify(token);
-            // if (payload) {
-            //     // Store authenticated user
-            //     this.users.set(payload.userId, client);
-            //     console.log(`User authenticated and connected: ${payload.userId}`);
-            // }
+            const userId = payload.id;
+            this.users.set(userId, client); // Store the socket connection
+            console.log(`User authenticated and connected: ${userId}`);
         } catch (error) {
-            console.log('Authentication failed:', error.message);
+            console.error('Authentication failed:', error.message);
             client.disconnect();
         }
     }
@@ -81,11 +82,11 @@ export class FeedbacksGateway
 
     sendNotificationToMultipleUsers(
         userIds: string[],
-        message: string,
+        data: any,
         eventType: FeedbackEventType,
     ) {
         userIds.forEach((userId) => {
-            this.sendNotificationToUser(userId, message, eventType);
+            this.sendNotificationToUser(userId, data, eventType);
         });
     }
     
@@ -113,6 +114,8 @@ export class FeedbacksGateway
             eventType: eventType,
             data: data
         };
+
+        console.log("Payload is: ",payload);
         
         if (to) {
             this.server.to(to).emit(event, payload);

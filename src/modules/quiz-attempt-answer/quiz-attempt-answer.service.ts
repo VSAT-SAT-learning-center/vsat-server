@@ -30,13 +30,15 @@ export class QuizAttemptAnswerService extends BaseService<QuizAttemptAnswer> {
     async saveQuizAttemptAnswer(
         quizAttemptId: string,
         questionId: string,
-        selectedAnswerId: string,
+        studentAnswerId: string,
+        studentAnswerText: string,
         isCorrect: boolean,
     ): Promise<QuizAttemptAnswer> {
         const newAnswer = this.quizAttemptAnswerRepository.create({
             quizAttempt: { id: quizAttemptId },
             quizQuestion: { id: questionId },
-            studentAnswer: selectedAnswerId,
+            studentAnswerId: studentAnswerId,
+            studentAnswerText: studentAnswerText,
             isCorrect: isCorrect,
         });
         return this.quizAttemptAnswerRepository.save(newAnswer);

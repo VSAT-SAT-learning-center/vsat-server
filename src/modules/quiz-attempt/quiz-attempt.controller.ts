@@ -18,6 +18,8 @@ import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-ite
 import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
 import { SaveQuizAttemptProgressDto } from './dto/save-quiz-attempt.dto';
 import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
+import { SkipQuizAttemptProgressDto } from './dto/skip-quiz-attempt.dto';
+import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
 
 @ApiTags('QuizAttempts')
 @Controller('quiz-attempts')
@@ -94,7 +96,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         @Param('quizAttemptId') quizAttemptId: string,
         @Body() saveQuizAttemptProgressDto: SaveQuizAttemptProgressDto,
     ) {
-        const { questionId, selectedAnswerId } = saveQuizAttemptProgressDto;
+        const { questionId, studentdAnswerId, studentdAnswerText } = saveQuizAttemptProgressDto;
         try {
             const quizAttempt = await this.quizAttemptService.findOneById(quizAttemptId);
             if (!quizAttempt || quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS) {
@@ -108,7 +110,41 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
             await this.quizAttemptService.saveQuizAttemptProgress(
                 quizAttemptId,
                 questionId,
-                selectedAnswerId,
+                studentdAnswerId,
+                studentdAnswerText
+            );
+
+            // // Return the current progress of the quiz attempt
+            // const progress =
+            //     await this.quizAttemptService.getProgress(quizAttemptId);
+            return {
+                message: 'Progress saved successfully',
+                //progress,
+            };
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Post(':quizAttemptId/skip-progress')
+    async skipQuizAttemptProgress(
+        @Param('quizAttemptId') quizAttemptId: string,
+        @Body() saveQuizAttemptProgressDto: SkipQuizAttemptProgressDto,
+    ) {
+        const { questionId } = saveQuizAttemptProgressDto;
+        try {
+            const quizAttempt = await this.quizAttemptService.findOneById(quizAttemptId);
+            if (!quizAttempt || quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS) {
+                throw new HttpException(
+                    'Quiz attempt is not in progress or does not exist.',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            // Save progress
+            await this.quizAttemptService.skipQuizAttemptProgress(
+                quizAttemptId,
+                questionId,
             );
 
             // // Return the current progress of the quiz attempt
@@ -163,6 +199,24 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
                 ...results,
                 message: 'Quiz completed successfully',
             };
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Post('reset')
+    async resetQuizAttempt(@Body() resetQuizAttempt: ResetQuizAttemptProgressDto) {
+        try {
+            // Reset the quiz attempt
+            const newQuizDetails =
+                await this.quizAttemptService.resetQuizAttempt(resetQuizAttempt);
+
+            // Respond with new quiz details
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                newQuizDetails,
+                'Quiz reset successfully',
+            );
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }

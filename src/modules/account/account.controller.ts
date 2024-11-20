@@ -40,7 +40,7 @@ export class AccountController {
     ) {}
 
     @Post()
-    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
+    //@UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async save(@Body() accountDto: CreateAccountDTO) {
         try {
             const saveAccount = await this.accountService.save(accountDto);

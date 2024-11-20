@@ -748,7 +748,7 @@ export class UnitService extends BaseService<Unit> {
         unit.status = UnitStatus.PENDING;
         await this.unitRepository.save(unit);
 
-        this.feedbackService.submitLearningMaterial({
+        this.feedbackService.submitLearningMaterialFeedback({
             unit: unit,
             status: FeedbackStatus.PENDING,
             content: 'Learning material submitted',
@@ -798,11 +798,20 @@ export class UnitService extends BaseService<Unit> {
     private async approveLearningMaterial(
         feedbackDto: LearningMaterialFeedbackDto,
     ): Promise<Feedback> {
+        const unit = await this.unitRepository.findOneBy({
+            id: feedbackDto.unitFeedback.unitId,
+        });
+
+        if (unit === null) {
+            throw new NotFoundException('Unit not found');
+        }
+
         // Mark the entire unit as approved
-        await this.updateUnitStatus(feedbackDto.unitFeedback.unitId, {
+        await this.updateUnitStatus(unit.id, {
             status: UnitStatus.APPROVED,
         });
 
+        feedbackDto.accountToId = unit.createdby;
         return await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
     }
 

@@ -49,8 +49,9 @@ import { ExamSemesterModule } from './modules/exam-semester/exam-semester.module
 import { DomainDistributionConfigModule } from './modules/domain-distribution-config/domain-distribution-config.module';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuditSubscriber } from './common/subscriber/audit.subscriber';
 import { PostgresConfigService } from './database/config/postgres.config';
+import { JwtService } from '@nestjs/jwt';
+import { ProgressModule } from './modules/progress/progress.module';
 import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
 
 @Module({
@@ -107,6 +108,7 @@ import { TargetLearningDetailModule } from './modules/target-learning-detail/tar
         ExamStructureConfigModule,
         ExamSemesterModule,
         DomainDistributionConfigModule,
+        ProgressModule,
         TargetLearningDetailModule,
 
         MailerModule.forRootAsync({
@@ -135,12 +137,8 @@ import { TargetLearningDetailModule } from './modules/target-learning-detail/tar
             }),
             inject: [ConfigService],
         }),
-
-        ExamSemesterModule,
-
-        DomainDistributionConfigModule,
     ],
-    providers: [FeedbacksGateway],
+    providers: [FeedbacksGateway, JwtService],
     // providers: [PaginationService],
     // exports: [PaginationService]
 })

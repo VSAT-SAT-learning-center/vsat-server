@@ -35,7 +35,7 @@ export class LessonProgress {
 
     @ManyToOne(() => TargetLearningDetail)
     @JoinColumn({ name: 'targetlearningdetailid' })
-    targetLearning: TargetLearningDetail;
+    targetLearningDetails: TargetLearningDetail;
 
     @ManyToOne(() => Lesson)
     @JoinColumn({ name: 'lessonid' })

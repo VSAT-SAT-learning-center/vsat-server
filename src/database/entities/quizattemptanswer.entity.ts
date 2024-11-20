@@ -36,8 +36,11 @@ export class QuizAttemptAnswer {
     @JoinColumn({ name: 'quizquestionid' })
     quizQuestion: QuizQuestion;
 
+    @Column({ type: 'uuid', nullable: true })
+    studentAnswerId: string;
+   
     @Column({ type: 'text', nullable: true })
-    studentAnswer: string;
+    studentAnswerText: string;
 
     @Column({ type: 'boolean', default: false })
     isCorrect: boolean;
