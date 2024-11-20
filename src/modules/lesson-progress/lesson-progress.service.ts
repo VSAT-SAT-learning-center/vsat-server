@@ -272,31 +272,31 @@ export class LessonProgressService extends BaseService<LessonProgress> {
         });
     }
 
-    // Hàm khởi động tiến trình cho bài học khi học sinh bắt đầu học
-    async startProgress(
-        lessonId: string,
-        targetLearningDetailsId: string,
-        unitAreaId: string,
-        unitId: string,
-    ) {
-        // 1. Kiểm tra và tạo `UnitProgress` nếu chưa tồn tại
-        const unitProgress = await this.unitProgressService.startUnitProgress(
-            targetLearningDetailsId,
-            unitId,
-        );
-        // 2. Kiểm tra và tạo `UnitAreaProgress` nếu chưa tồn tại
-        const unitAreaProgress = await this.unitAreaProgressService.startUnitAreaProgress(
-            targetLearningDetailsId,
-            unitAreaId,
-            unitProgress.id,
-        );
-        // 3. Kiểm tra và tạo `LessonProgress` nếu chưa tồn tại
-        return await this.startLessonProgress(
-            lessonId,
-            unitAreaProgress.id,
-            targetLearningDetailsId,
-        );
-    }
+    // // Hàm khởi động tiến trình cho bài học khi học sinh bắt đầu học
+    // async startProgress(
+    //     lessonId: string,
+    //     targetLearningDetailsId: string,
+    //     unitAreaId: string,
+    //     unitId: string,
+    // ) {
+    //     // 1. Kiểm tra và tạo `UnitProgress` nếu chưa tồn tại
+    //     const unitProgress = await this.unitProgressService.startUnitProgress(
+    //         targetLearningDetailsId,
+    //         unitId,
+    //     );
+    //     // 2. Kiểm tra và tạo `UnitAreaProgress` nếu chưa tồn tại
+    //     const unitAreaProgress = await this.unitAreaProgressService.startUnitAreaProgress(
+    //         targetLearningDetailsId,
+    //         unitAreaId,
+    //         unitProgress.id,
+    //     );
+    //     // 3. Kiểm tra và tạo `LessonProgress` nếu chưa tồn tại
+    //     return await this.startLessonProgress(
+    //         lessonId,
+    //         unitAreaProgress.id,
+    //         targetLearningDetailsId,
+    //     );
+    // }
 
     // Hàm cập nhật tiến trình khi học sinh hoàn thành bài học
     async completeLessonProgress(

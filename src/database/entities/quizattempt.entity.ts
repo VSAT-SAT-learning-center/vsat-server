@@ -12,6 +12,7 @@ import { StudyProfile } from './studyprofile.entity';
 import { Quiz } from './quiz.entity';
 import { QuizAttemptAnswer } from './quizattemptanswer.entity';
 import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
+import { UnitProgress } from './unitprogress.entity';
 
 @Entity('quizattempt')
 export class QuizAttempt {
@@ -30,9 +31,9 @@ export class QuizAttempt {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @ManyToOne(() => StudyProfile)
-    @JoinColumn({ name: 'studyprofileid' })
-    studyProfile: StudyProfile;
+    @ManyToOne(() => UnitProgress)
+    @JoinColumn({ name: 'unitprogressid' })
+    unitProgress: UnitProgress;
 
     @ManyToOne(() => Quiz)
     @JoinColumn({ name: 'quizid' })

@@ -11,7 +11,7 @@ import { QuizAttemptService } from './quiz-attempt.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { QuizAttempt } from 'src/database/entities/quizattempt.entity';
 import { BaseController } from '../base/base.controller';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RecommendationService } from '../recommendation-service/recommendation.service';
 import { QuizService } from '../quiz/quiz.service';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
@@ -227,6 +227,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         return await this.recommendationService.recommendUnitAreas(quizAttemptId);
     }
 
+    @ApiOperation({ summary: 'Get thông tin học sinh đã làm bài quiz' })
     @Get(':quizAttemptId/status')
     async getQuizAttemptStatus(@Param('quizAttemptId') quizAttemptId: string) {
         try {

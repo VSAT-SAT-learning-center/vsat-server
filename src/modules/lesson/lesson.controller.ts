@@ -84,27 +84,27 @@ export class LessonController extends BaseController<Lesson> {
         );
     }
 
-    @Post(':lessonId/start')
-    async startLessonProgress(
-        @Param('lessonId') lessonId: string,
-        @Body() lessonProgressDto: StartLessonProgressDto,
-    ) {
-        const { targetLearningDetailsId, unitAreaId, unitId } = lessonProgressDto;
+    // @Post(':lessonId/start')
+    // async startLessonProgress(
+    //     @Param('lessonId') lessonId: string,
+    //     @Body() lessonProgressDto: StartLessonProgressDto,
+    // ) {
+    //     const { targetLearningDetailsId, unitAreaId, unitId } = lessonProgressDto;
 
-        // Gọi service để khởi động tiến trình bài học
-        const lessonProgress = await this.lessonProgressService.startProgress(
-            lessonId,
-            targetLearningDetailsId,
-            unitAreaId,
-            unitId,
-        );
+    //     // Gọi service để khởi động tiến trình bài học
+    //     const lessonProgress = await this.lessonProgressService.startProgress(
+    //         lessonId,
+    //         targetLearningDetailsId,
+    //         unitAreaId,
+    //         unitId,
+    //     );
 
-        return {
-            statusCode: HttpStatus.CREATED,
-            message: 'Lesson progress started successfully',
-            data: lessonProgress,
-        };
-    }
+    //     return {
+    //         statusCode: HttpStatus.CREATED,
+    //         message: 'Lesson progress started successfully',
+    //         data: lessonProgress,
+    //     };
+    // }
 
     @Patch(':lessonId/complete')
     async completeLessonProgress(

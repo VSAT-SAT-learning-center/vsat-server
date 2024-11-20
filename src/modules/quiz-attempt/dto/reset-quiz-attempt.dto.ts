@@ -10,5 +10,5 @@ export class ResetQuizAttemptProgressDto {
     unitId: string;
 
     @ApiProperty()
-    studyProfileId: string;
+    unitProgressId: string;
 }
