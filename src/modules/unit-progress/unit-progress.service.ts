@@ -159,7 +159,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
 
         const allUnitAreas = await this.unitAreaRepository.find({
             where: { unit: { id: In(allUnitIds) } },
-            relations: ['lessons'],
+            relations: ['lessons', 'unit'],
         });
 
         const allUnitAreaProgresses = await this.unitAreaProgressRepository.find({
