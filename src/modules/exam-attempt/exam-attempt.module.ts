@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Exam } from 'src/database/entities/exam.entity';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
@@ -45,9 +45,9 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
             TargetLearning,
         ]),
         TargetLearningDetailModule,
-        TargetLearningModule,
-        UnitProgressModule,
-        ExamAttemptDetailModule,
+        forwardRef(() => TargetLearningModule),
+        forwardRef(() => UnitProgressModule),
+        forwardRef(() => ExamAttemptDetailModule),
     ],
     providers: [ExamAttemptService, StudyProfileService, TargetLearningService],
     controllers: [ExamAttemptController],

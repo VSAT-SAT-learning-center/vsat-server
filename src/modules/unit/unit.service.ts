@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Unit } from 'src/database/entities/unit.entity';
 import { Repository } from 'typeorm';
@@ -27,6 +27,7 @@ export class UnitService extends BaseService<Unit> {
         private readonly levelService: LevelService,
         private readonly domainService: DomainService,
 
+        @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
     ) {
         super(unitRepository);

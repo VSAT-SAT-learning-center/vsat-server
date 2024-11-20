@@ -15,6 +15,7 @@ import { StudyProfile } from './studyprofile.entity';
 import { UnitProgress } from './unitprogress.entity';
 import { ExamAttempt } from './examattempt.entity';
 import { TargetLearningDetail } from './targetlearningdetail.entity';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @Entity('targetlearning')
 export class TargetLearning {
@@ -53,6 +54,10 @@ export class TargetLearning {
     )
     targetlearningdetail: TargetLearningDetail[];
 
-    @Column({ type: 'boolean', default: true })
-    status: boolean;
+    @Column({
+        type: 'enum',
+        enum: TargetLearningStatus,
+        default: TargetLearningStatus.INACTIVE,
+    })
+    status: TargetLearningStatus;
 }

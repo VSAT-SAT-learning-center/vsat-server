@@ -1,4 +1,10 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    HttpException,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTargetLearningDto } from './dto/create-targetlearning.dto';
@@ -8,6 +14,9 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { BaseService } from '../base/base.service';
 import { plainToInstance } from 'class-transformer';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
+import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @Injectable()
 export class TargetLearningService {
@@ -16,6 +25,11 @@ export class TargetLearningService {
         private readonly targetLearningRepository: Repository<TargetLearning>,
         @InjectRepository(ExamAttempt)
         private readonly examAttemptRepository: Repository<ExamAttempt>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
+
+        @Inject(forwardRef(() => ExamAttemptService))
+        private readonly examAttemptService: ExamAttemptService,
     ) {}
 
     async save(studyProfileId: string, examAttemptId: string) {
@@ -25,7 +39,7 @@ export class TargetLearningService {
 
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
-            relations: ['targetlearning']
+            relations: ['targetlearning'],
         });
 
         if (!examAttempt) {
@@ -43,5 +57,34 @@ export class TargetLearningService {
         examAttempt.targetlearning = saveTarget;
         await this.examAttemptRepository.save(examAttempt);
         return saveTarget;
+    }
+
+    async getWithExamAttempt(targetLearningId: string) {
+        const targetLearning = await this.targetLearningRepository.findOne({
+            where: { id: targetLearningId },
+            relations: ['studyProfile', 'examattempt'],
+        });
+
+        if (!targetLearning.examattempt) {
+            throw new Error('ExamAttempt not found for the given TargetLearning');
+        }
+
+        const examAttemptId = targetLearning.examattempt.id;
+
+        const examStatistics =
+            await this.examAttemptService.getExamAttemptStatistics(examAttemptId);
+
+        return {
+            examStatistics,
+        };
+    }
+
+    async getTargetLearningByStudyProfile(studyProfileId: string) {
+        const targetLearning = await this.targetLearningRepository.find({
+            where: { studyProfile: { id: studyProfileId } },
+            relations: ['targetlearningdetail']
+        });
+
+        return targetLearning;
     }
 }
