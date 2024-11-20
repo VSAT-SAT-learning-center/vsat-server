@@ -1,9 +1,4 @@
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUnitAreaProgressDto } from './dto/create-unitareaprogress.dto';
@@ -33,48 +28,6 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         super(unitAreaProgressRepository);
     }
 
-    async updateUnitAreaProgress(
-        unitProgressId: string,
-        unitAreaId: string,
-    ): Promise<UnitAreaProgress> {
-        const progress =
-            await this.lessonProgressService.calculateUnitAreaProgress(
-                unitProgressId,
-            );
-
-        let unitAreaProgress = await this.unitAreaProgressRepository.findOne({
-            where: {
-                unitArea: { id: unitAreaId },
-                unitProgress: { id: unitProgressId },
-            },
-        });
-
-        if (unitAreaProgress) {
-            unitAreaProgress.progress = progress;
-        } else {
-            unitAreaProgress = this.unitAreaProgressRepository.create({
-                unitArea: { id: unitAreaId },
-                unitProgress: { id: unitProgressId },
-                progress,
-            });
-        }
-
-        return this.unitAreaProgressRepository.save(unitAreaProgress);
-    }
-
-    async calculateUnitProgress(unitProgressId: string): Promise<number> {
-        const unitAreas = await this.unitAreaProgressRepository.find({
-            where: { unitProgress: { id: unitProgressId } },
-        });
-
-        if (unitAreas.length === 0) return 0;
-
-        const completedUnitAreas = unitAreas.filter(
-            (ua) => ua.progress === 100,
-        ).length;
-        return (completedUnitAreas / unitAreas.length) * 100;
-    }
-
     async create(
         createUnitAreaProgressDto: CreateUnitAreaProgressDto,
     ): Promise<UnitAreaProgress> {
@@ -86,8 +39,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
             throw new NotFoundException('UnitArea not found');
         }
 
-        const unitProgress =
-            await this.unitProgressService.findOneById(unitProgressId);
+        const unitProgress = await this.unitProgressService.findOneById(unitProgressId);
         if (!unitProgress) {
             throw new NotFoundException('UnitProgress not found');
         }
@@ -118,8 +70,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
             throw new NotFoundException('UnitArea not found');
         }
 
-        const unitProgress =
-            await this.unitProgressService.findOneById(unitProgressId);
+        const unitProgress = await this.unitProgressService.findOneById(unitProgressId);
 
         if (!unitProgress) {
             throw new NotFoundException('UnitProgress not found');
@@ -134,14 +85,11 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         return updatedUnitAreaProgress;
     }
 
-    async updateUnitAreaProgressNow(
-        unitAreaId: string,
-        unitAreaProgressId: string,
-    ) {
+    async updateUnitAreaProgressNow(unitAreaId: string, unitAreaProgressId: string) {
         // Lấy UnitAreaProgress dựa trên UnitAreaId và targetLearningId
         const unitAreaProgress = await this.unitAreaProgressRepository.findOne({
             where: {
-                id :unitAreaProgressId
+                id: unitAreaProgressId,
             },
             relations: ['unitArea', 'unitProgress'],
         });
@@ -151,9 +99,8 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         }
 
         // Lấy tổng số bài học thuộc UnitArea
-        const totalLessons = (
-            await this.lessonService.findByUnitAreaId(unitAreaId)
-        ).length;
+        const totalLessons = (await this.lessonService.findByUnitAreaId(unitAreaId))
+            .length;
 
         if (totalLessons === 0) {
             throw new NotFoundException('No lessons found for this UnitArea');
@@ -167,8 +114,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
 
         // Tính số lượng bài học đã hoàn thành
         const completedLessons = lessonProgresses.filter(
-            (lessonProgress) =>
-                lessonProgress.status === ProgressStatus.COMPLETED,
+            (lessonProgress) => lessonProgress.status === ProgressStatus.COMPLETED,
         ).length;
 
         // Cập nhật phần trăm hoàn thành cho UnitArea
@@ -216,5 +162,69 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         }
 
         return unitAreaProgress;
+    }
+
+    async getUnitAreaProgressDetails(unitAreaProgressId: string): Promise<any> {
+        // 1. Lấy thông tin UnitAreaProgress
+        const unitAreaProgress = await this.unitAreaProgressRepository.findOne({
+            where: { id: unitAreaProgressId },
+            relations: [
+                'unitArea',
+                'unitArea.lessons',
+                'lessonProgresses',
+                'lessonProgresses.lesson',
+                'lessonProgresses.lesson.lessonContents',
+            ],
+        });
+
+        if (!unitAreaProgress) {
+            throw new NotFoundException(
+                `UnitAreaProgress with ID ${unitAreaProgressId} not found`,
+            );
+        }
+
+        // 2. Transform dữ liệu trả về
+        const lessonDetails = unitAreaProgress.unitArea.lessons.map((lesson) => {
+            const lessonProgress = unitAreaProgress.lessonProgresses.find(
+                (lp) => lp.lesson.id === lesson.id,
+            );
+
+            return {
+                id: lesson.id,
+                title: lesson.title,
+                status: lessonProgress ? lessonProgress.status : null,
+                progress: lessonProgress ? lessonProgress.progress : 0,
+                contents: lesson.lessonContents.map((content) => ({
+                    id: content.id,
+                    title: content.title,
+                    contentType: content.contentType,
+                    url: content.url,
+                    image: content.image,
+                    question: content.question
+                        ? {
+                              questionId: content.question.questionId,
+                              prompt: content.question.prompt,
+                              correctAnswer: content.question.correctAnswer,
+                              explanation: content.question.explanation || '',
+                              answers: content.question.answers || [],
+                          }
+                        : null,
+                })),
+            };
+        });
+
+        // 3. Kết quả trả về
+        return {
+            unitAreaProgress: {
+                id: unitAreaProgress.id,
+                progress: unitAreaProgress.progress,
+                status: unitAreaProgress.status,
+                unitArea: {
+                    id: unitAreaProgress.unitArea.id,
+                    title: unitAreaProgress.unitArea.title,
+                },
+            },
+            lessons: lessonDetails,
+        };
     }
 }

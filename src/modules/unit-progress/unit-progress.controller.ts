@@ -1,5 +1,15 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpException,
+    HttpStatus,
+    Param,
+    Patch,
+    Post,
+    UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 import { UnitProgressService } from './unit-progress.service';
@@ -7,25 +17,65 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
 import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
+import { SyncUnitProgressDto } from './dto/sync-updateprogress.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
-// @ApiTags('UnitProgress')
+@ApiTags('UnitProgress')
 @Controller('unit-progress')
 export class UnitProgressController extends BaseController<UnitProgress> {
     constructor(private readonly unitProgressService: UnitProgressService) {
         super(unitProgressService, 'UnitProgress');
     }
 
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-        const unit = await this.unitProgressService.findOneById(id, [
-            'unitAreaProgresses',
-        ]);
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            unit,
-            SuccessMessages.get('UnitProgress'),
-        );
+    @Get('details/:unitProgressId')
+    async getUnitProgressDetail(@Param('unitProgressId') unitProgressId: string) {
+        try {
+            const unitProgressDetail =
+                await this.unitProgressService.getUnitProgressDetail(unitProgressId);
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                unitProgressDetail,
+                'UnitProgress detail retrieved successfully',
+            );
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
     }
+
+    @Get(':targetLearningDetailId')
+    async getAllUnitProgress(
+        @Param('targetLearningDetailId') targetLearningDetailId: string,
+    ) {
+        try {
+            const unitProgressDetail =
+                await this.unitProgressService.getAllUnitProgress(targetLearningDetailId);
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                unitProgressDetail,
+                'UnitProgress list retrieved successfully',
+            );
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // @Get(':unitProgressId')
+    // async getLessonsByUnitProgress(@Param('unitProgressId') unitProgressId: string) {
+    //     try {
+    //         const unitProgressDetail =
+    //             await this.unitProgressService.getLessonsByUnitProgress(unitProgressId);
+
+    //         return ResponseHelper.success(
+    //             HttpStatus.OK,
+    //             unitProgressDetail,
+    //             'UnitProgress detail retrieved successfully',
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    //     }
+    // }
 
     @Post()
     async create(@Body() createUnitProgressDto: CreateUnitProgressDto) {
@@ -53,12 +103,61 @@ export class UnitProgressController extends BaseController<UnitProgress> {
         );
     }
 
-    // @Patch(':unitId/:targetLearningId')
-    // async updateUnitProgress(
-    //     @Param('unitId') unitId: string,
-    //     @Param('targetLearningId') targetLearningId: string,
-    // ): Promise<UnitProgress> {
-    //     return this.unitProgressService.updateUnitProgress(unitId, targetLearningId);
-    // }
+    @UseGuards(JwtAuthGuard)
+    @Post('sync')
+    @ApiBody({
+        description: 'Payload for syncing unit progresses',
+        type: SyncUnitProgressDto,
+    })
+    @ApiOperation({ summary: 'Sync unit progresses' })
+    async syncUnitProgress(@Body() syncUnitProgressDto: SyncUnitProgressDto) {
+        const { targetLearningDetailId, unitProgresses } = syncUnitProgressDto;
+        const result = [];
+        try {
+            await this.unitProgressService.syncUnitProgress(
+                targetLearningDetailId,
+                unitProgresses,
+            );
 
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                result,
+                'Unit progress synchronized successfully',
+            );
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    //@UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    @UseGuards(JwtAuthGuard)
+    @Post('multiple-sync')
+    @ApiBody({
+        description: 'Payload for syncing multiple unit progresses',
+        type: SyncUnitProgressDto, // Directly refer to the DTO
+        isArray: true, // Since the method expects an array of SyncUnitProgressDto
+    })
+    @ApiOperation({ summary: 'Sync multiple unit progresses' })
+    async syncMultipleUnitProgress(@Body() syncUnitProgressesDto: SyncUnitProgressDto[]) {
+        const result = [];
+        try {
+            for (const syncUnitProgressDto of syncUnitProgressesDto) {
+                const { targetLearningDetailId, unitProgresses } = syncUnitProgressDto;
+                const syncResult = await this.unitProgressService.syncUnitProgress(
+                    targetLearningDetailId,
+                    unitProgresses,
+                );
+                result.push(syncResult);
+            }
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                result,
+                'Unit progress synchronized successfully',
+            );
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+    
 }
