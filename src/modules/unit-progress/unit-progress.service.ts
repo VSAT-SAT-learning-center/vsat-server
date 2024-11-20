@@ -363,17 +363,20 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         }
 
         return {
+            unitProgressId: unitProgress.id,
             unitId: unitProgress.unit.id,
             unitTitle: unitProgress.unit.title,
             unitDescription: unitProgress.unit.description,
             progress: unitProgress.progress || 0,
             status: unitProgress.status,
             unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
+                unitAreaProgressId: unitAreaProgress.id,
                 unitAreaId: unitAreaProgress.unitArea.id,
                 unitAreaTitle: unitAreaProgress.unitArea.title,
                 progress: unitAreaProgress.progress || 0,
                 status: unitAreaProgress.status,
                 lessons: unitAreaProgress.lessonProgresses.map((lessonProgress) => ({
+                    lessonProgressId: lessonProgress.id,
                     lessonId: lessonProgress.lesson.id,
                     lessonTitle: lessonProgress.lesson.title,
                     progress: lessonProgress.progress || 0,
