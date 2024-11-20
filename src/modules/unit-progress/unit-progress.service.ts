@@ -16,6 +16,8 @@ import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
 import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { UnitArea } from 'src/database/entities/unitarea.entity';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
+import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 
 @Injectable()
 export class UnitProgressService extends BaseService<UnitProgress> {
@@ -24,6 +26,10 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         private readonly unitProgressRepository: Repository<UnitProgress>,
         @InjectRepository(Unit)
         private readonly unitRepository: Repository<Unit>,
+
+        @InjectRepository(TargetLearning)
+        private readonly targetLearningRepository: Repository<TargetLearning>,
+
         @InjectRepository(TargetLearningDetail)
         private readonly targetLearningDetailRepository: Repository<TargetLearningDetail>,
 
@@ -428,7 +434,6 @@ export class UnitProgressService extends BaseService<UnitProgress> {
             where: {
                 targetlearning: { id: targetLearningId },
                 section: { id: sectionId },
-                status: true,
             },
         });
 
@@ -481,6 +486,14 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         //     where: { targetLearningDetail: { id: targetLearningDetailId } },
         //     relations: ['unit'],
         // });
+
+        await this.targetLearningDetailRepository.update(targetLearningDetailId, {
+            status: TargetLearningStatus.ACTIVE, // Set status to active
+        });
+
+        await this.targetLearningRepository.update(targetLearningId, {
+            status: TargetLearningStatus.ACTIVE, // Set status to active
+        });
 
         // Step 2: Delete all existing UnitProgress for this TargetLearningDetail
         await this.unitProgressRepository.delete({
