@@ -19,12 +19,16 @@ import { BaseController } from '../base/base.controller';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
+import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
 
 @ApiTags('TargetLearnings')
 @Controller('target-learnings')
 @ApiBearerAuth('JWT-auth')
 export class TargetLearningController {
-    constructor(private readonly targetLearningService: TargetLearningService) {}
+    constructor(
+        private readonly targetLearningService: TargetLearningService,
+        private readonly targetLearningDetailService: TargetLearningDetailService,
+    ) {}
 
     @Get('getStatisticByTargetLearning')
     async getWithExamAttempt(@Query('targetLearningId') targetLearningId: string) {
@@ -60,6 +64,29 @@ export class TargetLearningController {
                 HttpStatus.OK,
                 targetLearning,
                 SuccessMessages.get('TargetLearning'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get(':targetLearningId/unit-progresses')
+    async getUnitProgressesByTargetLearning(
+        @Query('targetLearningId') targetLearningId: string,
+    ) {
+        try {
+            const unitProgresses =
+                await this.targetLearningDetailService.getAllUnitProgress(targetLearningId);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                unitProgresses,
+                SuccessMessages.get('UnitProgresses'),
             );
         } catch (error) {
             throw new HttpException(
