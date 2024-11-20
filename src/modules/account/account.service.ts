@@ -126,7 +126,7 @@ export class AccountService extends BaseService<Account> {
         if (role.rolename === 'Student' && accountDTO.gender === true) {
             imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174163.png';
         }
-        if (role.rolename === 'student' && accountDTO.gender === false) {
+        if (role.rolename === 'Student' && accountDTO.gender === false) {
             imgUrl = 'https://cdn-icons-png.flaticon.com/512/18174/18174160.png';
         }
 
