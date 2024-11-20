@@ -52,6 +52,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             startdate: new Date(),
             enddate: enddate,
             studyProfile: { id: studyProfileId },
+            status: TargetLearningStatus.ACTIVE,
         });
 
         const saveTarget = await this.targetLearningRepository.save(create);

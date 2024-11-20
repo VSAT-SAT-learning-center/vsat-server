@@ -156,7 +156,7 @@ export class StudyProfileController {
     }
 
     @Get('getStudyProfileWithTargetLearningDetail')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
     async getStudyProfileWithTargetLearningDetail(@Request() req) {
         try {
             const studyProfile =
@@ -180,7 +180,7 @@ export class StudyProfileController {
     }
 
     @Get('getStudyProfileWithTargetLearningDetailWithStatus')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
     async getStudyProfileWithTargetLearningDetailWithStatus(@Request() req) {
         try {
             const studyProfile =

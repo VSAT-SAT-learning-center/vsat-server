@@ -232,6 +232,7 @@ export class QuestionController {
             },
         },
     })
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async publishQuestions(@Body() body: { questionIds: string[] }) {
         try {
             const { questionIds } = body;
