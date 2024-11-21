@@ -120,8 +120,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
 
         // Cập nhật phần trăm hoàn thành cho UnitArea
         const progressPercentage = (completedLessons / totalLessons) * 100;
-        unitAreaProgress.progress = progressPercentage;
-
+        unitAreaProgress.progress = Math.round(progressPercentage);
         // Nếu tất cả các bài học trong UnitArea đã hoàn thành, cập nhật trạng thái thành "COMPLETED"
         if (completedLessons === totalLessons) {
             unitAreaProgress.status = ProgressStatus.COMPLETED;

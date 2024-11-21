@@ -58,7 +58,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 id: unitProgressId,
                 targetLearningDetail: { id: targetLearningId },
             },
-            relations: ['unitAreaProgresses'],
+            relations: ['unitAreaProgresses', 'unit'],
         });
 
         if (!unitProgress) {
@@ -78,7 +78,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         ).length;
 
         const progressPercentage = (completedUnitAreas / totalUnitAreas) * 100;
-        unitProgress.progress = progressPercentage;
+        unitProgress.progress = Math.round(progressPercentage);
 
         if (completedUnitAreas === totalUnitAreas) {
             unitProgress.status = ProgressStatus.COMPLETED;
