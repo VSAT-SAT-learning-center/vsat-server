@@ -18,7 +18,7 @@ import { BaseController } from '../base/base.controller';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { StartLessonProgressDto } from './dto/start-lesson-progress.dto';
-import { CompleteLessonProgressDto } from '../lesson-progress/dto/complete-lesson-progress.dto';
+import { CompleteLessonProgressDto } from '../target-learning/dto/complete-lesson-progress.dto';
 import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
@@ -84,43 +84,25 @@ export class LessonController extends BaseController<Lesson> {
         );
     }
 
-    @Post(':lessonId/start')
-    async startLessonProgress(
-        @Param('lessonId') lessonId: string,
-        @Body() lessonProgressDto: StartLessonProgressDto,
-    ) {
-        const { targetLearningDetailsId, unitAreaId, unitId } = lessonProgressDto;
+    // @Post(':lessonId/start')
+    // async startLessonProgress(
+    //     @Param('lessonId') lessonId: string,
+    //     @Body() lessonProgressDto: StartLessonProgressDto,
+    // ) {
+    //     const { targetLearningDetailsId } = lessonProgressDto;
 
-        // Gọi service để khởi động tiến trình bài học
-        const lessonProgress = await this.lessonProgressService.startProgress(
-            lessonId,
-            targetLearningDetailsId,
-            unitAreaId,
-            unitId,
-        );
+    //     // Gọi service để khởi động tiến trình bài học
+    //     const lessonProgress = await this.lessonProgressService.startProgress(
+    //         lessonId,
+    //         targetLearningDetailsId,
+    //     );
 
-        return {
-            statusCode: HttpStatus.CREATED,
-            message: 'Lesson progress started successfully',
-            data: lessonProgress,
-        };
-    }
+    //     return {
+    //         statusCode: HttpStatus.CREATED,
+    //         message: 'Lesson progress started successfully',
+    //         data: lessonProgress,
+    //     };
+    // }
 
-    @Patch(':lessonId/complete')
-    async completeLessonProgress(
-        @Param('lessonId') lessonId: string,
-        @Body() lessonProgressDto: CompleteLessonProgressDto,
-    ) {
-        // Gọi service để cập nhật tiến trình khi học sinh hoàn thành bài học
-        const result = await this.lessonProgressService.completeLessonProgress(
-            lessonId,
-            lessonProgressDto,
-        );
-
-        return {
-            statusCode: HttpStatus.CREATED,
-            message: 'Lesson completed and progress updated successfully',
-            data: result,
-        };
-    }
+    
 }

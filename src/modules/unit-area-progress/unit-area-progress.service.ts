@@ -120,8 +120,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
 
         // Cập nhật phần trăm hoàn thành cho UnitArea
         const progressPercentage = (completedLessons / totalLessons) * 100;
-        unitAreaProgress.progress = progressPercentage;
-
+        unitAreaProgress.progress = Math.round(progressPercentage);
         // Nếu tất cả các bài học trong UnitArea đã hoàn thành, cập nhật trạng thái thành "COMPLETED"
         if (completedLessons === totalLessons) {
             unitAreaProgress.status = ProgressStatus.COMPLETED;
@@ -183,7 +182,6 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
             );
         }
 
-        console.log(JSON.stringify(unitAreaProgress, null, 2));
         // Transform lessons to include lessonContents
         const lessonDetails = (unitAreaProgress.unitArea?.lessons || []).map((lesson) => {
             const lessonProgress = unitAreaProgress.lessonProgresses?.find(
@@ -192,6 +190,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
 
             return {
                 id: lesson.id,
+                lessonpProgressId: lessonProgress?.id || null,
                 title: lesson.title,
                 prerequisitelessonid: lesson.prerequisitelessonid || null,
                 type: lesson.type || 'Unknown',
@@ -233,6 +232,7 @@ export class UnitAreaProgressService extends BaseService<UnitAreaProgress> {
         return {
             unitAreaProgress: {
                 id: unitAreaProgress.id,
+                unitAreaProgressId: unitAreaProgress.id,
                 progress: unitAreaProgress.progress || 0,
                 status: unitAreaProgress.status || null,
                 unitArea: {

@@ -14,7 +14,7 @@ import { LessonProgressService } from '../lesson-progress/lesson-progress.servic
 import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
 import { UnitProgressService } from '../unit-progress/unit-progress.service';
 import { Exception } from 'handlebars';
-import { CompleteLessonProgressDto } from '../lesson-progress/dto/complete-lesson-progress.dto';
+import { CompleteLessonProgressDto } from '../target-learning/dto/complete-lesson-progress.dto';
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
