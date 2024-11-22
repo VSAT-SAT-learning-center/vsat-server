@@ -12,6 +12,7 @@ import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
 import { CompleteQuizAttemptResponseDto } from './dto/reponse-complete-quiz-attempt.dto';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
 import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
+import { SkillDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class QuizAttemptService extends BaseService<QuizAttempt> {
@@ -162,7 +163,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
 
         const score = (correctAnswers / totalQuestions) * 100;
 
-        quizAttempt.score = score;
+        quizAttempt.score = Math.round(score);
         quizAttempt.status = QuizAttemptStatus.COMPLETED;
         quizAttempt.attemptdatetime = new Date();
         const savedQuizAttempt = await this.quizAttemptRepository.save(quizAttempt);
@@ -270,22 +271,25 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     ): Promise<{ skillsSummary: any; skillDetails: any }> {
         const answers =
             await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttemptId);
-        const skillScores = new Map<string, { correct: number; total: number }>();
+        const skillScores = new Map<SkillDto, { correct: number; total: number }>();
 
         for (const answer of answers) {
-            const skillId = answer.quizQuestion.skill.id;
-            if (!skillScores.has(skillId)) {
-                skillScores.set(skillId, { correct: 0, total: 0 });
+            const skill = {
+                id: answer.quizQuestion.skill.id,
+                content: answer.quizQuestion.skill.content,
+            };
+            if (!skillScores.has(skill)) {
+                skillScores.set(skill, { correct: 0, total: 0 });
             }
 
-            const skillScore = skillScores.get(skillId);
+            const skillScore = skillScores.get(skill);
             skillScore.total += 1;
             if (answer.isCorrect) skillScore.correct += 1;
         }
 
         const currentSkillsSummary = Array.from(skillScores.entries()).map(
-            ([skillId, score]) => ({
-                skillId,
+            ([skill, score]) => ({
+                skill,
                 currentAccuracy: (score.correct / score.total) * 100,
             }),
         );
@@ -325,7 +329,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
 
         const skillsSummary = currentSkillsSummary.map((current) => {
             const previous = previousSkillsSummary.find(
-                (p) => p.skillId === current.skillId,
+                (p) => p.skillId === current.skill.id,
             );
             return {
                 ...current,
