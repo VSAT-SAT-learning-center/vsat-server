@@ -1,43 +1,28 @@
-import {
-    BadRequestException,
-    forwardRef,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Like, Not, Repository } from 'typeorm';
+import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { Feedback } from 'src/database/entities/feedback.entity';
+import { IsNull, Like, Not, Repository } from 'typeorm';
 import { AccountService } from '../account/account.service';
 import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
-import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
-import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
 import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 // import { FeedbackReason } from 'src/common/enums/feedback-reason.enum';
-import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
-import { QuizQuestionFeedbackDto } from './dto/quizquestion-feedback.dto';
-import { ExamCensorFeedbackDto } from './dto/exam-feedback.dto';
-import { ModuleTypeService } from '../module-type/module-type.service';
-import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
-import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
-import {
-    LessonDto,
-    UnitFeedbackWithLessonResponseDto,
-} from './dto/get-unit-feedback-with-lesson.dto';
-import {
-    ExamDto,
-    FeedbackDetailResponseDto,
-    QuestionDto,
-    UnitDto,
-} from './dto/get-feedback-details.dto';
-import { UserFeedbackResponseDto } from './dto/get-user-feedback-details.dto';
 import { NotificationDataDto } from 'src/common/dto/notification-data.dto';
-import { Unit } from 'src/database/entities/unit.entity';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
+import { ModuleTypeService } from '../module-type/module-type.service';
+import { ExamCensorFeedbackDto } from './dto/exam-feedback.dto';
+import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
+import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
+import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
+import { UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-lesson.dto';
+import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
+import { UserFeedbackResponseDto } from './dto/get-user-feedback-details.dto';
+import { QuizQuestionFeedbackDto } from './dto/quizquestion-feedback.dto';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -1235,7 +1220,6 @@ export class FeedbackService extends BaseService<Feedback> {
         const where: any = {
             question: { id: questionId },
             status: FeedbackStatus.REJECTED,
-            accountTo: { id: userId },
         };
 
         // Fetch feedback with pagination

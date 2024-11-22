@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Level } from 'src/database/entities/level.entity';
 import { Section } from 'src/database/entities/section.entity';
 import { TargetLearningDetail } from 'src/database/entities/targetlearningdetail.entity';
+import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 import { In, Repository } from 'typeorm';
 import { CreateTargetLearningDetailDto } from './dto/create-targetlearningdetail.dto';
-import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 
 @Injectable()
 export class TargetLearningDetailService {
@@ -82,6 +82,7 @@ export class TargetLearningDetailService {
                 'unitAreaProgresses',
                 'unitAreaProgresses.unitArea',
                 'unitAreaProgresses.lessonProgresses',
+                'unitAreaProgresses.lessonProgresses.lesson',
                 'targetLearningDetail',
             ],
         });

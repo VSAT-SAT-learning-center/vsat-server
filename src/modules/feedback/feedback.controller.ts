@@ -1,37 +1,24 @@
 import {
     Controller,
     Get,
-    Post,
-    Body,
-    Param,
-    HttpStatus,
-    BadRequestException,
-    Patch,
-    HttpException,
-    Request,
-    Query,
     NotFoundException,
+    Param,
+    Query,
+    Request,
     UseGuards,
 } from '@nestjs/common';
-import { FeedbackService } from './feedback.service';
-import { BaseController } from '../base/base.controller';
-import { Feedback } from 'src/database/entities/feedback.entity';
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
-import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
-import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
-import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
-import { UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-lesson.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
-import { QuestionFeedbackDto } from './dto/question-feedback.dto';
-import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
-import { Unit } from 'src/database/entities/unit.entity';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { Feedback } from 'src/database/entities/feedback.entity';
+import { BaseController } from '../base/base.controller';
+import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
+import { FeedbackService } from './feedback.service';
+import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
-@UseGuards(JwtAuthGuard)
+
 export class FeedbackController extends BaseController<Feedback> {
     constructor(private readonly feedbackService: FeedbackService) {
         super(feedbackService, 'Feedback');
@@ -154,7 +141,7 @@ export class FeedbackController extends BaseController<Feedback> {
             limit,
         );
     }
-
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'manager']))
     @ApiOperation({ summary: 'Get feedback details by question id' })
     @Get('question/reason/:questionId')
     async getRejectFeedbackByQuestionId(
