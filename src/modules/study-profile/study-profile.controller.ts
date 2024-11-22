@@ -230,4 +230,30 @@ export class StudyProfileController {
             );
         }
     }
+
+    @Put('updateStudyProfile/:id')
+    async updateStudyProfile(
+        @Param('id') id: string,
+        @Body() updateStudyProfileDto: UpdateStudyProfileDto,
+    ) {
+        try {
+            const studyProfile = await this.studyProfileService.updateStudyProfile(
+                id,
+                updateStudyProfileDto,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                studyProfile,
+                SuccessMessages.update('StudyProfile'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

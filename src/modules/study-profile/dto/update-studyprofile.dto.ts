@@ -1,23 +1,17 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { IsUUID, IsInt, IsOptional, IsDateString, IsString } from 'class-validator';
 
 export class UpdateStudyProfileDto {
-  @IsUUID()
-  @IsOptional()
-  accountId?: string;
+    @IsDateString()
+    @IsOptional()
+    @ApiProperty()
+    @Expose()
+    startDate?: Date;
 
-  @IsInt()
-  @IsOptional()
-  targetScore?: number;
-
-  @IsDateString()
-  @IsOptional()
-  startDate?: Date;
-
-  @IsDateString()
-  @IsOptional()
-  endDate?: Date;
-
-  @IsString()
-  @IsOptional()
-  status?: string;
+    @IsDateString()
+    @IsOptional()
+    @ApiProperty()
+    @Expose()
+    endDate?: Date;
 }

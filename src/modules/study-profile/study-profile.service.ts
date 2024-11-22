@@ -1,3 +1,4 @@
+import { UpdateStudyProfileDto } from './dto/update-studyprofile.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -332,5 +333,39 @@ export class StudyProfileService {
             currentPage: page,
             totalItems: total,
         };
+    }
+
+    async updateDate(studyProfileId: string, month: number) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { id: studyProfileId },
+        });
+
+        if (!studyProfile) {
+            throw new Error('StudyProfile not found');
+        }
+
+        const startDate = new Date();
+        studyProfile.startdate = startDate;
+
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + month);
+        studyProfile.enddate = endDate;
+
+        return await this.studyProfileRepository.save(studyProfile);
+    }
+
+    async updateStudyProfile(id: string, updateStudyProfileDto: UpdateStudyProfileDto) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { id: id },
+        });
+
+        if (!studyProfile) {
+            throw new NotFoundException('StudyProfile is not found');
+        }
+
+        studyProfile.startdate = updateStudyProfileDto.startDate;
+        studyProfile.enddate = updateStudyProfileDto.endDate;
+
+        return await this.studyProfileRepository.save(studyProfile);
     }
 }
