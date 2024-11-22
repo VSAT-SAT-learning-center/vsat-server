@@ -14,8 +14,8 @@ import { Feedback } from 'src/database/entities/feedback.entity';
 import { BaseController } from '../base/base.controller';
 import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
 import { Unit } from 'src/database/entities/unit.entity';
-import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
+import { FeedbackService } from './feedback.service';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
