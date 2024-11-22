@@ -284,6 +284,30 @@ export class AccountController {
         }
     }
 
+    @Put('updateIsTrialExamById/:id/:status')
+    @UseGuards(JwtAuthGuard)
+    async updateIsTrialExamById(
+        @Param('id') id: string,
+        @Param('status') status: boolean,
+    ) {
+        try {
+            const update = await this.accountService.updateIsTrialExam(id, status);
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Update User Successfully',
+                data: update,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
     @Put('updateAccount')
     @UseGuards(JwtAuthGuard)
     async updateAccount(@Request() req, @Body() updateAccount: UpdateAccountDTO) {
@@ -329,7 +353,10 @@ export class AccountController {
     }
 
     @Get('getTeacherAndCount')
-    async getTeacherAndCount(@Query('page') page: number, @Query('pageSize') pageSize: number) {
+    async getTeacherAndCount(
+        @Query('page') page: number,
+        @Query('pageSize') pageSize: number,
+    ) {
         try {
             const get = await this.accountService.getTeacherAndCount(page, pageSize);
             return {

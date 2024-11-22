@@ -51,9 +51,22 @@ export class StudyProfileService {
                 excludeExtraneousValues: true,
             });
 
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
             return {
                 ...profile,
                 account,
+                startdate,
+                enddate,
             };
         });
 
@@ -133,9 +146,22 @@ export class StudyProfileService {
                 excludeExtraneousValues: true,
             });
 
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
             return {
                 ...profile,
                 account,
+                startdate,
+                enddate,
             };
         });
 
@@ -174,9 +200,22 @@ export class StudyProfileService {
                 excludeExtraneousValues: true,
             });
 
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
             return {
                 ...profile,
                 account,
+                startdate,
+                enddate,
             };
         });
 
