@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Skill } from 'src/database/entities/skill.entity';
+import { CategorizedSkillDetailsDto } from './categoried-skill-details.dto';
+import { UnitDto } from 'src/common/dto/common.dto';
 
 export class SkillsSummaryDto {
     @ApiProperty()
@@ -30,6 +32,12 @@ export class SkillDetailsDto {
 
     @ApiProperty()
     proficiencyLevel: string;
+
+    @ApiProperty({ required: false })
+    previousAccuracy?: number;
+
+    @ApiProperty({ required: false })
+    improvement?: number;
 }
 
 export class RecommendedUnitDto {
@@ -46,10 +54,9 @@ export class RecommendedUnitDto {
     skillName: string;
 }
 
-
 export class ProgressEvaluationDto {
     @ApiProperty()
-    comparison: string;  // e.g., "Improvement", "Same", "Decline"
+    comparison: string; // e.g., "Improvement", "Same", "Decline"
 
     @ApiProperty()
     previousScore: number;
@@ -59,32 +66,23 @@ export class ProgressEvaluationDto {
 }
 
 export class CompleteQuizAttemptResponseDto {
-    @ApiProperty()
     currentScore: number;
 
-    @ApiProperty()
     courseMastery: number;
 
-    @ApiProperty()
-    currentUnit: string;
+    currentUnit: UnitDto;
 
-    @ApiProperty({ type: [SkillsSummaryDto] })
     skillsSummary: SkillsSummaryDto[];
 
-    @ApiProperty({ type: [SkillDetailsDto] })
-    skillDetails: SkillDetailsDto[];
+    skillDetails: CategorizedSkillDetailsDto;
 
-    @ApiProperty({ type: [Skill] })
-    recommendedLessons: Skill[];
+    recommendedLessons: any;
 
-    @ApiProperty({
-        type: 'object',
-        example: { progress: 'improved', previousScore: 85 }
-    })
     progressEvaluation: {
         progress: string;
         previousScore: number;
     };
+
+    correctAnswers: number;
+    totalQuestions: number;
 }
-
-

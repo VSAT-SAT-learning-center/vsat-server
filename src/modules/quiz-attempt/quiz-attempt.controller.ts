@@ -6,6 +6,7 @@ import {
     Param,
     HttpStatus,
     HttpException,
+    UseGuards,
 } from '@nestjs/common';
 import { QuizAttemptService } from './quiz-attempt.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
@@ -20,9 +21,12 @@ import { SaveQuizAttemptProgressDto } from './dto/save-quiz-attempt.dto';
 import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 import { SkipQuizAttemptProgressDto } from './dto/skip-quiz-attempt.dto';
 import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('QuizAttempts')
 @Controller('quiz-attempts')
+//@UseGuards(JwtAuthGuard, new RoleGuard(['student']))
 export class QuizAttemptController extends BaseController<QuizAttempt> {
     constructor(
         private readonly quizAttemptService: QuizAttemptService,
@@ -112,7 +116,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
             await this.quizAttemptService.saveQuizAttemptProgress(
                 quizAttemptId,
                 questionId,
-                
+
                 studentdAnswerId,
                 studentdAnswerText
             );

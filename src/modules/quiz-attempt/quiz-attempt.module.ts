@@ -17,9 +17,10 @@ import { QuizAttemptAnswerModule } from '../quiz-attempt-answer/quiz-attempt-ans
         QuizAttemptAnswerModule,
         QuizQuestionModule,
         RecommendationModule,
-        QuizQuestionItemModule
+        QuizQuestionItemModule,
+        RecommendationModule
     ],
-    providers: [QuizAttemptService, PaginationService],
+    providers: [QuizAttemptService],
     controllers: [QuizAttemptController],
     exports: [QuizAttemptService],
 })
