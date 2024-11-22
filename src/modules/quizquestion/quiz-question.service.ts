@@ -512,7 +512,7 @@ export class QuizQuestionService {
         }
 
         const correctAnswer = question.answers.find((answer) => answer.isCorrectAnswer);
-        if (!studentAnswerText) {
+        if (studentAnswerText) {
             const normalizedAnswerText = AnswerHelper.normalize(selectedAnswerId);
             return correctAnswer.plaintext === normalizedAnswerText;
         } else {
