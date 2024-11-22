@@ -6,6 +6,7 @@ import {
     Param,
     HttpStatus,
     HttpException,
+    UseGuards,
 } from '@nestjs/common';
 import { QuizAttemptService } from './quiz-attempt.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
@@ -20,9 +21,12 @@ import { SaveQuizAttemptProgressDto } from './dto/save-quiz-attempt.dto';
 import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 import { SkipQuizAttemptProgressDto } from './dto/skip-quiz-attempt.dto';
 import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('QuizAttempts')
 @Controller('quiz-attempts')
+//@UseGuards(JwtAuthGuard, new RoleGuard(['student']))
 export class QuizAttemptController extends BaseController<QuizAttempt> {
     constructor(
         private readonly quizAttemptService: QuizAttemptService,
@@ -33,7 +37,10 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         super(quizAttemptService, 'QuizAttempt');
     }
 
-    @ApiOperation({ summary: 'Step 1: Start a quiz attempt -> need call /quiz-attempts/info after that' })
+    @ApiOperation({
+        summary:
+            'Step 1: Start a quiz attempt -> need call /quiz-attempts/info after that',
+    })
     @Post(':unitId/start')
     @ApiBody({
         schema: {
@@ -98,7 +105,8 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         @Param('quizAttemptId') quizAttemptId: string,
         @Body() saveQuizAttemptProgressDto: SaveQuizAttemptProgressDto,
     ) {
-        const { questionId, studentdAnswerId, studentdAnswerText } = saveQuizAttemptProgressDto;
+        const { questionId, studentdAnswerId, studentdAnswerText } =
+            saveQuizAttemptProgressDto;
         try {
             const quizAttempt = await this.quizAttemptService.findOneById(quizAttemptId);
             if (!quizAttempt || quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS) {
@@ -112,9 +120,9 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
             await this.quizAttemptService.saveQuizAttemptProgress(
                 quizAttemptId,
                 questionId,
-                
+
                 studentdAnswerId,
-                studentdAnswerText
+                studentdAnswerText,
             );
 
             // // Return the current progress of the quiz attempt
@@ -163,7 +171,10 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         }
     }
 
-    @ApiOperation({ summary: 'Complete the quiz attempt, calculate the score, and get the quiz results.' })
+    @ApiOperation({
+        summary:
+            'Complete the quiz attempt, calculate the score, and get the quiz results.',
+    })
     @Post(':quizId/complete')
     async completeQuizAttempt(
         @Param('quizId') quizId: string,
@@ -236,6 +247,24 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         try {
             const response =
                 await this.quizAttemptService.getQuizAttemptStatus(quizAttemptId);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                response,
+                'Quiz attempt status retrieved successfully',
+            );
+        } catch (error) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @ApiOperation({ summary: 'Step 2: Get latest student quiz attempt by unitProgress' })
+    @Get(':unitProgressId/latest')
+    async getQuizAttemptInfoByUnitProgress(
+        @Param('unitProgressId') unitProgressId: string,
+    ) {
+        try {
+            const response =
+                await this.quizAttemptService.getLatestQuizAttemptStatus(unitProgressId);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 response,

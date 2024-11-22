@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { QuizAttempt } from 'src/database/entities/quizattempt.entity';
 import { BaseService } from '../base/base.service';
 import { QuizService } from '../quiz/quiz.service';
@@ -9,10 +9,17 @@ import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 import { QuizAttemptAnswerService } from '../quiz-attempt-answer/quiz-attempt-answer.service';
 import { QuizQuestionService } from '../quizquestion/quiz-question.service';
 import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
-import { CompleteQuizAttemptResponseDto } from './dto/reponse-complete-quiz-attempt.dto';
+import {
+    CompleteQuizAttemptResponseDto,
+    SkillDetailsDto,
+} from './dto/response-complete-quiz-attempt.dto';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
 import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
-import { SkillDto } from 'src/common/dto/common.dto';
+import { SkillDto, UnitAreaDto, UnitDto } from 'src/common/dto/common.dto';
+import { CategorizedSkillDetailsDto } from './dto/categoried-skill-details.dto';
+import { RecommendationService } from '../recommendation-service/recommendation.service';
+import { plainToInstance } from 'class-transformer';
+import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 
 @Injectable()
 export class QuizAttemptService extends BaseService<QuizAttempt> {
@@ -23,6 +30,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         private readonly quizAttemptAnswerService: QuizAttemptAnswerService,
         private readonly quizQuestionService: QuizQuestionService,
         private readonly quizQuestionItemService: QuizQuestionItemService,
+        private readonly recommendationService: RecommendationService,
     ) {
         super(quizAttemptRepository);
     }
@@ -82,9 +90,11 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
             );
         }
 
-        await this.updateProgress(quizAttemptId, {
-            status: QuizAttemptStatus.IN_PROGRESS,
-        });
+        if (quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS) {
+            await this.updateProgress(quizAttemptId, {
+                status: QuizAttemptStatus.IN_PROGRESS,
+            });
+        }
     }
 
     async skipQuizAttemptProgress(
@@ -130,6 +140,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     ): Promise<CompleteQuizAttemptResponseDto> {
         const { unitProgressId } = completeQuizAttemptDto;
 
+        // Fetch ongoing quiz attempt
         const quizAttempt = await this.quizAttemptRepository.findOne({
             where: {
                 quiz: { id: quizId },
@@ -148,6 +159,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         let correctAnswers = 0;
         const totalQuestions = quizAttempt.answers.length;
 
+        // Process answers and calculate correct ones
         for (const answer of quizAttempt.answers) {
             const isCorrect = await this.quizQuestionService.verifyAnswer(
                 answer.quizQuestion.id,
@@ -163,44 +175,89 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
 
         const score = (correctAnswers / totalQuestions) * 100;
 
+        // Update quiz attempt
         quizAttempt.score = Math.round(score);
         quizAttempt.status = QuizAttemptStatus.COMPLETED;
         quizAttempt.attemptdatetime = new Date();
         const savedQuizAttempt = await this.quizAttemptRepository.save(quizAttempt);
 
+        // Assess skill progress
         const skillsResult = await this.assessSkillProgress(savedQuizAttempt.id);
 
-        const recommendedUnits = await this.findWeakSkillsByQuizAttempt(
-            savedQuizAttempt.id,
-        );
+        // Categorize skills into increased, decreased, and unchanged
+        const categorizedSkills: CategorizedSkillDetailsDto = {
+            increasedSkills: [],
+            decreasedSkills: [],
+            unchangedSkills: [],
+        };
 
+        for (const skill of skillsResult.skillsSummary) {
+            const skillDetail: SkillDetailsDto = {
+                skillId: skill.skill.id,
+                skillName: skill.skill.content,
+                accuracy: skill.currentAccuracy,
+                previousAccuracy: skill.previousAccuracy || 0,
+                improvement: skill.improvement || 0,
+                proficiencyLevel: this.getProficiencyLevel(skill.currentAccuracy),
+            };
+
+            if (skill.improvement > 0) {
+                categorizedSkills.increasedSkills.push(skillDetail);
+            } else if (skill.improvement < 0) {
+                categorizedSkills.decreasedSkills.push(skillDetail);
+            } else {
+                categorizedSkills.unchangedSkills.push(skillDetail);
+            }
+        }
+
+        // // Find weak skills and recommend lessons
+        // const recommendedUnits = await this.findWeakSkillsByQuizAttempt(
+        //     savedQuizAttempt.id,
+        // );
+
+        // Find weak skills and recommend lessons
+        const recommendedUnits =
+            await this.recommendationService.recommendUnitAreasWithUnitProgress(
+                savedQuizAttempt.id,
+                unitProgressId,
+            );
+
+        // Evaluate quiz progress
         const progressEvaluation = await this.evaluateQuizProgress(
             unitProgressId,
             quizId,
             score,
         );
 
+        // Calculate course mastery
         const courseMastery = await this.calculateCourseMastery(unitProgressId);
 
+        // Get current unit for the quiz
         const currentUnit = await this.quizService.getCurrentUnitForQuiz(quizId);
 
+        // Return detailed response
         return {
-            // The student score
             currentScore: score,
-            // Độ thành thạo của học sinh qua các bài làm attempt
             courseMastery,
-            // The unit identifier that the student is currently working on or will move to next.
-            currentUnit,
-            // Summary of skills assessed in the quiz, detailing accuracy per skill and total correct answers.
+            currentUnit: plainToInstance(UnitDto, currentUnit, {
+                excludeExtraneousValues: true,
+            }),
             skillsSummary: skillsResult.skillsSummary,
-            // Detailed performance metrics for each skill, including accuracy and proficiency level.
-            // Will be implement in the future
-            skillDetails: skillsResult.skillDetails,
-            // A list of recommended units (or unit areas) that focus on skills the student needs to improve.
-            recommendedLessons: recommendedUnits,
-            // A summary evaluation comparing the student’s performance in this quiz to previous attempts, e.g., improvement, steady, or decline.
+            skillDetails: categorizedSkills,
+            recommendedLessons: plainToInstance(UnitAreaDto, recommendedUnits, {
+                excludeExtraneousValues: true,
+            }),
             progressEvaluation,
+            correctAnswers,
+            totalQuestions,
         };
+    }
+
+    private getProficiencyLevel(accuracy: number): string {
+        if (accuracy >= 90) return 'Advanced';
+        if (accuracy >= 70) return 'Proficient';
+        if (accuracy >= 50) return 'Intermediate';
+        return 'Beginner';
     }
 
     async findWeakSkillsByQuizAttempt(quizAttemptId: string): Promise<Skill[]> {
@@ -271,26 +328,32 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     ): Promise<{ skillsSummary: any; skillDetails: any }> {
         const answers =
             await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttemptId);
-        const skillScores = new Map<SkillDto, { correct: number; total: number }>();
+
+        // Use skill ID as the key in the Map
+        const skillScores = new Map<
+            string,
+            { skill: { id: string; content: string }; correct: number; total: number }
+        >();
 
         for (const answer of answers) {
+            const skillId = answer.quizQuestion.skill.id;
             const skill = {
-                id: answer.quizQuestion.skill.id,
+                id: skillId,
                 content: answer.quizQuestion.skill.content,
             };
-            if (!skillScores.has(skill)) {
-                skillScores.set(skill, { correct: 0, total: 0 });
+            if (!skillScores.has(skillId)) {
+                skillScores.set(skillId, { skill, correct: 0, total: 0 });
             }
 
-            const skillScore = skillScores.get(skill);
+            const skillScore = skillScores.get(skillId);
             skillScore.total += 1;
             if (answer.isCorrect) skillScore.correct += 1;
         }
 
-        const currentSkillsSummary = Array.from(skillScores.entries()).map(
-            ([skill, score]) => ({
+        const currentSkillsSummary = Array.from(skillScores.values()).map(
+            ({ skill, correct, total }) => ({
                 skill,
-                currentAccuracy: (score.correct / score.total) * 100,
+                currentAccuracy: (correct / total) * 100,
             }),
         );
 
@@ -426,6 +489,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
                 status: QuizAttemptStatus.IN_PROGRESS,
             },
             relations: ['quiz', 'unitProgress'],
+            order: { createdat: 'desc' },
         });
     }
 
@@ -488,6 +552,44 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         };
     }
 
+    async getLatestQuizAttemptStatus(unitProgressId: string): Promise<any> {
+        const quizAttempt = await this.quizAttemptRepository.findOne({
+            where: { unitProgress: { id: unitProgressId } },
+            relations: ['quiz', 'quiz.quizQuestions'],
+            order: { attemptdatetime: 'DESC' },
+        });
+
+        if (!quizAttempt) {
+            throw new NotFoundException(
+                `Quiz Attempt with UnitProgressID ${unitProgressId} not found`,
+            );
+        }
+
+        const answeredQuestions =
+            await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttempt.id);
+
+        const totalQuestions = quizAttempt.quiz.quizQuestions.length;
+        const answeredCount = answeredQuestions.length;
+        const progressPercentage = (answeredCount / totalQuestions) * 100;
+        const status = quizAttempt.status;
+
+        return {
+            quizAttemptId: quizAttempt.id,
+            status,
+            progress: {
+                totalQuestions,
+                answeredQuestions: answeredCount,
+                progressPercentage,
+                questionsAnswered: answeredQuestions.map((a) => ({
+                    questionId: a.quizQuestion.id,
+                    studentAnswerId: a.studentAnswerId,
+                    studentAnswerText: a.studentAnswerText,
+                    isCorrect: a.isCorrect,
+                })),
+            },
+        };
+    }
+
     async getPreviousAttempt(currentQuizAttemptId: string): Promise<QuizAttempt | null> {
         const currentAttempt = await this.quizAttemptRepository.findOne({
             where: { id: currentQuizAttemptId },
@@ -502,7 +604,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
 
         const previousAttempt = await this.quizAttemptRepository.findOne({
             where: {
-                quiz: { id: currentAttempt.quiz.id },
+                id: Not(currentAttempt.id),
                 unitProgress: { id: currentAttempt.unitProgress.id },
                 status: QuizAttemptStatus.COMPLETED,
             },
