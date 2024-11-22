@@ -26,9 +26,9 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         super(quizAttemptRepository);
     }
 
-    async startQuizAttempt(studyProfileId: string, quizId: string): Promise<QuizAttempt> {
+    async startQuizAttempt(unitProgressId: string, quizId: string): Promise<QuizAttempt> {
         const newAttempt = this.quizAttemptRepository.create({
-            studyProfile: { id: studyProfileId },
+            unitProgress: { id: unitProgressId },
             quiz: { id: quizId },
             attemptdatetime: new Date(),
             status: QuizAttemptStatus.IN_PROGRESS,
@@ -127,12 +127,12 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         quizId: string,
         completeQuizAttemptDto: CompleteQuizAttemptDto,
     ): Promise<CompleteQuizAttemptResponseDto> {
-        const { studyProfileId } = completeQuizAttemptDto;
+        const { unitProgressId } = completeQuizAttemptDto;
 
         const quizAttempt = await this.quizAttemptRepository.findOne({
             where: {
                 quiz: { id: quizId },
-                studyProfile: { id: studyProfileId },
+                unitProgress: { id: unitProgressId },
                 status: QuizAttemptStatus.IN_PROGRESS,
             },
             relations: ['answers', 'answers.quizQuestion'],
@@ -174,12 +174,12 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         );
 
         const progressEvaluation = await this.evaluateQuizProgress(
-            studyProfileId,
+            unitProgressId,
             quizId,
             score,
         );
 
-        const courseMastery = await this.calculateCourseMastery(studyProfileId);
+        const courseMastery = await this.calculateCourseMastery(unitProgressId);
 
         const currentUnit = await this.quizService.getCurrentUnitForQuiz(quizId);
 
@@ -246,7 +246,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         return weakSkills;
     }
 
-    async updateProgress(
+    private async updateProgress(
         quizAttemptId: string,
         updateData: { status: QuizAttemptStatus },
     ): Promise<QuizAttempt> {
@@ -265,7 +265,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         return quizAttempt;
     }
 
-    async assessSkillProgress(
+    private async assessSkillProgress(
         quizAttemptId: string,
     ): Promise<{ skillsSummary: any; skillDetails: any }> {
         const answers =
@@ -339,10 +339,10 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         return { skillsSummary, skillDetails: skillsSummary };
     }
 
-    async calculateCourseMastery(studyProfileId: string): Promise<number> {
+    private async calculateCourseMastery(unitProgressId: string): Promise<number> {
         const completedAttempts = await this.quizAttemptRepository.find({
             where: {
-                studyProfile: { id: studyProfileId },
+                unitProgress: { id: unitProgressId },
                 status: QuizAttemptStatus.COMPLETED,
             },
         });
@@ -356,8 +356,8 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         return totalScore / completedAttempts.length;
     }
 
-    async evaluateQuizProgress(
-        studyProfileId: string,
+    private async evaluateQuizProgress(
+        unitProgressId: string,
         quizId: string,
         currentScore: number,
     ): Promise<{
@@ -366,7 +366,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     }> {
         const previousAttempt = await this.quizAttemptRepository.findOne({
             where: {
-                studyProfile: { id: studyProfileId },
+                unitProgress: { id: unitProgressId },
                 quiz: { id: quizId },
                 status: QuizAttemptStatus.COMPLETED,
             },
@@ -392,12 +392,12 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     }
 
     async getOngoingQuizAttemptForUnit(
-        studyProfileId: string,
+        unitProgressId: string,
         unitId: string,
     ): Promise<QuizAttempt | null> {
         const ongoingQuizAttempt = await this.quizAttemptRepository.findOne({
             where: {
-                studyProfile: { id: studyProfileId },
+                unitProgress: { id: unitProgressId },
                 quiz: { unit: { id: unitId } },
                 status: QuizAttemptStatus.IN_PROGRESS,
             },
@@ -421,7 +421,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
                 quiz: { id: quizId },
                 status: QuizAttemptStatus.IN_PROGRESS,
             },
-            relations: ['quiz', 'studyProfile'],
+            relations: ['quiz', 'unitProgress'],
         });
     }
 
@@ -487,7 +487,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     async getPreviousAttempt(currentQuizAttemptId: string): Promise<QuizAttempt | null> {
         const currentAttempt = await this.quizAttemptRepository.findOne({
             where: { id: currentQuizAttemptId },
-            relations: ['quiz', 'studyProfile'],
+            relations: ['quiz', 'unitProgress'],
         });
 
         if (!currentAttempt) {
@@ -499,7 +499,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         const previousAttempt = await this.quizAttemptRepository.findOne({
             where: {
                 quiz: { id: currentAttempt.quiz.id },
-                studyProfile: { id: currentAttempt.studyProfile.id },
+                unitProgress: { id: currentAttempt.unitProgress.id },
                 status: QuizAttemptStatus.COMPLETED,
             },
             order: { attemptdatetime: 'DESC' },
@@ -509,13 +509,13 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
     }
 
     async resetQuizAttempt(resetQuizAttempt: ResetQuizAttemptProgressDto): Promise<any> {
-        const { quizAttemptId, studyProfileId, unitId } = resetQuizAttempt;
+        const { quizAttemptId, unitProgressId, unitId } = resetQuizAttempt;
 
         let ongoingAttempt;
 
         if (!quizAttemptId) {
             ongoingAttempt = await this.getOngoingQuizAttemptForUnit(
-                studyProfileId,
+                unitProgressId,
                 unitId,
             );
 
@@ -538,7 +538,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         await this.quizAttemptRepository.save(ongoingAttempt);
 
         const newQuiz = await this.quizService.createQuiz(unitId);
-        const newQuizAttempt = await this.startQuizAttempt(studyProfileId, newQuiz.id);
+        const newQuizAttempt = await this.startQuizAttempt(unitProgressId, newQuiz.id);
 
         const quizQuestions =
             await this.quizQuestionItemService.getQuizQuestionsWithAnswers(newQuiz.id);

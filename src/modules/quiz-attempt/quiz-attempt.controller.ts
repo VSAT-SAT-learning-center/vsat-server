@@ -11,7 +11,7 @@ import { QuizAttemptService } from './quiz-attempt.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { QuizAttempt } from 'src/database/entities/quizattempt.entity';
 import { BaseController } from '../base/base.controller';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RecommendationService } from '../recommendation-service/recommendation.service';
 import { QuizService } from '../quiz/quiz.service';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
@@ -33,26 +33,27 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         super(quizAttemptService, 'QuizAttempt');
     }
 
+    @ApiOperation({ summary: 'Step 1: Start a quiz attempt -> need call /quiz-attempts/info after that' })
     @Post(':unitId/start')
     @ApiBody({
         schema: {
             type: 'object',
             properties: {
-                studyProfileId: {
+                unitProgressId: {
                     type: 'string',
                     description: 'ID of the study profile',
                 },
             },
-            required: ['studyProfileId'],
+            required: ['unitProgressId'],
         },
     })
     async startQuizAttempt(
         @Param('unitId') unitId: string,
-        @Body() { studyProfileId }: { studyProfileId: string },
+        @Body() { unitProgressId }: { unitProgressId: string },
     ) {
         // Step 1: Check if there's an ongoing quiz attempt for this unit and study profile
         let quizAttempt = await this.quizAttemptService.getOngoingQuizAttemptForUnit(
-            studyProfileId,
+            unitProgressId,
             unitId,
         );
 
@@ -64,7 +65,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
             // Step 3: No ongoing attempt found, so create a new quiz and start a new attempt
             quiz = await this.quizService.createQuiz(unitId);
             quizAttempt = await this.quizAttemptService.startQuizAttempt(
-                studyProfileId,
+                unitProgressId,
                 quiz.id,
             );
         }
@@ -88,6 +89,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         );
     }
 
+    @ApiOperation({ summary: 'Student submit answer' })
     /**
      * Save the student's answer for a question as they progress through the quiz.
      */
@@ -126,6 +128,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         }
     }
 
+    @ApiOperation({ summary: 'Student skip question' })
     @Post(':quizAttemptId/skip-progress')
     async skipQuizAttemptProgress(
         @Param('quizAttemptId') quizAttemptId: string,
@@ -159,9 +162,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         }
     }
 
-    /**
-     * Complete the quiz attempt, calculate the score, and get the quiz results.
-     */
+    @ApiOperation({ summary: 'Complete the quiz attempt, calculate the score, and get the quiz results.' })
     @Post(':quizId/complete')
     async completeQuizAttempt(
         @Param('quizId') quizId: string,
@@ -204,6 +205,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         }
     }
 
+    @ApiOperation({ summary: 'Reset the quiz' })
     @Post('reset')
     async resetQuizAttempt(@Body() resetQuizAttempt: ResetQuizAttemptProgressDto) {
         try {
@@ -227,8 +229,9 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         return await this.recommendationService.recommendUnitAreas(quizAttemptId);
     }
 
-    @Get(':quizAttemptId/status')
-    async getQuizAttemptStatus(@Param('quizAttemptId') quizAttemptId: string) {
+    @ApiOperation({ summary: 'Step 2: Get student quiz attempt infomation' })
+    @Get(':quizAttemptId/info')
+    async getQuizAttemptInfo(@Param('quizAttemptId') quizAttemptId: string) {
         try {
             const response =
                 await this.quizAttemptService.getQuizAttemptStatus(quizAttemptId);

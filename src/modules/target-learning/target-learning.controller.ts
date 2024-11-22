@@ -13,6 +13,7 @@ import {
     forwardRef,
     Request,
     UseGuards,
+    Patch,
 } from '@nestjs/common';
 import { CreateTargetLearningDto } from './dto/create-targetlearning.dto';
 import { UpdateTargetLearningDto } from './dto/update-targetlearning.dto';
@@ -21,12 +22,14 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
 import { UnitService } from '../unit/unit.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
+import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
+import { CompleteLessonProgressDto } from './dto/complete-lesson-progress.dto';
 
 @ApiTags('TargetLearnings')
 @Controller('target-learnings')
@@ -37,6 +40,7 @@ export class TargetLearningController {
         private readonly targetLearningDetailService: TargetLearningDetailService,
         @Inject(forwardRef(() => UnitService))
         private readonly unitService: UnitService,
+        private readonly lessonProgressService: LessonProgressService,
     ) {}
 
     @Get('getStatisticByTargetLearning')
@@ -85,31 +89,6 @@ export class TargetLearningController {
         }
     }
 
-    @Get(':targetLearningId/unit-progresses')
-    async getUnitProgressesByTargetLearning(
-        @Query('targetLearningId') targetLearningId: string,
-    ) {
-        try {
-            const unitProgresses =
-                await this.targetLearningDetailService.getAllUnitProgress(
-                    targetLearningId,
-                );
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                unitProgresses,
-                SuccessMessages.get('UnitProgresses'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
-
     @Get('unit/:sectionId')
     async getUnitsBySectionAndLevel(
         @Param('sectionId') sectionId: string
@@ -139,5 +118,49 @@ export class TargetLearningController {
                 error.status || HttpStatus.BAD_REQUEST,
             );
         }
+    }
+
+    @Get(':targetLearningId/unit-progresses')
+    async getUnitProgressesByTargetLearning(
+        @Query('targetLearningId') targetLearningId: string,
+    ) {
+        try {
+            const unitProgresses =
+                await this.targetLearningDetailService.getAllUnitProgress(
+                    targetLearningId,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                unitProgresses,
+                SuccessMessages.get('UnitProgresses'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @ApiOperation({ summary: 'Student complete a lesson' })
+    @Patch(':lessonId/complete')
+    async completeLessonProgress(
+        @Param('lessonId') lessonId: string,
+        @Body() lessonProgressDto: CompleteLessonProgressDto,
+    ) {
+        // Gọi service để cập nhật tiến trình khi học sinh hoàn thành bài học
+        const result = await this.lessonProgressService.completeLessonProgress(
+            lessonId,
+            lessonProgressDto,
+        );
+
+        return {
+            statusCode: HttpStatus.CREATED,
+            message: 'Lesson completed and progress updated successfully',
+            data: result,
+        };
     }
 }

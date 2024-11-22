@@ -6,14 +6,4 @@ export class StartLessonProgressDto {
   @IsString()
   @IsNotEmpty()
   targetLearningDetailsId: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  unitId: string;
-  
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  unitAreaId: string;
 }
