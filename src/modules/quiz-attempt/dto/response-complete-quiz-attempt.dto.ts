@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Skill } from 'src/database/entities/skill.entity';
 import { CategorizedSkillDetailsDto } from './categoried-skill-details.dto';
-import { UnitDto } from 'src/common/dto/common.dto';
+import { UnitAreaDto, UnitDto } from 'src/common/dto/common.dto';
 
 export class SkillsSummaryDto {
     @ApiProperty()
@@ -76,7 +76,7 @@ export class CompleteQuizAttemptResponseDto {
 
     skillDetails: CategorizedSkillDetailsDto;
 
-    recommendedLessons: any;
+    recommendedLessons: UnitAreaDto[];
 
     progressEvaluation: {
         progress: string;

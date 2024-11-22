@@ -9,6 +9,7 @@ import { QuizQuestionModule } from '../quizquestion/quiz-question.module';
 import { RecommendationModule } from '../recommendation-service/recommendation.module';
 import { QuizQuestionItemModule } from '../quiz-question-item/quiz-question-item.module';
 import { QuizAttemptAnswerModule } from '../quiz-attempt-answer/quiz-attempt-answer.module';
+import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 
 @Module({
     imports: [

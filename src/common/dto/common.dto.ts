@@ -6,6 +6,31 @@ export class UnitDto {
 
     @Expose()
     title: string;
+
+    @Expose()
+    description: string;
+}
+
+export class UnitAreaDto {
+    @Expose()
+    id: string;
+
+    @Expose()
+    title: string;
+
+    @Expose()
+    description: string;
+}
+
+export class LessonDto {
+    @Expose()
+    id: string;
+
+    @Expose()
+    title: string;
+
+    @Expose()
+    description: string;
 }
 
 export class ExamDto {
