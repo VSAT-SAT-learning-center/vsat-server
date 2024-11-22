@@ -327,4 +327,24 @@ export class AccountController {
             );
         }
     }
+
+    @Get('getTeacherAndCount')
+    async getTeacherAndCount(@Query('page') page: number, @Query('pageSize') pageSize: number) {
+        try {
+            const get = await this.accountService.getTeacherAndCount(page, pageSize);
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Get User Successfully',
+                data: get,
+            };
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

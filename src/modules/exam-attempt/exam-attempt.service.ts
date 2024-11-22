@@ -1088,12 +1088,30 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     relations: ['exam'],
                 });
 
-                const exam = await this.GetExamWithExamQuestionByExamId(exampAttempt.exam.id);
+                const exam = await this.GetExamWithExamQuestionByExamId(
+                    exampAttempt.exam.id,
+                );
 
                 examAttempArrs.push(exampAttempt, exam);
             }
         }
 
         return examAttempArrs;
+    }
+
+    async createExamAttemptWithExam(examId: string, studyProfileIds: string[]) {
+        const targetLearning =
+            await this.targetLearningService.createMultipleTargetLearning(
+                studyProfileIds,
+            );
+
+        const examAttemptArrs = targetLearning.map((targetData) =>
+            this.examAttemptRepository.create({
+                targetlearning: { id: targetData.id },
+                exam: { id: examId },
+            }),
+        );
+
+        return await this.examAttemptRepository.save(examAttemptArrs);
     }
 }

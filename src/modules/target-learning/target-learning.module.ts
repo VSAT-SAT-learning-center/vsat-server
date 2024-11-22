@@ -14,9 +14,10 @@ import { LessonProgressModule } from '../lesson-progress/lesson-progress.module'
     imports: [
         TypeOrmModule.forFeature([TargetLearning, ExamAttempt, StudyProfile]),
         forwardRef(() => ExamAttemptModule),
+        forwardRef(() => UnitModule),
         TargetLearningDetailModule,
         LessonProgressModule,
-        forwardRef(() => UnitModule),
+       
     ],
     providers: [TargetLearningService],
     controllers: [TargetLearningController],

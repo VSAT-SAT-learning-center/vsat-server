@@ -11,6 +11,7 @@ import { GetAccountDTO } from '../account/dto/get-account.dto';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 import { TargetLearningDetailStatus } from 'src/common/enums/target-learning-status-enum';
+import { Account } from 'src/database/entities/account.entity';
 
 @Injectable()
 export class StudyProfileService {
@@ -19,6 +20,8 @@ export class StudyProfileService {
         private readonly studyProfileRepository: Repository<StudyProfile>,
         @InjectRepository(TargetLearning)
         private readonly targetLearningRepository: Repository<TargetLearning>,
+        @InjectRepository(Account)
+        private readonly accountRepository: Repository<Account>,
     ) {}
 
     async getStudyProfileByAccountId(accountId: string) {
@@ -222,9 +225,9 @@ export class StudyProfileService {
         const studyProfiles = await this.studyProfileRepository.find({
             where: { account: { id: accountId } },
         });
-    
+
         const targetLearningArrs = [];
-    
+
         for (const studyProfile of studyProfiles) {
             const targetLearnings = await this.targetLearningRepository.find({
                 where: {
@@ -240,46 +243,94 @@ export class StudyProfileService {
                     'targetlearningdetail.unitprogress.unitAreaProgresses.lessonProgresses',
                 ],
             });
-    
+
             const filteredTargetLearnings = targetLearnings.map((targetLearning) => {
-                const updatedDetails = targetLearning.targetlearningdetail.map((detail) => {
-                    const unitprogressCount = detail.unitprogress?.length || 0;
-    
-                    const lessonProgressCount = detail.unitprogress.reduce(
-                        (sum, unitProgress) =>
-                            sum +
-                            unitProgress.unitAreaProgresses.reduce(
-                                (areaSum, unitArea) =>
-                                    areaSum + (unitArea.lessonProgresses?.length || 0),
-                                0,
-                            ),
-                        0,
-                    );
-    
-                    // const updatedUnitProgress = detail.unitprogress.map((unitProgress) => ({
-                    //     unitarea: unitProgress.unitAreaProgresses.map((unitArea) => ({
-                    //         lessonprogressCount: unitArea.lessonProgresses?.length || 0,
-                    //     })),
-                    // }));
-    
-                    return {
-                        ...detail,
-                        unitprogressCount,
-                        lessonProgressCount,
-                        //unitprogress: updatedUnitProgress,
-                    };
-                });
-    
+                const updatedDetails = targetLearning.targetlearningdetail.map(
+                    (detail) => {
+                        const unitprogressCount = detail.unitprogress?.length || 0;
+
+                        const lessonProgressCount = detail.unitprogress.reduce(
+                            (sum, unitProgress) =>
+                                sum +
+                                unitProgress.unitAreaProgresses.reduce(
+                                    (areaSum, unitArea) =>
+                                        areaSum +
+                                        (unitArea.lessonProgresses?.length || 0),
+                                    0,
+                                ),
+                            0,
+                        );
+
+                        // const updatedUnitProgress = detail.unitprogress.map((unitProgress) => ({
+                        //     unitarea: unitProgress.unitAreaProgresses.map((unitArea) => ({
+                        //         lessonprogressCount: unitArea.lessonProgresses?.length || 0,
+                        //     })),
+                        // }));
+
+                        return {
+                            ...detail,
+                            unitprogressCount,
+                            lessonProgressCount,
+                            //unitprogress: updatedUnitProgress,
+                        };
+                    },
+                );
+
                 return {
                     ...targetLearning,
                     targetlearningdetail: updatedDetails,
                 };
             });
-    
+
             targetLearningArrs.push(...filteredTargetLearnings);
         }
-    
+
         return targetLearningArrs;
     }
-    
+
+    async getStudyProfileWithTeacherDetail(page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        // Lấy danh sách studyProfile
+        const [studyProfiles, total] = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account') // Tham chiếu accountId
+            .where('studyProfile.status = :status', { status: StudyProfileStatus.ACTIVE })
+            .skip(skip)
+            .take(pageSize)
+            .orderBy('studyProfile.updatedat', 'DESC')
+            .getManyAndCount();
+
+        // Truy vấn thêm thông tin teacher dựa trên teacherId
+        const teacherIds = studyProfiles.map((profile) => profile.teacherId);
+        const teachers = await this.accountRepository.findByIds(teacherIds);
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        // Map thông tin teacher vào studyProfiles
+        const studyProfile = studyProfiles.map((profile) => {
+            const account = plainToInstance(GetAccountDTO, profile.account, {
+                excludeExtraneousValues: true,
+            });
+
+            const teacher = teachers.find((teacher) => teacher.id === profile.teacherId);
+
+            return {
+                ...profile,
+                account,
+                teacher: teacher
+                    ? plainToInstance(GetAccountDTO, teacher, {
+                          excludeExtraneousValues: true,
+                      })
+                    : null,
+            };
+        });
+
+        return {
+            data: studyProfile,
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
 }

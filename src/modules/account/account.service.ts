@@ -14,6 +14,7 @@ import { BaseService } from '../base/base.service';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { StudyProfileService } from '../study-profile/study-profile.service';
 import { UpdateAccountDTO } from './dto/update-account.dto';
+import { GetTecherDTO } from './dto/get-techer.dto';
 
 @Injectable()
 export class AccountService extends BaseService<Account> {
@@ -23,6 +24,8 @@ export class AccountService extends BaseService<Account> {
         private readonly mailerService: MailerService,
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
 
         private readonly studyProfileService: StudyProfileService,
     ) {
@@ -617,6 +620,39 @@ export class AccountService extends BaseService<Account> {
 
         return {
             data: plainToInstance(GetAccountDTO, teacher, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
+    async getTeacherAndCount(page: number, pageSize: number) {
+        const skip = (page - 1) * pageSize;
+
+        const [teachers, total] = await this.accountRepository.findAndCount({
+            skip: skip,
+            take: pageSize,
+            where: { role: { rolename: 'Teacher' } },
+        });
+
+        const teachersWithTotalMember = await Promise.all(
+            teachers.map(async (teacher) => {
+                const totalMember = await this.studyProfileRepository.count({
+                    where: { teacherId: teacher.id },
+                });
+                return {
+                    ...teacher,
+                    totalMember,
+                };
+            }),
+        );
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetTecherDTO, teachersWithTotalMember, {
                 excludeExtraneousValues: true,
             }),
             totalPages: totalPages,

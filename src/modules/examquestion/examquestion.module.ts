@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExamQuestion } from 'src/database/entities/examquestion.entity';
 import { ExamQuestionService } from './examquestion.service';
@@ -6,25 +6,10 @@ import { ExamQuestionController } from './examquestion.controller';
 import { Question } from 'src/database/entities/question.entity';
 import { Answer } from 'src/database/entities/anwser.entity';
 import { Exam } from 'src/database/entities/exam.entity';
-import { QuestionService } from '../question/question.service';
-import { ExamService } from '../exam/exam.service';
-import { Unit } from 'src/database/entities/unit.entity';
-import { Skill } from 'src/database/entities/skill.entity';
-import { Lesson } from 'src/database/entities/lesson.entity';
-import { Level } from 'src/database/entities/level.entity';
-import { Answerservice } from '../answer/answer.service';
-import { ModuleType } from 'src/database/entities/moduletype.entity';
-import { ExamStructure } from 'src/database/entities/examstructure.entity';
-import { ExamType } from 'src/database/entities/examtype.entity';
-import { Section } from 'src/database/entities/section.entity';
-import { FeedbackModule } from '../feedback/feedback.module';
-import { Domain } from 'src/database/entities/domain.entity';
-import { QuestionModule } from '../question/question.module';
-import { ExamModule } from '../exam/exam.module';
+import { ExamModule } from '../exam/exam.module'; // Sử dụng forwardRef
 import { ModuleTypeModule } from '../module-type/module-type.module';
-import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
-import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
-import { Account } from 'src/database/entities/account.entity';
+import { Domain } from 'src/database/entities/domain.entity';
+import { ModuleType } from 'src/database/entities/moduletype.entity';
 
 @Module({
     imports: [
@@ -33,22 +18,14 @@ import { Account } from 'src/database/entities/account.entity';
             Question,
             Answer,
             Exam,
-            Skill,
-            Section,
-            Level,
-            ModuleType,
-            ExamStructure,
-            ExamType,
             Domain,
-            DomainDistribution,
-            ExamStructureType,
-            Account,
+            ModuleType
         ]),
-        FeedbackModule,
-        ModuleTypeModule,
+        forwardRef(() => ExamModule), // Import với forwardRef
+        forwardRef(() => ModuleTypeModule),
     ],
     controllers: [ExamQuestionController],
-    providers: [ExamQuestionService, QuestionService, Answerservice, ExamService],
+    providers: [ExamQuestionService],
     exports: [ExamQuestionService],
 })
 export class ExamQuestionModule {}
