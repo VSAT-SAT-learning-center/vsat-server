@@ -52,12 +52,13 @@ export class StudyProfileService {
             });
 
             const startdate = profile.startdate
-                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
                       timeZone: 'Asia/Saigon',
                   })
                 : null;
+
             const enddate = profile.enddate
-                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
                       timeZone: 'Asia/Saigon',
                   })
                 : null;
@@ -147,12 +148,13 @@ export class StudyProfileService {
             });
 
             const startdate = profile.startdate
-                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
                       timeZone: 'Asia/Saigon',
                   })
                 : null;
+
             const enddate = profile.enddate
-                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
                       timeZone: 'Asia/Saigon',
                   })
                 : null;
@@ -201,12 +203,13 @@ export class StudyProfileService {
             });
 
             const startdate = profile.startdate
-                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
                       timeZone: 'Asia/Saigon',
                   })
                 : null;
+
             const enddate = profile.enddate
-                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
                       timeZone: 'Asia/Saigon',
                   })
                 : null;
@@ -331,7 +334,6 @@ export class StudyProfileService {
     async getStudyProfileWithTeacherDetail(page: number, pageSize: number): Promise<any> {
         const skip = (page - 1) * pageSize;
 
-        // Lấy danh sách studyProfile
         const [studyProfiles, total] = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account') // Tham chiếu accountId
@@ -341,19 +343,28 @@ export class StudyProfileService {
             .orderBy('studyProfile.updatedat', 'DESC')
             .getManyAndCount();
 
-        // Truy vấn thêm thông tin teacher dựa trên teacherId
         const teacherIds = studyProfiles.map((profile) => profile.teacherId);
         const teachers = await this.accountRepository.findByIds(teacherIds);
 
         const totalPages = Math.ceil(total / pageSize);
 
-        // Map thông tin teacher vào studyProfiles
         const studyProfile = studyProfiles.map((profile) => {
             const account = plainToInstance(GetAccountDTO, profile.account, {
                 excludeExtraneousValues: true,
             });
 
             const teacher = teachers.find((teacher) => teacher.id === profile.teacherId);
+
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
 
             return {
                 ...profile,
@@ -363,6 +374,8 @@ export class StudyProfileService {
                           excludeExtraneousValues: true,
                       })
                     : null,
+                startdate,
+                enddate,
             };
         });
 
