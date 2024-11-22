@@ -9,12 +9,17 @@ import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 import { QuizAttemptAnswerService } from '../quiz-attempt-answer/quiz-attempt-answer.service';
 import { QuizQuestionService } from '../quizquestion/quiz-question.service';
 import { CompleteQuizAttemptDto } from './dto/complete-quiz-attempt.dto';
-import { CompleteQuizAttemptResponseDto, SkillDetailsDto } from './dto/response-complete-quiz-attempt.dto';
+import {
+    CompleteQuizAttemptResponseDto,
+    SkillDetailsDto,
+} from './dto/response-complete-quiz-attempt.dto';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
 import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
-import { SkillDto } from 'src/common/dto/common.dto';
+import { SkillDto, UnitAreaDto, UnitDto } from 'src/common/dto/common.dto';
 import { CategorizedSkillDetailsDto } from './dto/categoried-skill-details.dto';
 import { RecommendationService } from '../recommendation-service/recommendation.service';
+import { plainToInstance } from 'class-transformer';
+import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 
 @Injectable()
 export class QuizAttemptService extends BaseService<QuizAttempt> {
@@ -85,9 +90,11 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
             );
         }
 
-        await this.updateProgress(quizAttemptId, {
-            status: QuizAttemptStatus.IN_PROGRESS,
-        });
+        if (quizAttempt.status !== QuizAttemptStatus.IN_PROGRESS) {
+            await this.updateProgress(quizAttemptId, {
+                status: QuizAttemptStatus.IN_PROGRESS,
+            });
+        }
     }
 
     async skipQuizAttemptProgress(
@@ -209,7 +216,12 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         // );
 
         // Find weak skills and recommend lessons
-        const recommendedUnits = this.recommendationService.recommendUnitAreas(savedQuizAttempt.id);
+        const recommendedUnits =
+            await this.recommendationService.recommendUnitAreasWithUnitProgress(
+                savedQuizAttempt.id,
+                unitProgressId,
+            );
+
         // Evaluate quiz progress
         const progressEvaluation = await this.evaluateQuizProgress(
             unitProgressId,
@@ -227,10 +239,14 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
         return {
             currentScore: score,
             courseMastery,
-            currentUnit: { id: currentUnit.id, title: currentUnit.title },
+            currentUnit: plainToInstance(UnitDto, currentUnit, {
+                excludeExtraneousValues: true,
+            }),
             skillsSummary: skillsResult.skillsSummary,
             skillDetails: categorizedSkills,
-            recommendedLessons: recommendedUnits,
+            recommendedLessons: plainToInstance(UnitAreaDto, recommendedUnits, {
+                excludeExtraneousValues: true,
+            }),
             progressEvaluation,
             correctAnswers,
             totalQuestions,
@@ -473,7 +489,7 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
                 status: QuizAttemptStatus.IN_PROGRESS,
             },
             relations: ['quiz', 'unitProgress'],
-            order : { createdat: 'desc' }
+            order: { createdat: 'desc' },
         });
     }
 
@@ -513,6 +529,44 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
 
         const answeredQuestions =
             await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttemptId);
+
+        const totalQuestions = quizAttempt.quiz.quizQuestions.length;
+        const answeredCount = answeredQuestions.length;
+        const progressPercentage = (answeredCount / totalQuestions) * 100;
+        const status = quizAttempt.status;
+
+        return {
+            quizAttemptId: quizAttempt.id,
+            status,
+            progress: {
+                totalQuestions,
+                answeredQuestions: answeredCount,
+                progressPercentage,
+                questionsAnswered: answeredQuestions.map((a) => ({
+                    questionId: a.quizQuestion.id,
+                    studentAnswerId: a.studentAnswerId,
+                    studentAnswerText: a.studentAnswerText,
+                    isCorrect: a.isCorrect,
+                })),
+            },
+        };
+    }
+
+    async getLatestQuizAttemptStatus(unitProgressId: string): Promise<any> {
+        const quizAttempt = await this.quizAttemptRepository.findOne({
+            where: { unitProgress: { id: unitProgressId } },
+            relations: ['quiz', 'quiz.quizQuestions'],
+            order: { attemptdatetime: 'DESC' },
+        });
+
+        if (!quizAttempt) {
+            throw new NotFoundException(
+                `Quiz Attempt with UnitProgressID ${unitProgressId} not found`,
+            );
+        }
+
+        const answeredQuestions =
+            await this.quizAttemptAnswerService.findAnswersByQuizAttemptId(quizAttempt.id);
 
         const totalQuestions = quizAttempt.quiz.quizQuestions.length;
         const answeredCount = answeredQuestions.length;
@@ -602,6 +656,4 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
             questions: quizQuestions,
         };
     }
-
-
 }
