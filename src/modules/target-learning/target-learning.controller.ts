@@ -161,4 +161,13 @@ export class TargetLearningController {
             data: result,
         };
     }
+
+    @Get(':targetLearningId/recent-learning')
+    async getRecentUnitProgress(@Param('targetLearningId') targetLearningId: string): Promise<any[]> {
+        try {
+            return await this.targetLearningDetailService.getRecentUnitProgressWithDetails(targetLearningId);
+        } catch (error) {
+            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.BAD_REQUEST);
+        }
+    }
 }

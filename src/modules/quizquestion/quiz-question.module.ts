@@ -11,9 +11,10 @@ import { QuizAnswerModule } from '../quizanswer/quiz-answer.module';
 import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { FeedbackModule } from '../feedback/feedback.module';
+import { Account } from 'src/database/entities/account.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([QuizQuestion, Level, Section, Skill, QuizAnswer]), QuizAnswerModule, FeedbackModule],
+    imports: [TypeOrmModule.forFeature([QuizQuestion, Level, Section, Skill, QuizAnswer, Account]), QuizAnswerModule, FeedbackModule],
     controllers: [QuizQuestionController],
     providers: [QuizQuestionService],
     exports: [QuizQuestionService],
