@@ -195,11 +195,10 @@ export class LessonProgressService extends BaseService<LessonProgress> {
         return lessonProgress;
     }
 
-    async completeLessonProgressNow(lessonId: string, targetLearningDetailsId: string) {
+    async completeLessonProgressNow(lessonProgressId: string) {
         const lessonProgress = await this.lessonProgressRepository.findOne({
             where: {
-                lesson: { id: lessonId },
-                targetLearningDetails: { id: targetLearningDetailsId },
+                id: lessonProgressId,
             },
             relations: ['unitAreaProgress'],
         });
@@ -289,16 +288,9 @@ export class LessonProgressService extends BaseService<LessonProgress> {
     }
 
     // Hàm cập nhật tiến trình khi học sinh hoàn thành bài học
-    async completeLessonProgress(
-        lessonId: string,
-        lessonProgressDto: CompleteLessonProgressDto,
-    ) {
-        const { targetLearningDetailsId } = lessonProgressDto;
+    async completeLessonProgress(lessonProgressId: string) {
         // 1. Cập nhật tiến trình cho bài học
-        const lessonProgress = await this.completeLessonProgressNow(
-            lessonId,
-            targetLearningDetailsId,
-        );
+        const lessonProgress = await this.completeLessonProgressNow(lessonProgressId);
         const unitAreaProgressId = lessonProgress.unitAreaProgress.id;
 
         // 2. Cập nhật tiến trình UnitAreaProgress dựa trên các bài học
@@ -308,10 +300,7 @@ export class LessonProgressService extends BaseService<LessonProgress> {
             );
 
         // 3. Cập nhật tiến trình UnitProgress dựa trên UnitArea
-        await this.unitProgressService.updateUnitProgressNow(
-            targetLearningDetailsId,
-            unitProgressId,
-        );
+        await this.unitProgressService.updateUnitProgressNow(unitProgressId);
 
         return lessonProgress;
     }

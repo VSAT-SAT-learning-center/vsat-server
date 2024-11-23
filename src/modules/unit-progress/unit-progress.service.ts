@@ -52,11 +52,10 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         super(unitProgressRepository);
     }
 
-    async updateUnitProgressNow(targetLearningId: string, unitProgressId: string) {
+    async updateUnitProgressNow(unitProgressId: string) {
         const unitProgress = await this.unitProgressRepository.findOne({
             where: {
-                id: unitProgressId,
-                targetLearningDetail: { id: targetLearningId },
+                id: unitProgressId
             },
             relations: ['unitAreaProgresses', 'unit'],
         });
