@@ -146,15 +146,13 @@ export class TargetLearningController {
     }
 
     @ApiOperation({ summary: 'Student complete a lesson' })
-    @Patch(':lessonId/complete')
+    @Patch(':lessonProgressId/complete')
     async completeLessonProgress(
-        @Param('lessonId') lessonId: string,
-        @Body() lessonProgressDto: CompleteLessonProgressDto,
+        @Param('lessonProgressId') lessonProgressId: string,
     ) {
         // Gọi service để cập nhật tiến trình khi học sinh hoàn thành bài học
         const result = await this.lessonProgressService.completeLessonProgress(
-            lessonId,
-            lessonProgressDto,
+            lessonProgressId,
         );
 
         return {
