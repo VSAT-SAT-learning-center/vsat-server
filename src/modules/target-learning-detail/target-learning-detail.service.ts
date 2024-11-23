@@ -137,4 +137,59 @@ export class TargetLearningDetailService {
 
         return response;
     }
+
+    async getRecentUnitProgressWithDetails(
+        targetLearningId: string,
+    ): Promise<any[]> {
+        // Fetch all TargetLearningDetails and their UnitProgresses
+        const targetLearningDetails = await this.targetLearningDetailRepository.find({
+            where: { targetlearning: { id: targetLearningId } },
+            relations: [
+                'section',
+                'level',
+                'unitprogress',
+                'unitprogress.unit',
+                'unitprogress.unit.level',
+            ],
+        });
+
+        if (!targetLearningDetails.length) {
+            throw new NotFoundException(
+                `No TargetLearningDetails found for TargetLearning ID ${targetLearningId}.`,
+            );
+        }
+
+        // Map TargetLearningDetails with their UnitProgresses
+        const response = targetLearningDetails.map((detail) => ({
+            targetLearningDetailId: detail.id,
+            section: detail.section
+                ? { id: detail.section.id, name: detail.section.name }
+                : null,
+            level: detail.level ? { id: detail.level.id, name: detail.level.name } : null,
+            unitProgresses: detail.unitprogress
+                .sort(
+                    (a, b) =>
+                        new Date(b.updatedat).getTime() - new Date(a.updatedat).getTime(),
+                ) // Sort by updatedAt descending
+                .map((unitProgress) => ({
+                    unitProgressId: unitProgress.id,
+                    progress: unitProgress.progress || 0,
+                    status: unitProgress.status,
+                    updatedAt: unitProgress.updatedat,
+                    unit: {
+                        id: unitProgress.unit.id,
+                        title: unitProgress.unit.title,
+                        description: unitProgress.unit.description,
+                        level: unitProgress.unit.level
+                            ? {
+                                  id: unitProgress.unit.level.id,
+                                  name: unitProgress.unit.level.name,
+                              }
+                            : null,
+                    },
+                })),
+        }));
+
+        return response;
+    }
 }
