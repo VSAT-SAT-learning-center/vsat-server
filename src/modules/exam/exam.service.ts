@@ -22,6 +22,7 @@ import { ExamStructureType } from 'src/database/entities/examstructuretype.entit
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
+import { CreateExamWithExamAttemptDto } from './dto/create-examwithattempt.dto';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -984,7 +985,7 @@ export class ExamService extends BaseService<Exam> {
         return result;
     }
 
-    async createExamWithExamAttempt(createExamDto: CreateExamDto): Promise<Exam> {
+    async createExamWithExamAttempt(createExamDto: CreateExamWithExamAttemptDto): Promise<Exam> {
         const [examStructure, examType, modules, domains, questions] = await Promise.all([
             this.examStructureRepository.findOne({
                 where: { id: createExamDto.examStructureId },

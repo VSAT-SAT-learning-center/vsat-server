@@ -32,6 +32,9 @@ import { FeedbackService } from '../feedback/feedback.service';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
 import { AnswerHelper } from 'src/common/helpers/answer.helper';
+import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
+import { Account } from 'src/database/entities/account.entity';
+import { GetQuestionDTO } from '../question/dto/get-question.dto';
 
 @Injectable()
 export class QuizQuestionService {
@@ -46,6 +49,8 @@ export class QuizQuestionService {
         private readonly sectionRepository: Repository<Section>,
         @InjectRepository(QuizAnswer)
         private readonly quizAnswerRepository: Repository<QuizAnswer>,
+        @InjectRepository(Account)
+        private readonly accountRepository: Repository<Account>,
         private readonly quizAnswerService: QuizAnswerService,
         @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
@@ -183,9 +188,14 @@ export class QuizQuestionService {
             },
         });
 
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
+
         const totalPages = Math.ceil(total / pageSize);
         return {
-            data: plainToInstance(GetQuizQuestionDTO, questions, {
+            data: plainToInstance(GetQuizQuestionDTO, questionsWithAccounts, {
                 excludeExtraneousValues: true,
             }),
             totalPages: totalPages,
@@ -429,7 +439,6 @@ export class QuizQuestionService {
     }
 
     async updateStatus(id: string, status: QuizQuestionStatus): Promise<boolean> {
-
         const quizQuestion = await this.quizQuestionRepository.findOneBy({
             id,
         });
@@ -453,14 +462,23 @@ export class QuizQuestionService {
     async getQuizQuestionsByLevelAndSkill(
         levelId: string,
         skillId: string,
-    ): Promise<QuizQuestion[]> {
-        return this.quizQuestionRepository.find({
+    ): Promise<any[]> {
+        const quizQuestions = await this.quizQuestionRepository.find({
             where: {
                 level: { id: levelId },
                 skill: { id: skillId },
-                status: QuizQuestionStatus.APPROVED, // Optional: filter by approved status if needed
+                status: QuizQuestionStatus.APPROVED,
             },
             relations: ['answers'],
+        });
+
+        const questionsWithAccounts = await populateCreatedBy(
+            quizQuestions,
+            this.accountRepository,
+        );
+
+        return plainToInstance(GetQuizQuestionDTO, questionsWithAccounts, {
+            excludeExtraneousValues: true,
         });
     }
 

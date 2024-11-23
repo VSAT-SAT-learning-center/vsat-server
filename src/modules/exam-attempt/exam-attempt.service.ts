@@ -327,7 +327,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsMath,
                 );
 
-                await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
+                await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
 
                 break;
 
@@ -375,7 +375,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             unitIdMediumMath,
                         );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
                 } else if (examAttempt.scoreMath < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -418,7 +418,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsRW,
                 );
 
-                await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
+                await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
 
                 break;
 
@@ -464,7 +464,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         unitIdMediumsRW,
                     );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
                 } else if (examAttempt.scoreRW < 800) {
                     createTargetLearningDto.levelId = advance.id;
 

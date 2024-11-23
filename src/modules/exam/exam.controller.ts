@@ -24,6 +24,7 @@ import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { GetExamDto } from './dto/get-exam.dto';
+import { CreateExamWithExamAttemptDto } from './dto/create-examwithattempt.dto';
 
 @ApiTags('Exams')
 @Controller('exams')
@@ -36,6 +37,28 @@ export class ExamController {
     async create(@Body() createExamDto: CreateExamDto) {
         try {
             const exam = await this.examService.createExam(createExamDto);
+
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                exam,
+                SuccessMessages.create('Exam'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post()
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    async createExamWithExamAttempt(@Body() createExamDto: CreateExamWithExamAttemptDto) {
+        try {
+            const exam = await this.examService.createExamWithExamAttempt(createExamDto);
 
             return ResponseHelper.success(
                 HttpStatus.CREATED,
