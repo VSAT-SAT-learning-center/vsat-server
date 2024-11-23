@@ -27,9 +27,6 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         @InjectRepository(Unit)
         private readonly unitRepository: Repository<Unit>,
 
-        @InjectRepository(TargetLearning)
-        private readonly targetLearningRepository: Repository<TargetLearning>,
-
         @InjectRepository(TargetLearningDetail)
         private readonly targetLearningDetailRepository: Repository<TargetLearningDetail>,
 
@@ -55,7 +52,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
     async updateUnitProgressNow(unitProgressId: string) {
         const unitProgress = await this.unitProgressRepository.findOne({
             where: {
-                id: unitProgressId
+                id: unitProgressId,
             },
             relations: ['unitAreaProgresses', 'unit'],
         });
@@ -181,7 +178,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         return recentUnits.map((unitProgress) => unitProgress.unit);
     }
 
-    async getAllUnitProgress(targetLearningDetailId: string): Promise<any[]> {
+    async getAllUnitProgress(targetLearningDetailId: string): Promise<any> {
         const unitProgresses = await this.unitProgressRepository.find({
             where: { targetLearningDetail: { id: targetLearningDetailId } },
             relations: [
@@ -193,16 +190,27 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 'unitAreaProgresses.lessonProgresses',
                 'unitAreaProgresses.lessonProgresses.lesson',
             ],
+            order: {
+                unit: { title: 'ASC' },
+            },
         });
 
+        // Calculate overall counts for unitAreas and lessons
+        let totalUnitAreaCount = 0;
+        let totalLessonCount = 0;
+
         const response = unitProgresses.map((unitProgress) => {
-            // Calculate counts for unitAreas and lessons
+            // Calculate counts for unitAreas and lessons within each unit
             const unitAreaCount = unitProgress.unitAreaProgresses.length;
             const lessonCount = unitProgress.unitAreaProgresses.reduce(
                 (total, unitAreaProgress) =>
                     total + (unitAreaProgress.lessonProgresses?.length || 0),
                 0,
             );
+
+            // Update overall counts
+            totalUnitAreaCount += unitAreaCount;
+            totalLessonCount += lessonCount;
 
             return {
                 unitProgressId: unitProgress.id,
@@ -211,58 +219,39 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 description: unitProgress.unit.description,
                 progress: unitProgress.progress || 0,
                 status: unitProgress.status,
-                unitAreaCount, 
-                lessonCount, 
-                unitAreas: unitProgress.unitAreaProgresses.map((unitAreaProgress) => ({
-                    unitAreaProgressId: unitAreaProgress.id,
-                    unitAreaId: unitAreaProgress.unitArea.id,
-                    unitAreaTitle: unitAreaProgress.unitArea.title,
-                    progress: unitAreaProgress.progress || 0,
-                    status: unitAreaProgress.status,
-                    lessons: unitAreaProgress.lessonProgresses.map((lessonProgress) => ({
-                        lessonProgressId: lessonProgress.id,
-                        lessonId: lessonProgress.lesson.id,
-                        lessonTitle: lessonProgress.lesson.title,
-                        progress: lessonProgress.progress || 0,
-                        status: lessonProgress.status,
+                unitAreaCount,
+                lessonCount,
+                unitAreas: unitProgress.unitAreaProgresses
+                    .sort((a, b) => a.unitArea.title.localeCompare(b.unitArea.title)) // Sorting unit areas
+                    .map((unitAreaProgress) => ({
+                        unitAreaProgressId: unitAreaProgress.id,
+                        unitAreaId: unitAreaProgress.unitArea.id,
+                        unitAreaTitle: unitAreaProgress.unitArea.title,
+                        progress: unitAreaProgress.progress || 0,
+                        status: unitAreaProgress.status,
+                        lessons: unitAreaProgress.lessonProgresses
+                        .sort((a, b) => a.lesson.title.localeCompare(b.lesson.title)) // Sorting unit areas
+                        .map(
+                            (lessonProgress) => ({
+                                lessonProgressId: lessonProgress.id,
+                                lessonId: lessonProgress.lesson.id,
+                                lessonTitle: lessonProgress.lesson.title,
+                                progress: lessonProgress.progress || 0,
+                                status: lessonProgress.status,
+                            }),
+                        ),
                     })),
-                })),
             };
         });
 
-        return response;
+        // Add summary information to the response
+        return {
+            totalUnitCount: unitProgresses.length,
+            totalUnitAreaCount,
+            totalLessonCount,
+            units: response,
+        };
     }
-    //example reponse:
-    // [
-    //     {
-    //         "unitId": "unit-123",
-    //         "unitTitle": "About the digital SAT",
-    //         "progress": 75,
-    //         "status": "IN_PROGRESS",
-    //         "unitAreas": [
-    //             {
-    //                 "unitAreaId": "area-456",
-    //                 "unitAreaTitle": "Introduction",
-    //                 "progress": 50,
-    //                 "status": "IN_PROGRESS",
-    //                 "lessons": [
-    //                     {
-    //                         "lessonId": "lesson-789",
-    //                         "lessonTitle": "About the digital SAT",
-    //                         "progress": 100,
-    //                         "status": "COMPLETED"
-    //                     },
-    //                     {
-    //                         "lessonId": "lesson-987",
-    //                         "lessonTitle": "SAT Overview",
-    //                         "progress": 50,
-    //                         "status": "IN_PROGRESS"
-    //                     }
-    //                 ]
-    //             }
-    //         ]
-    //     }
-    // ]
 
     async getUnitProgressDetail(unitProgressId: string): Promise<any> {
         const unitProgress = await this.unitProgressRepository.findOne({
@@ -456,7 +445,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         }));
     }
 
-    async initializeUnitAreaAndLessonProgresses(
+    private async initializeUnitAreaAndLessonProgresses(
         allUnitProgresses: UnitProgress[],
         targetLearningDetailId: string,
     ): Promise<any> {

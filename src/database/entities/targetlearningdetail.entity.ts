@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { Level } from './level.entity';
 import { Section } from './section.entity';
-import { StudyProfile } from './studyprofile.entity';
 import { UnitProgress } from './unitprogress.entity';
 import { TargetLearning } from './targetlearning.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
