@@ -90,4 +90,22 @@ export class TargetLearningService extends BaseService<TargetLearning> {
 
         return targetLearning;
     }
+
+    async createMultipleTargetLearning(studyProfileIds: string[]) {
+        if (!studyProfileIds || studyProfileIds.length === 0) {
+            throw new Error('No studyProfileIds provided');
+        }
+
+        const targetArrs = [];
+
+        for (const targetData of studyProfileIds) {
+            const create = this.targetLearningRepository.create({
+                studyProfile: { id: targetData },
+            });
+
+            targetArrs.push(create);
+        }
+
+        return await this.targetLearningRepository.save(targetArrs);
+    }
 }

@@ -1,3 +1,4 @@
+import { UpdateStudyProfileDto } from './dto/update-studyprofile.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { GetAccountDTO } from '../account/dto/get-account.dto';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 import { TargetLearningDetailStatus } from 'src/common/enums/target-learning-status-enum';
+import { Account } from 'src/database/entities/account.entity';
 
 @Injectable()
 export class StudyProfileService {
@@ -19,6 +21,8 @@ export class StudyProfileService {
         private readonly studyProfileRepository: Repository<StudyProfile>,
         @InjectRepository(TargetLearning)
         private readonly targetLearningRepository: Repository<TargetLearning>,
+        @InjectRepository(Account)
+        private readonly accountRepository: Repository<Account>,
     ) {}
 
     async getStudyProfileByAccountId(accountId: string) {
@@ -47,9 +51,23 @@ export class StudyProfileService {
                 excludeExtraneousValues: true,
             });
 
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
             return {
                 ...profile,
                 account,
+                startdate,
+                enddate,
             };
         });
 
@@ -129,9 +147,23 @@ export class StudyProfileService {
                 excludeExtraneousValues: true,
             });
 
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
             return {
                 ...profile,
                 account,
+                startdate,
+                enddate,
             };
         });
 
@@ -170,9 +202,23 @@ export class StudyProfileService {
                 excludeExtraneousValues: true,
             });
 
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
             return {
                 ...profile,
                 account,
+                startdate,
+                enddate,
             };
         });
 
@@ -222,9 +268,9 @@ export class StudyProfileService {
         const studyProfiles = await this.studyProfileRepository.find({
             where: { account: { id: accountId } },
         });
-    
+
         const targetLearningArrs = [];
-    
+
         for (const studyProfile of studyProfiles) {
             const targetLearnings = await this.targetLearningRepository.find({
                 where: {
@@ -240,46 +286,138 @@ export class StudyProfileService {
                     'targetlearningdetail.unitprogress.unitAreaProgresses.lessonProgresses',
                 ],
             });
-    
+
             const filteredTargetLearnings = targetLearnings.map((targetLearning) => {
-                const updatedDetails = targetLearning.targetlearningdetail.map((detail) => {
-                    const unitprogressCount = detail.unitprogress?.length || 0;
-    
-                    const lessonProgressCount = detail.unitprogress.reduce(
-                        (sum, unitProgress) =>
-                            sum +
-                            unitProgress.unitAreaProgresses.reduce(
-                                (areaSum, unitArea) =>
-                                    areaSum + (unitArea.lessonProgresses?.length || 0),
-                                0,
-                            ),
-                        0,
-                    );
-    
-                    // const updatedUnitProgress = detail.unitprogress.map((unitProgress) => ({
-                    //     unitarea: unitProgress.unitAreaProgresses.map((unitArea) => ({
-                    //         lessonprogressCount: unitArea.lessonProgresses?.length || 0,
-                    //     })),
-                    // }));
-    
-                    return {
-                        ...detail,
-                        unitprogressCount,
-                        lessonProgressCount,
-                        //unitprogress: updatedUnitProgress,
-                    };
-                });
-    
+                const updatedDetails = targetLearning.targetlearningdetail.map(
+                    (detail) => {
+                        const unitprogressCount = detail.unitprogress?.length || 0;
+
+                        const lessonProgressCount = detail.unitprogress.reduce(
+                            (sum, unitProgress) =>
+                                sum +
+                                unitProgress.unitAreaProgresses.reduce(
+                                    (areaSum, unitArea) =>
+                                        areaSum +
+                                        (unitArea.lessonProgresses?.length || 0),
+                                    0,
+                                ),
+                            0,
+                        );
+
+                        // const updatedUnitProgress = detail.unitprogress.map((unitProgress) => ({
+                        //     unitarea: unitProgress.unitAreaProgresses.map((unitArea) => ({
+                        //         lessonprogressCount: unitArea.lessonProgresses?.length || 0,
+                        //     })),
+                        // }));
+
+                        return {
+                            ...detail,
+                            unitprogressCount,
+                            lessonProgressCount,
+                            //unitprogress: updatedUnitProgress,
+                        };
+                    },
+                );
+
                 return {
                     ...targetLearning,
                     targetlearningdetail: updatedDetails,
                 };
             });
-    
+
             targetLearningArrs.push(...filteredTargetLearnings);
         }
-    
+
         return targetLearningArrs;
     }
-    
+
+    async getStudyProfileWithTeacherDetail(page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [studyProfiles, total] = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account') // Tham chiếu accountId
+            .where('studyProfile.status = :status', { status: StudyProfileStatus.ACTIVE })
+            .skip(skip)
+            .take(pageSize)
+            .orderBy('studyProfile.updatedat', 'DESC')
+            .getManyAndCount();
+
+        const teacherIds = studyProfiles.map((profile) => profile.teacherId);
+        const teachers = await this.accountRepository.findByIds(teacherIds);
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        const studyProfile = studyProfiles.map((profile) => {
+            const account = plainToInstance(GetAccountDTO, profile.account, {
+                excludeExtraneousValues: true,
+            });
+
+            const teacher = teachers.find((teacher) => teacher.id === profile.teacherId);
+
+            const startdate = profile.startdate
+                ? new Date(profile.startdate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+            const enddate = profile.enddate
+                ? new Date(profile.enddate).toLocaleString('vi-VN', {
+                      timeZone: 'Asia/Saigon',
+                  })
+                : null;
+
+            return {
+                ...profile,
+                account,
+                teacher: teacher
+                    ? plainToInstance(GetAccountDTO, teacher, {
+                          excludeExtraneousValues: true,
+                      })
+                    : null,
+                startdate,
+                enddate,
+            };
+        });
+
+        return {
+            data: studyProfile,
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
+    async updateDate(studyProfileId: string, month: number) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { id: studyProfileId },
+        });
+
+        if (!studyProfile) {
+            throw new Error('StudyProfile not found');
+        }
+
+        const startDate = new Date();
+        studyProfile.startdate = startDate;
+
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + month);
+        studyProfile.enddate = endDate;
+
+        return await this.studyProfileRepository.save(studyProfile);
+    }
+
+    async updateStudyProfile(id: string, updateStudyProfileDto: UpdateStudyProfileDto) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { id: id },
+        });
+
+        if (!studyProfile) {
+            throw new NotFoundException('StudyProfile is not found');
+        }
+
+        studyProfile.startdate = updateStudyProfileDto.startDate;
+        studyProfile.enddate = updateStudyProfileDto.endDate;
+
+        return await this.studyProfileRepository.save(studyProfile);
+    }
 }
