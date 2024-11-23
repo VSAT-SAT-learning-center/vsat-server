@@ -138,9 +138,7 @@ export class TargetLearningDetailService {
         return response;
     }
 
-    async getRecentUnitProgressWithDetails(
-        targetLearningId: string,
-    ): Promise<any[]> {
+    async getRecentUnitProgressWithDetails(targetLearningId: string): Promise<any[]> {
         // Fetch all TargetLearningDetails and their UnitProgresses
         const targetLearningDetails = await this.targetLearningDetailRepository.find({
             where: { targetlearning: { id: targetLearningId } },
@@ -150,6 +148,8 @@ export class TargetLearningDetailService {
                 'unitprogress',
                 'unitprogress.unit',
                 'unitprogress.unit.level',
+                'unitprogress.unit.unitAreas',
+                'unitprogress.unit.unitAreas.lessons',
             ],
         });
 
@@ -159,36 +159,62 @@ export class TargetLearningDetailService {
             );
         }
 
-        // Map TargetLearningDetails with their UnitProgresses
-        const response = targetLearningDetails.map((detail) => ({
-            targetLearningDetailId: detail.id,
-            section: detail.section
-                ? { id: detail.section.id, name: detail.section.name }
-                : null,
-            level: detail.level ? { id: detail.level.id, name: detail.level.name } : null,
-            unitProgresses: detail.unitprogress
+        const response = targetLearningDetails.map((detail) => {
+            let totalUnitAreaCount = 0;
+            let totalLessonCount = 0;
+
+            const unitProgresses = detail.unitprogress
                 .sort(
                     (a, b) =>
                         new Date(b.updatedat).getTime() - new Date(a.updatedat).getTime(),
                 ) // Sort by updatedAt descending
-                .map((unitProgress) => ({
-                    unitProgressId: unitProgress.id,
-                    progress: unitProgress.progress || 0,
-                    status: unitProgress.status,
-                    updatedAt: unitProgress.updatedat,
-                    unit: {
-                        id: unitProgress.unit.id,
-                        title: unitProgress.unit.title,
-                        description: unitProgress.unit.description,
-                        level: unitProgress.unit.level
-                            ? {
-                                  id: unitProgress.unit.level.id,
-                                  name: unitProgress.unit.level.name,
-                              }
-                            : null,
-                    },
-                })),
-        }));
+                .map((unitProgress) => {
+                    // Count unitAreas and lessons for each unit
+                    const unitAreaCount = unitProgress.unit.unitAreas.length;
+                    const lessonCount = unitProgress.unit.unitAreas.reduce(
+                        (total, unitArea) => total + unitArea.lessons.length,
+                        0,
+                    );
+
+                    // Update totals for the targetLearningDetail
+                    totalUnitAreaCount += unitAreaCount;
+                    totalLessonCount += lessonCount;
+
+                    return {
+                        unitProgressId: unitProgress.id,
+                        progress: unitProgress.progress || 0,
+                        status: unitProgress.status,
+                        updatedAt: unitProgress.updatedat,
+                        unit: {
+                            id: unitProgress.unit.id,
+                            title: unitProgress.unit.title,
+                            description: unitProgress.unit.description,
+                            level: unitProgress.unit.level
+                                ? {
+                                      id: unitProgress.unit.level.id,
+                                      name: unitProgress.unit.level.name,
+                                  }
+                                : null,
+                            unitAreaCount, // Total number of unitAreas for this unit
+                            lessonCount, // Total number of lessons for this unit
+                        },
+                    };
+                });
+
+            return {
+                targetLearningDetailId: detail.id,
+                section: detail.section
+                    ? { id: detail.section.id, name: detail.section.name }
+                    : null,
+                level: detail.level
+                    ? { id: detail.level.id, name: detail.level.name }
+                    : null,
+                totalUnitCount: detail.unitprogress.length,
+                totalUnitAreaCount, // Total number of unitAreas in this targetLearningDetail
+                totalLessonCount, // Total number of lessons in this targetLearningDetail
+                unitProgresses,
+            };
+        });
 
         return response;
     }
