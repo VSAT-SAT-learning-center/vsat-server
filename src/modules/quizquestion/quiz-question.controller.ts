@@ -96,7 +96,10 @@ export class QuizQuestionController {
 
             await this.quizQuestionService.publish(quizQuestionIds);
 
-            return ResponseHelper.success(HttpStatus.OK, SuccessMessages.update('QuizQuestions'));
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                SuccessMessages.update('QuizQuestions'),
+            );
         } catch (error) {
             throw new HttpException(
                 {
@@ -146,9 +149,13 @@ export class QuizQuestionController {
             },
         },
     })
-    async updateStatus(@Param('id') id: string, @Body() status: QuizQuestionStatus) {
+    async updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
         try {
-            const question = await this.quizQuestionService.updateStatus(id, status);
+            const { status } = body;
+            const question = await this.quizQuestionService.updateStatus(
+                id,
+                status as QuizQuestionStatus,
+            );
             return ResponseHelper.success(
                 HttpStatus.OK,
                 question,
@@ -170,7 +177,8 @@ export class QuizQuestionController {
     @ApiBody({ type: [CreateQuizQuestionFileDto] })
     async save(@Body() createQuestionFileDto: CreateQuizQuestionFileDto[]) {
         try {
-            const saveQuestion = await this.quizQuestionService.save(createQuestionFileDto);
+            const saveQuestion =
+                await this.quizQuestionService.save(createQuestionFileDto);
             return ResponseHelper.success(
                 HttpStatus.CREATED,
                 saveQuestion,
