@@ -154,6 +154,8 @@ export class FeedbackService extends BaseService<Feedback> {
         const rejectFeedback = await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
             content: 'Rejected due to lesson issues',
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
             status: FeedbackStatus.REJECTED,
         });
 
@@ -418,6 +420,8 @@ export class FeedbackService extends BaseService<Feedback> {
             exam: { id: examFeedback.examId },
             content: 'Rejected due to module issues',
             status: FeedbackStatus.REJECTED,
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
         });
 
         const nofiticationData: NotificationDataDto = {
@@ -666,9 +670,10 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         const where: any = {
-            ...(status === FeedbackStatus.PENDING
-                ? { accountFrom: { id: userId } }
-                : { accountTo: { id: userId } }),
+            // ...(
+            //     status === FeedbackStatus.PENDING
+            //     ? { accountFrom: { id: userId } }
+            //     : { accountTo: { id: userId } }),
             status,
         };
 
