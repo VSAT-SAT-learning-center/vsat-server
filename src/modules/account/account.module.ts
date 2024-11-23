@@ -6,10 +6,11 @@ import { Account } from 'src/database/entities/account.entity';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/database/entities/role.entity';
 import { StudyProfileModule } from '../study-profile/study-profile.module';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Role, Account]),
+        TypeOrmModule.forFeature([Role, Account, StudyProfile]),
         forwardRef(() => StudyProfileModule), // Import StudyProfileModule
     ],
     controllers: [AccountController],

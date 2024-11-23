@@ -31,6 +31,7 @@ import { StudyProfileService } from '../study-profile/study-profile.service';
 import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
 import { TargetLearningService } from '../target-learning/target-learning.service';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
+import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -84,7 +85,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         accountId: string,
     ) {
         const studyProfile = await this.studyProfileRepository.findOne({
-            where: { account: { id: accountId } },
+            where: { account: { id: accountId }, status: StudyProfileStatus.INACTIVE },
             order: { createdat: 'ASC' },
         });
 
@@ -99,7 +100,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        await this.studyProfileService.saveTarget(
+        const updateStudyProfile = await this.studyProfileService.saveTarget(
             createTargetLearningDto.targetLearningRW,
             createTargetLearningDto.targetLearningMath,
             accountId,
@@ -326,6 +327,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsMath,
                 );
 
+                await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
+
                 break;
 
             case examAttempt.targetlearning.studyProfile.targetscoreMath >= 400 &&
@@ -347,6 +350,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             targetLearning.id,
                             top3UnitIdMediumMath,
                         );
+
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
                 }
                 break;
 
@@ -369,6 +374,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             targetLearning.id,
                             unitIdMediumMath,
                         );
+
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
                 } else if (examAttempt.scoreMath < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -386,6 +393,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             targetLearning.id,
                             top3UnitIdAdvanceMath,
                         );
+
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
                 }
                 break;
         }
@@ -409,6 +418,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsRW,
                 );
 
+                await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
+
                 break;
 
             case examAttempt.targetlearning.studyProfile.targetscoreRW >= 400 &&
@@ -429,6 +440,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         targetLearning.id,
                         top3UnitIdMediumsRW,
                     );
+
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
                 }
                 break;
 
@@ -450,6 +463,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         targetLearning.id,
                         unitIdMediumsRW,
                     );
+
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 12);
                 } else if (examAttempt.scoreRW < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -466,6 +481,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         targetLearning.id,
                         top3UnitIdAdvanceRW,
                     );
+
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
                 }
                 break;
         }
@@ -1088,12 +1105,30 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     relations: ['exam'],
                 });
 
-                const exam = await this.GetExamWithExamQuestionByExamId(exampAttempt.exam.id);
+                const exam = await this.GetExamWithExamQuestionByExamId(
+                    exampAttempt.exam.id,
+                );
 
                 examAttempArrs.push(exampAttempt, exam);
             }
         }
 
         return examAttempArrs;
+    }
+
+    async createExamAttemptWithExam(examId: string, studyProfileIds: string[]) {
+        const targetLearning =
+            await this.targetLearningService.createMultipleTargetLearning(
+                studyProfileIds,
+            );
+
+        const examAttemptArrs = targetLearning.map((targetData) =>
+            this.examAttemptRepository.create({
+                targetlearning: { id: targetData.id },
+                exam: { id: examId },
+            }),
+        );
+
+        return await this.examAttemptRepository.save(examAttemptArrs);
     }
 }

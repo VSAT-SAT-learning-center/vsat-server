@@ -24,6 +24,8 @@ import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { StudyProfileService } from '../study-profile/study-profile.service';
 import { TargetLearningDetailModule } from '../target-learning-detail/target-learning-detail.module';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
+import { ExamModule } from '../exam/exam.module';
+import { ModuleTypeModule } from '../module-type/module-type.module';
 
 @Module({
     imports: [
@@ -48,6 +50,8 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
         forwardRef(() => TargetLearningModule),
         forwardRef(() => UnitProgressModule),
         forwardRef(() => ExamAttemptDetailModule),
+        forwardRef(() => ExamModule),
+        forwardRef(() => ModuleTypeModule),
     ],
     providers: [ExamAttemptService, StudyProfileService, TargetLearningService],
     controllers: [ExamAttemptController],

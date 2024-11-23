@@ -10,8 +10,6 @@ import {
     ValidateNested,
 } from 'class-validator';
 import { CreateExamQuestionDTO } from 'src/modules/examquestion/dto/create-examquestion.dto';
-import { ModuleConfig } from 'src/modules/module-type/dto/create-moduleconfig.dto';
-import { CreateQuestionExamDto } from 'src/modules/question/dto/create-question-exam.dto';
 
 export class CreateExamDto {
     @ApiProperty({
@@ -47,4 +45,10 @@ export class CreateExamDto {
     @ValidateNested({ each: true })
     @Type(() => CreateExamQuestionDTO)
     examQuestions: CreateExamQuestionDTO[];
+
+    @ApiProperty({})
+    @IsArray()
+    @IsUUID()
+    @Expose()
+    studyProfileIds: string[];
 }

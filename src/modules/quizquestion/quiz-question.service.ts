@@ -429,9 +429,6 @@ export class QuizQuestionService {
     }
 
     async updateStatus(id: string, status: QuizQuestionStatus): Promise<boolean> {
-        if (!Object.values(QuizQuestionStatus).includes(status)) {
-            throw new BadRequestException(`Invalid status value: ${status}`);
-        }
 
         const quizQuestion = await this.quizQuestionRepository.findOneBy({
             id,
