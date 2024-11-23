@@ -4,6 +4,7 @@ import {
     Get,
     HttpException,
     HttpStatus,
+    Param,
     Put,
     Query,
     Request,
@@ -16,6 +17,7 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
 import { StudyProfileService } from './study-profile.service';
+import { UpdateStudyProfileDto } from './dto/update-studyprofile.dto';
 
 @ApiTags('StudyProfiles')
 @Controller('study-profiles')
