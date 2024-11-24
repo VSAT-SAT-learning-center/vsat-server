@@ -1,4 +1,11 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    HttpException,
+    HttpStatus,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateExamDto } from './dto/create-exam.dto';
@@ -23,6 +30,7 @@ import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
 import { CreateExamWithExamAttemptDto } from './dto/create-examwithattempt.dto';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -127,6 +135,13 @@ export class ExamService extends BaseService<Exam> {
             savedExam.id,
             createExamDto.examQuestions,
         );
+
+        await this.feedbackService.submitExamFeedback({
+            exam: savedExam,
+            status: FeedbackStatus.PENDING,
+            content: 'Exam was submitted',
+            accountFromId: savedExam.createdby,
+        });
 
         return savedExam;
     }
@@ -986,7 +1001,9 @@ export class ExamService extends BaseService<Exam> {
         return result;
     }
 
-    async createExamWithExamAttempt(createExamDto: CreateExamWithExamAttemptDto): Promise<Exam> {
+    async createExamWithExamAttempt(
+        createExamDto: CreateExamWithExamAttemptDto,
+    ): Promise<Exam> {
         const [examStructure, examType, modules, domains, questions] = await Promise.all([
             this.examStructureRepository.findOne({
                 where: { id: createExamDto.examStructureId },
@@ -1059,7 +1076,10 @@ export class ExamService extends BaseService<Exam> {
             createExamDto.examQuestions,
         );
 
-        await this.examAttemptService.createExamAttemptWithExam(savedExam.id, createExamDto.studyProfileIds)
+        await this.examAttemptService.createExamAttemptWithExam(
+            savedExam.id,
+            createExamDto.studyProfileIds,
+        );
 
         return savedExam;
     }

@@ -1712,4 +1712,56 @@ export class FeedbackService extends BaseService<Feedback> {
             totalItems,
         };
     }
+
+    async submitExamFeedback(
+        createFeedbackDto: CreateFeedbackDto,
+    ): Promise<{ feedbackId: string; accountFrom: string; accountTo: string }[]> {
+        const feedbackList: {
+            feedbackId: string;
+            accountFrom: string;
+            accountTo: string;
+        }[] = [];
+
+        //Notify managers when feedback is submitted
+        const managers = await this.accountService.findManagers();
+
+        const accountFrom = await this.accountService.findOneById(
+            createFeedbackDto.accountFromId,
+        );
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account not found');
+        }
+
+        const feedbackPromises = managers.map(async (manager) => {
+            createFeedbackDto.accountFrom = accountFrom;
+            createFeedbackDto.accountTo = manager;
+            const feedback = this.feedbackRepository.create(createFeedbackDto);
+            this.feedbackRepository.save(feedback);
+
+            // Store feedback details in the list
+            feedbackList.push({
+                feedbackId: feedback.id,
+                accountFrom: feedback.accountFrom.id,
+                accountTo: feedback.accountTo.id,
+            });
+        });
+
+        await Promise.all(feedbackPromises);
+
+        // Prepare notification message
+        const notificationMessage = 'New exam was submitted';
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            managers,
+            accountFrom,
+            feedbackList,
+            notificationMessage,
+            FeedbackType.EXAM,
+            FeedbackEventType.PUBLISH_EXAM,
+        );
+
+        return feedbackList;
+    }
 }
