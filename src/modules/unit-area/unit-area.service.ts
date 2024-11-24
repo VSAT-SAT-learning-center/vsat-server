@@ -46,7 +46,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
 
         // Xử lý từng UnitArea trong danh sách được truyền lên
         for (const createUnitAreaDto of createUnitAreaDtoList) {
-            const { unitId, lessons, ...unitAreaData } = createUnitAreaDto;
+            const { unitId, lessons, skillId, ...unitAreaData } = createUnitAreaDto;
 
             let unitArea;
 
@@ -55,6 +55,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
                 unitArea = this.unitAreaRepository.create({
                     ...unitAreaData,
                     unit: { id: unitId },
+                    skill: { id: skillId },
                 });
             } else {
                 // Tìm kiếm UnitArea hiện có trong cơ sở dữ liệu
@@ -71,6 +72,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
                         ...unitAreaData,
                         id: unitAreaData.id,
                         unit: { id: unitId },
+                        skill: { id: skillId },
                     });
                 }
             }
