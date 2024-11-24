@@ -796,7 +796,7 @@ export class UnitService extends BaseService<Unit> {
         if (action === 'reject') {
             return await this.rejectLearningMaterial(feedbackDto);
         } else if (action === 'approve') {
-            return 'Approve learning material success'; 
+            return await this.approveLearningMaterial(feedbackDto); 
         }
     }
 
@@ -843,6 +843,8 @@ export class UnitService extends BaseService<Unit> {
         });
 
         feedbackDto.accountToId = unit.createdby;
+
+        await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
     }
 
     async getUnitWithDomainAndSkills(unitId: string): Promise<UnitWithSkillsDto> {

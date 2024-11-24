@@ -11,6 +11,7 @@ import {
 import { Console } from 'console';
 import { Server, Socket } from 'socket.io';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { Feedback } from 'src/database/entities/feedback.entity';
 
 @WebSocketGateway(5001, { namespace: '/feedbacks', cors: { origin: '*' } })
@@ -64,6 +65,7 @@ export class FeedbacksGateway
     sendNotificationToUser(
         userId: string,
         data: any,
+        type: FeedbackType,
         eventType: FeedbackEventType,
     ) {
         const userSocket = this.users.get(userId);
@@ -71,6 +73,7 @@ export class FeedbacksGateway
             this.handleEmitSocket({
                 data: data,
                 event: 'feedbackNotification',
+                type: type,
                 eventType: eventType,
                 to: userSocket.id,
             });
@@ -83,10 +86,11 @@ export class FeedbacksGateway
     sendNotificationToMultipleUsers(
         userIds: string[],
         data: any,
+        type: FeedbackType,
         eventType: FeedbackEventType,
     ) {
         userIds.forEach((userId) => {
-            this.sendNotificationToUser(userId, data, eventType);
+            this.sendNotificationToUser(userId, data, type, eventType);
         });
     }
     
@@ -96,21 +100,25 @@ export class FeedbacksGateway
         this.handleEmitSocket({
             data: data,
             event: 'feedbackNotification',
+            type: FeedbackType.UNKNOWN,
         });
     }
 
     handleEmitSocket({
         data,
         event,
+        type,
         eventType,
         to,
     }: {
         data: any;
         event: any;
+        type: any;
         eventType?: any;
         to?: any;
     }) {
         const payload = {
+            type: type,
             eventType: eventType,
             data: data
         };
@@ -130,11 +138,12 @@ export class FeedbacksGateway
         data: {
             userId: string;
             message: string;
+            type?: FeedbackType;
             eventType?: FeedbackEventType;
         },
     ) {
-        const { userId, message, eventType } = data;
-        this.sendNotificationToUser(userId, message, eventType);
+        const { userId, message, eventType, type } = data;
+        this.sendNotificationToUser(userId, message, type, eventType);
     }
 
     @SubscribeMessage('sendToMultipleUsers')
@@ -143,11 +152,12 @@ export class FeedbacksGateway
         data: {
             userIds: string[];
             message: string;
+            type?: FeedbackType;
             eventType?: FeedbackEventType;
         },
     ) {
-        const { userIds, message, eventType } = data;
-        this.sendNotificationToMultipleUsers(userIds, message, eventType);
+        const { userIds, message, type, eventType } = data;
+        this.sendNotificationToMultipleUsers(userIds, message, type, eventType);
     }
 
     @SubscribeMessage('broadcast')

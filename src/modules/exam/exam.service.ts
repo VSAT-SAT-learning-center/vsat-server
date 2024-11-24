@@ -30,6 +30,7 @@ import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
 import { CreateExamWithExamAttemptDto } from './dto/create-examwithattempt.dto';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -134,6 +135,13 @@ export class ExamService extends BaseService<Exam> {
             savedExam.id,
             createExamDto.examQuestions,
         );
+
+        await this.feedbackService.submitExamFeedback({
+            exam: savedExam,
+            status: FeedbackStatus.PENDING,
+            content: 'Exam was submitted',
+            accountFromId: savedExam.createdby,
+        });
 
         return savedExam;
     }
@@ -644,7 +652,16 @@ export class ExamService extends BaseService<Exam> {
 
         exam.status = status;
 
-        return await this.examRepository.save(exam);
+        const savedExam = await this.examRepository.save(exam);
+
+        await this.feedbackService.submitExamFeedback({
+            exam: exam,
+            status: FeedbackStatus.PENDING,
+            content: 'Exam was submitted',
+            accountFromId: savedExam.createdby,
+        });
+
+        return savedExam;
     }
 
     async getExamDetails(examId: string): Promise<GetExamDto> {
@@ -992,7 +1009,7 @@ export class ExamService extends BaseService<Exam> {
 
         return result;
     }
-
+  
     // async createExamWithExamAttempt(
     //     createExamDto: CreateExamWithExamAttemptDto,
     // ): Promise<any> {

@@ -84,7 +84,7 @@ export class QuizQuestionService extends BaseService<QuizQuestion> {
 
         await this.updateStatus(quizQuestionId, QuizQuestionStatus.APPROVED);
 
-        //this.feedbackService.approveQuestionFeedback(feedbackDto);
+        await this.feedbackService.approveQuizQuestionFeedback(feedbackDto);
     }
 
     normalizeContent(content: string): string {

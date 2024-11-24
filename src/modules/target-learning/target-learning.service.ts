@@ -20,6 +20,7 @@ import { TargetLearningStatus } from 'src/common/enums/target-learning-status.en
 import { AccountService } from '../account/account.service';
 import { NotificationService } from 'src/nofitication/notification.service';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 
 @Injectable()
 export class TargetLearningService extends BaseService<TargetLearning> {
@@ -138,6 +139,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             accountFrom,
             updatedTargetLearning,
             notificationMessage,
+            FeedbackType.TARGET_LEARNING,
             FeedbackEventType.COMPLETE_TARGET_LEARNING ,
         );
 
@@ -167,6 +169,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             accountFrom,
             targetLearning,
             'Your Target Learning has been approved.',
+            FeedbackType.TARGET_LEARNING,
             FeedbackEventType.APPROVE_TARGET_LEARNING,
         );
     }

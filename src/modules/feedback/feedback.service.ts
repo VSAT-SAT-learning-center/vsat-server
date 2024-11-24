@@ -53,6 +53,7 @@ import { QuizQuestionMessages } from 'src/common/message/quiz-question-message';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { LearningMaterialMessages } from 'src/common/message/learning-material-message';
 import { ExamMessages } from 'src/common/message/exam-message';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -169,6 +170,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             feedbackList,
             notificationMessage,
+            FeedbackType.LEARNING_MATERIAL,
             FeedbackEventType.PUBLISH_LEARNING_MATERIAL,
         );
 
@@ -182,11 +184,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const unit = await this.unitService.findOneById(unitFeedback.unitId);
 
-        if (!unit || unit.status !== UnitStatus.PENDING) {
-            throw new BadRequestException(
-                'Learning material has already been censored by another',
-            );
-        }
+        // if (!unit || unit.status !== UnitStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Learning material has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -245,7 +247,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (unit.isActive) {
+        if (!unit.isActive) {
             notificationMessage = LearningMaterialMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your learning material`;
@@ -256,6 +258,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.LEARNING_MATERIAL,
             FeedbackEventType.REJECT_LEARNING_MATERIAL,
         );
 
@@ -269,11 +272,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const unit = await this.unitService.findOneById(unitFeedback.unitId);
 
-        if (!unit || unit.status !== UnitStatus.PENDING) {
-            throw new BadRequestException(
-                'Learning material has already been censored by another',
-            );
-        }
+        // if (!unit || unit.status !== UnitStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Learning material has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -323,6 +326,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             unitFeedback.unitId,
             notificationMessage,
+            FeedbackType.LEARNING_MATERIAL,
             FeedbackEventType.REJECT_LEARNING_MATERIAL,
         );
     }
@@ -383,6 +387,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             feedbackList,
             notificationMessage,
+            FeedbackType.QUESTION,
             FeedbackEventType.PUBLISH_QUESTION,
         );
 
@@ -396,16 +401,13 @@ export class FeedbackService extends BaseService<Feedback> {
         const { feedbackId, questionId, content, reason, accountFromId, accountToId } =
             feedbackDto;
 
-        const feedback = await this.feedbackRepository.findOne({
-            where: { id: feedbackId },
-        });
-
         const question = await this.questionSerivce.findOneById(questionId);
-        if (!question || question.status !== QuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Question has already been censored by another',
-            );
-        }
+        
+        // if (!question || question.status !== QuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -430,7 +432,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (question.isActive) {
+        if (!question.isActive) {
             notificationMessage = QuestionMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your question`;
@@ -441,6 +443,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.QUESTION,
             FeedbackEventType.REJECT_QUESTION,
         );
 
@@ -464,11 +467,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const question = await this.questionSerivce.findOneById(questionId);
 
-        if (!question || question.status !== QuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Question has already been censored by another',
-            );
-        }
+        // if (!question || question.status !== QuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -509,6 +512,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             questionId,
             notificationMessage,
+            FeedbackType.QUESTION,
             FeedbackEventType.APPROVE_QUESTION,
         );
     }
@@ -569,6 +573,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             feedbackList,
             notificationMessage,
+            FeedbackType.QUIZ_QUESTION,
             FeedbackEventType.PUBLISH_QUIZ_QUESTION,
         );
 
@@ -586,11 +591,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
 
-        if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Quiz Question has already been censored by another',
-            );
-        }
+        // if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Quiz Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -615,7 +620,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (quizQuestion.isActive) {
+        if (!quizQuestion.isActive) {
             notificationMessage = QuestionMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your quiz question`;
@@ -626,6 +631,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.QUIZ_QUESTION,
             FeedbackEventType.REJECT_QUIZ_QUESTION,
         );
 
@@ -651,11 +657,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
 
-        if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Quiz Question has already been censored by another',
-            );
-        }
+        // if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Quiz Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -696,6 +702,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             quizQuestionId,
             notificationMessage,
+            FeedbackType.QUIZ_QUESTION,
             FeedbackEventType.APPROVE_QUIZ_QUESTION,
         );
     }
@@ -705,9 +712,9 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const exam = await this.examService.findOneById(examFeedback.examId);
 
-        if (!exam || exam.status !== ExamStatus.PENDING) {
-            throw new BadRequestException('Exam has already been censored by another');
-        }
+        // if (!exam || exam.status !== ExamStatus.PENDING) {
+        //     throw new BadRequestException('Exam has already been censored by another');
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -769,7 +776,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (exam.isActive) {
+        if (!exam.isActive) {
             notificationMessage = ExamMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your exam`;
@@ -780,6 +787,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.EXAM,
             FeedbackEventType.REJECT_EXAM,
         );
 
@@ -791,9 +799,9 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const exam = await this.examService.findOneById(examFeedback.examId);
 
-        if (!exam || exam.status !== ExamStatus.PENDING) {
-            throw new BadRequestException('Exam has already been censored by another');
-        }
+        // if (!exam || exam.status !== ExamStatus.PENDING) {
+        //     throw new BadRequestException('Exam has already been censored by another');
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -844,6 +852,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             examFeedback.examId,
             notificationMessage,
+            FeedbackType.EXAM,
             FeedbackEventType.APPROVE_EXAM,
         );
 
@@ -1699,5 +1708,57 @@ export class FeedbackService extends BaseService<Feedback> {
             data,
             totalItems,
         };
+    }
+
+    async submitExamFeedback(
+        createFeedbackDto: CreateFeedbackDto,
+    ): Promise<{ feedbackId: string; accountFrom: string; accountTo: string }[]> {
+        const feedbackList: {
+            feedbackId: string;
+            accountFrom: string;
+            accountTo: string;
+        }[] = [];
+
+        //Notify managers when feedback is submitted
+        const managers = await this.accountService.findManagers();
+
+        const accountFrom = await this.accountService.findOneById(
+            createFeedbackDto.accountFromId,
+        );
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account not found');
+        }
+
+        const feedbackPromises = managers.map(async (manager) => {
+            createFeedbackDto.accountFrom = accountFrom;
+            createFeedbackDto.accountTo = manager;
+            const feedback = this.feedbackRepository.create(createFeedbackDto);
+            this.feedbackRepository.save(feedback);
+
+            // Store feedback details in the list
+            feedbackList.push({
+                feedbackId: feedback.id,
+                accountFrom: feedback.accountFrom.id,
+                accountTo: feedback.accountTo.id,
+            });
+        });
+
+        await Promise.all(feedbackPromises);
+
+        // Prepare notification message
+        const notificationMessage = 'New exam was submitted';
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            managers,
+            accountFrom,
+            feedbackList,
+            notificationMessage,
+            FeedbackType.EXAM,
+            FeedbackEventType.PUBLISH_EXAM,
+        );
+
+        return feedbackList;
     }
 }
