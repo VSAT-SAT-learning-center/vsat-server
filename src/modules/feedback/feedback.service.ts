@@ -184,11 +184,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const unit = await this.unitService.findOneById(unitFeedback.unitId);
 
-        if (!unit || unit.status !== UnitStatus.PENDING) {
-            throw new BadRequestException(
-                'Learning material has already been censored by another',
-            );
-        }
+        // if (!unit || unit.status !== UnitStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Learning material has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -247,7 +247,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (unit.isActive) {
+        if (!unit.isActive) {
             notificationMessage = LearningMaterialMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your learning material`;
@@ -272,11 +272,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const unit = await this.unitService.findOneById(unitFeedback.unitId);
 
-        if (!unit || unit.status !== UnitStatus.PENDING) {
-            throw new BadRequestException(
-                'Learning material has already been censored by another',
-            );
-        }
+        // if (!unit || unit.status !== UnitStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Learning material has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -401,16 +401,13 @@ export class FeedbackService extends BaseService<Feedback> {
         const { feedbackId, questionId, content, reason, accountFromId, accountToId } =
             feedbackDto;
 
-        const feedback = await this.feedbackRepository.findOne({
-            where: { id: feedbackId },
-        });
-
         const question = await this.questionSerivce.findOneById(questionId);
-        if (!question || question.status !== QuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Question has already been censored by another',
-            );
-        }
+        
+        // if (!question || question.status !== QuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -435,7 +432,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (question.isActive) {
+        if (!question.isActive) {
             notificationMessage = QuestionMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your question`;
@@ -470,11 +467,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const question = await this.questionSerivce.findOneById(questionId);
 
-        if (!question || question.status !== QuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Question has already been censored by another',
-            );
-        }
+        // if (!question || question.status !== QuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -594,11 +591,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
 
-        if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Quiz Question has already been censored by another',
-            );
-        }
+        // if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Quiz Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -623,7 +620,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (quizQuestion.isActive) {
+        if (!quizQuestion.isActive) {
             notificationMessage = QuestionMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your quiz question`;
@@ -660,11 +657,11 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
 
-        if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
-            throw new BadRequestException(
-                'Quiz Question has already been censored by another',
-            );
-        }
+        // if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
+        //     throw new BadRequestException(
+        //         'Quiz Question has already been censored by another',
+        //     );
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -715,9 +712,9 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const exam = await this.examService.findOneById(examFeedback.examId);
 
-        if (!exam || exam.status !== ExamStatus.PENDING) {
-            throw new BadRequestException('Exam has already been censored by another');
-        }
+        // if (!exam || exam.status !== ExamStatus.PENDING) {
+        //     throw new BadRequestException('Exam has already been censored by another');
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -779,7 +776,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         let notificationMessage;
 
-        if (exam.isActive) {
+        if (!exam.isActive) {
             notificationMessage = ExamMessages.MAX_EXCEED_REJECT;
         } else {
             notificationMessage = `${accountFrom.username} has reject your exam`;
@@ -802,9 +799,9 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const exam = await this.examService.findOneById(examFeedback.examId);
 
-        if (!exam || exam.status !== ExamStatus.PENDING) {
-            throw new BadRequestException('Exam has already been censored by another');
-        }
+        // if (!exam || exam.status !== ExamStatus.PENDING) {
+        //     throw new BadRequestException('Exam has already been censored by another');
+        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 

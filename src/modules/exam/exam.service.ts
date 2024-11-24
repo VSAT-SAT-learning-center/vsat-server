@@ -652,7 +652,16 @@ export class ExamService extends BaseService<Exam> {
 
         exam.status = status;
 
-        return await this.examRepository.save(exam);
+        const savedExam = await this.examRepository.save(exam);
+
+        await this.feedbackService.submitExamFeedback({
+            exam: exam,
+            status: FeedbackStatus.PENDING,
+            content: 'Exam was submitted',
+            accountFromId: savedExam.createdby,
+        });
+
+        return savedExam;
     }
 
     async getExamDetails(examId: string): Promise<GetExamDto> {
