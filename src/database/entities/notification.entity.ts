@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Account } from './account.entity';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 
 @Entity('notification')
 export class Notification {
@@ -44,6 +45,9 @@ export class Notification {
     @Column({ type: 'boolean', default: false })
     isRead: boolean;
 
+    @Column({ type: 'enum', enum: FeedbackType, default: FeedbackType.UNKNOWN })
+    type: FeedbackType;
+
     @Column({ type: 'enum', enum: FeedbackEventType, default: FeedbackEventType.UNKNOWN })
-    type: FeedbackEventType;
+    eventType: FeedbackEventType;
 }

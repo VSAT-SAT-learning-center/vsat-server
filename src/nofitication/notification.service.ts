@@ -31,7 +31,8 @@ export class NotificationService {
             accountFrom,
             accountTo: manager,
             isRead: false,
-            type: eventType,
+            type: type,
+            eventType: eventType,
         }));
 
         await this.notificationRepository.save(notifications);
@@ -58,7 +59,8 @@ export class NotificationService {
             accountFrom,
             accountTo: accountTo,
             isRead: false,
-            type: eventType,
+            type: type,
+            eventType: eventType,
         };
 
         await this.notificationRepository.save(notification);
