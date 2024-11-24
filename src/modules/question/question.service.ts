@@ -389,6 +389,38 @@ export class QuestionService extends BaseService<Question> {
         };
     }
 
+    async getAllWithStatusByCreateBy(
+        page: number,
+        pageSize: number,
+        status: QuestionStatus,
+        accountId: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [questions, total] = await this.questionRepository.findAndCount({
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            skip: skip,
+            take: pageSize,
+            where: { status: status, createdby: accountId },
+            order: { updatedat: 'DESC' },
+        });
+
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetQuestionDTO, questionsWithAccounts, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
     async updateStatus(id: string, status: QuestionStatus): Promise<boolean> {
         if (!Object.values(QuestionStatus).includes(status)) {
             throw new BadRequestException(`Invalid status value: ${status}`);
