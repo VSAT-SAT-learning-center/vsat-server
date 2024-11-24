@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { AccountDto } from 'src/common/dto/common.dto';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { Account } from 'src/database/entities/account.entity';
 import { Notification } from 'src/database/entities/notification.entity';
 import { FeedbacksGateway } from 'src/modules/nofitication/feedback.gateway';
@@ -21,6 +22,7 @@ export class NotificationService {
         accountFrom: Account,
         notificationData: any,
         message: string,
+        type: FeedbackType,
         eventType: FeedbackEventType,
     ): Promise<void> {
         const notifications = managers.map((manager) => ({
@@ -37,6 +39,7 @@ export class NotificationService {
         this.feedbackGateway.sendNotificationToMultipleUsers(
             managers.map((manager) => manager.id),
             { data: notificationData, message },
+            type,
             eventType,
         );
     }
@@ -46,6 +49,7 @@ export class NotificationService {
         accountFrom: Account,
         notificationData: any,
         message: string,
+        type: FeedbackType,
         eventType: FeedbackEventType,
     ): Promise<void> {
         const notification = {
@@ -62,6 +66,7 @@ export class NotificationService {
         this.feedbackGateway.sendNotificationToUser(
             accountTo.id,
             { data: notificationData, message },
+            type,
             eventType,
         );
     }
@@ -74,8 +79,6 @@ export class NotificationService {
             throw new NotFoundException('Notification not found');
         }
     }
-
-
 
     async getNotificationsForUser(
         userId: string,

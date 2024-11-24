@@ -53,6 +53,7 @@ import { QuizQuestionMessages } from 'src/common/message/quiz-question-message';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { LearningMaterialMessages } from 'src/common/message/learning-material-message';
 import { ExamMessages } from 'src/common/message/exam-message';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -169,6 +170,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             feedbackList,
             notificationMessage,
+            FeedbackType.LEARNING_MATERIAL,
             FeedbackEventType.PUBLISH_LEARNING_MATERIAL,
         );
 
@@ -256,6 +258,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.LEARNING_MATERIAL,
             FeedbackEventType.REJECT_LEARNING_MATERIAL,
         );
 
@@ -323,6 +326,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             unitFeedback.unitId,
             notificationMessage,
+            FeedbackType.LEARNING_MATERIAL,
             FeedbackEventType.REJECT_LEARNING_MATERIAL,
         );
     }
@@ -383,6 +387,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             feedbackList,
             notificationMessage,
+            FeedbackType.QUESTION,
             FeedbackEventType.PUBLISH_QUESTION,
         );
 
@@ -441,6 +446,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.QUESTION,
             FeedbackEventType.REJECT_QUESTION,
         );
 
@@ -509,6 +515,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             questionId,
             notificationMessage,
+            FeedbackType.QUESTION,
             FeedbackEventType.APPROVE_QUESTION,
         );
     }
@@ -569,6 +576,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             feedbackList,
             notificationMessage,
+            FeedbackType.QUIZ_QUESTION,
             FeedbackEventType.PUBLISH_QUIZ_QUESTION,
         );
 
@@ -626,6 +634,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.QUIZ_QUESTION,
             FeedbackEventType.REJECT_QUIZ_QUESTION,
         );
 
@@ -696,6 +705,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             quizQuestionId,
             notificationMessage,
+            FeedbackType.QUIZ_QUESTION,
             FeedbackEventType.APPROVE_QUIZ_QUESTION,
         );
     }
@@ -780,6 +790,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
+            FeedbackType.EXAM,
             FeedbackEventType.REJECT_EXAM,
         );
 
@@ -844,6 +855,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             examFeedback.examId,
             notificationMessage,
+            FeedbackType.EXAM,
             FeedbackEventType.APPROVE_EXAM,
         );
 
