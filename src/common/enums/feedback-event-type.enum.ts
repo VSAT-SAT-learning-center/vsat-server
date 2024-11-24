@@ -11,5 +11,7 @@ export enum FeedbackEventType {
     PUBLISH_QUIZ_QUESTION = 'publishQuizQuestionNotification',
     APPROVE_QUIZ_QUESTION = 'approveQuizQuestionNotification',
     REJECT_QUIZ_QUESTION = 'rejectQuizQuestionNotification',
+    COMPLETE_TARGET_LEARNING = 'completeTargetLearningNotification',
+    APPROVE_TARGET_LEARNING = 'approveTargetLearningNotification',
     UNKNOWN = 'unknown',
 }

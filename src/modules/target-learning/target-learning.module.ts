@@ -9,6 +9,8 @@ import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { TargetLearningDetailModule } from '../target-learning-detail/target-learning-detail.module';
 import { UnitModule } from '../unit/unit.module';
 import { LessonProgressModule } from '../lesson-progress/lesson-progress.module';
+import { AccountModule } from '../account/account.module';
+import { NotificationModule } from 'src/nofitication/notification.module';
 
 @Module({
     imports: [
@@ -17,7 +19,8 @@ import { LessonProgressModule } from '../lesson-progress/lesson-progress.module'
         forwardRef(() => UnitModule),
         TargetLearningDetailModule,
         LessonProgressModule,
-       
+        AccountModule,
+        NotificationModule
     ],
     providers: [TargetLearningService],
     controllers: [TargetLearningController],

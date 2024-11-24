@@ -181,12 +181,17 @@ export class TargetLearningController {
         type: String,
         enum: TargetLearningStatus,
     })
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
     async updateTargetLearningStatus(
         @Param('id') id: string,
+        @Request() req,
         @Body() targetLearningStatus: { status: TargetLearningStatus },
     ) {
+        const userId = req?.userd.id;  
         const updatedTargetLearning =
-            await this.targetLearningService.updateTargetLearningStatus(id, targetLearningStatus.status);
+            await this.targetLearningService.updateTargetLearningStatus(id, targetLearningStatus.status, userId);
+
+        
         return ResponseHelper.success(
             HttpStatus.OK,
             updatedTargetLearning,
