@@ -14,7 +14,7 @@ import { ExamSemesterService } from './exam-semester.service';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ExamSemesterWithDetailsDto } from './dto/exam-semester.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import {
     UpdateDomainDistributionConfigDto,
     UpdateExamSemesterDto,

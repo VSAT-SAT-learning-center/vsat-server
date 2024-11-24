@@ -21,7 +21,7 @@ import { BaseController } from '../base/base.controller';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateTargetLearningDto } from '../target-learning/dto/create-targetlearning.dto';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';

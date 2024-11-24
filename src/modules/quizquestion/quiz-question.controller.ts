@@ -18,7 +18,7 @@ import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
 import { QuizQuestionService } from './quiz-question.service';
 import { CreateQuizQuestionDto } from './dto/create-quizquestion.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
 import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';

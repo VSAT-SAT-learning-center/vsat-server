@@ -436,9 +436,6 @@ export class StudyProfileService {
             .andWhere('studyProfile.status = :status', {
                 status: StudyProfileStatus.ACTIVE,
             })
-            .andWhere('targetLearning.status = :targetStatus', {
-                targetStatus: TargetLearningStatus.COMPLETED,
-            })
             .orderBy('targetLearning.createdat', 'DESC')
             .skip(skip)
             .take(pageSize)
@@ -446,7 +443,11 @@ export class StudyProfileService {
 
         const totalPages = Math.ceil(total / pageSize);
 
-        const result = studyProfiles.map((profile) => {
+        const filteredProfiles = studyProfiles.filter(
+            (profile) => profile.targetlearning && profile.targetlearning.length > 0,
+        );
+
+        const result = filteredProfiles.map((profile) => {
             const account = plainToInstance(GetAccountDTO, profile.account, {
                 excludeExtraneousValues: true,
             });
@@ -454,6 +455,7 @@ export class StudyProfileService {
             return {
                 ...profile,
                 account,
+                targetlearning: profile.targetlearning.slice(0, 1),
                 startdate: profile.startdate
                     ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
                           timeZone: 'Asia/Saigon',
@@ -471,7 +473,7 @@ export class StudyProfileService {
             data: result,
             totalPages,
             currentPage: page,
-            totalItems: total,
+            totalItems: filteredProfiles.length,
         };
     }
 }
