@@ -22,7 +22,7 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/constants/success-messages';
 import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
 import { UnitService } from '../unit/unit.service';
@@ -30,6 +30,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
 import { CompleteLessonProgressDto } from './dto/complete-lesson-progress.dto';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @ApiTags('TargetLearnings')
 @Controller('target-learnings')
@@ -90,9 +91,7 @@ export class TargetLearningController {
     }
 
     @Get('unit/:sectionId')
-    async getUnitsBySectionAndLevel(
-        @Param('sectionId') sectionId: string
-    ): Promise<any> {
+    async getUnitsBySectionAndLevel(@Param('sectionId') sectionId: string): Promise<any> {
         return this.unitService.findAllBySectionAndLevel(sectionId);
     }
 
@@ -145,15 +144,13 @@ export class TargetLearningController {
         }
     }
 
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
     @ApiOperation({ summary: 'Student complete a lesson' })
     @Patch(':lessonProgressId/complete')
-    async completeLessonProgress(
-        @Param('lessonProgressId') lessonProgressId: string,
-    ) {
+    async completeLessonProgress(@Param('lessonProgressId') lessonProgressId: string) {
         // Gọi service để cập nhật tiến trình khi học sinh hoàn thành bài học
-        const result = await this.lessonProgressService.completeLessonProgress(
-            lessonProgressId,
-        );
+        const result =
+            await this.lessonProgressService.completeLessonProgress(lessonProgressId);
 
         return {
             statusCode: HttpStatus.CREATED,
@@ -163,11 +160,37 @@ export class TargetLearningController {
     }
 
     @Get(':targetLearningId/recent-learning')
-    async getRecentUnitProgress(@Param('targetLearningId') targetLearningId: string): Promise<any[]> {
+    async getRecentUnitProgress(
+        @Param('targetLearningId') targetLearningId: string,
+    ): Promise<any[]> {
         try {
-            return await this.targetLearningDetailService.getRecentUnitProgressWithDetails(targetLearningId);
+            return await this.targetLearningDetailService.getRecentUnitProgressWithDetails(
+                targetLearningId,
+            );
         } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.BAD_REQUEST);
+            throw new HttpException(
+                error.message || 'Internal Server Error',
+                HttpStatus.BAD_REQUEST,
+            );
         }
+    }
+
+    //@UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    @Put(':id')
+    @ApiBody({
+        type: String,
+        enum: TargetLearningStatus,
+    })
+    async updateTargetLearningStatus(
+        @Param('id') id: string,
+        @Body() targetLearningStatus: { status: TargetLearningStatus },
+    ) {
+        const updatedTargetLearning =
+            await this.targetLearningService.updateTargetLearningStatus(id, targetLearningStatus.status);
+        return ResponseHelper.success(
+            HttpStatus.OK,
+            updatedTargetLearning,
+            SuccessMessages.update('TargetLearning'),
+        );
     }
 }

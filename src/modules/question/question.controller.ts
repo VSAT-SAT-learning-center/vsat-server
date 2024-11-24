@@ -12,6 +12,7 @@ import {
     Post,
     Put,
     Query,
+    Request,
     UseGuards,
 } from '@nestjs/common';
 import { SuccessMessages } from 'src/common/constants/success-messages';
@@ -75,6 +76,7 @@ export class QuestionController {
     }
 
     @Get()
+    //@UseGuards(JwtAuthGuard)
     async getAllWithStatus(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
@@ -85,6 +87,37 @@ export class QuestionController {
                 page,
                 pageSize,
                 status,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                questions,
+                SuccessMessages.get('Question'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getAllWithStatusByCreateBy')
+    @UseGuards(JwtAuthGuard)
+    async getAllWithStatusByCreateBy(
+        @Request() req,
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+        @Query('status') status?: QuestionStatus,
+    ) {
+        try {
+            const questions = await this.questionService.getAllWithStatusByCreateBy(
+                page,
+                pageSize,
+                status,
+                req.user.id,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,

@@ -108,4 +108,17 @@ export class TargetLearningService extends BaseService<TargetLearning> {
 
         return await this.targetLearningRepository.save(targetArrs);
     }
+
+    async updateTargetLearningStatus(targetLearningId: string, status: TargetLearningStatus) {
+        const targetLearning = await this.targetLearningRepository.findOneBy({
+            id: targetLearningId
+        });
+
+        if (!targetLearning) {
+            throw new NotFoundException('TargetLearning not found');
+        }
+
+        targetLearning.status = status;
+        return await this.targetLearningRepository.save(targetLearning);
+    }
 }

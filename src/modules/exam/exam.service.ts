@@ -1,28 +1,34 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    HttpException,
+    HttpStatus,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { CreateExamDto } from './dto/create-exam.dto';
-import { UpdateExamDto } from './dto/update-exam.dto';
-import { Exam } from 'src/database/entities/exam.entity';
-import { BaseService } from '../base/base.service';
-import { ExamStructure } from 'src/database/entities/examstructure.entity';
-import { ExamType } from 'src/database/entities/examtype.entity';
-import { ExamQuestionService } from '../examquestion/examquestion.service';
-import { ModuleType } from 'src/database/entities/moduletype.entity';
-import { Question } from 'src/database/entities/question.entity';
-import { Domain } from 'src/database/entities/domain.entity';
-import { ExamStatus } from 'src/common/enums/exam-status.enum';
-import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
-import { Feedback } from 'src/database/entities/feedback.entity';
-import { FeedbackService } from '../feedback/feedback.service';
-import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
-import { ExamQuestion, GetExamDto, QuestionDto, SkillDto } from './dto/get-exam.dto';
 import { plainToInstance } from 'class-transformer';
-import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
+import { Domain } from 'src/database/entities/domain.entity';
+import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
+import { Exam } from 'src/database/entities/exam.entity';
+import { ExamStructure } from 'src/database/entities/examstructure.entity';
+import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
+import { ExamType } from 'src/database/entities/examtype.entity';
+import { Feedback } from 'src/database/entities/feedback.entity';
+import { ModuleType } from 'src/database/entities/moduletype.entity';
+import { Question } from 'src/database/entities/question.entity';
+import { In, Repository } from 'typeorm';
+import { BaseService } from '../base/base.service';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
-import { CreateExamWithExamAttemptDto } from './dto/create-examwithattempt.dto';
+import { ExamQuestionService } from '../examquestion/examquestion.service';
+import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
+import { FeedbackService } from '../feedback/feedback.service';
+import { CreateExamDto } from './dto/create-exam.dto';
+import { ExamQuestion, GetExamDto, QuestionDto, SkillDto } from './dto/get-exam.dto';
+import { UpdateExamDto } from './dto/update-exam.dto';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -985,81 +991,12 @@ export class ExamService extends BaseService<Exam> {
         return result;
     }
 
-    async createExamWithExamAttempt(createExamDto: CreateExamWithExamAttemptDto): Promise<Exam> {
-        const [examStructure, examType, modules, domains, questions] = await Promise.all([
-            this.examStructureRepository.findOne({
-                where: { id: createExamDto.examStructureId },
-            }),
-            this.examTypeRepository.findOne({ where: { id: createExamDto.examTypeId } }),
-            this.moduleTypeRepository.findByIds(
-                createExamDto.examQuestions.map((q) => q.moduleId),
-            ),
-            this.domainRepository.findBy({
-                content: In(
-                    createExamDto.examQuestions.flatMap((q) =>
-                        q.domains.map((d) => d.domain),
-                    ),
-                ),
-            }),
-            this.questionRepository.findByIds(
-                createExamDto.examQuestions.flatMap((q) =>
-                    q.domains.flatMap((d) => d.questions.map((q) => q.id)),
-                ),
-            ),
-        ]);
-
-        if (!examStructure) {
-            throw new HttpException(`ExamStructure was not found`, HttpStatus.NOT_FOUND);
-        }
-
-        if (!examType) {
-            throw new HttpException(`ExamType was not found`, HttpStatus.NOT_FOUND);
-        }
-
-        const moduleMap = new Map(modules.map((module) => [module.id, module]));
-        const domainMap = new Map(domains.map((domain) => [domain.content, domain]));
-        const questionMap = new Map(questions.map((question) => [question.id, question]));
-
-        for (const examQuestion of createExamDto.examQuestions) {
-            if (!moduleMap.has(examQuestion.moduleId)) {
-                throw new HttpException(`ModuleType not found`, HttpStatus.NOT_FOUND);
-            }
-
-            for (const domain of examQuestion.domains) {
-                if (!domainMap.has(domain.domain)) {
-                    throw new HttpException(
-                        `Domain with content ${domain.domain} not found`,
-                        HttpStatus.NOT_FOUND,
-                    );
-                }
-
-                for (const question of domain.questions) {
-                    if (!questionMap.has(question.id)) {
-                        throw new HttpException(
-                            `Question with ID ${question.id} not found`,
-                            HttpStatus.NOT_FOUND,
-                        );
-                    }
-                }
-            }
-        }
-
-        const newExam = this.examRepository.create({
-            title: createExamDto.title,
-            description: createExamDto.description,
-            examStructure: examStructure,
-            examType: examType,
-        });
-
-        const savedExam = await this.examRepository.save(newExam);
-
-        await this.examQuestionservice.createExamQuestion(
-            savedExam.id,
-            createExamDto.examQuestions,
-        );
-
-        await this.examAttemptService.createExamAttemptWithExam(savedExam.id, createExamDto.studyProfileIds)
-
-        return savedExam;
-    }
+    // async createExamWithExamAttempt(
+    //     createExamDto: CreateExamWithExamAttemptDto,
+    // ): Promise<any> {
+    //     await this.examAttemptService.createExamAttemptWithExam(
+    //         createExamDto.examId,
+    //         createExamDto.studyProfileIds,
+    //     );
+    // }
 }

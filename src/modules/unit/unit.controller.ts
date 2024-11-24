@@ -180,13 +180,13 @@ export class UnitController extends BaseController<Unit> {
         @Param('id') id: string,
         @Body() updateUnitStatusDto: UpdateUnitDto,
     ) {
-        const updatedLessonContent = await this.unitService.updateUnitStatus(
+        const updatedUnit = await this.unitService.updateUnitStatus(
             id,
             updateUnitStatusDto,
         );
         return ResponseHelper.success(
             HttpStatus.OK,
-            updatedLessonContent,
+            updatedUnit,
             SuccessMessages.update('Unit'),
         );
     }

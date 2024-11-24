@@ -70,13 +70,12 @@ export class QuestionService {
             allowedTags: [],
             allowedAttributes: {},
         });
-    
+
         return strippedContent
             .replace(/\s+/g, ' ')
             .replace(/\s+([.,!?])/g, '$1')
             .trim();
     }
-    
 
     async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId } = feedbackDto;
@@ -372,6 +371,38 @@ export class QuestionService {
             skip: skip,
             take: pageSize,
             where: { status },
+            order: { updatedat: 'DESC' },
+        });
+
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetQuestionDTO, questionsWithAccounts, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
+    async getAllWithStatusByCreateBy(
+        page: number,
+        pageSize: number,
+        status: QuestionStatus,
+        accountId: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [questions, total] = await this.questionRepository.findAndCount({
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            skip: skip,
+            take: pageSize,
+            where: { status: status, createdby: accountId },
             order: { updatedat: 'DESC' },
         });
 
