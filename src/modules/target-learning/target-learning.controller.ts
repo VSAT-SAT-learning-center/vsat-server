@@ -187,7 +187,7 @@ export class TargetLearningController {
         @Request() req,
         @Body() targetLearningStatus: { status: TargetLearningStatus },
     ) {
-        const userId = req?.userd.id;  
+        const userId = req.user?.id;
         const updatedTargetLearning =
             await this.targetLearningService.updateTargetLearningStatus(id, targetLearningStatus.status, userId);
 

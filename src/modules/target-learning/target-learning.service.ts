@@ -32,7 +32,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         private readonly accountService: AccountService,
         @Inject(forwardRef(() => ExamAttemptService))
         private readonly examAttemptService: ExamAttemptService,
-        private readonly notificationService: NotificationService
+        private readonly notificationService: NotificationService,
     ) {
         super(targetLearningRepository);
     }
@@ -112,10 +112,15 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         return await this.targetLearningRepository.save(targetArrs);
     }
 
-    async updateTargetLearningStatus(targetLearningId: string, status: TargetLearningStatus, userId: string) {
+
+    async updateTargetLearningStatus(
+        targetLearningId: string,
+        status: TargetLearningStatus,
+        userId: string,
+    ) {
         const accountFrom = await this.accountService.findOneById(userId);
 
-        if(!accountFrom) {
+        if (!accountFrom) {
             throw new NotFoundException('Account From not found');
         }
         const targetLearning = await this.targetLearningRepository.findOne({
@@ -128,9 +133,10 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         }
 
         targetLearning.status = status;
-        
-        const updatedTargetLearning = await this.targetLearningRepository.save(targetLearning);
-    
+
+        const updatedTargetLearning =
+            await this.targetLearningRepository.save(targetLearning);
+
         const notificationMessage = `${accountFrom.username} has marked the Target Learning as completed.`;
         const accountTo = targetLearning.studyProfile.account;
 
@@ -140,7 +146,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
             updatedTargetLearning,
             notificationMessage,
             FeedbackType.TARGET_LEARNING,
-            FeedbackEventType.COMPLETE_TARGET_LEARNING ,
+            FeedbackEventType.COMPLETE_TARGET_LEARNING,
         );
 
         return updatedTargetLearning;
@@ -149,7 +155,7 @@ export class TargetLearningService extends BaseService<TargetLearning> {
     async approveTargetLearningNotification(targetLearningId: string, userId: string) {
         const accountFrom = await this.accountService.findOneById(userId);
 
-        if(!accountFrom) {
+        if (!accountFrom) {
             throw new NotFoundException('Account From not found');
         }
 
