@@ -7,27 +7,13 @@ import {
     Request,
     UseGuards,
 } from '@nestjs/common';
-<<<<<<< HEAD
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-=======
-import { FeedbackService } from './feedback.service';
-import { BaseController } from '../base/base.controller';
-import { Feedback } from 'src/database/entities/feedback.entity';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/message/success-messages';
-import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
-import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
-import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
-import { UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-lesson.dto';
->>>>>>> main
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { BaseController } from '../base/base.controller';
 import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
-import { Unit } from 'src/database/entities/unit.entity';
-import { RoleGuard } from 'src/common/guards/role.guard';
 import { FeedbackService } from './feedback.service';
 
 @ApiTags('Feedbacks')
@@ -165,22 +151,16 @@ export class FeedbackController extends BaseController<Feedback> {
         data: any[];
         totalItems: number;
     }> {
-        return this.feedbackService.getRejectFeedbackByExamId(
-            questionId,
-        );
+        return this.feedbackService.getRejectFeedbackByExamId(questionId);
     }
 
     @ApiOperation({ summary: 'Search exam feedback by status' })
     @Get('exam/reason/:examId')
-    async getRejectFeedbackByExamId(
-        @Param('examId') examId: string
-    ): Promise<{
+    async getRejectFeedbackByExamId(@Param('examId') examId: string): Promise<{
         data: any[];
         totalItems: number;
     }> {
-        return this.feedbackService.getRejectFeedbackByExamId(
-            examId,
-        );
+        return this.feedbackService.getRejectFeedbackByExamId(examId);
     }
 
     // Route cho feedback chung theo status
