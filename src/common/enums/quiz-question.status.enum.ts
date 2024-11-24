@@ -1,6 +1,6 @@
 export enum QuizQuestionStatus {
     PENDING = 'Pending',
-    REJECT = 'Rejected',
+    REJECTED = 'Rejected',
     APPROVED = 'Approved',
     DRAFT = 'Draft',
 }

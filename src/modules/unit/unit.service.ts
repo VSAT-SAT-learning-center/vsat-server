@@ -792,11 +792,11 @@ export class UnitService extends BaseService<Unit> {
     async approveOrRejectLearningMaterial(
         feedbackDto: LearningMaterialFeedbackDto,
         action: 'approve' | 'reject',
-    ): Promise<Feedback> {
+    ): Promise<any> {
         if (action === 'reject') {
             return await this.rejectLearningMaterial(feedbackDto);
         } else if (action === 'approve') {
-            return await this.approveLearningMaterial(feedbackDto);
+            return 'Approve learning material success'; 
         }
     }
 
@@ -828,7 +828,7 @@ export class UnitService extends BaseService<Unit> {
 
     private async approveLearningMaterial(
         feedbackDto: LearningMaterialFeedbackDto,
-    ): Promise<Feedback> {
+    ): Promise<void> {
         const unit = await this.unitRepository.findOneBy({
             id: feedbackDto.unitFeedback.unitId,
         });
@@ -843,7 +843,6 @@ export class UnitService extends BaseService<Unit> {
         });
 
         feedbackDto.accountToId = unit.createdby;
-        return await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
     }
 
     async getUnitWithDomainAndSkills(unitId: string): Promise<UnitWithSkillsDto> {

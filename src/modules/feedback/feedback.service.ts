@@ -43,16 +43,32 @@ import { NotificationService } from 'src/nofitication/notification.service';
 import { QuestionService } from '../question/question.service';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { QuestionMessages } from 'src/common/message/question-message';
+import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
+import { QuizQuestionService } from '../quizquestion/quiz-question.service';
+import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
+import { UnitService } from '../unit/unit.service';
+import { ExamService } from '../exam/exam.service';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
+import { QuizQuestionMessages } from 'src/common/message/quiz-question-message';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { LearningMaterialMessages } from 'src/common/message/learning-material-message';
+import { ExamMessages } from 'src/common/message/exam-message';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
     constructor(
         @InjectRepository(Feedback)
         private readonly feedbackRepository: Repository<Feedback>,
+        @Inject(forwardRef(() => UnitService))
+        private readonly unitService: UnitService,
+        @Inject(forwardRef(() => ExamService))
+        private readonly examService: ExamService,
         @Inject(forwardRef(() => LessonService))
         private readonly lessonService: LessonService,
         @Inject(forwardRef(() => QuestionService))
         private readonly questionSerivce: QuestionService,
+        @Inject(forwardRef(() => QuizQuestionService))
+        private readonly quizQuestionSerivce: QuizQuestionService,
         private readonly feedbackGateway: FeedbacksGateway,
         private readonly accountService: AccountService,
         private readonly moduleTypeService: ModuleTypeService,
@@ -133,15 +149,27 @@ export class FeedbackService extends BaseService<Feedback> {
 
         await Promise.all(feedbackPromises);
 
-        const nofiticationData: NotificationDataDto = {
-            data: feedbackList,
-            message: 'New learning material was submitted',
-        };
+        // const nofiticationData: NotificationDataDto = {
+        //     data: feedbackList,
+        //     message: 'New learning material was submitted',
+        // };
 
-        this.feedbackGateway.sendNotificationToMultipleUsers(
-            managers.map((manager) => manager.id),
-            nofiticationData,
-            FeedbackEventType.UNIT_FEEDBACK,
+        // this.feedbackGateway.sendNotificationToMultipleUsers(
+        //     managers.map((manager) => manager.id),
+        //     nofiticationData,
+        //     FeedbackEventType.UNIT_FEEDBACK,
+        // );
+
+        // Prepare notification message
+        const notificationMessage = 'New learning material was submitted';
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            managers,
+            accountFrom,
+            feedbackList,
+            notificationMessage,
+            FeedbackEventType.PUBLISH_LEARNING_MATERIAL,
         );
 
         return feedbackList;
@@ -151,6 +179,26 @@ export class FeedbackService extends BaseService<Feedback> {
         feedbackDto: LearningMaterialFeedbackDto,
     ): Promise<Feedback> {
         const { unitFeedback, accountFromId, accountToId } = feedbackDto;
+
+        const unit = await this.unitService.findOneById(unitFeedback.unitId);
+
+        if (!unit || unit.status !== UnitStatus.PENDING) {
+            throw new BadRequestException(
+                'Learning material has already been censored by another',
+            );
+        }
+
+        const accountFrom = await this.accountService.findOneById(accountFromId);
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account From not found');
+        }
+
+        const accountTo = await this.accountService.findOneById(accountToId);
+
+        if (accountTo === null) {
+            throw new NotFoundException('Account To not found');
+        }
 
         const feedbackPromises = unitFeedback.lessonsFeedback.map(
             async (lessonFeedback) => {
@@ -183,16 +231,32 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
         });
 
-        const nofiticationData: NotificationDataDto = {
-            data: { feedbackId: rejectFeedback.id, unitId: unitFeedback.unitId },
-            message: `Learning material was rejected`,
-        };
+        // const nofiticationData: NotificationDataDto = {
+        //     data: { feedbackId: rejectFeedback.id, unitId: unitFeedback.unitId },
+        //     message: `Learning material was rejected`,
+        // };
 
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            nofiticationData,
-            FeedbackEventType.UNIT_FEEDBACK,
+        // console.log('sending notification to user: ', accountToId);
+        // this.feedbackGateway.sendNotificationToUser(
+        //     accountToId,
+        //     nofiticationData,
+        //     FeedbackEventType.UNIT_FEEDBACK,
+        // );
+
+        let notificationMessage;
+
+        if (unit.isActive) {
+            notificationMessage = LearningMaterialMessages.MAX_EXCEED_REJECT;
+        } else {
+            notificationMessage = `${accountFrom.username} has reject your learning material`;
+        }
+
+        await this.notificationService.createAndSendNotification(
+            accountTo,
+            accountFrom,
+            rejectFeedback,
+            notificationMessage,
+            FeedbackEventType.REJECT_LEARNING_MATERIAL,
         );
 
         return rejectFeedback;
@@ -200,8 +264,28 @@ export class FeedbackService extends BaseService<Feedback> {
 
     async approveLearningMaterialFeedback(
         feedbackDto: LearningMaterialFeedbackDto,
-    ): Promise<Feedback> {
+    ): Promise<void> {
         const { unitFeedback, accountFromId, accountToId } = feedbackDto;
+
+        const unit = await this.unitService.findOneById(unitFeedback.unitId);
+
+        if (!unit || unit.status !== UnitStatus.PENDING) {
+            throw new BadRequestException(
+                'Learning material has already been censored by another',
+            );
+        }
+
+        const accountFrom = await this.accountService.findOneById(accountFromId);
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account From not found');
+        }
+
+        const accountTo = await this.accountService.findOneById(accountToId);
+
+        if (accountTo === null) {
+            throw new NotFoundException('Account To not found');
+        }
 
         // Approve all lessons by setting their status to true
         for (const lessonFeedback of unitFeedback.lessonsFeedback) {
@@ -212,28 +296,35 @@ export class FeedbackService extends BaseService<Feedback> {
             );
         }
 
-        // Create feedback entry for the approved unit
-        const approvedFeedback = await this.feedbackRepository.save({
-            unit: { id: unitFeedback.unitId },
-            accountFrom: { id: accountFromId },
-            accountTo: { id: accountToId },
-            content: 'Approved',
-            status: FeedbackStatus.APPROVED,
-        });
+        // // Create feedback entry for the approved unit
+        // const approvedFeedback = await this.feedbackRepository.save({
+        //     unit: { id: unitFeedback.unitId },
+        //     accountFrom: { id: accountFromId },
+        //     accountTo: { id: accountToId },
+        //     content: 'Approved',
+        //     status: FeedbackStatus.APPROVED,
+        // });
 
-        const nofiticationData: NotificationDataDto = {
-            data: { feedbackId: approvedFeedback.id, unitId: unitFeedback.unitId },
-            message: `Learning material was approved`,
-        };
+        // const nofiticationData: NotificationDataDto = {
+        //     data: { feedbackId: approvedFeedback.id, unitId: unitFeedback.unitId },
+        //     message: `Learning material was approved`,
+        // };
 
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            nofiticationData,
-            FeedbackEventType.UNIT_FEEDBACK,
+        // console.log('sending notification to user: ', accountToId);
+        // this.feedbackGateway.sendNotificationToUser(
+        //     accountToId,
+        //     nofiticationData,
+        //     FeedbackEventType.UNIT_FEEDBACK,
+        // );
+
+        const notificationMessage = 'Learning material was approved';
+        await this.notificationService.createAndSendNotification(
+            accountTo,
+            accountFrom,
+            unitFeedback.unitId,
+            notificationMessage,
+            FeedbackEventType.REJECT_LEARNING_MATERIAL,
         );
-
-        return approvedFeedback;
     }
 
     async submitQuestionFeedback(
@@ -292,7 +383,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             feedbackList,
             notificationMessage,
-            FeedbackEventType.PUBLISH_QUESTION_FEEDBACK,
+            FeedbackEventType.PUBLISH_QUESTION,
         );
 
         return feedbackList.map((feedback) => ({
@@ -309,15 +400,11 @@ export class FeedbackService extends BaseService<Feedback> {
             where: { id: feedbackId },
         });
 
-        if (!feedback || feedback.status === FeedbackStatus.APPROVED) {
-            throw new BadRequestException(
-                'Feedback cannot be rejected in its current state',
-            );
-        }
-
         const question = await this.questionSerivce.findOneById(questionId);
-        if(!question){
-            throw new NotFoundException('Question not found');
+        if (!question || question.status !== QuestionStatus.PENDING) {
+            throw new BadRequestException(
+                'Question has already been censored by another',
+            );
         }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
@@ -328,7 +415,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const accountTo = await this.accountService.findOneById(accountToId);
 
-        if (accountFrom === null) {
+        if (accountTo === null) {
             throw new NotFoundException('Account To not found');
         }
 
@@ -340,13 +427,13 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
             question: { id: questionId },
         });
-    
+
         let notificationMessage;
 
         if (question.isActive) {
             notificationMessage = QuestionMessages.MAX_EXCEED_REJECT;
         } else {
-            notificationMessage = `${accountFrom.username} has reject your question`
+            notificationMessage = `${accountFrom.username} has reject your question`;
         }
 
         await this.notificationService.createAndSendNotification(
@@ -354,7 +441,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             rejectFeedback,
             notificationMessage,
-            FeedbackEventType.REJECT_QUESTION_FEEDBACK,
+            FeedbackEventType.REJECT_QUESTION,
         );
 
         // const nofiticationData: NotificationDataDto = {
@@ -377,8 +464,10 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const question = await this.questionSerivce.findOneById(questionId);
 
-        if (!question || question.status === QuestionStatus.APPROVED) {
-            throw new BadRequestException('Question has already been approved');
+        if (!question || question.status !== QuestionStatus.PENDING) {
+            throw new BadRequestException(
+                'Question has already been censored by another',
+            );
         }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
@@ -389,7 +478,7 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const accountTo = await this.accountService.findOneById(accountToId);
 
-        if (accountFrom === null) {
+        if (accountTo === null) {
             throw new NotFoundException('Account To not found');
         }
 
@@ -420,8 +509,73 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom,
             questionId,
             notificationMessage,
-            FeedbackEventType.APPROVE_QUESTION_FEEDBACK,
+            FeedbackEventType.APPROVE_QUESTION,
         );
+    }
+
+    async submitQuizQuestionFeedback(
+        createFeedbackDto: CreateFeedbackDto,
+        quizQuestions: QuizQuestion[],
+    ): Promise<{ feedbackId: string; accountFrom: string }[]> {
+        const feedbackList: {
+            feedbackId: string;
+            quizQuestionId: string;
+            account: AccountDto;
+            createdAt: Date;
+        }[] = [];
+
+        //Notify managers when feedback is submitted
+        const managers = await this.accountService.findManagers();
+        const accountFrom = await this.accountService.findOneById(
+            createFeedbackDto.accountFromId,
+        );
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account not found');
+        }
+
+        // Process feedback for each question
+        for (const quizQuestion of quizQuestions) {
+            const feedbackData = {
+                ...createFeedbackDto,
+                quizQuestion,
+                accountFrom,
+            };
+
+            const feedback = this.feedbackRepository.create(feedbackData);
+            await this.feedbackRepository.save(feedback);
+
+            // Add feedback details to the return list
+            feedbackList.push({
+                feedbackId: feedback.id,
+                quizQuestionId: quizQuestion.id,
+                account: {
+                    id: accountFrom.id,
+                    firstname: accountFrom.firstname,
+                    lastname: accountFrom.lastname,
+                    username: accountFrom.username,
+                    profilePicture: accountFrom.profilepictureurl,
+                },
+                createdAt: feedback.createdat,
+            });
+        }
+
+        // Prepare notification message
+        const notificationMessage = `${accountFrom.username} has submitted ${feedbackList.length} quiz question(s) for review`;
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            managers,
+            accountFrom,
+            feedbackList,
+            notificationMessage,
+            FeedbackEventType.PUBLISH_QUIZ_QUESTION,
+        );
+
+        return feedbackList.map((feedback) => ({
+            feedbackId: feedback.feedbackId,
+            accountFrom: feedback.account.id,
+        }));
     }
 
     async rejectQuizQuestionFeedback(
@@ -429,6 +583,26 @@ export class FeedbackService extends BaseService<Feedback> {
     ): Promise<Feedback> {
         const { quizQuestionId, content, reason, accountFromId, accountToId } =
             feedbackDto;
+
+        const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
+
+        if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
+            throw new BadRequestException(
+                'Quiz Question has already been censored by another',
+            );
+        }
+
+        const accountFrom = await this.accountService.findOneById(accountFromId);
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account From not found');
+        }
+
+        const accountTo = await this.accountService.findOneById(accountToId);
+
+        if (accountTo === null) {
+            throw new NotFoundException('Account To not found');
+        }
 
         const rejectFeedback = await this.feedbackRepository.save({
             accountFrom: { id: accountFromId },
@@ -439,51 +613,113 @@ export class FeedbackService extends BaseService<Feedback> {
             quizQuestion: { id: quizQuestionId },
         });
 
-        const nofiticationData: NotificationDataDto = {
-            data: { feedbackId: rejectFeedback.id, quizQuestionId: quizQuestionId },
-            message: `Quiz Question was rejected`,
-        };
+        let notificationMessage;
 
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            nofiticationData,
-            FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
+        if (quizQuestion.isActive) {
+            notificationMessage = QuestionMessages.MAX_EXCEED_REJECT;
+        } else {
+            notificationMessage = `${accountFrom.username} has reject your quiz question`;
+        }
+
+        await this.notificationService.createAndSendNotification(
+            accountTo,
+            accountFrom,
+            rejectFeedback,
+            notificationMessage,
+            FeedbackEventType.REJECT_QUIZ_QUESTION,
         );
+
+        // const nofiticationData: NotificationDataDto = {
+        //     data: { feedbackId: rejectFeedback.id, quizQuestionId: quizQuestionId },
+        //     message: `Quiz Question was rejected`,
+        // };
+
+        // console.log('sending notification to user: ', accountToId);
+        // this.feedbackGateway.sendNotificationToUser(
+        //     accountToId,
+        //     nofiticationData,
+        //     FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
+        // );
 
         return rejectFeedback;
     }
 
     async approveQuizQuestionFeedback(
         feedbackDto: QuizQuestionFeedbackDto,
-    ): Promise<Feedback> {
-        const { quizQuestionId, content, accountFromId, accountToId } = feedbackDto;
+    ): Promise<void> {
+        const { quizQuestionId, accountFromId, accountToId } = feedbackDto;
 
-        const approvedFeedback = await this.feedbackRepository.save({
-            quizQuestion: { id: quizQuestionId },
-            accountFrom: { id: accountFromId },
-            accountTo: { id: accountToId },
-            content,
-            status: FeedbackStatus.APPROVED,
-        });
+        const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
 
-        const nofiticationData: NotificationDataDto = {
-            data: { feedbackId: approvedFeedback.id, quizQuestionId: quizQuestionId },
-            message: `Quiz Question was Approved`,
-        };
+        if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
+            throw new BadRequestException(
+                'Quiz Question has already been censored by another',
+            );
+        }
 
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            nofiticationData,
-            FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
+        const accountFrom = await this.accountService.findOneById(accountFromId);
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account From not found');
+        }
+
+        const accountTo = await this.accountService.findOneById(accountToId);
+
+        if (accountTo === null) {
+            throw new NotFoundException('Account To not found');
+        }
+
+        // const approvedFeedback = await this.feedbackRepository.save({
+        //     quizQuestion: { id: quizQuestionId },
+        //     accountFrom: { id: accountFromId },
+        //     accountTo: { id: accountToId },
+        //     content,
+        //     status: FeedbackStatus.APPROVED,
+        // });
+
+        // const nofiticationData: NotificationDataDto = {
+        //     data: { feedbackId: approvedFeedback.id, quizQuestionId: quizQuestionId },
+        //     message: `Quiz Question was Approved`,
+        // };
+
+        // console.log('sending notification to user: ', accountToId);
+        // this.feedbackGateway.sendNotificationToUser(
+        //     accountToId,
+        //     nofiticationData,
+        //     FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
+        // );
+
+        const notificationMessage = `${accountFrom.username} has approve your quiz question`;
+
+        await this.notificationService.createAndSendNotification(
+            accountTo,
+            accountFrom,
+            quizQuestionId,
+            notificationMessage,
+            FeedbackEventType.APPROVE_QUIZ_QUESTION,
         );
-
-        return approvedFeedback;
     }
 
     async rejectExamFeedback(feedbackDto: ExamCensorFeedbackDto): Promise<Feedback> {
         const { examFeedback, accountFromId, accountToId } = feedbackDto;
+
+        const exam = await this.examService.findOneById(examFeedback.examId);
+
+        if (!exam || exam.status !== ExamStatus.PENDING) {
+            throw new BadRequestException('Exam has already been censored by another');
+        }
+
+        const accountFrom = await this.accountService.findOneById(accountFromId);
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account From not found');
+        }
+
+        const accountTo = await this.accountService.findOneById(accountToId);
+
+        if (accountTo === null) {
+            throw new NotFoundException('Account To not found');
+        }
 
         const feedbackPromises = examFeedback.moduleTypesFeedback.map(
             async (moduleTypesFeedback) => {
@@ -519,16 +755,32 @@ export class FeedbackService extends BaseService<Feedback> {
             accountTo: { id: accountToId },
         });
 
-        const nofiticationData: NotificationDataDto = {
-            data: { feedbackId: rejectFeedback.id, examId: examFeedback.examId },
-            message: `Exam was rejected`,
-        };
+        // const nofiticationData: NotificationDataDto = {
+        //     data: { feedbackId: rejectFeedback.id, examId: examFeedback.examId },
+        //     message: `Exam was rejected`,
+        // };
 
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            nofiticationData,
-            FeedbackEventType.EXAM_FEEDBACK,
+        // console.log('sending notification to user: ', accountToId);
+        // this.feedbackGateway.sendNotificationToUser(
+        //     accountToId,
+        //     nofiticationData,
+        //     FeedbackEventType.EXAM_FEEDBACK,
+        // );
+
+        let notificationMessage;
+
+        if (exam.isActive) {
+            notificationMessage = ExamMessages.MAX_EXCEED_REJECT;
+        } else {
+            notificationMessage = `${accountFrom.username} has reject your exam`;
+        }
+
+        await this.notificationService.createAndSendNotification(
+            accountTo,
+            accountFrom,
+            rejectFeedback,
+            notificationMessage,
+            FeedbackEventType.REJECT_EXAM,
         );
 
         return rejectFeedback;
@@ -536,6 +788,24 @@ export class FeedbackService extends BaseService<Feedback> {
 
     async approveExamFeedback(feedbackDto: ExamCensorFeedbackDto): Promise<Feedback> {
         const { examFeedback, accountFromId, accountToId } = feedbackDto;
+
+        const exam = await this.examService.findOneById(examFeedback.examId);
+
+        if (!exam || exam.status !== ExamStatus.PENDING) {
+            throw new BadRequestException('Exam has already been censored by another');
+        }
+
+        const accountFrom = await this.accountService.findOneById(accountFromId);
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account From not found');
+        }
+
+        const accountTo = await this.accountService.findOneById(accountToId);
+
+        if (accountTo === null) {
+            throw new NotFoundException('Account To not found');
+        }
 
         // Approve all lessons by setting their status to true
         for (const moduleTypeFeedback of examFeedback.moduleTypesFeedback) {
@@ -555,16 +825,26 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.APPROVED,
         });
 
-        const nofiticationData: NotificationDataDto = {
-            data: { feedbackId: approvedFeedback.id, examId: examFeedback.examId },
-            message: `Exam was approved`,
-        };
+        // const nofiticationData: NotificationDataDto = {
+        //     data: { feedbackId: approvedFeedback.id, examId: examFeedback.examId },
+        //     message: `Exam was approved`,
+        // };
 
-        console.log('sending notification to user: ', accountToId);
-        this.feedbackGateway.sendNotificationToUser(
-            accountToId,
-            nofiticationData,
-            FeedbackEventType.EXAM_FEEDBACK,
+        // console.log('sending notification to user: ', accountToId);
+        // this.feedbackGateway.sendNotificationToUser(
+        //     accountToId,
+        //     nofiticationData,
+        //     FeedbackEventType.EXAM_FEEDBACK,
+        // );
+
+        const notificationMessage = `${accountFrom.username} has approve your exam`;
+
+        await this.notificationService.createAndSendNotification(
+            accountTo,
+            accountFrom,
+            examFeedback.examId,
+            notificationMessage,
+            FeedbackEventType.APPROVE_EXAM,
         );
 
         return approvedFeedback;

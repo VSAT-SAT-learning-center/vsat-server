@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
 import { QuizQuestionController } from './quiz-question.controller';
@@ -14,7 +14,18 @@ import { FeedbackModule } from '../feedback/feedback.module';
 import { Account } from 'src/database/entities/account.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([QuizQuestion, Level, Section, Skill, QuizAnswer, Account]), QuizAnswerModule, FeedbackModule],
+    imports: [
+        TypeOrmModule.forFeature([
+            QuizQuestion,
+            Level,
+            Section,
+            Skill,
+            QuizAnswer,
+            Account,
+        ]),
+        QuizAnswerModule,
+        forwardRef(() => FeedbackModule),
+    ],
     controllers: [QuizQuestionController],
     providers: [QuizQuestionService],
     exports: [QuizQuestionService],
