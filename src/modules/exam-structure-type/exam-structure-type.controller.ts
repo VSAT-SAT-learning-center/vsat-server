@@ -1,7 +1,7 @@
 import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { ExamStructureTypeService } from './exam-structure-type.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('ExamStructuresType')

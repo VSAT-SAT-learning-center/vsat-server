@@ -53,6 +53,7 @@ import { PostgresConfigService } from './database/config/postgres.config';
 import { JwtService } from '@nestjs/jwt';
 import { ProgressModule } from './modules/progress/progress.module';
 import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
+import { NotificationModule } from './nofitication/notification.module';
 
 @Module({
     imports: [
@@ -110,6 +111,7 @@ import { TargetLearningDetailModule } from './modules/target-learning-detail/tar
         DomainDistributionConfigModule,
         ProgressModule,
         TargetLearningDetailModule,
+        NotificationModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

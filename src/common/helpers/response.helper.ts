@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { ResponseFormat } from '../dto/response.dto';
-import { HttpStatusMessages } from '../constants/error-messages';
+import { HttpStatusMessages } from '../message/error-messages';
 import { PagingDto } from '../dto/paging.dto';
 import { SortingDto } from '../dto/sorting.dto';
 

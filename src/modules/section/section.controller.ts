@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { SectionService } from './section.service';
 import { SectionDTO } from './dto/section.dto';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { ApiTags } from '@nestjs/swagger';

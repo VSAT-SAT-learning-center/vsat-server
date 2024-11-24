@@ -34,9 +34,10 @@ import { FetchByContentDTO } from './dto/fetch-question.dto';
 import { Account } from 'src/database/entities/account.entity';
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
+import { BaseService } from '../base/base.service';
 
 @Injectable()
-export class QuestionService {
+export class QuestionService extends BaseService<Question> {
     constructor(
         @InjectRepository(Section)
         private readonly sectionRepository: Repository<Section>,
@@ -54,7 +55,9 @@ export class QuestionService {
 
         @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
-    ) {}
+    ) {
+        super(questionRepository);
+    }
 
     async approveOrRejectQuestion(
         feedbackDto: QuestionFeedbackDto,
@@ -93,7 +96,7 @@ export class QuestionService {
 
         await this.updateStatus(questionId, QuestionStatus.APPROVED);
 
-        //this.feedbackService.approveQuestionFeedback(feedbackDto);
+        this.feedbackService.approveQuestionFeedback(feedbackDto);
     }
 
     async save(createQuestionDtoArray: CreateQuestionFileDto[]): Promise<{
@@ -273,13 +276,6 @@ export class QuestionService {
         const savedQuestion = await this.questionRepository.save(newQuestion);
 
         await this.answerService.createMultipleAnswers(savedQuestion.id, answers);
-
-        this.feedbackService.submitQuestionFeedback({
-            question: savedQuestion,
-            status: FeedbackStatus.PENDING,
-            content: 'Question submitted',
-            accountFromId: savedQuestion.createdby,
-        });
 
         return savedQuestion;
     }
@@ -599,6 +595,15 @@ export class QuestionService {
         }
 
         await this.questionRepository.save(questions);
+
+        this.feedbackService.submitQuestionFeedback(
+            {
+                status: FeedbackStatus.PENDING,
+                content: 'Question submitted',
+                accountFromId: questions[0].createdby,
+            },
+            questions,
+        );
     }
 
     async searchQuestions(

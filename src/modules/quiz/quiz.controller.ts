@@ -14,7 +14,7 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('Quizzes')
 @Controller('quizzes')

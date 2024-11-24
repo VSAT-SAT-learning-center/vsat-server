@@ -18,7 +18,7 @@ import { UpdateExamScoreDto } from './dto/update-examscore.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { ExamScore } from 'src/database/entities/examscore.entity';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { GetExamScoreDto } from './dto/get-examscore.dto';
 
 @ApiTags('ExamScores')

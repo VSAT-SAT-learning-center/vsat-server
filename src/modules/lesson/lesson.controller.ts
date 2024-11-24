@@ -13,7 +13,7 @@ import { LessonService } from './lesson.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { BaseController } from '../base/base.controller';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';

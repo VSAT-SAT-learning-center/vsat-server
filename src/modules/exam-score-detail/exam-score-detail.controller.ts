@@ -19,7 +19,7 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('ExamScoreDetails')
 @Controller('exam-score-details')
