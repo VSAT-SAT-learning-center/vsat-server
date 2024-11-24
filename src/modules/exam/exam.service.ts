@@ -1,28 +1,35 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    forwardRef,
+    HttpException,
+    HttpStatus,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { CreateExamDto } from './dto/create-exam.dto';
-import { UpdateExamDto } from './dto/update-exam.dto';
-import { Exam } from 'src/database/entities/exam.entity';
-import { BaseService } from '../base/base.service';
-import { ExamStructure } from 'src/database/entities/examstructure.entity';
-import { ExamType } from 'src/database/entities/examtype.entity';
-import { ExamQuestionService } from '../examquestion/examquestion.service';
-import { ModuleType } from 'src/database/entities/moduletype.entity';
-import { Question } from 'src/database/entities/question.entity';
-import { Domain } from 'src/database/entities/domain.entity';
-import { ExamStatus } from 'src/common/enums/exam-status.enum';
-import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
-import { Feedback } from 'src/database/entities/feedback.entity';
-import { FeedbackService } from '../feedback/feedback.service';
-import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
-import { ExamQuestion, GetExamDto, QuestionDto, SkillDto } from './dto/get-exam.dto';
 import { plainToInstance } from 'class-transformer';
-import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
+import { Domain } from 'src/database/entities/domain.entity';
+import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
+import { Exam } from 'src/database/entities/exam.entity';
+import { ExamStructure } from 'src/database/entities/examstructure.entity';
+import { ExamStructureType } from 'src/database/entities/examstructuretype.entity';
+import { ExamType } from 'src/database/entities/examtype.entity';
+import { Feedback } from 'src/database/entities/feedback.entity';
+import { ModuleType } from 'src/database/entities/moduletype.entity';
+import { Question } from 'src/database/entities/question.entity';
+import { In, Repository } from 'typeorm';
+import { BaseService } from '../base/base.service';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
+import { ExamQuestionService } from '../examquestion/examquestion.service';
+import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
+import { FeedbackService } from '../feedback/feedback.service';
+import { CreateExamDto } from './dto/create-exam.dto';
 import { CreateExamWithExamAttemptDto } from './dto/create-examwithattempt.dto';
+import { ExamQuestion, GetExamDto, QuestionDto, SkillDto } from './dto/get-exam.dto';
+import { UpdateExamDto } from './dto/update-exam.dto';
 
 @Injectable()
 export class ExamService extends BaseService<Exam> {
@@ -985,7 +992,9 @@ export class ExamService extends BaseService<Exam> {
         return result;
     }
 
-    async createExamWithExamAttempt(createExamDto: CreateExamWithExamAttemptDto): Promise<Exam> {
+    async createExamWithExamAttempt(
+        createExamDto: CreateExamWithExamAttemptDto,
+    ): Promise<Exam> {
         const [examStructure, examType, modules, domains, questions] = await Promise.all([
             this.examStructureRepository.findOne({
                 where: { id: createExamDto.examStructureId },
@@ -1058,7 +1067,10 @@ export class ExamService extends BaseService<Exam> {
             createExamDto.examQuestions,
         );
 
-        await this.examAttemptService.createExamAttemptWithExam(savedExam.id, createExamDto.studyProfileIds)
+        await this.examAttemptService.createExamAttemptWithExam(
+            savedExam.id,
+            createExamDto.studyProfileIds,
+        );
 
         return savedExam;
     }
