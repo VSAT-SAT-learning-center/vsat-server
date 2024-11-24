@@ -6,9 +6,11 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    OneToMany,
 } from 'typeorm';
 import { Role } from './role.entity';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
+import { StudyProfile } from './studyprofile.entity';
 
 @Entity('account')
 export class Account {
@@ -72,4 +74,10 @@ export class Account {
 
     @Column({ type: 'varchar', length: 500, nullable: true })
     refreshToken: string;
+
+    @OneToMany(
+        () => StudyProfile,
+        (studyProfile) => studyProfile.account,
+    )
+    studyProfiles: StudyProfile [];
 }
