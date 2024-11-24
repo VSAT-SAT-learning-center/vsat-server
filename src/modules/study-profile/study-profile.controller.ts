@@ -183,6 +183,36 @@ export class StudyProfileController {
         }
     }
 
+    @Get('getStudyProfileCompleteByTeacher')
+    @UseGuards(JwtAuthGuard)
+    async getStudyProfileCompleteByTeacher(
+        @Request() req,
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+    ) {
+        try {
+            const studyProfile =
+                await this.studyProfileService.getStudyProfileCompleteByTeacher(
+                    page,
+                    pageSize,
+                    req.user.id,
+                );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                studyProfile,
+                SuccessMessages.get('StudyProfile'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
     @Get('getStudyProfileWithTargetLearningDetail')
     @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
     async getStudyProfileWithTargetLearningDetail(@Request() req) {
