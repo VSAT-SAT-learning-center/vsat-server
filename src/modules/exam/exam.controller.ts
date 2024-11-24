@@ -18,7 +18,7 @@ import { ExamService } from './exam.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { ExamStatus } from 'src/common/enums/exam-status.enum';
 import { ExamCensorFeedbackDto } from '../feedback/dto/exam-feedback.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';

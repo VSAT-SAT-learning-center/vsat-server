@@ -10,7 +10,7 @@ import {
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { Answerservice } from './answer.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { CheckAnswerDTO } from './dto/check-answer.dto';
 
 @ApiTags('Answers')

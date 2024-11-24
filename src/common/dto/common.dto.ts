@@ -86,6 +86,9 @@ export class AccountDto {
     @Expose()
     lastname: string;
 
+    @Expose()
+    profilePicture: string;
+}
     // @Expose()
     // gender: boolean;
 
@@ -100,4 +103,3 @@ export class AccountDto {
 
     // @Expose()
     // address: string; 
-}

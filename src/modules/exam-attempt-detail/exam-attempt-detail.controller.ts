@@ -19,7 +19,7 @@ import { BaseController } from '../base/base.controller';
 import { ExamAttemptDetail } from 'src/database/entities/examattemptdetail.entity';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { CheckExamAttemptDetail } from './dto/check-examattemptdetail';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('ExamAttemptDetails')
 @Controller('exam-attempt-details')

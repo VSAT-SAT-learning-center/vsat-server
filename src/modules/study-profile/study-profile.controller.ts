@@ -22,7 +22,7 @@ import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
 
 @ApiTags('StudyProfiles')

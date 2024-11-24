@@ -14,7 +14,7 @@ import {
     Req,
     UseGuards,
 } from '@nestjs/common';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { JwtAuthGuard } from '../../common/guards/jwt.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
