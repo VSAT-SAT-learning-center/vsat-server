@@ -427,7 +427,7 @@ export class StudyProfileService {
         teacherId: string,
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
-    
+
         const [studyProfiles, total] = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account')
@@ -436,27 +436,26 @@ export class StudyProfileService {
             .andWhere('studyProfile.status = :status', {
                 status: StudyProfileStatus.ACTIVE,
             })
-            .andWhere('targetLearning.status = :targetStatus', {
-                targetStatus: TargetLearningStatus.COMPLETED,
-            })
             .orderBy('targetLearning.createdat', 'DESC')
             .skip(skip)
             .take(pageSize)
             .getManyAndCount();
-    
+
         const totalPages = Math.ceil(total / pageSize);
-    
-        const result = studyProfiles.map((profile) => {
+
+        const filteredProfiles = studyProfiles.filter(
+            (profile) => profile.targetlearning && profile.targetlearning.length > 0,
+        );
+
+        const result = filteredProfiles.map((profile) => {
             const account = plainToInstance(GetAccountDTO, profile.account, {
                 excludeExtraneousValues: true,
             });
-    
+
             return {
                 ...profile,
                 account,
-                targetlearning: profile.targetlearning
-                    ? profile.targetlearning.slice(0, 1)
-                    : [],
+                targetlearning: profile.targetlearning.slice(0, 1),
                 startdate: profile.startdate
                     ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
                           timeZone: 'Asia/Saigon',
@@ -469,13 +468,12 @@ export class StudyProfileService {
                     : null,
             };
         });
-    
+
         return {
             data: result,
             totalPages,
             currentPage: page,
-            totalItems: total,
+            totalItems: filteredProfiles.length,
         };
     }
-    
 }
