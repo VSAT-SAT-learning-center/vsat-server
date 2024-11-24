@@ -420,4 +420,58 @@ export class StudyProfileService {
 
         return await this.studyProfileRepository.save(studyProfile);
     }
+
+    async getStudyProfileCompleteByTeacher(
+        page: number,
+        pageSize: number,
+        teacherId: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [studyProfiles, total] = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account')
+            .leftJoinAndSelect('studyProfile.targetlearning', 'targetLearning')
+            .where('studyProfile.teacherId = :teacherId', { teacherId })
+            .andWhere('studyProfile.status = :status', {
+                status: StudyProfileStatus.ACTIVE,
+            })
+            .andWhere('targetLearning.status = :targetStatus', {
+                targetStatus: TargetLearningStatus.COMPLETED,
+            })
+            .orderBy('targetLearning.createdat', 'DESC')
+            .skip(skip)
+            .take(pageSize)
+            .getManyAndCount();
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        const result = studyProfiles.map((profile) => {
+            const account = plainToInstance(GetAccountDTO, profile.account, {
+                excludeExtraneousValues: true,
+            });
+
+            return {
+                ...profile,
+                account,
+                startdate: profile.startdate
+                    ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                          timeZone: 'Asia/Saigon',
+                      })
+                    : null,
+                enddate: profile.enddate
+                    ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                          timeZone: 'Asia/Saigon',
+                      })
+                    : null,
+            };
+        });
+
+        return {
+            data: result,
+            totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
 }

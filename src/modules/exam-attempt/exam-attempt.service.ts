@@ -1,3 +1,4 @@
+import { CreateExamWithExamAttemptDto } from './../exam/dto/create-examwithattempt.dto';
 import sanitizeHtml from 'sanitize-html';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -1116,16 +1117,25 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return examAttempArrs;
     }
 
-    async createExamAttemptWithExam(examId: string, studyProfileIds: string[]) {
+    async createExamAttemptWithExam(createExamDto: CreateExamWithExamAttemptDto) {
+        const exam = await this.examRepository.findOne({
+            where: { id: createExamDto.examId },
+        });
+
+        if (!exam) {
+            throw new Error('Exam not found');
+        }
+
         const targetLearning =
             await this.targetLearningService.createMultipleTargetLearning(
-                studyProfileIds,
+                createExamDto.studyProfileIds,
             );
 
         const examAttemptArrs = targetLearning.map((targetData) =>
             this.examAttemptRepository.create({
                 targetlearning: { id: targetData.id },
-                exam: { id: examId },
+                exam: { id: createExamDto.examId },
+                attemptdatetime: createExamDto.attemptdatetime,
             }),
         );
 

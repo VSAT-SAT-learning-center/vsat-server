@@ -25,6 +25,7 @@ import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
+import { CreateExamWithExamAttemptDto } from '../exam/dto/create-examwithattempt.dto';
 
 @ApiTags('ExamAttempts')
 @Controller('exam-attempts')
@@ -251,25 +252,29 @@ export class ExamAttemptController {
         }
     }
 
-    // @Post('assignExam')
-    // async assignExam(@Body() assignExamAttemptDto: AssignExamAttemptDto) {
-    //     try {
-    //         const examAttempt =
-    //             await this.examAttemptService.assignExam(assignExamAttemptDto);
-
-    //         return ResponseHelper.success(
-    //             HttpStatus.OK,
-    //             examAttempt,
-    //             SuccessMessages.create('ExamAttempt'),
-    //         );
-    //     } catch (error) {
-    //         throw new HttpException(
-    //             {
-    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
-    //                 message: error.message || 'An error occurred',
-    //             },
-    //             error.status || HttpStatus.BAD_REQUEST,
-    //         );
-    //     }
-    // }
+    @Post('createExamAttemptWithExam/exam')
+    @UseGuards(JwtAuthGuard)
+    async createExamAttemptWithExam(
+        @Body() createExamAttemptDto: CreateExamWithExamAttemptDto,
+    ) {
+        try {
+            const createExamAttempt =
+                await this.examAttemptService.createExamAttemptWithExam(
+                    createExamAttemptDto,
+                );
+            return ResponseHelper.success(
+                HttpStatus.CREATED,
+                createExamAttempt,
+                SuccessMessages.create('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

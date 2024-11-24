@@ -6,6 +6,14 @@ import {
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
+import {
+    forwardRef,
+    HttpException,
+    HttpStatus,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { ExamStatus } from 'src/common/enums/exam-status.enum';

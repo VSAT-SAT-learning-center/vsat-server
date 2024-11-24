@@ -54,27 +54,27 @@ export class ExamController {
         }
     }
 
-    @Post()
-    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
-    async createExamWithExamAttempt(@Body() createExamDto: CreateExamWithExamAttemptDto) {
-        try {
-            const exam = await this.examService.createExamWithExamAttempt(createExamDto);
+    // @Post('createExamWithExamAttempt')
+    // @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    // async createExamWithExamAttempt(@Body() createExamDto: CreateExamWithExamAttemptDto) {
+    //     try {
+    //         const exam = await this.examService.createExamWithExamAttempt(createExamDto);
 
-            return ResponseHelper.success(
-                HttpStatus.CREATED,
-                exam,
-                SuccessMessages.create('Exam'),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
+    //         return ResponseHelper.success(
+    //             HttpStatus.CREATED,
+    //             exam,
+    //             SuccessMessages.create('Exam'),
+    //         );
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
+    //                 message: error.message || 'An error occurred',
+    //             },
+    //             error.status || HttpStatus.BAD_REQUEST,
+    //         );
+    //     }
+    // }
 
     @Get()
     async GetExamWithExamQuestion() {
