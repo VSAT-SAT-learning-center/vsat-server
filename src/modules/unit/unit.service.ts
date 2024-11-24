@@ -843,6 +843,8 @@ export class UnitService extends BaseService<Unit> {
         });
 
         feedbackDto.accountToId = unit.createdby;
+
+        await this.feedbackService.approveLearningMaterialFeedback(feedbackDto);
     }
 
     async getUnitWithDomainAndSkills(unitId: string): Promise<UnitWithSkillsDto> {
