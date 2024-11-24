@@ -10,16 +10,21 @@ import { ModuleTypeModule } from '../module-type/module-type.module';
 import { JwtService } from '@nestjs/jwt';
 import { NotificationModule } from 'src/nofitication/notification.module';
 import { QuestionModule } from '../question/question.module';
+import { QuizQuestionModule } from '../quizquestion/quiz-question.module';
+import { UnitModule } from '../unit/unit.module';
+import { ExamModule } from '../exam/exam.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Feedback]),
-        // ExamModule,
         AccountModule,
         ModuleTypeModule,
         NotificationModule,
         forwardRef(() => QuestionModule),
+        forwardRef(() => QuizQuestionModule),
+        forwardRef(() => UnitModule),
         forwardRef(() => LessonModule),
+        forwardRef(() => ExamModule),
     ],
     providers: [FeedbackService, FeedbacksGateway, JwtService],
     controllers: [FeedbackController],

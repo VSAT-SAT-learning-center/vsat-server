@@ -35,9 +35,10 @@ import { AnswerHelper } from 'src/common/helpers/answer.helper';
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
 import { GetQuestionDTO } from '../question/dto/get-question.dto';
+import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()
-export class QuizQuestionService {
+export class QuizQuestionService extends BaseService<QuizQuestion> {
     constructor(
         @InjectRepository(QuizQuestion)
         private readonly quizQuestionRepository: Repository<QuizQuestion>,
@@ -54,7 +55,9 @@ export class QuizQuestionService {
         private readonly quizAnswerService: QuizAnswerService,
         @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
-    ) {}
+    ) {
+        super(quizQuestionRepository);
+    }
 
     async approveOrRejectQuizQuestion(
         feedbackDto: QuizQuestionFeedbackDto,
@@ -71,7 +74,7 @@ export class QuizQuestionService {
     async rejectQuestion(feedbackDto: QuizQuestionFeedbackDto): Promise<Feedback> {
         const { quizQuestionId } = feedbackDto;
 
-        await this.updateStatus(quizQuestionId, QuizQuestionStatus.REJECT);
+        await this.updateStatus(quizQuestionId, QuizQuestionStatus.REJECTED);
 
         return await this.feedbackService.rejectQuizQuestionFeedback(feedbackDto);
     }
@@ -218,6 +221,15 @@ export class QuizQuestionService {
         }
 
         await this.quizQuestionRepository.save(questions);
+
+        this.feedbackService.submitQuizQuestionFeedback(
+            {
+                status: FeedbackStatus.PENDING,
+                content: 'Quiz Question submitted',
+                accountFromId: questions[0].createdby,
+            },
+            questions,
+        );
     }
 
     async save(createQuizQuestionDtoArray: CreateQuizQuestionFileDto[]): Promise<{
@@ -381,7 +393,7 @@ export class QuizQuestionService {
                 'Cannot update question because it is already Pending',
                 HttpStatus.BAD_REQUEST,
             );
-        } else if (quizQuestion.status === QuizQuestionStatus.REJECT) {
+        } else if (quizQuestion.status === QuizQuestionStatus.REJECTED) {
             quizQuestion.status = QuizQuestionStatus.DRAFT;
         }
 
@@ -446,7 +458,7 @@ export class QuizQuestionService {
             throw new NotFoundException('Question not found');
         }
 
-        if (status === QuizQuestionStatus.REJECT) {
+        if (status === QuizQuestionStatus.REJECTED) {
             if (quizQuestion.countfeedback == 3) {
                 quizQuestion.isActive = false;
             }

@@ -5,7 +5,6 @@ import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { ExamAttemptService } from './exam-attempt.service';
 import { ExamAttemptController } from './exam-attempt.controller';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { TargetLearningService } from '../target-learning/target-learning.service';
 import { TargetLearningModule } from '../target-learning/target-learning.module';
 import { Section } from 'src/database/entities/section.entity';
@@ -26,6 +25,8 @@ import { TargetLearningDetailModule } from '../target-learning-detail/target-lea
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { ExamModule } from '../exam/exam.module';
 import { ModuleTypeModule } from '../module-type/module-type.module';
+import { AccountModule } from '../account/account.module';
+import { NotificationModule } from 'src/nofitication/notification.module';
 
 @Module({
     imports: [
@@ -47,6 +48,8 @@ import { ModuleTypeModule } from '../module-type/module-type.module';
             TargetLearning,
         ]),
         TargetLearningDetailModule,
+        AccountModule,
+        NotificationModule,
         forwardRef(() => TargetLearningModule),
         forwardRef(() => UnitProgressModule),
         forwardRef(() => ExamAttemptDetailModule),

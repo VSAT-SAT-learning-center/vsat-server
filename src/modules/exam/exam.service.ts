@@ -52,6 +52,7 @@ export class ExamService extends BaseService<Exam> {
         private readonly examStructureTypeRepository: Repository<ExamStructureType>,
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
+        @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
         private readonly examQuestionservice: ExamQuestionService,
 

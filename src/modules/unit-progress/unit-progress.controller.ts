@@ -7,6 +7,7 @@ import {
     Param,
     Patch,
     Post,
+    Request,
     UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -20,12 +21,16 @@ import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
 import { SyncUnitProgressDto } from './dto/sync-updateprogress.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
+import { TargetLearningService } from '../target-learning/target-learning.service';
 
 @ApiTags('UnitProgress')
 @Controller('unit-progress')
 //@UseGuards(JwtAuthGuard)
 export class UnitProgressController extends BaseController<UnitProgress> {
-    constructor(private readonly unitProgressService: UnitProgressService) {
+    constructor(
+        private readonly unitProgressService: UnitProgressService,
+        private readonly targetLearningService: TargetLearningService,
+    ) {
         super(unitProgressService, 'UnitProgress');
     }
 
@@ -142,8 +147,12 @@ export class UnitProgressController extends BaseController<UnitProgress> {
     })
     @UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'teacher']))
     @ApiOperation({ summary: 'Sync multiple unit progresses' })
-    async syncMultipleUnitProgress(@Body() syncUnitProgressesDto: SyncUnitProgressDto[]) {
+    async syncMultipleUnitProgress(
+        @Request() req,
+        @Body() syncUnitProgressesDto: SyncUnitProgressDto[],
+    ) {
         try {
+            const userId = req?.userd.id;
             const results = await Promise.all(
                 syncUnitProgressesDto.map((dto) =>
                     this.unitProgressService.syncUnitProgress(
@@ -152,6 +161,11 @@ export class UnitProgressController extends BaseController<UnitProgress> {
                         dto.unitProgresses,
                     ),
                 ),
+            );
+
+            await this.targetLearningService.approveTargetLearningNotification(
+                syncUnitProgressesDto[0].targetLearningId,
+                userId,
             );
 
             return ResponseHelper.success(
