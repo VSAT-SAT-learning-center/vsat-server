@@ -18,7 +18,7 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { ExamType } from 'src/database/entities/examtype.entity';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('ExamTypes')
 @Controller('exam-types')

@@ -1,5 +1,3 @@
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import { QuestionService } from './question.service';
 import {
     BadRequestException,
     Body,
@@ -15,16 +13,18 @@ import {
     Request,
     UseGuards,
 } from '@nestjs/common';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { CreateQuestionFileDto } from './dto/create-question-file.dto';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { FetchByContentDTO } from './dto/fetch-question.dto';
 import { UpdateQuestionDTO } from './dto/update-question.dto';
+import { QuestionService } from './question.service';
 
 @ApiTags('Questions')
 @Controller('questions')

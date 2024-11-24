@@ -19,7 +19,7 @@ import { Skill } from 'src/database/entities/skill.entity';
 import { BaseController } from '../base/base.controller';
 import { ApiTags } from '@nestjs/swagger';
 import { SkillDto } from './dto/skill.dto';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('Skills')
 @Controller('skills')

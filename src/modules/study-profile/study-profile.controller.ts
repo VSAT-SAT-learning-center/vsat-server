@@ -11,13 +11,13 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { SuccessMessages } from 'src/common/constants/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
-import { StudyProfileService } from './study-profile.service';
 import { UpdateStudyProfileDto } from './dto/update-studyprofile.dto';
+import { StudyProfileService } from './study-profile.service';
 
 @ApiTags('StudyProfiles')
 @Controller('study-profiles')

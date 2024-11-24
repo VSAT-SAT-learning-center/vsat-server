@@ -18,7 +18,7 @@ import { Account } from 'src/database/entities/account.entity';
 import { AccountService } from './account.service';
 import { CreateAccountDTO } from './dto/create-account.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';

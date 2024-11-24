@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { UpdateDomainDistributionConfigDto } from './dto/update-domaindistribution-config.dto';
 import { DomainDistributionConfigService } from './domain-distribution-config.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('DomainDistributionConfig')
 @Controller('domain-distribution-config')

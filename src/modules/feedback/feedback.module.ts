@@ -8,6 +8,8 @@ import { LessonModule } from '../lesson/lesson.module';
 import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 import { ModuleTypeModule } from '../module-type/module-type.module';
 import { JwtService } from '@nestjs/jwt';
+import { NotificationModule } from 'src/nofitication/notification.module';
+import { QuestionModule } from '../question/question.module';
 
 @Module({
     imports: [
@@ -15,6 +17,8 @@ import { JwtService } from '@nestjs/jwt';
         // ExamModule,
         AccountModule,
         ModuleTypeModule,
+        NotificationModule,
+        forwardRef(() => QuestionModule),
         forwardRef(() => LessonModule),
     ],
     providers: [FeedbackService, FeedbacksGateway, JwtService],
