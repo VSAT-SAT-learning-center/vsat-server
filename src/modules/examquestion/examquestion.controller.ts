@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ExamQuestionService } from './examquestion.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { ExamQuestion } from 'src/database/entities/examquestion.entity';

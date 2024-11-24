@@ -16,9 +16,9 @@ import {
 import { FeedbackService } from './feedback.service';
 import { BaseController } from '../base/base.controller';
 import { Feedback } from 'src/database/entities/feedback.entity';
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
 import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
 import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
@@ -32,6 +32,7 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
+@ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'manager']))
 export class FeedbackController extends BaseController<Feedback> {
     constructor(private readonly feedbackService: FeedbackService) {

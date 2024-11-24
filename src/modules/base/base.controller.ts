@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { BaseService } from './base.service'; // Giả sử bạn đã tạo BaseService như đã nói
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ApiQuery } from '@nestjs/swagger';
 

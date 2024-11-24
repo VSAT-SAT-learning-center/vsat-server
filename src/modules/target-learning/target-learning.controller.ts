@@ -23,7 +23,7 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { BaseController } from '../base/base.controller';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
 import { UnitService } from '../unit/unit.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';

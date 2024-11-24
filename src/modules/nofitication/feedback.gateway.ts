@@ -124,25 +124,6 @@ export class FeedbacksGateway
         }
     }
 
-    feedbackEvent(feedback: Feedback): string {
-        if (feedback.unit) {
-            return FeedbackEventType.UNIT_FEEDBACK;
-        }
-
-        if (feedback.exam) {
-            return FeedbackEventType.EXAM_FEEDBACK;
-        }
-
-        if (feedback.question) {
-            return FeedbackEventType.QUESTION_FEEDBACK;
-        }
-        if (feedback.lesson) {
-            return FeedbackEventType.LESSON_FEEDBACK;
-        }
-
-        return null;
-    }
-
     @SubscribeMessage('sendToUser')
     handleSendToUser(
         client: Socket,

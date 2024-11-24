@@ -17,7 +17,7 @@ import { BaseController } from '../base/base.controller';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamStructureService } from './exam-structure.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('ExamStructures')
 @Controller('exam-structures')

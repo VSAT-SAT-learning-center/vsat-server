@@ -14,7 +14,7 @@ import { BaseController } from '../base/base.controller';
 import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 import { UnitProgressService } from './unit-progress.service';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 import { CreateUnitProgressDto } from './dto/create-unitprogress.dto';
 import { UpdateUnitProgressDto } from './dto/update-unitprogress.dto';
 import { SyncUnitProgressDto } from './dto/sync-updateprogress.dto';

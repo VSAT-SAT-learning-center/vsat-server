@@ -18,7 +18,7 @@ import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../base/base.controller';
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
-import { SuccessMessages } from 'src/common/constants/success-messages';
+import { SuccessMessages } from 'src/common/message/success-messages';
 
 @ApiTags('UnitAreaProgress')
 @Controller('unit-area-progress')
