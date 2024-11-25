@@ -152,7 +152,7 @@ export class UnitProgressController extends BaseController<UnitProgress> {
         @Body() syncUnitProgressesDto: SyncUnitProgressDto[],
     ) {
         try {
-            const userId = req?.userd.id;
+            const userId = req?.user.id;
             const results = await Promise.all(
                 syncUnitProgressesDto.map((dto) =>
                     this.unitProgressService.syncUnitProgress(
