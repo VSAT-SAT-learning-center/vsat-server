@@ -33,6 +33,7 @@ import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
 import { TargetLearningService } from '../target-learning/target-learning.service';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -231,6 +232,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: foundation.id },
                 domain: { id: In(domainIdsRW) },
+                status: UnitStatus.APPROVED
             },
         });
 
@@ -239,6 +241,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: medium.id },
                 domain: { id: In(domainIdsRW) },
+                status: UnitStatus.APPROVED
             },
         });
 
@@ -247,6 +250,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: medium.id },
                 domain: { id: In(top3DomainIdsRW) },
+                status: UnitStatus.APPROVED
             },
         });
 
@@ -255,6 +259,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: advance.id },
                 domain: { id: In(top3DomainIdsRW) },
+                status: UnitStatus.APPROVED
             },
         });
 
@@ -265,6 +270,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: foundation.id },
                 domain: { id: In(domainIdsMath) },
+                status: UnitStatus.APPROVED
             },
         });
 
@@ -273,6 +279,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: medium.id },
                 domain: { id: In(domainIdsMath) },
+                status: UnitStatus.APPROVED
             },
         });
 
@@ -281,6 +288,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: medium.id },
                 domain: { id: In(top3DomainsMathIds) },
+                status: UnitStatus.APPROVED
             },
         });
 
@@ -289,6 +297,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: advance.id },
                 domain: { id: In(top3DomainsMathIds) },
+                status: UnitStatus.APPROVED
             },
         });
 
