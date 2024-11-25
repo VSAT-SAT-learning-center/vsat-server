@@ -159,7 +159,7 @@ export class ExamAttemptController {
     }
 
     @Post()
-    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    @UseGuards(JwtAuthGuard, new RoleGuard(['student']))
     async createExamAttempt(
         @Body() createExamAttemptDto: CreateExamAttemptDto,
         @Request() req,

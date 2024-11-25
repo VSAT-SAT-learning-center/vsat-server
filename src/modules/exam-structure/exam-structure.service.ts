@@ -147,4 +147,59 @@ export class ExamStructureService {
             total,
         };
     }
+
+    async getByCreateBy(page: number, pageSize: number, accountId: string): Promise<any> {
+        const [result, total] = await this.repository.findAndCount({
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+            order: { createdat: 'DESC' },
+            where: { createdby: accountId },
+            relations: [
+                'examScore',
+                'examStructureType',
+                'examSemester',
+                'configs',
+                'moduletype',
+                'moduletype.section',
+                'moduletype.domaindistribution',
+                'moduletype.domaindistribution.domain',
+                'moduletype.domaindistribution.domain.section',
+            ],
+        });
+
+        const formattedResult = result.map((examStructure) => ({
+            id: examStructure.id,
+            structurename: examStructure.structurename,
+            description: examStructure.description,
+            requiredCorrectInModule1RW: examStructure.requiredCorrectInModule1RW,
+            requiredCorrectInModule1M: examStructure.requiredCorrectInModule1M,
+            createdat: examStructure.createdat,
+            createdby: examStructure.createdby,
+            updatedat: examStructure.updatedat,
+            updatedby: examStructure.updatedby,
+            examScore: examStructure.examScore,
+            examStructureType: examStructure.examStructureType,
+            examSemester: examStructure.examSemester,
+            configs: examStructure.configs,
+            moduletype: examStructure.moduletype.map((moduleType) => ({
+                id: moduleType.id,
+                name: moduleType.name,
+                level: moduleType.level,
+                time: moduleType.time,
+                numberOfQuestion: moduleType.numberofquestion,
+                section: moduleType.section ? moduleType.section.name : null,
+                domaindistribution: moduleType.domaindistribution.map((distribution) => ({
+                    id: distribution.id,
+                    numberofquestion: distribution.numberofquestion,
+                    domain: distribution.domain.content,
+                    section: distribution.domain.section.name,
+                })),
+            })),
+        }));
+
+        return {
+            result: formattedResult,
+            total,
+        };
+    }
 }
