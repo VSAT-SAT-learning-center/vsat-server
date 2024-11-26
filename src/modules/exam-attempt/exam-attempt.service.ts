@@ -1199,6 +1199,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 targetlearning: { id: targetData.id },
                 exam: { id: createExamDto.examId },
                 attemptdatetime: createExamDto.attemptdatetime,
+                
             }),
         );
 

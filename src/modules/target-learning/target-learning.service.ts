@@ -133,6 +133,8 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         for (const targetData of studyProfileIds) {
             const create = this.targetLearningRepository.create({
                 studyProfile: { id: targetData },
+                startdate: null,
+                enddate: null,
             });
 
             targetArrs.push(create);
