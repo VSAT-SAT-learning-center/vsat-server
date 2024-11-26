@@ -11,6 +11,7 @@ import {
 import { UnitArea } from './unitarea.entity';
 import { LessonContent } from './lessoncontent.entity';
 import { LessonType } from 'src/common/enums/lesson-type.enum';
+import { Feedback } from './feedback.entity';
 
 @Entity('lesson')
 export class Lesson {
@@ -50,4 +51,10 @@ export class Lesson {
         onDelete: 'CASCADE',
     })
     lessonContents: LessonContent[];
+    
+    @OneToMany(() => Feedback, (feedback) => feedback.lesson, {
+        cascade: true,
+        onDelete: 'CASCADE',
+    })
+    feedback: Feedback[];
 }

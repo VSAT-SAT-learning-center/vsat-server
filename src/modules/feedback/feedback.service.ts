@@ -54,6 +54,8 @@ import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { LearningMaterialMessages } from 'src/common/message/learning-material-message';
 import { ExamMessages } from 'src/common/message/exam-message';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
+import { LessonFeedbackResponseDto } from './dto/get-lesson-feedback.dto';
+import { ModuleTypeFeedbackResponseDto } from './dto/get-moduletype-feedback.dto';
 
 @Injectable()
 export class FeedbackService extends BaseService<Feedback> {
@@ -402,7 +404,7 @@ export class FeedbackService extends BaseService<Feedback> {
             feedbackDto;
 
         const question = await this.questionSerivce.findOneById(questionId);
-        
+
         // if (!question || question.status !== QuestionStatus.PENDING) {
         //     throw new BadRequestException(
         //         'Question has already been censored by another',
@@ -959,13 +961,33 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    async getLessonFeedbackUserId(
-        userId: string,
+    async getLessonFeedback(
         lessonId: string,
-    ): Promise<QuestionFeedbackResponseDto[]> {
+    ): Promise<LessonFeedbackResponseDto[]> {
         const feedback = await this.feedbackRepository.find({
-            where: [{ accountTo: { id: userId }, lesson: { id: lessonId } }],
-            relations: ['question', 'accountFrom', 'accountTo'],
+            where: [{ lesson: { id: lessonId } }],
+            relations: ['lesson', 'accountFrom', 'accountTo'],
+            order: { updatedat: 'DESC' },
+        });
+
+        if (!feedback) {
+            throw new Error('Feedback not found');
+        }
+
+        console.log('feedback: ', feedback);
+
+        // Transform the entity to DTO
+        return plainToInstance(LessonFeedbackResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async getModuleTypeFeedback(
+        moduleTypeId: string,
+    ): Promise<ModuleTypeFeedbackResponseDto[]> {
+        const feedback = await this.feedbackRepository.find({
+            where: [{ moduleType: { id: moduleTypeId } }],
+            relations: ['moduleType', 'accountFrom', 'accountTo'],
             order: { updatedat: 'DESC' },
         });
 
@@ -974,7 +996,7 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Transform the entity to DTO
-        return plainToInstance(QuestionFeedbackResponseDto, feedback, {
+        return plainToInstance(ModuleTypeFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
     }

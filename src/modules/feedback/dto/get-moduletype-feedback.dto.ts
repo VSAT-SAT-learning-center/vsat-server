@@ -1,6 +1,6 @@
 import { Expose, Type } from 'class-transformer';
-import { LessonType } from 'src/common/enums/lesson-type.enum';
 import { Lesson } from 'src/database/entities/lesson.entity';
+import { Question } from 'src/database/entities/question.entity';
 
 export class AccountDto {
     @Expose()
@@ -10,7 +10,7 @@ export class AccountDto {
     lastname: string;
 }
 
-export class LessonDto {
+export class ModuleTypeDto {
     @Expose()
     id: string;
 
@@ -27,13 +27,23 @@ export class LessonDto {
     updatedby: string;
 
     @Expose()
-    title: string;
+    name: string;
 
     @Expose()
-    type: LessonType;
+    level: string;
+
+    @Expose()
+    numberofquestion: number;
+
+    @Expose()
+    time: number;
+
+    @Expose()
+    status: boolean;
 }
 
-export class LessonFeedbackResponseDto {
+
+export class ModuleTypeFeedbackResponseDto {
     @Expose()
     id: string;
 
@@ -44,9 +54,9 @@ export class LessonFeedbackResponseDto {
     updatedat: Date;
 
     @Expose()
-    @Type(() => LessonDto)
-    lesson: LessonDto;
-
+    @Type(() => ModuleTypeDto)
+    moduleType: ModuleTypeDto;
+    
     @Expose()
     @Type(() => AccountDto)
     accountFrom: AccountDto;
