@@ -781,10 +781,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const studyProfile = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
-            .leftJoinAndSelect('studyProfile.targetlearning', 'targetLearning')
+            .leftJoinAndSelect('studyProfile.targetlearning', 'targetlearning')
             .leftJoinAndSelect('targetlearning.examattempt', 'examattempt')
-            .where('studyProfile.accountId = :accountId', { accountId: account.id })
-            .andWhere('targetLearning.status = :status', {
+            .where('studyProfile.account.id = :accountId', { accountId: account.id })
+            .andWhere('targetlearning.status = :status', {
                 status: TargetLearningStatus.INACTIVE,
             })
             .getOne();
