@@ -31,6 +31,12 @@ export class StudyProfileService {
         });
     }
 
+    async getStudyProfileByAccountIdAndStatus(accountId: string, stauts: StudyProfileStatus) {
+        return await this.studyProfileRepository.find({
+            where: { account: { id: accountId }, status: stauts },
+        });
+    }
+
     async getStudyProfileWithAccountId(
         accountId: string,
         page: number,
