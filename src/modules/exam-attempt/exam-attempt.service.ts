@@ -36,6 +36,7 @@ import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 import moment from 'moment-timezone';
+import { GetAccountDTO } from '../account/dto/get-account.dto';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -1163,6 +1164,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             .leftJoinAndSelect('examAttempt.exam', 'exam')
             .leftJoinAndSelect('exam.examType', 'examType')
             .leftJoinAndSelect('targetLearning.studyProfile', 'studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account')
             .where('studyProfile.teacherId = :teacherId', { teacherId })
             .andWhere('examType.name != :excludedType', { excludedType: 'Trial Exam' })
             .getMany();
@@ -1176,10 +1178,65 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             return item;
         });
 
-        return transformedResult;
+        const groupedResult = transformedResult.reduce((acc, item) => {
+            const key = `${item.attemptdatetime.toISOString()}_${item.exam.id}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    id: item.id,
+                    createdat: item.createdat,
+                    createby: item.createdby,
+                    updatedat: item.updatedat,
+                    updatedby: item.updatedby,
+                    scoreMath: item.scoreMath,
+                    scoreRW: item.scoreRW,
+                    status: item.status,
+                    attemptdatetime: item.attemptdatetime,
+                    exam: item.exam,
+                    targetlearning: item.targetlearning
+                        ? [
+                              {
+                                  ...item.targetlearning,
+                                  studyProfile: {
+                                      ...item.targetlearning.studyProfile,
+                                      account: plainToInstance(
+                                          GetAccountDTO,
+                                          item.targetlearning.studyProfile?.account,
+                                          {
+                                              excludeExtraneousValues: true,
+                                          },
+                                      ),
+                                  },
+                              },
+                          ]
+                        : [],
+                };
+            } else {
+                acc[key].targetlearning.push({
+                    ...item.targetlearning,
+                    studyProfile: {
+                        ...item.targetlearning.studyProfile,
+                        account: plainToInstance(
+                            GetAccountDTO,
+                            item.targetlearning.studyProfile?.account,
+                            {
+                                excludeExtraneousValues: true,
+                            },
+                        ),
+                    },
+                });
+            }
+            return acc;
+        }, {});
+
+        const groupedArray = Object.values(groupedResult);
+
+        return groupedArray;
     }
 
-    async getExamAttemptWithStudyProfileByTeacherAndExam(teacherId: string, examId: string) {
+    async getExamAttemptWithStudyProfileByTeacherAndExam(
+        teacherId: string,
+        examId: string,
+    ) {
         const result = await this.examAttemptRepository
             .createQueryBuilder('examAttempt')
             .leftJoinAndSelect('examAttempt.targetlearning', 'targetLearning')
@@ -1190,7 +1247,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             .andWhere('exam.id = :examId', { examId })
             .andWhere('examType.name != :excludedType', { excludedType: 'Trial Exam' })
             .getMany();
-    
+
         const transformedResult = result.map((item) => {
             if (item.attemptdatetime) {
                 const utcDate = new Date(item.attemptdatetime);
@@ -1199,8 +1256,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             }
             return item;
         });
-    
+
         return transformedResult;
     }
-    
 }
