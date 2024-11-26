@@ -94,8 +94,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             order: { createdat: 'ASC' },
         });
 
-        console.log(examAttemptId);
-
         const target = await this.targetLearningService.save(
             studyProfile.id,
             examAttemptId,
@@ -799,7 +797,19 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     examAttempt.scoreRW = scoreRW;
                     examAttempt.scoreMath = scoreMath;
                     examAttempt.status = true;
-                    await this.examAttemptRepository.save(examAttempt);
+                    const updateExamAttempt =
+                        await this.examAttemptRepository.save(examAttempt);
+
+                    await this.examAttemptDetailService.check(
+                        createExamAttemptDto.createExamAttemptDetail,
+                        updateExamAttempt.id,
+                    );
+
+                    return plainToInstance(CreateExamAttemptDto, {
+                        scoreMath: updateExamAttempt.scoreMath,
+                        scoreRW: updateExamAttempt.scoreRW,
+                        attemptId: updateExamAttempt.id,
+                    });
                 }
             }
         } else {
