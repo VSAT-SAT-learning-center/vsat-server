@@ -65,6 +65,35 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         return saveTarget;
     }
 
+    async updateTargetLearning(studyProfileId: string, examAttemptId: string) {
+        const startdate = new Date();
+        const enddate = new Date();
+        enddate.setDate(startdate.getDate() + 30);
+
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+            relations: ['targetlearning'],
+        });
+
+        if (!examAttempt) {
+            throw new Error('ExamAttempt not found');
+        }
+
+        examAttempt.targetlearning.startdate = startdate;
+        examAttempt.targetlearning.enddate = enddate;
+        examAttempt.targetlearning.studyProfile = { id: studyProfileId } as any;
+        examAttempt.targetlearning.status = TargetLearningStatus.ACTIVE;
+
+        const saveTarget = await this.targetLearningRepository.save(
+            examAttempt.targetlearning,
+        );
+
+        examAttempt.targetlearning = saveTarget;
+        await this.examAttemptRepository.save(examAttempt);
+
+        return saveTarget;
+    }
+
     async getWithExamAttempt(targetLearningId: string) {
         const targetLearning = await this.targetLearningRepository.findOne({
             where: { id: targetLearningId },
@@ -111,7 +140,6 @@ export class TargetLearningService extends BaseService<TargetLearning> {
 
         return await this.targetLearningRepository.save(targetArrs);
     }
-
 
     async updateTargetLearningStatus(
         targetLearningId: string,

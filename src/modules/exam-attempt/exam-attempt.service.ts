@@ -90,17 +90,26 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         accountId: string,
     ) {
         const studyProfile = await this.studyProfileRepository.findOne({
-            where: { account: { id: accountId }, status: StudyProfileStatus.INACTIVE },
+            where: { account: { id: accountId } },
             order: { createdat: 'ASC' },
         });
 
-        const target = await this.targetLearningService.save(
-            studyProfile.id,
-            examAttemptId,
-        );
-
         if (!studyProfile) {
             throw new NotFoundException('StudyProfile is not found');
+        }
+
+        let target;
+
+        if (studyProfile.status === StudyProfileStatus.INACTIVE) {
+            target = await this.targetLearningService.save(
+                studyProfile.id,
+                examAttemptId,
+            );
+        } else if (studyProfile.status === StudyProfileStatus.ACTIVE) {
+            target = await this.targetLearningService.updateTargetLearning(
+                studyProfile.id,
+                examAttemptId,
+            );
         }
 
         const updateStudyProfile = await this.studyProfileService.saveTarget(
