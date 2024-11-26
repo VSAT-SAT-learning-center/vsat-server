@@ -34,6 +34,8 @@ import { TargetLearningService } from '../target-learning/target-learning.servic
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
+import moment from 'moment-timezone';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -232,7 +234,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: foundation.id },
                 domain: { id: In(domainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -241,7 +243,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: medium.id },
                 domain: { id: In(domainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -250,7 +252,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: medium.id },
                 domain: { id: In(top3DomainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -259,7 +261,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: advance.id },
                 domain: { id: In(top3DomainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -270,7 +272,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: foundation.id },
                 domain: { id: In(domainIdsMath) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -279,7 +281,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: medium.id },
                 domain: { id: In(domainIdsMath) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -288,7 +290,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: medium.id },
                 domain: { id: In(top3DomainsMathIds) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -297,9 +299,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: advance.id },
                 domain: { id: In(top3DomainsMathIds) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
+
+        console.log(top3DomainsMathIds);
+        console.log(top3UnitsAdvanceMath);
 
         // RW
         const unitIdFoundationsRW = allUnitsFoundationRW.map((unit) => unit.id);
@@ -1150,4 +1155,52 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         return await this.examAttemptRepository.save(examAttemptArrs);
     }
+
+    async getExamAttemptWithStudyProfileByTeacher(teacherId: string) {
+        const result = await this.examAttemptRepository
+            .createQueryBuilder('examAttempt')
+            .leftJoinAndSelect('examAttempt.targetlearning', 'targetLearning')
+            .leftJoinAndSelect('examAttempt.exam', 'exam')
+            .leftJoinAndSelect('exam.examType', 'examType')
+            .leftJoinAndSelect('targetLearning.studyProfile', 'studyProfile')
+            .where('studyProfile.teacherId = :teacherId', { teacherId })
+            .andWhere('examType.name != :excludedType', { excludedType: 'Trial Exam' })
+            .getMany();
+
+        const transformedResult = result.map((item) => {
+            if (item.attemptdatetime) {
+                const utcDate = new Date(item.attemptdatetime);
+                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+                item.attemptdatetime = vietnamDate;
+            }
+            return item;
+        });
+
+        return transformedResult;
+    }
+
+    async getExamAttemptWithStudyProfileByTeacherAndExam(teacherId: string, examId: string) {
+        const result = await this.examAttemptRepository
+            .createQueryBuilder('examAttempt')
+            .leftJoinAndSelect('examAttempt.targetlearning', 'targetLearning')
+            .leftJoinAndSelect('examAttempt.exam', 'exam')
+            .leftJoinAndSelect('exam.examType', 'examType')
+            .leftJoinAndSelect('targetLearning.studyProfile', 'studyProfile')
+            .where('studyProfile.teacherId = :teacherId', { teacherId })
+            .andWhere('exam.id = :examId', { examId })
+            .andWhere('examType.name != :excludedType', { excludedType: 'Trial Exam' })
+            .getMany();
+    
+        const transformedResult = result.map((item) => {
+            if (item.attemptdatetime) {
+                const utcDate = new Date(item.attemptdatetime);
+                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+                item.attemptdatetime = vietnamDate;
+            }
+            return item;
+        });
+    
+        return transformedResult;
+    }
+    
 }

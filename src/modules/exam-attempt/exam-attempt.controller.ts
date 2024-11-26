@@ -277,4 +277,58 @@ export class ExamAttemptController {
             );
         }
     }
+
+    @Get('getExamAttemptWithStudyProfileByTeacher')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    async getExamAttemptWithStudyProfileByTeacher(@Request() req) {
+        try {
+            const examAttempt =
+                await this.examAttemptService.getExamAttemptWithStudyProfileByTeacher(
+                    req.user.id,
+                );
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examAttempt,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getExamAttemptWithStudyProfileByTeacherAndExam/:examId')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    async getExamAttemptWithStudyProfileByTeacherAndExam(
+        @Request() req,
+        @Param('examId') examId: string,
+    ) {
+        try {
+            const examAttempt =
+                await this.examAttemptService.getExamAttemptWithStudyProfileByTeacherAndExam(
+                    req.user.id,
+                    examId,
+                );
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examAttempt,
+                SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }
