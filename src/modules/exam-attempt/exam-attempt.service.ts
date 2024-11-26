@@ -781,30 +781,50 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             throw new NotFoundException('Account is not found');
         }
 
-        const studyProfile = await this.studyProfileRepository.findOne({
-            where: { account: { id: account.id } },
-        });
+        const studyProfile = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.targetlearning', 'targetLearning')
+            .leftJoinAndSelect('targetlearning.examattempt', 'examattempt')
+            .where('studyProfile.accountId = :accountId', { accountId: account.id })
+            .andWhere('targetLearning.status = :status', {
+                status: TargetLearningStatus.INACTIVE,
+            })
+            .getOne();
 
-        const createExamAttempt = await this.examAttemptRepository.create({
-            exam: exam,
-            attemptdatetime: new Date(),
-            scoreMath: scoreMath,
-            scoreRW: scoreRW,
-            status: true,
-        });
+        if (studyProfile) {
+            for (const targetLearning of studyProfile.targetlearning) {
+                if (targetLearning.examattempt) {
+                    const examAttempt = targetLearning.examattempt;
 
-        const savedExamAttempt = await this.examAttemptRepository.save(createExamAttempt);
+                    examAttempt.scoreRW = scoreRW;
+                    examAttempt.scoreMath = scoreMath;
+                    examAttempt.status = true;
+                    await this.examAttemptRepository.save(examAttempt);
+                }
+            }
+        } else {
+            const createExamAttempt = await this.examAttemptRepository.create({
+                exam: exam,
+                attemptdatetime: new Date(),
+                scoreMath: scoreMath,
+                scoreRW: scoreRW,
+                status: true,
+            });
 
-        await this.examAttemptDetailService.check(
-            createExamAttemptDto.createExamAttemptDetail,
-            savedExamAttempt.id,
-        );
+            const savedExamAttempt =
+                await this.examAttemptRepository.save(createExamAttempt);
 
-        return plainToInstance(CreateExamAttemptDto, {
-            scoreMath: savedExamAttempt.scoreMath,
-            scoreRW: savedExamAttempt.scoreRW,
-            attemptId: savedExamAttempt.id,
-        });
+            await this.examAttemptDetailService.check(
+                createExamAttemptDto.createExamAttemptDetail,
+                savedExamAttempt.id,
+            );
+
+            return plainToInstance(CreateExamAttemptDto, {
+                scoreMath: savedExamAttempt.scoreMath,
+                scoreRW: savedExamAttempt.scoreRW,
+                attemptId: savedExamAttempt.id,
+            });
+        }
     }
 
     // async getExamAttemptByStudyProfileId(accountId: string) {
@@ -858,13 +878,14 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             .createQueryBuilder('moduleType')
             .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
             .innerJoinAndSelect('examQuestion.question', 'question')
+            .innerJoinAndSelect('examQuestion.exam', 'exam') // Thêm liên kết với exam
             .leftJoinAndSelect('question.level', 'level')
             .leftJoinAndSelect('question.skill', 'skill')
             .leftJoinAndSelect('skill.domain', 'domain')
             .leftJoinAndSelect('question.section', 'section')
             .leftJoinAndSelect('question.answers', 'answers')
             .leftJoinAndSelect('moduleType.section', 'moduleSection')
-            .where('examQuestion.exam.id = :examId', { examId })
+            .where('exam.id = :examId', { examId }) // Điều kiện đúng
             .orderBy('moduleType.updatedat', 'DESC')
             .getMany();
 
@@ -881,6 +902,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             ) {
                 totalNumberOfQuestions += module.numberofquestion || 0;
                 totalTime += module.time || 0;
+
+                moduleDetails.push(module);
             }
         }
 
@@ -889,7 +912,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             examTitle: exam.title,
             totalNumberOfQuestions,
             totalTime,
-            modules: moduleDetails,
+            //modules: moduleDetails,
         };
     }
 
@@ -1098,38 +1121,44 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     // }
 
     async getExamAttemptByStudyProfile(accountId: string) {
-        const studyProfile = await this.studyProfileRepository.find({
+        const studyProfiles = await this.studyProfileRepository.find({
             where: { account: { id: accountId } },
         });
 
-        if (!studyProfile) {
+        if (!studyProfiles.length) {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        console.log(studyProfile);
+        const examAttemptArrs = [];
 
-        const examAttempArrs = [];
-
-        for (const studyProfileData of studyProfile) {
-            const targetLearning = await this.targetLearningRepository.find({
+        for (const studyProfileData of studyProfiles) {
+            const targetLearnings = await this.targetLearningRepository.find({
                 where: { studyProfile: { id: studyProfileData.id } },
             });
 
-            for (const targetLearningData of targetLearning) {
-                const exampAttempt = await this.examAttemptRepository.findOne({
+            for (const targetLearningData of targetLearnings) {
+                const examAttempt = await this.examAttemptRepository.findOne({
                     where: { targetlearning: { id: targetLearningData.id } },
                     relations: ['exam'],
                 });
 
-                const exam = await this.GetExamWithExamQuestionByExamId(
-                    exampAttempt.exam.id,
-                );
+                if (examAttempt && examAttempt.exam) {
+                    const examDetails = await this.GetExamWithExamQuestionByExamId(
+                        examAttempt.exam.id,
+                    );
 
-                examAttempArrs.push(exampAttempt, exam);
+                    // Gắn thông tin exam vào examAttempt
+                    examAttempt.exam = {
+                        ...examAttempt.exam,
+                        ...examDetails,
+                    };
+
+                    examAttemptArrs.push(examAttempt);
+                }
             }
         }
 
-        return examAttempArrs;
+        return examAttemptArrs;
     }
 
     async createExamAttemptWithExam(createExamDto: CreateExamWithExamAttemptDto) {
