@@ -16,7 +16,13 @@ import {
 import { FeedbackService } from './feedback.service';
 import { BaseController } from '../base/base.controller';
 import { Feedback } from 'src/database/entities/feedback.entity';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiOperation,
+    ApiParam,
+    ApiQuery,
+    ApiTags,
+} from '@nestjs/swagger';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
 import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
@@ -28,6 +34,8 @@ import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
 import { Unit } from 'src/database/entities/unit.entity';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
+import { LessonFeedbackResponseDto } from './dto/get-lesson-feedback.dto';
+import { ModuleTypeFeedbackResponseDto } from './dto/get-moduletype-feedback.dto';
 
 @ApiTags('Feedbacks')
 @Controller('feedbacks')
@@ -164,22 +172,52 @@ export class FeedbackController extends BaseController<Feedback> {
         data: any[];
         totalItems: number;
     }> {
-        return this.feedbackService.getRejectFeedbackByExamId(
-            questionId,
-        );
+        return this.feedbackService.getRejectFeedbackByExamId(questionId);
     }
 
     @ApiOperation({ summary: 'Search exam feedback by status' })
     @Get('exam/reason/:examId')
-    async getRejectFeedbackByExamId(
-        @Param('examId') examId: string
-    ): Promise<{
+    async getRejectFeedbackByExamId(@Param('examId') examId: string): Promise<{
         data: any[];
         totalItems: number;
     }> {
-        return this.feedbackService.getRejectFeedbackByExamId(
-            examId,
-        );
+        return this.feedbackService.getRejectFeedbackByExamId(examId);
+    }
+
+    @Get('lesson/reason/:lessonId')
+    async getLessonFeedback(
+        @Param('lessonId') lessonId: string,
+    ): Promise<LessonFeedbackResponseDto[]> {
+        if (!lessonId) {
+            throw new Error('Lesson ID is required');
+        }
+
+        return this.feedbackService.getLessonFeedback(lessonId);
+    }
+
+
+    @Get('moduletype/reason/:moduleTypeId')
+    async getModuleTypeFeedback(
+        @Param('moduleTypeId') moduleTypeId: string,
+    ): Promise<ModuleTypeFeedbackResponseDto[]> {
+        if (!moduleTypeId) {
+            throw new Error('moduleTypeId ID is required');
+        }
+
+        return this.feedbackService.getModuleTypeFeedback(moduleTypeId);
+    }
+
+    @ApiOperation({ summary: 'Get user feedback' })
+    // GET /feedbacks/user
+    @Get('user')
+    async getFeedbackByUserId(@Request() req: any) {
+        const userId = req.user?.id; // Lấy userId từ request
+        if (!userId) {
+            throw new NotFoundException('User ID not found in request');
+        }
+
+        const feedback = await this.feedbackService.getFeedbackByUserId(userId);
+        return feedback;
     }
 
     // Route cho feedback chung theo status
@@ -294,18 +332,5 @@ export class FeedbackController extends BaseController<Feedback> {
             }
             throw error;
         }
-    }
-
-    @ApiOperation({ summary: 'Get user feedback' })
-    // GET /feedbacks/user
-    @Get('user')
-    async getFeedbackByUserId(@Request() req: any) {
-        const userId = req.user?.id; // Lấy userId từ request
-        if (!userId) {
-            throw new NotFoundException('User ID not found in request');
-        }
-
-        const feedback = await this.feedbackService.getFeedbackByUserId(userId);
-        return feedback;
     }
 }
