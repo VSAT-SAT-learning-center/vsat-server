@@ -315,4 +315,53 @@ export class StudyProfileController {
             );
         }
     }
+
+    @Put('updateStudyProfileStatus/:status')
+    @UseGuards(JwtAuthGuard)
+    async updateStudyProfileStatus(
+        @Request() req,
+        @Param('status') status: StudyProfileStatus,
+    ) {
+        try {
+            const studyProfile = await this.studyProfileService.updateStudyProfileStatus(
+                req.user.id,
+                status,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                studyProfile,
+                SuccessMessages.update('StudyProfile'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('createStudyProfile')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    async createStudyProfile(@Body() createStudyProfile: CreateStudyProfileDto) {
+        try {
+            const studyProfile =
+                await this.studyProfileService.createStudyProfile(createStudyProfile);
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                studyProfile,
+                SuccessMessages.create('StudyProfile'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }

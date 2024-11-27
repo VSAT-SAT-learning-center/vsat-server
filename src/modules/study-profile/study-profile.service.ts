@@ -13,6 +13,7 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 import { TargetLearningDetailStatus } from 'src/common/enums/target-learning-status-enum';
 import { Account } from 'src/database/entities/account.entity';
+import { CreateStudyProfileDto } from './dto/create-studyprofile.dto';
 
 @Injectable()
 export class StudyProfileService {
@@ -31,7 +32,10 @@ export class StudyProfileService {
         });
     }
 
-    async getStudyProfileByAccountIdAndStatus(accountId: string, stauts: StudyProfileStatus) {
+    async getStudyProfileByAccountIdAndStatus(
+        accountId: string,
+        stauts: StudyProfileStatus,
+    ) {
         return await this.studyProfileRepository.find({
             where: { account: { id: accountId }, status: stauts },
         });
@@ -481,5 +485,53 @@ export class StudyProfileService {
             currentPage: page,
             totalItems: filteredProfiles.length,
         };
+    }
+
+    async updateStudyProfileStatus(accountId: string, status: StudyProfileStatus) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: accountId }, status: StudyProfileStatus.ACTIVE },
+            order: { createdat: 'DESC' },
+            relations: ['targetlearning'],
+        });
+
+        studyProfile.status = status;
+
+        const targetArrs = [];
+        for (const targetLearnigData of studyProfile.targetlearning) {
+            const updateTarget = await this.targetLearningRepository.findOne({
+                where: { id: targetLearnigData.id },
+                order: { createdat: 'ASC' },
+            });
+
+            updateTarget.status = TargetLearningStatus.COMPLETED;
+            targetArrs.push(updateTarget);
+        }
+
+        const updateTarget = await this.targetLearningRepository.save(targetArrs);
+
+        studyProfile.targetlearning = updateTarget;
+
+        return await this.studyProfileRepository.save(studyProfile);
+    }
+
+    async createStudyProfile(createStudyProfile: CreateStudyProfileDto) {
+        const account = await this.accountRepository.findOne({
+            where: { id: createStudyProfile.accountId },
+        });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        const create = await this.studyProfileRepository.create({
+            account: { id: createStudyProfile.accountId },
+            startdate: createStudyProfile.startDate,
+            enddate: createStudyProfile.endDate,
+            targetscoreMath: createStudyProfile.targetscoreMath,
+            targetscoreRW: createStudyProfile.targetscoreRW,
+            status: StudyProfileStatus.ACTIVE,
+        });
+
+        return await this.studyProfileRepository.save(create);
     }
 }

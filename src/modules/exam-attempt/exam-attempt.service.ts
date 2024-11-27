@@ -98,7 +98,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        let target;
+        let target = new TargetLearning();
 
         if (studyProfile.status === StudyProfileStatus.INACTIVE) {
             target = await this.targetLearningService.save(
@@ -112,6 +112,18 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             );
         }
 
+        console.log(target);
+
+        if (
+            studyProfile.status === StudyProfileStatus.ACTIVE &&
+            target.enddate > studyProfile.enddate
+        ) {
+            await this.targetLearningService.updateTargetLearningWithStudyProfile(
+                studyProfile.id,
+                target.id,
+            );
+        }
+
         const updateStudyProfile = await this.studyProfileService.saveTarget(
             createTargetLearningDto.targetLearningRW,
             createTargetLearningDto.targetLearningMath,
@@ -120,7 +132,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
-            relations: ['targetlearning', 'targetlearning.studyProfile'],
+            relations: [
+                'targetlearning',
+                'targetlearning.studyProfile',
+                'exam',
+                'exam.examType',
+            ],
         });
 
         const domainsRW = await this.domainRepository.find({
@@ -350,7 +367,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsMath,
                 );
 
-                await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                if (examAttempt.exam.examType.name === 'Trial Exam') {
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                }
 
                 break;
 
@@ -374,7 +393,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             top3UnitIdMediumMath,
                         );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
 
@@ -398,7 +422,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             unitIdMediumMath,
                         );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 } else if (examAttempt.scoreMath < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -417,7 +446,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             top3UnitIdAdvanceMath,
                         );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
         }
@@ -441,7 +475,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsRW,
                 );
 
-                await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                if (examAttempt.exam.examType.name === 'Trial Exam') {
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                }
 
                 break;
 
@@ -464,7 +500,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         top3UnitIdMediumsRW,
                     );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
 
@@ -487,7 +528,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         unitIdMediumsRW,
                     );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 } else if (examAttempt.scoreRW < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -505,7 +551,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         top3UnitIdAdvanceRW,
                     );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
         }
@@ -1199,7 +1250,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 targetlearning: { id: targetData.id },
                 exam: { id: createExamDto.examId },
                 attemptdatetime: createExamDto.attemptdatetime,
-                
             }),
         );
 
