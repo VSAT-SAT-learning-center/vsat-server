@@ -493,26 +493,31 @@ export class StudyProfileService {
             order: { createdat: 'DESC' },
             relations: ['targetlearning'],
         });
-
+    
+        if (!studyProfile) {
+            throw new NotFoundException('Active StudyProfile not found for this account');
+        }
+    
         studyProfile.status = status;
 
-        const targetArrs = [];
-        for (const targetLearnigData of studyProfile.targetlearning) {
-            const updateTarget = await this.targetLearningRepository.findOne({
-                where: { id: targetLearnigData.id },
-                order: { createdat: 'ASC' },
-            });
-
-            updateTarget.status = TargetLearningStatus.COMPLETED;
-            targetArrs.push(updateTarget);
+        const latestTargetLearning = await this.targetLearningRepository.findOne({
+            where: { studyProfile: { id: studyProfile.id } },
+            order: { createdat: 'DESC' },
+        });
+    
+        if (!latestTargetLearning) {
+            throw new NotFoundException('No TargetLearning found for this StudyProfile');
         }
-
-        const updateTarget = await this.targetLearningRepository.save(targetArrs);
-
-        studyProfile.targetlearning = updateTarget;
-
+    
+        latestTargetLearning.status = TargetLearningStatus.COMPLETED;
+    
+        const updatedTargetLearning = await this.targetLearningRepository.save(latestTargetLearning);
+    
+        studyProfile.targetlearning = [updatedTargetLearning];
+    
         return await this.studyProfileRepository.save(studyProfile);
     }
+    
 
     async createStudyProfile(createStudyProfile: CreateStudyProfileDto) {
         const account = await this.accountRepository.findOne({
