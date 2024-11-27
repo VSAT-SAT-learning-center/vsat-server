@@ -1380,7 +1380,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         for (const targetLearningData of targetLearnings) {
             const examAttempt = await this.examAttemptRepository.findOne({
-                where: { targetlearning: { id: targetLearningData.id } },
+                where: { targetlearning: { id: targetLearningData.id }, status: true },
                 relations: ['exam'],
                 order: { attemptdatetime: 'DESC' },
             });

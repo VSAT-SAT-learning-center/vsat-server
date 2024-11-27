@@ -493,31 +493,33 @@ export class StudyProfileService {
             order: { createdat: 'DESC' },
             relations: ['targetlearning'],
         });
-    
+
         if (!studyProfile) {
             throw new NotFoundException('Active StudyProfile not found for this account');
         }
-    
+
         studyProfile.status = status;
 
         const latestTargetLearning = await this.targetLearningRepository.findOne({
             where: { studyProfile: { id: studyProfile.id } },
             order: { createdat: 'DESC' },
         });
-    
+
         if (!latestTargetLearning) {
             throw new NotFoundException('No TargetLearning found for this StudyProfile');
         }
-    
+
         latestTargetLearning.status = TargetLearningStatus.COMPLETED;
-    
-        const updatedTargetLearning = await this.targetLearningRepository.save(latestTargetLearning);
-    
+        latestTargetLearning.startdate = new Date();
+        latestTargetLearning.enddate = new Date();
+
+        const updatedTargetLearning =
+            await this.targetLearningRepository.save(latestTargetLearning);
+
         studyProfile.targetlearning = [updatedTargetLearning];
-    
+
         return await this.studyProfileRepository.save(studyProfile);
     }
-    
 
     async createStudyProfile(createStudyProfile: CreateStudyProfileDto) {
         const account = await this.accountRepository.findOne({
@@ -538,5 +540,52 @@ export class StudyProfileService {
         });
 
         return await this.studyProfileRepository.save(create);
+    }
+
+    async getStudyProfileComplete(
+        page: number,
+        pageSize: number,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [studyProfiles, total] = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account')
+            .andWhere('studyProfile.status = :status', {
+                status: StudyProfileStatus.COMPLETED,
+            })
+            .skip(skip)
+            .take(pageSize)
+            .getManyAndCount();
+
+        const totalPages = Math.ceil(total / pageSize);
+
+
+        const result = studyProfiles.map((profile) => {
+            const account = plainToInstance(GetAccountDTO, profile.account, {
+                excludeExtraneousValues: true,
+            });
+
+            return {
+                ...profile,
+                account,
+                startdate: profile.startdate
+                    ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                          timeZone: 'Asia/Saigon',
+                      })
+                    : null,
+                enddate: profile.enddate
+                    ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                          timeZone: 'Asia/Saigon',
+                      })
+                    : null,
+            };
+        });
+
+        return {
+            data: result,
+            totalPages,
+            currentPage: page,
+        };
     }
 }
