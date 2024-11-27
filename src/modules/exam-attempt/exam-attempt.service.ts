@@ -982,7 +982,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             examTitle: exam.title,
             totalNumberOfQuestions,
             totalTime,
-            //modules: moduleDetails,
+            modules: moduleDetails,
         };
     }
 
@@ -1363,67 +1363,115 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const studyProfiles = await this.studyProfileRepository.findOne({
             where: { id: studyProfileId },
         });
-    
+
         if (!studyProfiles) {
             throw new NotFoundException('StudyProfile is not found');
         }
-    
+
         const examAttemptArrs = [];
-    
+
         const targetLearnings = await this.targetLearningRepository
             .createQueryBuilder('targetLearning')
             .select(['targetLearning.id'])
             .where('targetLearning.studyProfile = :studyProfileId', { studyProfileId })
             .getMany();
-    
+
         const allExamAttempts = [];
-    
+
         for (const targetLearningData of targetLearnings) {
             const examAttempt = await this.examAttemptRepository.findOne({
                 where: { targetlearning: { id: targetLearningData.id } },
                 relations: ['exam'],
-                order: { createdat: 'DESC' },
+                order: { attemptdatetime: 'DESC' },
             });
-    
+
             if (examAttempt) {
+                const utcDate = new Date(examAttempt.attemptdatetime);
+                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+
                 const scoreTotal =
                     (examAttempt.scoreMath || 0) + (examAttempt.scoreRW || 0);
                 allExamAttempts.push({
                     ...examAttempt,
+                    attemptdatetime: vietnamDate,
                     scoreTotal,
                     targetLearningId: targetLearningData.id,
                 });
             }
         }
-    
+
         allExamAttempts.sort(
-            (a, b) => new Date(b.createdat).getTime() - new Date(a.createdat).getTime(),
+            (a, b) =>
+                new Date(b.attemptdatetime).getTime() -
+                new Date(a.attemptdatetime).getTime(),
         );
-    
+
         for (let i = 0; i < allExamAttempts.length; i++) {
             const currentAttempt = allExamAttempts[i];
             const previousAttempt = allExamAttempts[i + 1] || null;
-    
+
             const improvement = previousAttempt
                 ? (currentAttempt.scoreTotal || 0) - (previousAttempt.scoreTotal || 0)
                 : 0;
-    
+
             examAttemptArrs.push({
                 ...currentAttempt,
                 improvement,
             });
         }
-    
+
         return examAttemptArrs;
     }
-    
 
     async getReport(examAttemptId: string) {
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
-            relations: ['exam', 'targetlearning'],
+            relations: [
+                'exam',
+                'targetlearning',
+                'examattemptdetail',
+                'examattemptdetail.question',
+            ],
         });
 
-        return examAttempt;
+        if (!examAttempt || !examAttempt.exam) {
+            throw new NotFoundException(`ExamAttempt with ID ${examAttemptId} not found`);
+        }
+
+        const examId = examAttempt.exam.id;
+
+        const modules = await this.moduleTypeRepository
+            .createQueryBuilder('moduleType')
+            .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
+            .innerJoinAndSelect('examQuestion.question', 'question')
+            .innerJoin('examQuestion.exam', 'exam', 'exam.id = :examId', { examId })
+            .leftJoinAndSelect('question.answers', 'answers')
+            .leftJoinAndSelect('moduleType.section', 'moduleSection')
+            .where('question.id IN (:...questionIds)', {
+                questionIds: examAttempt.examattemptdetail.map(
+                    (detail) => detail.question.id,
+                ),
+            }) // Chỉ lấy các câu hỏi trong examAttemptDetail
+            .orderBy('moduleType.updatedat', 'DESC')
+            .getMany();
+
+        let totalNumberOfQuestions = 0;
+        let totalTime = 0;
+
+        const moduleDetails = [];
+        for (const module of modules) {
+            totalNumberOfQuestions += module.numberofquestion || 0;
+            totalTime += module.time || 0;
+
+            moduleDetails.push(module);
+        }
+
+        return {
+            id: examAttempt.exam.id,
+            examTitle: examAttempt.exam.title,
+            totalNumberOfQuestions,
+            totalTime,
+            modules: moduleDetails,
+        };
     }
 }
