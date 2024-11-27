@@ -1358,4 +1358,72 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         return transformedResult;
     }
+
+    async getAllExamAttemptByStudyProfile(studyProfileId: string) {
+        const studyProfiles = await this.studyProfileRepository.findOne({
+            where: { id: studyProfileId },
+        });
+    
+        if (!studyProfiles) {
+            throw new NotFoundException('StudyProfile is not found');
+        }
+    
+        const examAttemptArrs = [];
+    
+        const targetLearnings = await this.targetLearningRepository
+            .createQueryBuilder('targetLearning')
+            .select(['targetLearning.id'])
+            .where('targetLearning.studyProfile = :studyProfileId', { studyProfileId })
+            .getMany();
+    
+        const allExamAttempts = [];
+    
+        for (const targetLearningData of targetLearnings) {
+            const examAttempt = await this.examAttemptRepository.findOne({
+                where: { targetlearning: { id: targetLearningData.id } },
+                relations: ['exam'],
+                order: { createdat: 'DESC' },
+            });
+    
+            if (examAttempt) {
+                const scoreTotal =
+                    (examAttempt.scoreMath || 0) + (examAttempt.scoreRW || 0);
+                allExamAttempts.push({
+                    ...examAttempt,
+                    scoreTotal,
+                    targetLearningId: targetLearningData.id,
+                });
+            }
+        }
+    
+        allExamAttempts.sort(
+            (a, b) => new Date(b.createdat).getTime() - new Date(a.createdat).getTime(),
+        );
+    
+        for (let i = 0; i < allExamAttempts.length; i++) {
+            const currentAttempt = allExamAttempts[i];
+            const previousAttempt = allExamAttempts[i + 1] || null;
+    
+            const improvement = previousAttempt
+                ? (currentAttempt.scoreTotal || 0) - (previousAttempt.scoreTotal || 0)
+                : 0;
+    
+            examAttemptArrs.push({
+                ...currentAttempt,
+                improvement,
+            });
+        }
+    
+        return examAttemptArrs;
+    }
+    
+
+    async getReport(examAttemptId: string) {
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+            relations: ['exam', 'targetlearning'],
+        });
+
+        return examAttempt;
+    }
 }
