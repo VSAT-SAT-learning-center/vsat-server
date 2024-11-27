@@ -982,7 +982,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             examTitle: exam.title,
             totalNumberOfQuestions,
             totalTime,
-            modules: moduleDetails,
+            //modules: moduleDetails,
         };
     }
 
@@ -1426,46 +1426,94 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     async getReport(examAttemptId: string) {
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
-            relations: [
-                'exam',
-                'targetlearning',
-                'examattemptdetail',
-                'examattemptdetail.question',
-            ],
+            relations: ['exam', 'examattemptdetail', 'examattemptdetail.question'],
         });
-
+    
         if (!examAttempt || !examAttempt.exam) {
             throw new NotFoundException(`ExamAttempt with ID ${examAttemptId} not found`);
         }
-
+    
         const examId = examAttempt.exam.id;
-
+    
         const modules = await this.moduleTypeRepository
             .createQueryBuilder('moduleType')
             .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
             .innerJoinAndSelect('examQuestion.question', 'question')
             .innerJoin('examQuestion.exam', 'exam', 'exam.id = :examId', { examId })
             .leftJoinAndSelect('question.answers', 'answers')
+            .leftJoinAndSelect('question.skill', 'skill')
+            .leftJoinAndSelect('skill.domain', 'domain')
             .leftJoinAndSelect('moduleType.section', 'moduleSection')
             .where('question.id IN (:...questionIds)', {
                 questionIds: examAttempt.examattemptdetail.map(
                     (detail) => detail.question.id,
                 ),
-            }) // Chỉ lấy các câu hỏi trong examAttemptDetail
+            })
             .orderBy('moduleType.updatedat', 'DESC')
             .getMany();
-
-        let totalNumberOfQuestions = 0;
-        let totalTime = 0;
-
-        const moduleDetails = [];
-        for (const module of modules) {
-            totalNumberOfQuestions += module.numberofquestion || 0;
-            totalTime += module.time || 0;
-
-            moduleDetails.push(module);
-        }
-
+    
+        const moduleDetails = modules.map((module) => {
+            const questions = module.examquestion
+                .filter((examQuestion) =>
+                    examAttempt.examattemptdetail.some(
+                        (detail) => detail.question.id === examQuestion.question.id,
+                    ),
+                )
+                .map((examQuestion) => {
+                    const attemptDetail = examAttempt.examattemptdetail.find(
+                        (detail) => detail.question.id === examQuestion.question.id,
+                    );
+    
+                    return {
+                        questionId: examQuestion.question.id,
+                        content: examQuestion.question.content,
+                        isCorrect: attemptDetail?.iscorrect || false,
+                        studentAnswer: attemptDetail?.studentAnswer || null,
+                        correctAnswers: examQuestion.question.answers?.filter(
+                            (answer) => answer.isCorrectAnswer,
+                        ),
+                        explain: examQuestion.question.explain,
+                        answer: examQuestion.question.answers,
+                        skill: {
+                            id: examQuestion.question.skill?.id,
+                            name: examQuestion.question.skill?.content,
+                        },
+                        domain: {
+                            id: examQuestion.question.skill?.domain?.id,
+                            name: examQuestion.question.skill?.domain?.content,
+                        },
+                    };
+                });
+    
+            return {
+                moduleId: module.id,
+                moduleName: module.name,
+                section: module.section?.name || '',
+                time: module.time,
+                numberOfQuestions: questions.length,
+                questions,
+            };
+        });
+    
+        const sectionOrder = { 'Reading & Writing': 1, Math: 2 };
+        const moduleOrder = { 'Module 1': 1, 'Module 2': 2 };
+    
+        moduleDetails.sort((a, b) => {
+            return (
+                sectionOrder[a.section] - sectionOrder[b.section] ||
+                moduleOrder[a.moduleName] - moduleOrder[b.moduleName]
+            );
+        });
+    
+        const totalNumberOfQuestions = moduleDetails.reduce(
+            (total, module) => total + module.numberOfQuestions,
+            0,
+        );
+        const totalTime = moduleDetails.reduce(
+            (total, module) => total + (module.time || 0),
+            0,
+        );
+    
         return {
             id: examAttempt.exam.id,
             examTitle: examAttempt.exam.title,
@@ -1474,4 +1522,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             modules: moduleDetails,
         };
     }
+    
+    
 }
