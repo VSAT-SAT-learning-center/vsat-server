@@ -72,7 +72,6 @@ export class FeedbackService extends BaseService<Feedback> {
         private readonly questionSerivce: QuestionService,
         @Inject(forwardRef(() => QuizQuestionService))
         private readonly quizQuestionSerivce: QuizQuestionService,
-        private readonly feedbackGateway: FeedbacksGateway,
         private readonly accountService: AccountService,
         private readonly moduleTypeService: ModuleTypeService,
         private readonly notificationService: NotificationService,
@@ -961,9 +960,7 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    async getLessonFeedback(
-        lessonId: string,
-    ): Promise<LessonFeedbackResponseDto[]> {
+    async getLessonFeedback(lessonId: string): Promise<LessonFeedbackResponseDto[]> {
         const feedback = await this.feedbackRepository.find({
             where: [{ lesson: { id: lessonId } }],
             relations: ['lesson', 'accountFrom', 'accountTo'],
@@ -1678,16 +1675,81 @@ export class FeedbackService extends BaseService<Feedback> {
         };
     }
 
-    async getRejectFeedbackByExamId(questionId: string): Promise<{
+    async getRejectFeedbackByQuestionQuizId(questionQuizId: string): Promise<{
         data: any[];
         totalItems: number;
     }> {
-        if (!questionId) {
+        if (!questionQuizId) {
+            throw new BadRequestException('Question Quiz ID is required');
+        }
+
+        const where: any = {
+            quizquestion: { id: questionQuizId },
+            status: FeedbackStatus.REJECTED,
+        };
+
+        // Fetch feedback with pagination
+        const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
+            where,
+            relations: ['question', 'accountFrom', 'accountTo'],
+            order: { createdat: 'DESC' },
+        });
+
+        if (feedbacks.length === 0) {
+            throw new NotFoundException('No feedbacks found');
+        }
+
+        // Map feedbacks to the desired structure
+        const data = feedbacks.map((feedback) => ({
+            id: feedback.id,
+            content: feedback.content,
+            reason: feedback.reason,
+            status: feedback.status,
+            createdat: feedback.createdat,
+            updatedat: feedback.updatedat,
+            //nếu muốn get thêm question
+            // question: feedback.question
+            //     ? {
+            //           id: feedback.question.id,
+            //           content: feedback.question.content,
+            //           plainContent: feedback.question.plainContent,
+            //           explain: feedback.question.explain,
+            //       }
+            //     : null,
+            accountFrom: feedback.accountFrom
+                ? {
+                      id: feedback.accountFrom.id,
+                      username: feedback.accountFrom.username,
+                      email: feedback.accountFrom.email,
+                  }
+                : null,
+            accountTo: feedback.accountTo
+                ? {
+                      id: feedback.accountTo.id,
+                      username: feedback.accountTo.username,
+                      email: feedback.accountTo.email,
+                  }
+                : null,
+        }));
+
+        return {
+            data,
+            totalItems,
+            // totalPages: Math.ceil(totalItems / limit),
+            // currentPage: page,
+        };
+    }
+
+    async getRejectFeedbackByExamId(examId: string): Promise<{
+        data: any[];
+        totalItems: number;
+    }> {
+        if (!examId) {
             throw new BadRequestException('Exam ID is required');
         }
 
         const where: any = {
-            question: { id: questionId },
+            exam: { id: examId },
             status: FeedbackStatus.REJECTED,
         };
 

@@ -54,6 +54,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ProgressModule } from './modules/progress/progress.module';
 import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
 import { NotificationModule } from './nofitication/notification.module';
+import { EvaluateFeedbackModule } from './modules/evaluate-feedback-type/evaluate-feedback-type.module';
 
 @Module({
     imports: [
@@ -112,6 +113,7 @@ import { NotificationModule } from './nofitication/notification.module';
         ProgressModule,
         TargetLearningDetailModule,
         NotificationModule,
+        EvaluateFeedbackModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],

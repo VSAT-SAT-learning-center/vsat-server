@@ -172,7 +172,18 @@ export class FeedbackController extends BaseController<Feedback> {
         data: any[];
         totalItems: number;
     }> {
-        return this.feedbackService.getRejectFeedbackByExamId(questionId);
+        return this.feedbackService.getRejectFeedbackByQuestionId(questionId);
+    }
+
+    @ApiOperation({ summary: 'Get feedback details by question id' })
+    @Get('question/reason/:quizQuestionId')
+    async getRejectFeedbackByQuestionQuizId(
+        @Param('quizQuestionId') quizQuestionId: string,
+    ): Promise<{
+        data: any[];
+        totalItems: number;
+    }> {
+        return this.feedbackService.getRejectFeedbackByQuestionQuizId(quizQuestionId);
     }
 
     @ApiOperation({ summary: 'Search exam feedback by status' })
