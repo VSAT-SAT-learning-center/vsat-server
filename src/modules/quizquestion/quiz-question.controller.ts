@@ -83,6 +83,7 @@ export class QuizQuestionController {
     }
 
     @Get('getAllWithStatusByCreateBy')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async getAllWithStatusByCreateBy(
         @Request() req,
         @Query('page') page?: number,

@@ -8,6 +8,7 @@ import {
     ParseUUIDPipe,
     Post,
     Put,
+    Request,
     UseGuards,
 } from '@nestjs/common';
 import { ExamSemesterService } from './exam-semester.service';
@@ -36,7 +37,33 @@ export class ExamSemesterController {
     @Get('/details')
     async getExamSemestersWithDetails() {
         try {
-            const examSemesterList = await this.examSemesterService.getExamSemestersWithDetails();
+            const examSemesterList =
+                await this.examSemesterService.getExamSemestersWithDetails();
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examSemesterList,
+                SuccessMessages.gets('ExamSemester'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('/getExamSemestersWithDetailsByCreateBy')
+    @UseGuards(JwtAuthGuard)
+    async getExamSemestersWithDetailsByCreateBy(@Request() req) {
+        try {
+            const examSemesterList =
+                await this.examSemesterService.getExamSemestersWithDetailsByCreateBy(
+                    req.user.id,
+                );
 
             return ResponseHelper.success(
                 HttpStatus.OK,
@@ -77,7 +104,9 @@ export class ExamSemesterController {
 
     @Post('import-file')
     @ApiBody({ type: UploadFileExamSemesterDto })
-    async importExamSemesterWithConfigs(@Body() createExamSemester: UploadFileExamSemesterDto) {
+    async importExamSemesterWithConfigs(
+        @Body() createExamSemester: UploadFileExamSemesterDto,
+    ) {
         const { domainDistributionConfig } = createExamSemester;
         try {
             const result = await this.examSemesterService.uploadExamSemesterWithConfigs(
@@ -137,11 +166,12 @@ export class ExamSemesterController {
         updateDomainDistributionConfigDtoArray: UpdateDomainDistributionConfigDto[],
     ) {
         try {
-            const updatedSemester = await this.examSemesterService.updateExamSemesterWithConfigs(
-                id,
-                updateExamSemesterDto,
-                updateDomainDistributionConfigDtoArray,
-            );
+            const updatedSemester =
+                await this.examSemesterService.updateExamSemesterWithConfigs(
+                    id,
+                    updateExamSemesterDto,
+                    updateDomainDistributionConfigDtoArray,
+                );
 
             return ResponseHelper.success(
                 HttpStatus.OK,
