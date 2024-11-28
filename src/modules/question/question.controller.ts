@@ -169,6 +169,45 @@ export class QuestionController {
         }
     }
 
+    @Get('searchQuestionsByCreateBy/:status')
+    @UseGuards(JwtAuthGuard)
+    async searchQuestionsByCreateBy(
+        @Request() req,
+        @Query('page') page: number = 1,
+        @Query('pageSize') pageSize: number = 10,
+        @Query('skillId') skillId?: string,
+        @Query('domainId') domainId?: string,
+        @Query('levelId') levelId?: string,
+        @Query('sectionId') sectionId?: string,
+        @Param('status') status?: QuestionStatus,
+    ) {
+        try {
+            const questions = await this.questionService.searchQuestionsByCreateBy(
+                page,
+                pageSize,
+                skillId,
+                domainId,
+                levelId,
+                sectionId,
+                status,
+                req.user.id,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                questions,
+                SuccessMessages.get('Question'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
     @Put('update-status/:id')
     @ApiBody({
         schema: {
