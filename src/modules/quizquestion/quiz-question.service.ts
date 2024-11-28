@@ -207,6 +207,40 @@ export class QuizQuestionService extends BaseService<QuizQuestion> {
         };
     }
 
+    async getAllWithStatusByCreateBy(
+        page: number,
+        pageSize: number,
+        status: QuizQuestionStatus,
+        accountId: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [questions, total] = await this.quizQuestionRepository.findAndCount({
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            skip: skip,
+            take: pageSize,
+            where: { createdby: accountId, status },
+            order: {
+                updatedat: 'DESC',
+            },
+        });
+
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
+
+        const totalPages = Math.ceil(total / pageSize);
+        return {
+            data: plainToInstance(GetQuizQuestionDTO, questionsWithAccounts, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
     async publish(questionIds: string[]): Promise<void> {
         const questions = await this.quizQuestionRepository.find({
             where: { id: In(questionIds) },
