@@ -521,7 +521,10 @@ export class StudyProfileService {
         studyProfile.status = status;
 
         const latestTargetLearning = await this.targetLearningRepository.findOne({
-            where: { studyProfile: { id: studyProfile.id } },
+            where: {
+                studyProfile: { id: studyProfile.id },
+                status: TargetLearningStatus.INACTIVE,
+            },
             order: { createdat: 'DESC' },
         });
 
@@ -533,10 +536,7 @@ export class StudyProfileService {
         latestTargetLearning.startdate = new Date();
         latestTargetLearning.enddate = new Date();
 
-        const updatedTargetLearning =
-            await this.targetLearningRepository.save(latestTargetLearning);
-
-        studyProfile.targetlearning = [updatedTargetLearning];
+        await this.targetLearningRepository.save(latestTargetLearning);
 
         return await this.studyProfileRepository.save(studyProfile);
     }
@@ -565,15 +565,27 @@ export class StudyProfileService {
     async getStudyProfileComplete(page: number, pageSize: number): Promise<any> {
         const skip = (page - 1) * pageSize;
 
-        const [studyProfiles, total] = await this.studyProfileRepository
+        // Lấy studyProfile mới nhất theo accountId
+        const query = this.studyProfileRepository
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account')
             .andWhere('studyProfile.status = :status', {
                 status: StudyProfileStatus.COMPLETED,
             })
+            .andWhere((qb) => {
+                const subQuery = qb
+                    .subQuery()
+                    .select('MAX(studyProfileSub.createdat)', 'maxCreatedAt')
+                    .from('studyprofile', 'studyProfileSub')
+                    .where('studyProfileSub.accountid = studyProfile.accountid')
+                    .getQuery();
+                return `studyProfile.createdat = ${subQuery}`;
+            })
+            .orderBy('studyProfile.createdat', 'DESC') // Sắp xếp theo createdat mới nhất
             .skip(skip)
-            .take(pageSize)
-            .getManyAndCount();
+            .take(pageSize);
+
+        const [studyProfiles, total] = await query.getManyAndCount();
 
         const totalPages = Math.ceil(total / pageSize);
 

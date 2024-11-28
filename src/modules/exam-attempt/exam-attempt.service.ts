@@ -91,7 +91,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     ) {
         const studyProfile = await this.studyProfileRepository.findOne({
             where: { account: { id: accountId } },
-            order: { createdat: 'ASC' },
+            order: { createdat: 'DESC' },
+            relations: ['targetlearning'],
         });
 
         if (!studyProfile) {
@@ -99,11 +100,18 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         }
 
         let target = new TargetLearning();
+        let updateStudyProfile;
 
         if (studyProfile.status === StudyProfileStatus.INACTIVE) {
             target = await this.targetLearningService.save(
                 studyProfile.id,
                 examAttemptId,
+            );
+
+            updateStudyProfile = await this.studyProfileService.saveTarget(
+                createTargetLearningDto.targetLearningRW,
+                createTargetLearningDto.targetLearningMath,
+                accountId,
             );
         } else if (studyProfile.status === StudyProfileStatus.ACTIVE) {
             target = await this.targetLearningService.updateTargetLearning(
@@ -111,8 +119,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 examAttemptId,
             );
         }
-
-        console.log(target);
 
         if (
             studyProfile.status === StudyProfileStatus.ACTIVE &&
@@ -123,12 +129,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 target.id,
             );
         }
-
-        const updateStudyProfile = await this.studyProfileService.saveTarget(
-            createTargetLearningDto.targetLearningRW,
-            createTargetLearningDto.targetLearningMath,
-            accountId,
-        );
 
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
@@ -1428,13 +1428,13 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             where: { id: examAttemptId },
             relations: ['exam', 'examattemptdetail', 'examattemptdetail.question'],
         });
-    
+
         if (!examAttempt || !examAttempt.exam) {
             throw new NotFoundException(`ExamAttempt with ID ${examAttemptId} not found`);
         }
-    
+
         const examId = examAttempt.exam.id;
-    
+
         const modules = await this.moduleTypeRepository
             .createQueryBuilder('moduleType')
             .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
@@ -1451,7 +1451,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             })
             .orderBy('moduleType.updatedat', 'DESC')
             .getMany();
-    
+
         const moduleDetails = modules.map((module) => {
             const questions = module.examquestion
                 .filter((examQuestion) =>
@@ -1463,7 +1463,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     const attemptDetail = examAttempt.examattemptdetail.find(
                         (detail) => detail.question.id === examQuestion.question.id,
                     );
-    
+
                     return {
                         questionId: examQuestion.question.id,
                         content: examQuestion.question.content,
@@ -1484,7 +1484,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         },
                     };
                 });
-    
+
             return {
                 moduleId: module.id,
                 moduleName: module.name,
@@ -1494,17 +1494,17 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 questions,
             };
         });
-    
+
         const sectionOrder = { 'Reading & Writing': 1, Math: 2 };
         const moduleOrder = { 'Module 1': 1, 'Module 2': 2 };
-    
+
         moduleDetails.sort((a, b) => {
             return (
                 sectionOrder[a.section] - sectionOrder[b.section] ||
                 moduleOrder[a.moduleName] - moduleOrder[b.moduleName]
             );
         });
-    
+
         const totalNumberOfQuestions = moduleDetails.reduce(
             (total, module) => total + module.numberOfQuestions,
             0,
@@ -1513,7 +1513,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             (total, module) => total + (module.time || 0),
             0,
         );
-    
+
         return {
             id: examAttempt.exam.id,
             examTitle: examAttempt.exam.title,
@@ -1522,6 +1522,4 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             modules: moduleDetails,
         };
     }
-    
-    
 }
