@@ -438,6 +438,7 @@ export class StudyProfileService {
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
+        // Lấy danh sách studyProfiles có targetLearning
         const [studyProfiles, total] = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account')
@@ -453,37 +454,59 @@ export class StudyProfileService {
 
         const totalPages = Math.ceil(total / pageSize);
 
-        const filteredProfiles = studyProfiles.filter(
-            (profile) => profile.targetlearning && profile.targetlearning.length > 0,
-        );
+        const result = studyProfiles
+            .map((profile) => {
+                const latestCompletedTargetLearning = profile.targetlearning?.find(
+                    (learning) => learning.status === TargetLearningStatus.COMPLETED,
+                );
 
-        const result = filteredProfiles.map((profile) => {
-            const account = plainToInstance(GetAccountDTO, profile.account, {
-                excludeExtraneousValues: true,
-            });
+                if (!profile.targetlearning || profile.targetlearning.length === 0) {
+                    return {
+                        ...profile,
+                        account: plainToInstance(GetAccountDTO, profile.account, {
+                            excludeExtraneousValues: true,
+                        }),
+                        targetlearning: null,
+                        startdate: profile.startdate
+                            ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                                  timeZone: 'Asia/Saigon',
+                              })
+                            : null,
+                        enddate: profile.enddate
+                            ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                                  timeZone: 'Asia/Saigon',
+                              })
+                            : null,
+                    };
+                } else if (latestCompletedTargetLearning) {
+                    return {
+                        ...profile,
+                        account: plainToInstance(GetAccountDTO, profile.account, {
+                            excludeExtraneousValues: true,
+                        }),
+                        targetlearning: latestCompletedTargetLearning,
+                        startdate: profile.startdate
+                            ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                                  timeZone: 'Asia/Saigon',
+                              })
+                            : null,
+                        enddate: profile.enddate
+                            ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                                  timeZone: 'Asia/Saigon',
+                              })
+                            : null,
+                    };
+                }
 
-            return {
-                ...profile,
-                account,
-                targetlearning: profile.targetlearning.slice(0, 1),
-                startdate: profile.startdate
-                    ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
-                          timeZone: 'Asia/Saigon',
-                      })
-                    : null,
-                enddate: profile.enddate
-                    ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
-                          timeZone: 'Asia/Saigon',
-                      })
-                    : null,
-            };
-        });
+                return null;
+            })
+            .filter((profile) => profile !== null);
 
         return {
             data: result,
             totalPages,
             currentPage: page,
-            totalItems: filteredProfiles.length,
+            totalItems: result.length,
         };
     }
 
@@ -542,10 +565,7 @@ export class StudyProfileService {
         return await this.studyProfileRepository.save(create);
     }
 
-    async getStudyProfileComplete(
-        page: number,
-        pageSize: number,
-    ): Promise<any> {
+    async getStudyProfileComplete(page: number, pageSize: number): Promise<any> {
         const skip = (page - 1) * pageSize;
 
         const [studyProfiles, total] = await this.studyProfileRepository
@@ -559,7 +579,6 @@ export class StudyProfileService {
             .getManyAndCount();
 
         const totalPages = Math.ceil(total / pageSize);
-
 
         const result = studyProfiles.map((profile) => {
             const account = plainToInstance(GetAccountDTO, profile.account, {
