@@ -438,7 +438,6 @@ export class StudyProfileService {
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
-        // Lấy danh sách studyProfiles có targetLearning
         const [studyProfiles, total] = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account')
@@ -454,59 +453,57 @@ export class StudyProfileService {
 
         const totalPages = Math.ceil(total / pageSize);
 
-        const result = studyProfiles
-            .map((profile) => {
-                const latestCompletedTargetLearning = profile.targetlearning?.find(
-                    (learning) => learning.status === TargetLearningStatus.COMPLETED,
-                );
+        const result = studyProfiles.map((profile) => {
+            const latestTargetLearning = profile.targetlearning?.[0];
 
-                if (!profile.targetlearning || profile.targetlearning.length === 0) {
-                    return {
-                        ...profile,
-                        account: plainToInstance(GetAccountDTO, profile.account, {
-                            excludeExtraneousValues: true,
-                        }),
-                        targetlearning: null,
-                        startdate: profile.startdate
-                            ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
-                                  timeZone: 'Asia/Saigon',
-                              })
-                            : null,
-                        enddate: profile.enddate
-                            ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
-                                  timeZone: 'Asia/Saigon',
-                              })
-                            : null,
-                    };
-                } else if (latestCompletedTargetLearning) {
-                    return {
-                        ...profile,
-                        account: plainToInstance(GetAccountDTO, profile.account, {
-                            excludeExtraneousValues: true,
-                        }),
-                        targetlearning: latestCompletedTargetLearning,
-                        startdate: profile.startdate
-                            ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
-                                  timeZone: 'Asia/Saigon',
-                              })
-                            : null,
-                        enddate: profile.enddate
-                            ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
-                                  timeZone: 'Asia/Saigon',
-                              })
-                            : null,
-                    };
-                }
+            if (!latestTargetLearning) {
+                return {
+                    ...profile,
+                    account: plainToInstance(GetAccountDTO, profile.account, {
+                        excludeExtraneousValues: true,
+                    }),
+                    targetlearning: null,
+                    startdate: profile.startdate
+                        ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                    enddate: profile.enddate
+                        ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                };
+            } else if (latestTargetLearning.status === TargetLearningStatus.COMPLETED) {
+                return {
+                    ...profile,
+                    account: plainToInstance(GetAccountDTO, profile.account, {
+                        excludeExtraneousValues: true,
+                    }),
+                    targetlearning: latestTargetLearning,
+                    startdate: profile.startdate
+                        ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                    enddate: profile.enddate
+                        ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                };
+            }
 
-                return null;
-            })
-            .filter((profile) => profile !== null);
+            return null;
+        });
+
+        const filteredResult = result.filter((profile) => profile !== null);
 
         return {
-            data: result,
+            data: filteredResult,
             totalPages,
             currentPage: page,
-            totalItems: result.length,
+            totalItems: filteredResult.length,
         };
     }
 
