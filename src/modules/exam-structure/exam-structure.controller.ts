@@ -28,6 +28,7 @@ export class ExamStructureController {
     constructor(private readonly examStructureService: ExamStructureService) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard)
     async save(@Body() createExamStructure: CreateExamStructureDto) {
         try {
             const savedExamStructure =
