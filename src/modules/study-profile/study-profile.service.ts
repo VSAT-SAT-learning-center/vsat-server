@@ -3,17 +3,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
-import { BaseService } from '../base/base.service';
-import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
 import { plainToInstance } from 'class-transformer';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
-import { TargetLearningDetailStatus } from 'src/common/enums/target-learning-status-enum';
 import { Account } from 'src/database/entities/account.entity';
 import { CreateStudyProfileDto } from './dto/create-studyprofile.dto';
+import { AccountDto } from 'src/common/dto/common.dto';
 
 @Injectable()
 export class StudyProfileService {
@@ -614,6 +612,43 @@ export class StudyProfileService {
             data: result,
             totalPages,
             currentPage: page,
+        };
+    }
+
+    async getTeacherInfoByAccountId(accountId: string): Promise<AccountDto> {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: accountId }, status: StudyProfileStatus.ACTIVE },
+            relations: ['account'], // Ensure the `account` relation is loaded
+        });
+
+        if (!studyProfile) {
+            throw new NotFoundException(
+                'Study profile not found for the given accountId',
+            );
+        }
+
+        const teacher = await this.accountRepository.findOne({
+            where: { id: studyProfile.teacherId },
+            select: [
+                'id',
+                'firstname',
+                'lastname',
+                'username',
+                'email',
+                'profilepictureurl',
+            ],
+        });
+
+        if (!teacher) {
+            throw new NotFoundException('Teacher not found for the given teacherId');
+        }
+
+        return {
+            id: teacher.id,
+            firstname: teacher.firstname,
+            lastname: teacher.lastname,
+            username: teacher.username,
+            profilePicture: teacher.profilepictureurl,
         };
     }
 }
