@@ -34,7 +34,7 @@ export class EvaluateFeedback {
     @JoinColumn({ name: 'accountfromid' })
     accountFrom: Account;
 
-    @ManyToOne(() => Account, { nullable: false })
+    @ManyToOne(() => Account, { nullable: true })
     @JoinColumn({ name: 'accounttoid' })
     accountTo: Account;
 

@@ -221,12 +221,14 @@ export class EvaluateFeedbackService {
                     role: feedback.accountFrom.role,
                     profileImage: feedback.accountFrom.profilepictureurl,
                 },
-                accountTo: {
-                    id: feedback.accountTo.id,
-                    username: feedback.accountTo.username,
-                    role: feedback.accountTo.role,
-                    profileImage: feedback.accountFrom.profilepictureurl,
-                },
+                accountTo: feedback.accountTo
+                ? {
+                      id: feedback.accountTo.id,
+                      username: feedback.accountTo.username,
+                      role: feedback.accountTo.role,
+                      profileImage: feedback.accountTo.profilepictureurl,
+                  }
+                : null,
                 accountReview: feedback.accountReview
                     ? {
                           id: feedback.accountReview.id,
@@ -575,11 +577,27 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return feedbacks.map((feedback) =>
-            plainToInstance(FeedbackResponseDto, feedback, {
-                excludeExtraneousValues: true,
-            }),
-        );
+        return feedbacks.map((feedback) => {
+            // Manually map `accountFrom` into the `AccountDto` format
+            const feedbackDto = plainToInstance(
+                FeedbackResponseDto,
+                {
+                    ...feedback,
+                    accountFrom: feedback.accountFrom
+                        ? {
+                              id: feedback.accountFrom.id,
+                              username: feedback.accountFrom.username,
+                              firstname: feedback.accountFrom.firstname,
+                              lastname: feedback.accountFrom.lastname,
+                              profilePicture: feedback.accountFrom.profilepictureurl,
+                          }
+                        : null,
+                },
+                { excludeExtraneousValues: true },
+            );
+    
+            return feedbackDto;
+        });
     }
 
     async getManagerReceivedEvaluateFeedbacks(): Promise<FeedbackResponseDto[]> {
@@ -591,10 +609,26 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return feedbacks.map((feedback) =>
-            plainToInstance(FeedbackResponseDto, feedback, {
-                excludeExtraneousValues: true,
-            }),
-        );
+        return feedbacks.map((feedback) => {
+            // Manually map `accountFrom` into the `AccountDto` format
+            const feedbackDto = plainToInstance(
+                FeedbackResponseDto,
+                {
+                    ...feedback,
+                    accountFrom: feedback.accountFrom
+                        ? {
+                              id: feedback.accountFrom.id,
+                              username: feedback.accountFrom.username,
+                              firstname: feedback.accountFrom.firstname,
+                              lastname: feedback.accountFrom.lastname,
+                              profilePicture: feedback.accountFrom.profilepictureurl,
+                          }
+                        : null,
+                },
+                { excludeExtraneousValues: true },
+            );
+    
+            return feedbackDto;
+        });
     }
 }
