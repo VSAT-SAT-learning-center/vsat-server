@@ -25,6 +25,7 @@ import { RoleGuard } from 'src/common/guards/role.guard';
 import { SuccessMessages } from 'src/common/message/success-messages';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
+import { AccountDto } from 'src/common/dto/common.dto';
 
 @ApiTags('StudyProfiles')
 @Controller('study-profiles')
@@ -390,5 +391,12 @@ export class StudyProfileController {
                 error.status || HttpStatus.BAD_REQUEST,
             );
         }
+    }
+
+    @Get('teacher-info')
+    @UseGuards(JwtAuthGuard)
+    async getTeacherInfo(@Request() req): Promise<AccountDto> {
+        const accountId = req?.user.id;
+        return this.studyProfileService.getTeacherInfoByAccountId(accountId);
     }
 }

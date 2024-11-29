@@ -11,6 +11,7 @@ import { Account } from 'src/database/entities/account.entity';
 import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { FeedbackResponseDto } from './dto/feedback-response.dto';
+import { CreateTeacherFeedbackDto } from './dto/create-teacher-feedback.dto';
 
 @Injectable()
 export class EvaluateFeedbackService {
@@ -73,7 +74,7 @@ export class EvaluateFeedbackService {
         return savedFeedback;
     }
 
-    async createFeedbackd(createFeedbackDto: CreateFeedbackDto): Promise<any> {
+    async createFeedback(createFeedbackDto: CreateFeedbackDto): Promise<any> {
         const { accountFromId, reason, narrativeFeedback, isSendToStaff } =
             createFeedbackDto;
 
@@ -88,6 +89,14 @@ export class EvaluateFeedbackService {
 
         await this.handleSendToManagerFeedback(accountFromId, reason, narrativeFeedback);
         return 'Feedback sent to all manager success';
+    }
+
+    async createTeacherFeedback(createFeedbackDto: CreateTeacherFeedbackDto): Promise<any> {
+        const { accountFromId, accountToId, reason, narrativeFeedback } =
+            createFeedbackDto;
+
+        await this.handleSendToTeacherFeedback(accountFromId, accountToId, reason, narrativeFeedback);
+        return 'Feedback sent to teahcer success';
     }
 
     private async handleSendToStaffEvaluateFeedback(
@@ -108,34 +117,25 @@ export class EvaluateFeedbackService {
             throw new Error('AccountFrom not found.');
         }
 
-        const staffAccounts = await this.accountRepository.find({
-            where: { role: { rolename: 'Staff' } },
-            select: ['id', 'role'],
-            relations: ['role'],
-        });
-
         const feedbackType =
             accountFrom.role.rolename === 'Teacher'
                 ? EvaluateFeedbackType.TEACHER_TO_STAFF
                 : EvaluateFeedbackType.STUDENT_TO_STAFF;
 
-        for (const staff of staffAccounts) {
-            const feedback = this.evaluateFeedbackRepository.create({
-                accountFrom: { id: accountFromId },
-                accountTo: { id: staff.id },
-                accountReview: accountReviewId ? { id: accountReviewId } : null,
-                studyProfileid: studyProfileId ? { id: studyProfileId } : null,
-                narrativeFeedback,
-                isEscalated,
-                evaluateFeedbackType: feedbackType,
-            });
+        const feedback = this.evaluateFeedbackRepository.create({
+            accountFrom: { id: accountFromId },
+            accountReview: accountReviewId ? { id: accountReviewId } : null,
+            studyProfileid: studyProfileId ? { id: studyProfileId } : null,
+            narrativeFeedback,
+            isEscalated,
+            evaluateFeedbackType: feedbackType,
+        });
 
-            const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
+        const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
 
-            if (criteriaScores) {
-                const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
-                await this.feedbackCriteriaScoresRepository.save(scores);
-            }
+        if (criteriaScores) {
+            const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
+            await this.feedbackCriteriaScoresRepository.save(scores);
         }
     }
 
@@ -196,6 +196,35 @@ export class EvaluateFeedbackService {
         await this.evaluateFeedbackRepository.save(feedback);
     }
 
+    private async handleSendToTeacherFeedback(
+        accountFromId: string,
+        accountToId: string,
+        reason: string,
+        narrativeFeedback: string,
+    ): Promise<void> {
+        const accountFrom = await this.accountRepository.findOne({
+            where: { id: accountFromId },
+            select: ['id', 'role'],
+            relations: ['role'],
+        });
+
+        if (!accountFrom) {
+            throw new Error('AccountFrom not found.');
+        }
+
+        const feedbackType = EvaluateFeedbackType.STUDENT_TO_TEACHER;
+
+        const feedback = this.evaluateFeedbackRepository.create({
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
+            reason: reason,
+            narrativeFeedback: narrativeFeedback,
+            evaluateFeedbackType: feedbackType,
+        });
+
+        await this.evaluateFeedbackRepository.save(feedback);
+    }
+
     private mapCriteriaScores(
         criteriaScores: { criteriaId: string; score: number }[],
         feedback: EvaluateFeedback,
@@ -222,13 +251,13 @@ export class EvaluateFeedbackService {
                     profileImage: feedback.accountFrom.profilepictureurl,
                 },
                 accountTo: feedback.accountTo
-                ? {
-                      id: feedback.accountTo.id,
-                      username: feedback.accountTo.username,
-                      role: feedback.accountTo.role,
-                      profileImage: feedback.accountTo.profilepictureurl,
-                  }
-                : null,
+                    ? {
+                          id: feedback.accountTo.id,
+                          username: feedback.accountTo.username,
+                          role: feedback.accountTo.role,
+                          profileImage: feedback.accountTo.profilepictureurl,
+                      }
+                    : null,
                 accountReview: feedback.accountReview
                     ? {
                           id: feedback.accountReview.id,
@@ -589,13 +618,13 @@ export class EvaluateFeedbackService {
                               username: feedback.accountFrom.username,
                               firstname: feedback.accountFrom.firstname,
                               lastname: feedback.accountFrom.lastname,
-                              profilePicture: feedback.accountFrom.profilepictureurl,
+                              profileImage: feedback.accountFrom.profilepictureurl,
                           }
                         : null,
                 },
                 { excludeExtraneousValues: true },
             );
-    
+
             return feedbackDto;
         });
     }
@@ -621,13 +650,13 @@ export class EvaluateFeedbackService {
                               username: feedback.accountFrom.username,
                               firstname: feedback.accountFrom.firstname,
                               lastname: feedback.accountFrom.lastname,
-                              profilePicture: feedback.accountFrom.profilepictureurl,
+                              profileImage: feedback.accountFrom.profilepictureurl,
                           }
                         : null,
                 },
                 { excludeExtraneousValues: true },
             );
-    
+
             return feedbackDto;
         });
     }
