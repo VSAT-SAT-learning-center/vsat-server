@@ -16,6 +16,7 @@ import { create } from 'domain';
 import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
 import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
+import { FeedbackResponseDto } from './dto/feedback-response.dto';
 
 @ApiTags('EvaluateFeedback') // Tag for Swagger grouping
 @Controller('evaluate-feedback')
@@ -169,6 +170,30 @@ export class EvaluateFeedbackController {
         const userId = req.user?.id;
 
         return this.evaluateFeedbackService.getSendedEvaluateFeedbacks(userId);
+    }
+
+    @Get('manager')
+    @ApiOperation({ summary: 'Get feedbacks by role and account' })
+    @ApiResponse({
+        status: 200,
+        description: 'List of feedbacks.',
+        type: [EvaluateFeedback],
+    })
+    @ApiResponse({ status: 400, description: 'Invalid role or account ID.' })
+    async getManagerFeedbacks(): Promise<FeedbackResponseDto[]> {
+        return this.evaluateFeedbackService.getManagerReceivedEvaluateFeedbacks();
+    }
+
+    @Get('staff')
+    @ApiOperation({ summary: 'Get feedbacks by role and account' })
+    @ApiResponse({
+        status: 200,
+        description: 'List of feedbacks.',
+        type: [EvaluateFeedback],
+    })
+    @ApiResponse({ status: 400, description: 'Invalid role or account ID.' })
+    async getStaffFeedbacks(): Promise<FeedbackResponseDto[]> {
+        return this.evaluateFeedbackService.getStaffReceivedEvaluateFeedbacks();
     }
 
     @Get('detail/:feedbackId')
