@@ -17,6 +17,8 @@ import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto
 
 @ApiTags('EvaluateFeedback') // Tag for Swagger grouping
 @Controller('evaluate-feedback')
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 export class EvaluateFeedbackController {
     constructor(private readonly evaluateFeedbackService: EvaluateFeedbackService) {}
 
@@ -89,8 +91,21 @@ export class EvaluateFeedbackController {
         return this.evaluateFeedbackService.getFeedbacksForStaffToTeacher(staffId);
     }
 
-    @ApiBearerAuth('JWT-auth')
-    @UseGuards(JwtAuthGuard)
+    @Get('study-profiles')
+    @ApiOperation({ summary: 'Get all study profile IDs by accountFrom' })
+    @ApiResponse({
+        status: 200,
+        description: 'List of feedback study profiles for the given accountFrom.',
+        type: [StudyProfileFeedbackResponseDto],
+    })
+    async getStudyProfiles(@Request() req): Promise<{ studyProfileId: string }[]> {
+        const accountFromId = req.user?.id;
+        return await this.evaluateFeedbackService.getStudyProfileIdsByAccountFrom(
+            accountFromId,
+        );
+    }
+
+   
     @Post('create')
     @ApiOperation({ summary: 'Create new feedback' })
     @ApiResponse({
@@ -109,7 +124,7 @@ export class EvaluateFeedbackController {
         return this.evaluateFeedbackService.createFeedback(createFeedbackDto);
     }
 
-    @Get()
+    @Get('received')
     @ApiOperation({ summary: 'Get feedbacks by role and account' })
     @ApiResponse({
         status: 200,
@@ -117,25 +132,23 @@ export class EvaluateFeedbackController {
         type: [EvaluateFeedback],
     })
     @ApiResponse({ status: 400, description: 'Invalid role or account ID.' })
-    async getFeedbacks(@Request() req): Promise<EvaluateFeedbackResponseDto[]> {
+    async getReceivedFeedbacks(@Request() req): Promise<EvaluateFeedbackResponseDto[]> {
         const userId = req.user?.id;
 
-        return this.evaluateFeedbackService.getEvaluateFeedbacks(userId);
+        return this.evaluateFeedbackService.getReceivedEvaluateFeedbacks(userId);
     }
 
-    @Get('/study-profiles')
-    @ApiOperation({ summary: 'Get all study profile IDs by accountFrom' })
+    @Get('sent')
+    @ApiOperation({ summary: 'Get feedbacks by role and account' })
     @ApiResponse({
         status: 200,
-        description: 'List of feedback study profiles for the given accountFrom.',
-        type: [StudyProfileFeedbackResponseDto],
+        description: 'List of feedbacks.',
+        type: [EvaluateFeedback],
     })
-    async getStudyProfiles(
-        @Request() req,
-    ): Promise<StudyProfileFeedbackResponseDto[]> {
-        const accountFromId = req.user?.id;
-        return await this.evaluateFeedbackService.getStudyProfilesByAccountFrom(
-            accountFromId,
-        );
+    @ApiResponse({ status: 400, description: 'Invalid role or account ID.' })
+    async getSendedFeedbacks(@Request() req): Promise<EvaluateFeedbackResponseDto[]> {
+        const userId = req.user?.id;
+
+        return this.evaluateFeedbackService.getSendedEvaluateFeedbacks(userId);
     }
 }

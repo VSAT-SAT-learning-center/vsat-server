@@ -12,5 +12,5 @@ export class StudyProfileFeedbackResponseDto {
     accountTo: AccountDto;
 
     @ApiProperty({ required: false })
-    studyProfileId: string[];
+    studyProfileId: string;
 }
