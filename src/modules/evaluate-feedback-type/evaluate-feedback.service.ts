@@ -4,11 +4,11 @@ import { CreateEvaluateFeedbackDto } from './dto/create-evaluate-feedback.dto';
 import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EvaluateCriteria } from 'src/database/entities/evaluatecriteria.entity';
 import { FeedbackCriteriaScores } from 'src/database/entities/feedbackcriteriascores.entity';
 import { plainToClass } from 'class-transformer';
 import { EvaluateFeedbackResponseDto } from './dto/evaluate-feedback-response.dto';
 import { Account } from 'src/database/entities/account.entity';
+import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
 
 @Injectable()
 export class EvaluateFeedbackService {
@@ -63,9 +63,10 @@ export class EvaluateFeedbackService {
 
         const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
 
-        const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
-        await this.feedbackCriteriaScoresRepository.save(scores);
-
+        if (criteriaScores) {
+            const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
+            await this.feedbackCriteriaScoresRepository.save(scores);
+        }
         return savedFeedback;
     }
 
@@ -111,8 +112,10 @@ export class EvaluateFeedbackService {
 
             const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
 
-            const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
-            await this.feedbackCriteriaScoresRepository.save(scores);
+            if (criteriaScores) {
+                const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
+                await this.feedbackCriteriaScoresRepository.save(scores);
+            }
         }
     }
 
@@ -324,5 +327,35 @@ export class EvaluateFeedbackService {
         });
 
         return this.transfromData(feedbacks);
+    }
+
+    async getStudyProfilesByAccountFrom(
+        accountFromId: string,
+    ): Promise<StudyProfileFeedbackResponseDto[]> {
+        // Find all feedback records where accountFrom matches the given accountFromId
+        const feedbacks = await this.evaluateFeedbackRepository.find({
+            where: { accountFrom: { id: accountFromId } },
+            relations: ['accountFrom', 'accountTo', 'studyProfileid'],
+        });
+
+        // Map feedback records to DTO
+        return feedbacks.map((feedback) => ({
+            id: feedback.id,
+            accountFrom: {
+                id: feedback.accountFrom.id,
+                username: feedback.accountFrom.username,
+                firstname: feedback.accountFrom.firstname,
+                lastname: feedback.accountFrom.lastname,
+                profilePicture: feedback.accountFrom.profilepictureurl,
+            },
+            accountTo: {
+                id: feedback.accountTo.id,
+                username: feedback.accountTo.username,
+                firstname: feedback.accountTo.firstname,
+                lastname: feedback.accountTo.lastname,
+                profilePicture: feedback.accountTo.profilepictureurl,
+            },
+            studyProfileId: feedback.studyProfileid ? [feedback.studyProfileid.id] : [],
+        }));
     }
 }
