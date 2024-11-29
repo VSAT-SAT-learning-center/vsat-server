@@ -71,6 +71,49 @@ export class ExamSemesterService {
         }));
     }
 
+    async getExamSemestersWithDetailsByCreateBy(
+        accountId: string,
+    ): Promise<ExamSemesterWithDetailsDto[]> {
+        const examSemesters = await this.examSemesterRepository.find({
+            where: { createdby: accountId },
+            relations: [
+                // 'examStructures',
+                // 'examStructures.examStructureType',
+                'domainDistributionConfigs',
+                'domainDistributionConfigs.domain',
+                'domainDistributionConfigs.domain.section',
+            ],
+        });
+
+        return examSemesters.map((semester) => ({
+            id: semester.id,
+            title: semester.title,
+            time: semester.time,
+            createdat: semester.createdat,
+            // examStructure: semester.examStructures.map((structure) => ({
+            //     id: structure.id,
+            //     name: structure.structurename,
+            //     structureType: structure.examStructureType?.name,
+            // })),
+            domainDistributionConfig: semester.domainDistributionConfigs.map(
+                (config) => ({
+                    id: config.id,
+                    domain: config.domain?.content,
+                    percentage: config.percent,
+                    minQuestion: config.minQuestion,
+                    maxQuestion: config.maxQuestion,
+                    section: config.domain?.section
+                        ? {
+                              // Check if section exists
+                              id: config.domain.section.id,
+                              name: config.domain.section.name,
+                          }
+                        : null,
+                }),
+            ),
+        }));
+    }
+
     async getExamSemesterById(id: string): Promise<ExamSemesterWithDetailsDto> {
         const semester = await this.examSemesterRepository.findOne({
             where: { id },

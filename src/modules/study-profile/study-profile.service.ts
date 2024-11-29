@@ -13,6 +13,7 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 import { TargetLearningDetailStatus } from 'src/common/enums/target-learning-status-enum';
 import { Account } from 'src/database/entities/account.entity';
+import { CreateStudyProfileDto } from './dto/create-studyprofile.dto';
 
 @Injectable()
 export class StudyProfileService {
@@ -28,6 +29,15 @@ export class StudyProfileService {
     async getStudyProfileByAccountId(accountId: string) {
         return await this.studyProfileRepository.find({
             where: { account: { id: accountId } },
+        });
+    }
+
+    async getStudyProfileByAccountIdAndStatus(
+        accountId: string,
+        stauts: StudyProfileStatus,
+    ) {
+        return await this.studyProfileRepository.find({
+            where: { account: { id: accountId }, status: stauts },
         });
     }
 
@@ -443,11 +453,143 @@ export class StudyProfileService {
 
         const totalPages = Math.ceil(total / pageSize);
 
-        const filteredProfiles = studyProfiles.filter(
-            (profile) => profile.targetlearning && profile.targetlearning.length > 0,
-        );
+        const result = studyProfiles.map((profile) => {
+            const latestTargetLearning = profile.targetlearning?.[0];
 
-        const result = filteredProfiles.map((profile) => {
+            if (!latestTargetLearning) {
+                return {
+                    ...profile,
+                    account: plainToInstance(GetAccountDTO, profile.account, {
+                        excludeExtraneousValues: true,
+                    }),
+                    targetlearning: null,
+                    startdate: profile.startdate
+                        ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                    enddate: profile.enddate
+                        ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                };
+            } else if (latestTargetLearning.status === TargetLearningStatus.COMPLETED) {
+                return {
+                    ...profile,
+                    account: plainToInstance(GetAccountDTO, profile.account, {
+                        excludeExtraneousValues: true,
+                    }),
+                    targetlearning: latestTargetLearning,
+                    startdate: profile.startdate
+                        ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                    enddate: profile.enddate
+                        ? new Date(profile.enddate).toLocaleDateString('vi-VN', {
+                              timeZone: 'Asia/Saigon',
+                          })
+                        : null,
+                };
+            }
+
+            return null;
+        });
+
+        const filteredResult = result.filter((profile) => profile !== null);
+
+        return {
+            data: filteredResult,
+            totalPages,
+            currentPage: page,
+            totalItems: filteredResult.length,
+        };
+    }
+
+    async updateStudyProfileStatus(accountId: string, status: StudyProfileStatus) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: accountId }, status: StudyProfileStatus.ACTIVE },
+            order: { createdat: 'DESC' },
+            relations: ['targetlearning'],
+        });
+
+        if (!studyProfile) {
+            throw new NotFoundException('Active StudyProfile not found for this account');
+        }
+
+        studyProfile.status = status;
+
+        const latestTargetLearning = await this.targetLearningRepository.findOne({
+            where: {
+                studyProfile: { id: studyProfile.id },
+                status: TargetLearningStatus.INACTIVE,
+            },
+            order: { createdat: 'DESC' },
+        });
+
+        if (!latestTargetLearning) {
+            throw new NotFoundException('No TargetLearning found for this StudyProfile');
+        }
+
+        latestTargetLearning.status = TargetLearningStatus.COMPLETED;
+        latestTargetLearning.startdate = new Date();
+        latestTargetLearning.enddate = new Date();
+
+        await this.targetLearningRepository.save(latestTargetLearning);
+
+        return await this.studyProfileRepository.save(studyProfile);
+    }
+
+    async createStudyProfile(createStudyProfile: CreateStudyProfileDto) {
+        const account = await this.accountRepository.findOne({
+            where: { id: createStudyProfile.accountId },
+        });
+
+        if (!account) {
+            throw new NotFoundException('Account is not found');
+        }
+
+        const create = await this.studyProfileRepository.create({
+            account: { id: createStudyProfile.accountId },
+            startdate: createStudyProfile.startDate,
+            enddate: createStudyProfile.endDate,
+            targetscoreMath: createStudyProfile.targetscoreMath,
+            targetscoreRW: createStudyProfile.targetscoreRW,
+            status: StudyProfileStatus.ACTIVE,
+        });
+
+        return await this.studyProfileRepository.save(create);
+    }
+
+    async getStudyProfileComplete(page: number, pageSize: number): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        // Lấy studyProfile mới nhất theo accountId
+        const query = this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account')
+            .andWhere('studyProfile.status = :status', {
+                status: StudyProfileStatus.COMPLETED,
+            })
+            .andWhere((qb) => {
+                const subQuery = qb
+                    .subQuery()
+                    .select('MAX(studyProfileSub.createdat)', 'maxCreatedAt')
+                    .from('studyprofile', 'studyProfileSub')
+                    .where('studyProfileSub.accountid = studyProfile.accountid')
+                    .getQuery();
+                return `studyProfile.createdat = ${subQuery}`;
+            })
+            .orderBy('studyProfile.createdat', 'DESC') // Sắp xếp theo createdat mới nhất
+            .skip(skip)
+            .take(pageSize);
+
+        const [studyProfiles, total] = await query.getManyAndCount();
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        const result = studyProfiles.map((profile) => {
             const account = plainToInstance(GetAccountDTO, profile.account, {
                 excludeExtraneousValues: true,
             });
@@ -455,7 +597,6 @@ export class StudyProfileService {
             return {
                 ...profile,
                 account,
-                targetlearning: profile.targetlearning.slice(0, 1),
                 startdate: profile.startdate
                     ? new Date(profile.startdate).toLocaleDateString('vi-VN', {
                           timeZone: 'Asia/Saigon',
@@ -473,7 +614,6 @@ export class StudyProfileService {
             data: result,
             totalPages,
             currentPage: page,
-            totalItems: filteredProfiles.length,
         };
     }
 }

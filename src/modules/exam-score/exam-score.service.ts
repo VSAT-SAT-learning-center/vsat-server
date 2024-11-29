@@ -56,7 +56,41 @@ export class ExamScoreService {
         const [examScore, total] = await this.examScoreRepository.findAndCount({
             skip: skip,
             take: pageSize,
-            relations: ['examScoreDetails', 'examScoreDetails.section', 'examStructureType'],
+            relations: [
+                'examScoreDetails',
+                'examScoreDetails.section',
+                'examStructureType',
+            ],
+            order: {
+                createdat: 'DESC',
+                examScoreDetails: {
+                    rawscore: 'ASC',
+                },
+            },
+        });
+
+        return {
+            data: examScore,
+            total,
+        };
+    }
+
+    async getAllExamScoreWithDetailsByCreateBy(
+        page: number,
+        pageSize: number,
+        accountId: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const [examScore, total] = await this.examScoreRepository.findAndCount({
+            where: { createdby: accountId },
+            skip: skip,
+            take: pageSize,
+            relations: [
+                'examScoreDetails',
+                'examScoreDetails.section',
+                'examStructureType',
+            ],
             order: {
                 createdat: 'DESC',
                 examScoreDetails: {
@@ -125,7 +159,11 @@ export class ExamScoreService {
         );
 
         // Step 4: Cập nhật điểm trong ExamAttempt
-        await this.examAttemptService.updateScore(examAttemptId, finalScoreRW, finalScoreMath);
+        await this.examAttemptService.updateScore(
+            examAttemptId,
+            finalScoreRW,
+            finalScoreMath,
+        );
     }
     async getExamScoreById(id: string): Promise<ExamScore> {
         const examScore = await this.examScoreRepository.findOne({

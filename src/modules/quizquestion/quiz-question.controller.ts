@@ -10,6 +10,7 @@ import {
     Post,
     Put,
     Query,
+    Request,
     UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -64,6 +65,37 @@ export class QuizQuestionController {
                 page,
                 pageSize,
                 status,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                questions,
+                SuccessMessages.get('QuizQuestion'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getAllWithStatusByCreateBy')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    async getAllWithStatusByCreateBy(
+        @Request() req,
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+        @Query('status') status?: QuizQuestionStatus,
+    ) {
+        try {
+            const questions = await this.quizQuestionService.getAllWithStatusByCreateBy(
+                page,
+                pageSize,
+                status,
+                req.user.id,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,

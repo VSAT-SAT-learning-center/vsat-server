@@ -34,6 +34,9 @@ import { TargetLearningService } from '../target-learning/target-learning.servic
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
+import moment from 'moment-timezone';
+import { GetAccountDTO } from '../account/dto/get-account.dto';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -87,30 +90,54 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         accountId: string,
     ) {
         const studyProfile = await this.studyProfileRepository.findOne({
-            where: { account: { id: accountId }, status: StudyProfileStatus.INACTIVE },
-            order: { createdat: 'ASC' },
+            where: { account: { id: accountId } },
+            order: { createdat: 'DESC' },
+            relations: ['targetlearning'],
         });
-
-        console.log(examAttemptId);
-
-        const target = await this.targetLearningService.save(
-            studyProfile.id,
-            examAttemptId,
-        );
 
         if (!studyProfile) {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        const updateStudyProfile = await this.studyProfileService.saveTarget(
-            createTargetLearningDto.targetLearningRW,
-            createTargetLearningDto.targetLearningMath,
-            accountId,
-        );
+        let target = new TargetLearning();
+        let updateStudyProfile;
+
+        if (studyProfile.status === StudyProfileStatus.INACTIVE) {
+            target = await this.targetLearningService.save(
+                studyProfile.id,
+                examAttemptId,
+            );
+
+            updateStudyProfile = await this.studyProfileService.saveTarget(
+                createTargetLearningDto.targetLearningRW,
+                createTargetLearningDto.targetLearningMath,
+                accountId,
+            );
+        } else if (studyProfile.status === StudyProfileStatus.ACTIVE) {
+            target = await this.targetLearningService.updateTargetLearning(
+                studyProfile.id,
+                examAttemptId,
+            );
+        }
+
+        if (
+            studyProfile.status === StudyProfileStatus.ACTIVE &&
+            target.enddate > studyProfile.enddate
+        ) {
+            await this.targetLearningService.updateTargetLearningWithStudyProfile(
+                studyProfile.id,
+                target.id,
+            );
+        }
 
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { id: examAttemptId },
-            relations: ['targetlearning', 'targetlearning.studyProfile'],
+            relations: [
+                'targetlearning',
+                'targetlearning.studyProfile',
+                'exam',
+                'exam.examType',
+            ],
         });
 
         const domainsRW = await this.domainRepository.find({
@@ -232,7 +259,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: foundation.id },
                 domain: { id: In(domainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -241,7 +268,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: medium.id },
                 domain: { id: In(domainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -250,7 +277,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: medium.id },
                 domain: { id: In(top3DomainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -259,7 +286,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: RW.id },
                 level: { id: advance.id },
                 domain: { id: In(top3DomainIdsRW) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -270,7 +297,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: foundation.id },
                 domain: { id: In(domainIdsMath) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -279,7 +306,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: medium.id },
                 domain: { id: In(domainIdsMath) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -288,7 +315,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: medium.id },
                 domain: { id: In(top3DomainsMathIds) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
 
@@ -297,9 +324,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 section: { id: math.id },
                 level: { id: advance.id },
                 domain: { id: In(top3DomainsMathIds) },
-                status: UnitStatus.APPROVED
+                status: UnitStatus.APPROVED,
             },
         });
+
+        console.log(top3DomainsMathIds);
+        console.log(top3UnitsAdvanceMath);
 
         // RW
         const unitIdFoundationsRW = allUnitsFoundationRW.map((unit) => unit.id);
@@ -337,7 +367,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsMath,
                 );
 
-                await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                if (examAttempt.exam.examType.name === 'Trial Exam') {
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                }
 
                 break;
 
@@ -361,7 +393,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             top3UnitIdMediumMath,
                         );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
 
@@ -385,7 +422,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             unitIdMediumMath,
                         );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 } else if (examAttempt.scoreMath < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -404,7 +446,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                             top3UnitIdAdvanceMath,
                         );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
         }
@@ -428,7 +475,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                     unitIdFoundationsRW,
                 );
 
-                await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                if (examAttempt.exam.examType.name === 'Trial Exam') {
+                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                }
 
                 break;
 
@@ -451,7 +500,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         top3UnitIdMediumsRW,
                     );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
 
@@ -474,7 +528,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         unitIdMediumsRW,
                     );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 } else if (examAttempt.scoreRW < 800) {
                     createTargetLearningDto.levelId = advance.id;
 
@@ -492,7 +551,12 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         top3UnitIdAdvanceRW,
                     );
 
-                    await this.studyProfileService.updateDate(updateStudyProfile.id, 6);
+                    if (examAttempt.exam.examType.name === 'Trial Exam') {
+                        await this.studyProfileService.updateDate(
+                            updateStudyProfile.id,
+                            6,
+                        );
+                    }
                 }
                 break;
         }
@@ -775,30 +839,62 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             throw new NotFoundException('Account is not found');
         }
 
-        const studyProfile = await this.studyProfileRepository.findOne({
-            where: { account: { id: account.id } },
-        });
+        const studyProfile = await this.studyProfileRepository
+            .createQueryBuilder('studyProfile')
+            .leftJoinAndSelect('studyProfile.targetlearning', 'targetlearning')
+            .leftJoinAndSelect('targetlearning.examattempt', 'examattempt')
+            .where('studyProfile.account.id = :accountId', { accountId: account.id })
+            .andWhere('targetlearning.status = :status', {
+                status: TargetLearningStatus.INACTIVE,
+            })
+            .getOne();
 
-        const createExamAttempt = await this.examAttemptRepository.create({
-            exam: exam,
-            attemptdatetime: new Date(),
-            scoreMath: scoreMath,
-            scoreRW: scoreRW,
-            status: true,
-        });
+        if (studyProfile) {
+            for (const targetLearning of studyProfile.targetlearning) {
+                if (targetLearning.examattempt) {
+                    const examAttempt = targetLearning.examattempt;
 
-        const savedExamAttempt = await this.examAttemptRepository.save(createExamAttempt);
+                    examAttempt.scoreRW = scoreRW;
+                    examAttempt.scoreMath = scoreMath;
+                    examAttempt.status = true;
+                    const updateExamAttempt =
+                        await this.examAttemptRepository.save(examAttempt);
 
-        await this.examAttemptDetailService.check(
-            createExamAttemptDto.createExamAttemptDetail,
-            savedExamAttempt.id,
-        );
+                    await this.examAttemptDetailService.check(
+                        createExamAttemptDto.createExamAttemptDetail,
+                        updateExamAttempt.id,
+                    );
 
-        return plainToInstance(CreateExamAttemptDto, {
-            scoreMath: savedExamAttempt.scoreMath,
-            scoreRW: savedExamAttempt.scoreRW,
-            attemptId: savedExamAttempt.id,
-        });
+                    return plainToInstance(CreateExamAttemptDto, {
+                        scoreMath: updateExamAttempt.scoreMath,
+                        scoreRW: updateExamAttempt.scoreRW,
+                        attemptId: updateExamAttempt.id,
+                    });
+                }
+            }
+        } else {
+            const createExamAttempt = await this.examAttemptRepository.create({
+                exam: exam,
+                attemptdatetime: new Date(),
+                scoreMath: scoreMath,
+                scoreRW: scoreRW,
+                status: true,
+            });
+
+            const savedExamAttempt =
+                await this.examAttemptRepository.save(createExamAttempt);
+
+            await this.examAttemptDetailService.check(
+                createExamAttemptDto.createExamAttemptDetail,
+                savedExamAttempt.id,
+            );
+
+            return plainToInstance(CreateExamAttemptDto, {
+                scoreMath: savedExamAttempt.scoreMath,
+                scoreRW: savedExamAttempt.scoreRW,
+                attemptId: savedExamAttempt.id,
+            });
+        }
     }
 
     // async getExamAttemptByStudyProfileId(accountId: string) {
@@ -852,13 +948,14 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             .createQueryBuilder('moduleType')
             .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
             .innerJoinAndSelect('examQuestion.question', 'question')
+            .innerJoinAndSelect('examQuestion.exam', 'exam') // Thêm liên kết với exam
             .leftJoinAndSelect('question.level', 'level')
             .leftJoinAndSelect('question.skill', 'skill')
             .leftJoinAndSelect('skill.domain', 'domain')
             .leftJoinAndSelect('question.section', 'section')
             .leftJoinAndSelect('question.answers', 'answers')
             .leftJoinAndSelect('moduleType.section', 'moduleSection')
-            .where('examQuestion.exam.id = :examId', { examId })
+            .where('exam.id = :examId', { examId }) // Điều kiện đúng
             .orderBy('moduleType.updatedat', 'DESC')
             .getMany();
 
@@ -875,6 +972,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             ) {
                 totalNumberOfQuestions += module.numberofquestion || 0;
                 totalTime += module.time || 0;
+
+                moduleDetails.push(module);
             }
         }
 
@@ -883,7 +982,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             examTitle: exam.title,
             totalNumberOfQuestions,
             totalTime,
-            modules: moduleDetails,
+            //modules: moduleDetails,
         };
     }
 
@@ -1092,38 +1191,44 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     // }
 
     async getExamAttemptByStudyProfile(accountId: string) {
-        const studyProfile = await this.studyProfileRepository.find({
+        const studyProfiles = await this.studyProfileRepository.find({
             where: { account: { id: accountId } },
         });
 
-        if (!studyProfile) {
+        if (!studyProfiles.length) {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        console.log(studyProfile);
+        const examAttemptArrs = [];
 
-        const examAttempArrs = [];
-
-        for (const studyProfileData of studyProfile) {
-            const targetLearning = await this.targetLearningRepository.find({
+        for (const studyProfileData of studyProfiles) {
+            const targetLearnings = await this.targetLearningRepository.find({
                 where: { studyProfile: { id: studyProfileData.id } },
             });
 
-            for (const targetLearningData of targetLearning) {
-                const exampAttempt = await this.examAttemptRepository.findOne({
+            for (const targetLearningData of targetLearnings) {
+                const examAttempt = await this.examAttemptRepository.findOne({
                     where: { targetlearning: { id: targetLearningData.id } },
                     relations: ['exam'],
                 });
 
-                const exam = await this.GetExamWithExamQuestionByExamId(
-                    exampAttempt.exam.id,
-                );
+                if (examAttempt && examAttempt.exam) {
+                    const examDetails = await this.GetExamWithExamQuestionByExamId(
+                        examAttempt.exam.id,
+                    );
 
-                examAttempArrs.push(exampAttempt, exam);
+                    // Gắn thông tin exam vào examAttempt
+                    examAttempt.exam = {
+                        ...examAttempt.exam,
+                        ...examDetails,
+                    };
+
+                    examAttemptArrs.push(examAttempt);
+                }
             }
         }
 
-        return examAttempArrs;
+        return examAttemptArrs;
     }
 
     async createExamAttemptWithExam(createExamDto: CreateExamWithExamAttemptDto) {
@@ -1149,5 +1254,272 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         );
 
         return await this.examAttemptRepository.save(examAttemptArrs);
+    }
+
+    async getExamAttemptWithStudyProfileByTeacher(teacherId: string) {
+        const result = await this.examAttemptRepository
+            .createQueryBuilder('examAttempt')
+            .leftJoinAndSelect('examAttempt.targetlearning', 'targetLearning')
+            .leftJoinAndSelect('examAttempt.exam', 'exam')
+            .leftJoinAndSelect('exam.examType', 'examType')
+            .leftJoinAndSelect('targetLearning.studyProfile', 'studyProfile')
+            .leftJoinAndSelect('studyProfile.account', 'account')
+            .where('studyProfile.teacherId = :teacherId', { teacherId })
+            .andWhere('examType.name != :excludedType', { excludedType: 'Trial Exam' })
+            .getMany();
+
+        const transformedResult = result.map((item) => {
+            if (item.attemptdatetime) {
+                const utcDate = new Date(item.attemptdatetime);
+                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+                item.attemptdatetime = vietnamDate;
+            }
+            return item;
+        });
+
+        const groupedResult = transformedResult.reduce((acc, item) => {
+            const key = `${item.attemptdatetime.toISOString()}_${item.exam.id}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    id: item.id,
+                    createdat: item.createdat,
+                    createby: item.createdby,
+                    updatedat: item.updatedat,
+                    updatedby: item.updatedby,
+                    scoreMath: item.scoreMath,
+                    scoreRW: item.scoreRW,
+                    status: item.status,
+                    attemptdatetime: item.attemptdatetime,
+                    exam: item.exam,
+                    targetlearning: item.targetlearning
+                        ? [
+                              {
+                                  ...item.targetlearning,
+                                  studyProfile: {
+                                      ...item.targetlearning.studyProfile,
+                                      account: plainToInstance(
+                                          GetAccountDTO,
+                                          item.targetlearning.studyProfile?.account,
+                                          {
+                                              excludeExtraneousValues: true,
+                                          },
+                                      ),
+                                  },
+                              },
+                          ]
+                        : [],
+                };
+            } else {
+                acc[key].targetlearning.push({
+                    ...item.targetlearning,
+                    studyProfile: {
+                        ...item.targetlearning.studyProfile,
+                        account: plainToInstance(
+                            GetAccountDTO,
+                            item.targetlearning.studyProfile?.account,
+                            {
+                                excludeExtraneousValues: true,
+                            },
+                        ),
+                    },
+                });
+            }
+            return acc;
+        }, {});
+
+        const groupedArray = Object.values(groupedResult);
+
+        return groupedArray;
+    }
+
+    async getExamAttemptWithStudyProfileByTeacherAndExam(
+        teacherId: string,
+        examId: string,
+    ) {
+        const result = await this.examAttemptRepository
+            .createQueryBuilder('examAttempt')
+            .leftJoinAndSelect('examAttempt.targetlearning', 'targetLearning')
+            .leftJoinAndSelect('examAttempt.exam', 'exam')
+            .leftJoinAndSelect('exam.examType', 'examType')
+            .leftJoinAndSelect('targetLearning.studyProfile', 'studyProfile')
+            .where('studyProfile.teacherId = :teacherId', { teacherId })
+            .andWhere('exam.id = :examId', { examId })
+            .andWhere('examType.name != :excludedType', { excludedType: 'Trial Exam' })
+            .getMany();
+
+        const transformedResult = result.map((item) => {
+            if (item.attemptdatetime) {
+                const utcDate = new Date(item.attemptdatetime);
+                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+                item.attemptdatetime = vietnamDate;
+            }
+            return item;
+        });
+
+        return transformedResult;
+    }
+
+    async getAllExamAttemptByStudyProfile(studyProfileId: string) {
+        const studyProfiles = await this.studyProfileRepository.findOne({
+            where: { id: studyProfileId },
+        });
+
+        if (!studyProfiles) {
+            throw new NotFoundException('StudyProfile is not found');
+        }
+
+        const examAttemptArrs = [];
+
+        const targetLearnings = await this.targetLearningRepository
+            .createQueryBuilder('targetLearning')
+            .select(['targetLearning.id'])
+            .where('targetLearning.studyProfile = :studyProfileId', { studyProfileId })
+            .getMany();
+
+        const allExamAttempts = [];
+
+        for (const targetLearningData of targetLearnings) {
+            const examAttempt = await this.examAttemptRepository.findOne({
+                where: { targetlearning: { id: targetLearningData.id }, status: true },
+                relations: ['exam'],
+                order: { attemptdatetime: 'DESC' },
+            });
+
+            if (examAttempt) {
+                const utcDate = new Date(examAttempt.attemptdatetime);
+                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+
+                const scoreTotal =
+                    (examAttempt.scoreMath || 0) + (examAttempt.scoreRW || 0);
+                allExamAttempts.push({
+                    ...examAttempt,
+                    attemptdatetime: vietnamDate,
+                    scoreTotal,
+                    targetLearningId: targetLearningData.id,
+                });
+            }
+        }
+
+        allExamAttempts.sort(
+            (a, b) =>
+                new Date(b.attemptdatetime).getTime() -
+                new Date(a.attemptdatetime).getTime(),
+        );
+
+        for (let i = 0; i < allExamAttempts.length; i++) {
+            const currentAttempt = allExamAttempts[i];
+            const previousAttempt = allExamAttempts[i + 1] || null;
+
+            const improvement = previousAttempt
+                ? (currentAttempt.scoreTotal || 0) - (previousAttempt.scoreTotal || 0)
+                : 0;
+
+            examAttemptArrs.push({
+                ...currentAttempt,
+                improvement,
+            });
+        }
+
+        return examAttemptArrs;
+    }
+
+    async getReport(examAttemptId: string) {
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+            relations: ['exam', 'examattemptdetail', 'examattemptdetail.question'],
+        });
+
+        if (!examAttempt || !examAttempt.exam) {
+            throw new NotFoundException(`ExamAttempt with ID ${examAttemptId} not found`);
+        }
+
+        const examId = examAttempt.exam.id;
+
+        const modules = await this.moduleTypeRepository
+            .createQueryBuilder('moduleType')
+            .innerJoinAndSelect('moduleType.examquestion', 'examQuestion')
+            .innerJoinAndSelect('examQuestion.question', 'question')
+            .innerJoin('examQuestion.exam', 'exam', 'exam.id = :examId', { examId })
+            .leftJoinAndSelect('question.answers', 'answers')
+            .leftJoinAndSelect('question.skill', 'skill')
+            .leftJoinAndSelect('skill.domain', 'domain')
+            .leftJoinAndSelect('moduleType.section', 'moduleSection')
+            .where('question.id IN (:...questionIds)', {
+                questionIds: examAttempt.examattemptdetail.map(
+                    (detail) => detail.question.id,
+                ),
+            })
+            .orderBy('moduleType.updatedat', 'DESC')
+            .getMany();
+
+        const moduleDetails = modules.map((module) => {
+            const questions = module.examquestion
+                .filter((examQuestion) =>
+                    examAttempt.examattemptdetail.some(
+                        (detail) => detail.question.id === examQuestion.question.id,
+                    ),
+                )
+                .map((examQuestion) => {
+                    const attemptDetail = examAttempt.examattemptdetail.find(
+                        (detail) => detail.question.id === examQuestion.question.id,
+                    );
+
+                    return {
+                        questionId: examQuestion.question.id,
+                        content: examQuestion.question.content,
+                        isCorrect: attemptDetail?.iscorrect || false,
+                        studentAnswer: attemptDetail?.studentAnswer || null,
+                        correctAnswers: examQuestion.question.answers?.filter(
+                            (answer) => answer.isCorrectAnswer,
+                        ),
+                        explain: examQuestion.question.explain,
+                        answer: examQuestion.question.answers,
+                        skill: {
+                            id: examQuestion.question.skill?.id,
+                            name: examQuestion.question.skill?.content,
+                        },
+                        domain: {
+                            id: examQuestion.question.skill?.domain?.id,
+                            name: examQuestion.question.skill?.domain?.content,
+                        },
+                    };
+                });
+
+            return {
+                moduleId: module.id,
+                moduleName: module.name,
+                section: module.section?.name || '',
+                time: module.time,
+                numberOfQuestions: questions.length,
+                questions,
+            };
+        });
+
+        const sectionOrder = { 'Reading & Writing': 1, Math: 2 };
+        const moduleOrder = { 'Module 1': 1, 'Module 2': 2 };
+
+        moduleDetails.sort((a, b) => {
+            return (
+                sectionOrder[a.section] - sectionOrder[b.section] ||
+                moduleOrder[a.moduleName] - moduleOrder[b.moduleName]
+            );
+        });
+
+        const totalNumberOfQuestions = moduleDetails.reduce(
+            (total, module) => total + module.numberOfQuestions,
+            0,
+        );
+        const totalTime = moduleDetails.reduce(
+            (total, module) => total + (module.time || 0),
+            0,
+        );
+
+        return {
+            id: examAttempt.exam.id,
+            examTitle: examAttempt.exam.title,
+            totalNumberOfQuestions,
+            totalTime,
+            modules: moduleDetails,
+        };
     }
 }

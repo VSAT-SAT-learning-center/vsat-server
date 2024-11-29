@@ -29,6 +29,8 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         private readonly targetLearningRepository: Repository<TargetLearning>,
         @InjectRepository(ExamAttempt)
         private readonly examAttemptRepository: Repository<ExamAttempt>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
         private readonly accountService: AccountService,
         @Inject(forwardRef(() => ExamAttemptService))
         private readonly examAttemptService: ExamAttemptService,
@@ -62,6 +64,61 @@ export class TargetLearningService extends BaseService<TargetLearning> {
 
         examAttempt.targetlearning = saveTarget;
         await this.examAttemptRepository.save(examAttempt);
+        return saveTarget;
+    }
+
+    async updateTargetLearning(
+        studyProfileId: string,
+        examAttemptId: string,
+    ): Promise<TargetLearning> {
+        const startdate = new Date();
+        const enddate = new Date();
+        enddate.setDate(startdate.getDate() + 30);
+
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { id: examAttemptId },
+            relations: ['targetlearning'],
+        });
+
+        if (!examAttempt) {
+            throw new Error('ExamAttempt not found');
+        }
+
+        examAttempt.targetlearning.startdate = startdate;
+        examAttempt.targetlearning.enddate = enddate;
+        examAttempt.targetlearning.studyProfile = { id: studyProfileId } as any;
+        examAttempt.targetlearning.status = TargetLearningStatus.ACTIVE;
+
+        const saveTarget = await this.targetLearningRepository.save(
+            examAttempt.targetlearning,
+        );
+
+        examAttempt.targetlearning = saveTarget;
+        await this.examAttemptRepository.save(examAttempt);
+
+        return saveTarget;
+    }
+
+    async updateTargetLearningWithStudyProfile(studyProfileId: string, targetId: string) {
+        const studyProfile = await this.studyProfileRepository.findOne({
+            where: { id: studyProfileId },
+        });
+
+        const target = await this.targetLearningRepository.findOne({
+            where: { id: targetId },
+        });
+
+        if (!target) {
+            throw new Error('TargetLearning is not found');
+        }
+
+        if (!studyProfile) {
+            throw new Error('StudyProfile is not found');
+        }
+
+        target.enddate = studyProfile.enddate;
+
+        const saveTarget = await this.targetLearningRepository.save(target);
         return saveTarget;
     }
 
@@ -104,6 +161,8 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         for (const targetData of studyProfileIds) {
             const create = this.targetLearningRepository.create({
                 studyProfile: { id: targetData },
+                startdate: null,
+                enddate: null,
             });
 
             targetArrs.push(create);
@@ -111,7 +170,6 @@ export class TargetLearningService extends BaseService<TargetLearning> {
 
         return await this.targetLearningRepository.save(targetArrs);
     }
-
 
     async updateTargetLearningStatus(
         targetLearningId: string,

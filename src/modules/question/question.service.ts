@@ -662,6 +662,68 @@ export class QuestionService extends BaseService<Question> {
         };
     }
 
+    async searchQuestionsByCreateBy(
+        page: number,
+        pageSize: number,
+        skillId?: string,
+        domainId?: string,
+        levelId?: string,
+        sectionId?: string,
+        status?: QuestionStatus,
+        accountId?: string,
+    ): Promise<any> {
+        const skip = (page - 1) * pageSize;
+
+        const whereCondition: any = { status };
+
+        if (skillId) {
+            whereCondition.skill = { id: skillId };
+        }
+
+        if (domainId) {
+            whereCondition.skill = {
+                ...whereCondition.skill,
+                domain: { id: domainId },
+            };
+        }
+
+        if (levelId) {
+            whereCondition.level = { id: levelId };
+        }
+
+        if (sectionId) {
+            whereCondition.section = { id: sectionId };
+        }
+
+        if (accountId) {
+            whereCondition.createdby = accountId;
+        }
+
+        const [questions, total] = await this.questionRepository.findAndCount({
+            relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
+            skip: skip,
+            take: pageSize,
+            where: whereCondition,
+            order: { updatedat: 'DESC' },
+        });
+
+        const questionsWithAccounts = await populateCreatedBy(
+            questions,
+            this.accountRepository,
+        );
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return {
+            data: plainToInstance(GetQuestionDTO, questionsWithAccounts, {
+                excludeExtraneousValues: true,
+            }),
+            totalPages: totalPages,
+            currentPage: page,
+            totalItems: total,
+        };
+    }
+
     async fetchByContent(contents: string[]): Promise<GetQuestionDTO[]> {
         const questions = [];
 

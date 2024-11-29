@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from './../../common/guards/jwt.guard';
 import {
     Controller,
     Get,
@@ -9,6 +10,8 @@ import {
     Put,
     HttpStatus,
     HttpException,
+    Request,
+    UseGuards,
 } from '@nestjs/common';
 import { ExamScoreService } from './exam-score.service';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
@@ -55,6 +58,35 @@ export class ExamScoreController {
             const savedExamScore = await this.examScoreService.getAllExamScoreWithDetails(
                 page,
                 pageSize,
+            );
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                savedExamScore,
+                SuccessMessages.get('ExamScore'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('getAllExamScoreWithDetailsByCreateBy')
+    @UseGuards(JwtAuthGuard)
+    async getAllExamScoreWithDetailsByCreateBy(
+        @Request() req,
+        @Query('page') page?: number,
+        @Query('pageSize') pageSize?: number,
+    ) {
+        try {
+            const savedExamScore = await this.examScoreService.getAllExamScoreWithDetailsByCreateBy(
+                page,
+                pageSize,
+                req.user.id
             );
             return ResponseHelper.success(
                 HttpStatus.OK,
