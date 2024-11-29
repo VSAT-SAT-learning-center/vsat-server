@@ -14,6 +14,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 import { create } from 'domain';
 import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
+import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
 
 @ApiTags('EvaluateFeedback') // Tag for Swagger grouping
 @Controller('evaluate-feedback')
@@ -105,7 +106,6 @@ export class EvaluateFeedbackController {
         );
     }
 
-   
     @Post('create')
     @ApiOperation({ summary: 'Create new feedback' })
     @ApiResponse({
@@ -150,5 +150,19 @@ export class EvaluateFeedbackController {
         const userId = req.user?.id;
 
         return this.evaluateFeedbackService.getSendedEvaluateFeedbacks(userId);
+    }
+
+    @Get('detail/:feedbackId')
+    @ApiOperation({ summary: 'Get feedbacks by role and account' })
+    @ApiResponse({
+        status: 200,
+        description: 'List of feedbacks.',
+        type: [EvaluateFeedback],
+    })
+    @ApiResponse({ status: 400, description: 'Invalid role or account ID.' })
+    async getFeedbackDetails(
+        @Param('feedbackId') feedbackId,
+    ): Promise<EvaluateFeedbackDetailResponseDto> {
+        return this.evaluateFeedbackService.getFeedbackDetail(feedbackId);
     }
 }
