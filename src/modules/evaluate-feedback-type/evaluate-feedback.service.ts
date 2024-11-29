@@ -10,6 +10,7 @@ import { EvaluateFeedbackResponseDto } from './dto/evaluate-feedback-response.dt
 import { Account } from 'src/database/entities/account.entity';
 import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
+import { FeedbackResponseDto } from './dto/feedback-response.dto';
 
 @Injectable()
 export class EvaluateFeedbackService {
@@ -234,6 +235,37 @@ export class EvaluateFeedbackService {
                       }
                     : null,
             }),
+        );
+    }
+
+    private transformFeedListData(
+        evaluateFeedbacks: EvaluateFeedback[],
+    ): EvaluateFeedbackResponseDto[] {
+        return evaluateFeedbacks.map((feedback) =>
+            plainToInstance(
+                EvaluateFeedbackResponseDto,
+                {
+                    id: feedback.id,
+                    createdAt: feedback.createdat,
+                    updatedAt: feedback.updatedat,
+                    narrativeFeedback: feedback.narrativeFeedback,
+                    reason: feedback.reason,
+                    evaluateFeedbackType: feedback.evaluateFeedbackType,
+                    accountFrom: {
+                        id: feedback.accountFrom.id,
+                        username: feedback.accountFrom.username,
+                        role: feedback.accountFrom.role,
+                        profileImage: feedback.accountFrom.profilepictureurl,
+                    },
+                    accountTo: {
+                        id: feedback.accountTo.id,
+                        username: feedback.accountTo.username,
+                        role: feedback.accountTo.role,
+                        profileImage: feedback.accountTo.profilepictureurl,
+                    },
+                },
+                { excludeExtraneousValues: true },
+            ),
         );
     }
 
@@ -499,5 +531,70 @@ export class EvaluateFeedbackService {
         feedbackDto.criteriaScores = sortedCriteriaScores;
 
         return feedbackDto;
+    }
+
+    async getReceivedEvaluateFeedbacksByRole(
+        accountId: string,
+        role: string,
+    ): Promise<EvaluateFeedbackResponseDto[]> {
+        let where;
+        if (role === 'Staff') {
+            where = {
+                evaluateFeedbackType:
+                    EvaluateFeedbackType.TEACHER_TO_STAFF ||
+                    EvaluateFeedbackType.STUDENT_TO_STAFF,
+            };
+        } else if (role === 'Manager') {
+            where = {
+                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_MANAGER,
+            };
+        }
+        const feedbacks = await this.evaluateFeedbackRepository.find({
+            where,
+            relations: [
+                'accountFrom',
+                'accountTo',
+                'accountReview',
+                'criteriaScores',
+                'criteriaScores.criteria',
+            ],
+            order: { createdat: 'DESC' },
+        });
+
+        return this.transfromListData(feedbacks);
+    }
+
+    async getStaffReceivedEvaluateFeedbacks(): Promise<FeedbackResponseDto[]> {
+        const feedbacks = await this.evaluateFeedbackRepository.find({
+            where: {
+                evaluateFeedbackType:
+                    EvaluateFeedbackType.TEACHER_TO_STAFF ||
+                    EvaluateFeedbackType.STUDENT_TO_STAFF,
+            },
+            relations: ['accountFrom'],
+            order: { createdat: 'DESC' },
+        });
+
+        return feedbacks.map((feedback) =>
+            plainToInstance(FeedbackResponseDto, feedback, {
+                excludeExtraneousValues: true,
+            }),
+        );
+    }
+
+    async getManagerReceivedEvaluateFeedbacks(): Promise<FeedbackResponseDto[]> {
+        const feedbacks = await this.evaluateFeedbackRepository.find({
+            where: {
+                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_MANAGER,
+            },
+            relations: ['accountFrom'],
+            order: { createdat: 'DESC' },
+        });
+
+        return feedbacks.map((feedback) =>
+            plainToInstance(FeedbackResponseDto, feedback, {
+                excludeExtraneousValues: true,
+            }),
+        );
     }
 }
