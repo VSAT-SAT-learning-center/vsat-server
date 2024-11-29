@@ -21,7 +21,6 @@ export class EvaluateFeedbackService {
         private readonly accountRepository: Repository<Account>,
     ) {}
 
-    // Create feedback
     async createFeedback(createFeedbackDto: CreateEvaluateFeedbackDto): Promise<any> {
         const {
             accountFromId,
@@ -163,7 +162,6 @@ export class EvaluateFeedbackService {
         accountFromId: string,
         accountToId: string,
     ): Promise<EvaluateFeedbackType> {
-        // Fetch accounts with roles
         const accountFrom = await this.accountRepository.findOne({
             where: { id: accountFromId },
             select: ['id', 'role'],
@@ -206,11 +204,29 @@ export class EvaluateFeedbackService {
         throw new BadRequestException('Invalid role mapping for feedback type');
     }
 
-    async getEvaluateFeedbacks(
+    async getReceivedEvaluateFeedbacks(
         accountId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: { accountTo: { id: accountId } },
+            relations: [
+                'accountFrom',
+                'accountTo',
+                'accountReview',
+                'criteriaScores',
+                'criteriaScores.criteria',
+            ],
+            order: { createdat: 'DESC' },
+        });
+
+        return this.transfromData(feedbacks);
+    }
+
+    async getSendedEvaluateFeedbacks(
+        accountId: string,
+    ): Promise<EvaluateFeedbackResponseDto[]> {
+        const feedbacks = await this.evaluateFeedbackRepository.find({
+            where: { accountFrom: { id: accountId } },
             relations: [
                 'accountFrom',
                 'accountTo',
@@ -252,6 +268,28 @@ export class EvaluateFeedbackService {
             where: {
                 accountFrom: { id: teacherId },
                 evaluateFeedbackType: EvaluateFeedbackType.TEACHER_TO_STAFF,
+            },
+            relations: [
+                'accountFrom',
+                'accountTo',
+                'accountReview',
+                'criteriaScores',
+                'criteriaScores.criteria',
+            ],
+            order: { createdat: 'DESC' },
+        });
+
+        return this.transfromData(feedbacks);
+    }
+
+
+    async getFeedbacksForTeacherSended(
+        teacherId: string,
+    ): Promise<EvaluateFeedbackResponseDto[]> {
+        const feedbacks = await this.evaluateFeedbackRepository.find({
+            where: {
+                accountFrom: { id: teacherId },
+                evaluateFeedbackType: EvaluateFeedbackType.TEACHER_TO_STAFF || EvaluateFeedbackType.TEACHER_TO_STUDENT,
             },
             relations: [
                 'accountFrom',
@@ -329,33 +367,19 @@ export class EvaluateFeedbackService {
         return this.transfromData(feedbacks);
     }
 
-    async getStudyProfilesByAccountFrom(
+    async getStudyProfileIdsByAccountFrom(
         accountFromId: string,
-    ): Promise<StudyProfileFeedbackResponseDto[]> {
-        // Find all feedback records where accountFrom matches the given accountFromId
+    ): Promise<{ studyProfileId: string }[]> {
+        
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: { accountFrom: { id: accountFromId } },
-            relations: ['accountFrom', 'accountTo', 'studyProfileid'],
+            relations: ['studyProfileid'], 
         });
-
-        // Map feedback records to DTO
-        return feedbacks.map((feedback) => ({
-            id: feedback.id,
-            accountFrom: {
-                id: feedback.accountFrom.id,
-                username: feedback.accountFrom.username,
-                firstname: feedback.accountFrom.firstname,
-                lastname: feedback.accountFrom.lastname,
-                profilePicture: feedback.accountFrom.profilepictureurl,
-            },
-            accountTo: {
-                id: feedback.accountTo.id,
-                username: feedback.accountTo.username,
-                firstname: feedback.accountTo.firstname,
-                lastname: feedback.accountTo.lastname,
-                profilePicture: feedback.accountTo.profilepictureurl,
-            },
-            studyProfileId: feedback.studyProfileid ? [feedback.studyProfileid.id] : [],
-        }));
+        
+        const uniqueStudyProfileIds = Array.from(
+            new Set(feedbacks.map((feedback) => feedback.studyProfileid?.id)), 
+        ).filter((id): id is string => id !== undefined); 
+        
+        return uniqueStudyProfileIds.map((studyProfileId) => ({ studyProfileId }));
     }
 }
