@@ -7,20 +7,13 @@ import {
     ApiBearerAuth,
 } from '@nestjs/swagger';
 import { EvaluateFeedbackResponseDto } from './dto/evaluate-feedback-response.dto';
-import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    Post,
-    Request,
-    UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Request, UseGuards } from '@nestjs/common';
 import { CreateEvaluateFeedbackDto } from './dto/create-evaluate-feedback.dto';
 import { EvaluateFeedbackService } from './evaluate-feedback.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 import { create } from 'domain';
+import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
 
 @ApiTags('EvaluateFeedback') // Tag for Swagger grouping
 @Controller('evaluate-feedback')
@@ -29,7 +22,11 @@ export class EvaluateFeedbackController {
 
     @Get('teacher-to-student/:teacherId')
     @ApiOperation({ summary: 'Get feedbacks from Teacher to Student' })
-    @ApiResponse({ status: 200, description: 'Feedback list retrieved successfully.', type: [EvaluateFeedback] })
+    @ApiResponse({
+        status: 200,
+        description: 'Feedback list retrieved successfully.',
+        type: [EvaluateFeedback],
+    })
     async getFeedbacksForTeacherToStudent(
         @Param('teacherId') teacherId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
@@ -38,16 +35,26 @@ export class EvaluateFeedbackController {
 
     @Get('teacher-to-staff-about-student/:teacherId')
     @ApiOperation({ summary: 'Get feedbacks from Teacher to Staff about a Student' })
-    @ApiResponse({ status: 200, description: 'Feedback list retrieved successfully.', type: [EvaluateFeedback] })
+    @ApiResponse({
+        status: 200,
+        description: 'Feedback list retrieved successfully.',
+        type: [EvaluateFeedback],
+    })
     async getFeedbacksForTeacherToStaffAboutStudent(
         @Param('teacherId') teacherId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
-        return this.evaluateFeedbackService.getFeedbacksForTeacherToStaffAboutStudent(teacherId);
+        return this.evaluateFeedbackService.getFeedbacksForTeacherToStaffAboutStudent(
+            teacherId,
+        );
     }
 
     @Get('student-to-teacher/:studentId')
     @ApiOperation({ summary: 'Get feedbacks from Student to Teacher' })
-    @ApiResponse({ status: 200, description: 'Feedback list retrieved successfully.', type: [EvaluateFeedback] })
+    @ApiResponse({
+        status: 200,
+        description: 'Feedback list retrieved successfully.',
+        type: [EvaluateFeedback],
+    })
     async getFeedbacksForStudentToTeacher(
         @Param('studentId') studentId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
@@ -56,16 +63,26 @@ export class EvaluateFeedbackController {
 
     @Get('student-to-staff-about-teacher/:studentId')
     @ApiOperation({ summary: 'Get feedbacks from Student to Staff about a Teacher' })
-    @ApiResponse({ status: 200, description: 'Feedback list retrieved successfully.', type: [EvaluateFeedback] })
+    @ApiResponse({
+        status: 200,
+        description: 'Feedback list retrieved successfully.',
+        type: [EvaluateFeedback],
+    })
     async getFeedbacksForStudentToStaffAboutTeacher(
         @Param('studentId') studentId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
-        return this.evaluateFeedbackService.getFeedbacksForStudentToStaffAboutTeacher(studentId);
+        return this.evaluateFeedbackService.getFeedbacksForStudentToStaffAboutTeacher(
+            studentId,
+        );
     }
 
     @Get('staff-to-teacher/:staffId')
     @ApiOperation({ summary: 'Get feedbacks from Staff to Teacher' })
-    @ApiResponse({ status: 200, description: 'Feedback list retrieved successfully.', type: [EvaluateFeedback] })
+    @ApiResponse({
+        status: 200,
+        description: 'Feedback list retrieved successfully.',
+        type: [EvaluateFeedback],
+    })
     async getFeedbacksForStaffToTeacher(
         @Param('staffId') staffId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
@@ -84,11 +101,11 @@ export class EvaluateFeedbackController {
     @ApiResponse({ status: 400, description: 'Invalid data or missing fields.' })
     async createFeedback(
         @Body() createFeedbackDto: CreateEvaluateFeedbackDto,
-        @Request() req
+        @Request() req,
     ): Promise<EvaluateFeedback> {
         const accountFromId = req.user?.id;
         createFeedbackDto.accountFromId = accountFromId;
-        
+
         return this.evaluateFeedbackService.createFeedback(createFeedbackDto);
     }
 
@@ -104,5 +121,21 @@ export class EvaluateFeedbackController {
         const userId = req.user?.id;
 
         return this.evaluateFeedbackService.getEvaluateFeedbacks(userId);
+    }
+
+    @Get('/study-profiles')
+    @ApiOperation({ summary: 'Get all study profile IDs by accountFrom' })
+    @ApiResponse({
+        status: 200,
+        description: 'List of feedback study profiles for the given accountFrom.',
+        type: [StudyProfileFeedbackResponseDto],
+    })
+    async getStudyProfiles(
+        @Request() req,
+    ): Promise<StudyProfileFeedbackResponseDto[]> {
+        const accountFromId = req.user?.id;
+        return await this.evaluateFeedbackService.getStudyProfilesByAccountFrom(
+            accountFromId,
+        );
     }
 }

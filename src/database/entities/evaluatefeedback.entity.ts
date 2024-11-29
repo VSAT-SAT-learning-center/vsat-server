@@ -32,28 +32,28 @@ export class EvaluateFeedback {
 
     @ManyToOne(() => Account, { nullable: false })
     @JoinColumn({ name: 'accountfromid' })
-    accountFrom: Account; // Feedback giver
+    accountFrom: Account; 
 
     @ManyToOne(() => Account, { nullable: false })
     @JoinColumn({ name: 'accounttoid' })
-    accountTo: Account; // Feedback recipient
+    accountTo: Account; 
 
     @ManyToOne(() => Account, { nullable: true })
     @JoinColumn({ name: 'accountreviewid' })
-    accountReview: Account; // Optional reviewer (e.g., Staff)
+    accountReview: Account; 
 
     @ManyToOne(() => StudyProfile, { nullable: true })
     @JoinColumn({ name: 'studyprofileid' })
     studyProfileid: StudyProfile;
 
     @Column({ type: 'enum', enum: EvaluateFeedbackType })
-    evaluateFeedbackType: EvaluateFeedbackType; // Feedback type
+    evaluateFeedbackType: EvaluateFeedbackType; 
 
     @Column({ type: 'text', nullable: true })
-    narrativeFeedback?: string; // General narrative feedback
+    narrativeFeedback?: string; 
 
     @Column({ type: 'boolean', default: false })
-    isEscalated: boolean; // Indicates if feedback has been escalated
+    isEscalated: boolean; 
 
     @OneToMany(() => FeedbackCriteriaScores, (score) => score.feedback, { eager: true })
     criteriaScores: FeedbackCriteriaScores[];
