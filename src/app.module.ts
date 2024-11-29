@@ -55,6 +55,8 @@ import { ProgressModule } from './modules/progress/progress.module';
 import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
 import { NotificationModule } from './nofitication/notification.module';
 import { EvaluateFeedbackModule } from './modules/evaluate-feedback-type/evaluate-feedback-type.module';
+import { FirebaseModule } from './modules/firebase/firebase.module';
+import { EvaluateCriteriaModule } from './modules/evaluate-criteria/evaluate-criteria.module';
 
 @Module({
     imports: [
@@ -114,6 +116,7 @@ import { EvaluateFeedbackModule } from './modules/evaluate-feedback-type/evaluat
         TargetLearningDetailModule,
         NotificationModule,
         EvaluateFeedbackModule,
+        FirebaseModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -141,6 +144,8 @@ import { EvaluateFeedbackModule } from './modules/evaluate-feedback-type/evaluat
             }),
             inject: [ConfigService],
         }),
+
+        EvaluateCriteriaModule,
     ],
     providers: [FeedbacksGateway, JwtService],
     // providers: [PaginationService],

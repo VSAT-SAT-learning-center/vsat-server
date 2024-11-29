@@ -7,14 +7,8 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { BaseService } from '../base/base.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonContentService } from '../lesson-content/lesson-content.service';
-import { LessonResponseDto } from './dto/get-lesson.dto';
-import { v4 as uuidv4 } from 'uuid';
-import { UpdateLessonStatusDto } from './dto/update-status-lesson.dto';
-import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
-import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
-import { UnitProgressService } from '../unit-progress/unit-progress.service';
-import { Exception } from 'handlebars';
-import { CompleteLessonProgressDto } from '../target-learning/dto/complete-lesson-progress.dto';
+import { LessonResponseDto } from './dto/get-lesson.dto';import { v4 as uuidv4 } from 'uuid';
+
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
