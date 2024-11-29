@@ -142,11 +142,13 @@ export class EvaluateFeedbackService {
                     id: feedback.accountFrom.id,
                     username: feedback.accountFrom.username,
                     role: feedback.accountFrom.role,
+                    profileImage: feedback.accountFrom.profilepictureurl
                 },
                 accountTo: {
                     id: feedback.accountTo.id,
                     username: feedback.accountTo.username,
                     role: feedback.accountTo.role,
+                    profileImage: feedback.accountFrom.profilepictureurl
                 },
                 accountReview: feedback.accountReview
                     ? {
