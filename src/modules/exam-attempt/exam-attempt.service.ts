@@ -35,7 +35,6 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
-import moment from 'moment-timezone';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
 
 @Injectable()

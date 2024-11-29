@@ -33,10 +33,10 @@ export class LessonContentService extends BaseService<LessonContent> {
     ): Promise<void> {
         const existingLessonContents = lesson.lessonContents || [];
 
-        // Extract IDs of the existing contents and the incoming contents
-        const existingContentIds = existingLessonContents.map(
-            (content) => content.id,
-        );
+        // // Extract IDs of the existing contents and the incoming contents
+        // const existingContentIds = existingLessonContents.map(
+        //     (content) => content.id,
+        // );
         const incomingContentIds = lessonContentsDto.map(
             (contentDto) => contentDto.id,
         );

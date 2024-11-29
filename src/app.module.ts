@@ -54,6 +54,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ProgressModule } from './modules/progress/progress.module';
 import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
 import { NotificationModule } from './nofitication/notification.module';
+import { EvaluateFeedbackModule } from './modules/evaluate-feedback-type/evaluate-feedback-type.module';
+import { FirebaseModule } from './modules/firebase/firebase.module';
+import { EvaluateCriteriaModule } from './modules/evaluate-criteria/evaluate-criteria.module';
 
 @Module({
     imports: [
@@ -112,6 +115,8 @@ import { NotificationModule } from './nofitication/notification.module';
         ProgressModule,
         TargetLearningDetailModule,
         NotificationModule,
+        EvaluateFeedbackModule,
+        FirebaseModule,
 
         MailerModule.forRootAsync({
             imports: [ConfigModule],
@@ -139,6 +144,8 @@ import { NotificationModule } from './nofitication/notification.module';
             }),
             inject: [ConfigService],
         }),
+
+        EvaluateCriteriaModule,
     ],
     providers: [FeedbacksGateway, JwtService],
     // providers: [PaginationService],
