@@ -1845,4 +1845,43 @@ export class FeedbackService extends BaseService<Feedback> {
 
         return feedbackList;
     }
+
+    async createQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
+        const { questionId, content, reason, accountFromId, accountToId } =
+            feedbackDto;
+
+        const accountFrom = await this.accountService.findOneById(accountFromId);
+
+        if (accountFrom === null) {
+            throw new NotFoundException('Account From not found');
+        }
+
+        const accountTo = await this.accountService.findOneById(accountToId);
+
+        if (accountTo === null) {
+            throw new NotFoundException('Account To not found');
+        }
+
+        const feedback = await this.feedbackRepository.save({
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
+            content,
+            reason,
+            status: FeedbackStatus.REJECTED,
+            question: { id: questionId },
+        });
+
+        let notificationMessage = 'Has feedback about Questiion';
+
+        await this.notificationService.createAndSendNotification(
+            accountTo,
+            accountFrom,
+            feedback,
+            notificationMessage,
+            FeedbackType.QUESTION,
+            FeedbackEventType.REJECT_QUESTION,
+        );
+
+        return feedback;
+    }
 }

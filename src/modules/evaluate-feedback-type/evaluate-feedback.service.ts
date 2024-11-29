@@ -22,48 +22,111 @@ export class EvaluateFeedbackService {
     ) {}
 
     // Create feedback
-    async createFeedback(
-        createFeedbackDto: CreateEvaluateFeedbackDto,
-    ): Promise<EvaluateFeedback> {
+    async createFeedback(createFeedbackDto: CreateEvaluateFeedbackDto): Promise<any> {
         const {
             accountFromId,
             accountToId,
             accountReviewId,
+            studyProfileId,
             narrativeFeedback,
             isEscalated,
             criteriaScores,
+            isSendToStaff,
         } = createFeedbackDto;
+
+        if (isSendToStaff) {
+            await this.handleSendToStaffFeedback(
+                accountFromId,
+                accountReviewId,
+                studyProfileId,
+                narrativeFeedback,
+                isEscalated,
+                criteriaScores,
+            );
+            return 'Feedback sent to all staff success';
+        }
 
         const evaluateFeedbackType = await this.generateEvaluateFeedbackType(
             accountFromId,
             accountToId,
         );
-        
-        // Create feedback instance
+
         const feedback = this.evaluateFeedbackRepository.create({
             accountFrom: { id: accountFromId },
             accountTo: { id: accountToId },
             accountReview: accountReviewId ? { id: accountReviewId } : null,
+            studyProfileid: studyProfileId ? { id: studyProfileId } : null,
             narrativeFeedback,
             isEscalated,
             evaluateFeedbackType,
         });
 
-        // Save feedback
         const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
 
-        // Save criteria scores
-        const scores = criteriaScores.map((scoreDto) => {
-            return this.feedbackCriteriaScoresRepository.create({
-                feedback: savedFeedback,
-                criteria: { id: scoreDto.criteriaId },
-                score: scoreDto.score,
-            });
-        });
-
+        const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
         await this.feedbackCriteriaScoresRepository.save(scores);
 
         return savedFeedback;
+    }
+
+    private async handleSendToStaffFeedback(
+        accountFromId: string,
+        accountReviewId: string | null,
+        studyProfileId: string | null,
+        narrativeFeedback: string,
+        isEscalated: boolean,
+        criteriaScores: { criteriaId: string; score: number }[],
+    ): Promise<void> {
+        const accountFrom = await this.accountRepository.findOne({
+            where: { id: accountFromId },
+            select: ['id', 'role'],
+            relations: ['role'],
+        });
+
+        if (!accountFrom) {
+            throw new Error('AccountFrom not found.');
+        }
+
+        const staffAccounts = await this.accountRepository.find({
+            where: { role: { rolename: 'Staff' } },
+            select: ['id', 'role'],
+            relations: ['role'],
+        });
+
+        const feedbackType =
+            accountFrom.role.rolename === 'Teacher'
+                ? EvaluateFeedbackType.TEACHER_TO_STAFF
+                : EvaluateFeedbackType.STUDENT_TO_STAFF;
+
+        for (const staff of staffAccounts) {
+            const feedback = this.evaluateFeedbackRepository.create({
+                accountFrom: { id: accountFromId },
+                accountTo: { id: staff.id },
+                accountReview: accountReviewId ? { id: accountReviewId } : null,
+                studyProfileid: studyProfileId ? { id: studyProfileId } : null,
+                narrativeFeedback,
+                isEscalated,
+                evaluateFeedbackType: feedbackType,
+            });
+
+            const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
+
+            const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
+            await this.feedbackCriteriaScoresRepository.save(scores);
+        }
+    }
+
+    private mapCriteriaScores(
+        criteriaScores: { criteriaId: string; score: number }[],
+        feedback: EvaluateFeedback,
+    ): any[] {
+        return criteriaScores.map((scoreDto) =>
+            this.feedbackCriteriaScoresRepository.create({
+                feedback,
+                criteria: { id: scoreDto.criteriaId },
+                score: scoreDto.score,
+            }),
+        );
     }
 
     private transfromData(

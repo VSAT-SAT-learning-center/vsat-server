@@ -11,6 +11,7 @@ import {
 import { Account } from './account.entity';
 import { EvaluateFeedbackType } from 'src/common/enums/evaluate-feedback-type.enum';
 import { FeedbackCriteriaScores } from './feedbackcriteriascores.entity';
+import { StudyProfile } from './studyprofile.entity';
 
 @Entity('evaluatefeedback')
 export class EvaluateFeedback {
@@ -40,6 +41,10 @@ export class EvaluateFeedback {
     @ManyToOne(() => Account, { nullable: true })
     @JoinColumn({ name: 'accountreviewid' })
     accountReview: Account; // Optional reviewer (e.g., Staff)
+
+    @ManyToOne(() => StudyProfile, { nullable: true })
+    @JoinColumn({ name: 'studyprofileid' })
+    studyProfileid: StudyProfile;
 
     @Column({ type: 'enum', enum: EvaluateFeedbackType })
     evaluateFeedbackType: EvaluateFeedbackType; // Feedback type

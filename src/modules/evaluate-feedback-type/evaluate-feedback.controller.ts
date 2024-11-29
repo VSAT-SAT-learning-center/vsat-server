@@ -16,11 +16,11 @@ import {
     Request,
     UseGuards,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { CreateEvaluateFeedbackDto } from './dto/create-evaluate-feedback.dto';
 import { EvaluateFeedbackService } from './evaluate-feedback.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
+import { create } from 'domain';
 
 @ApiTags('EvaluateFeedback') // Tag for Swagger grouping
 @Controller('evaluate-feedback')
@@ -84,7 +84,11 @@ export class EvaluateFeedbackController {
     @ApiResponse({ status: 400, description: 'Invalid data or missing fields.' })
     async createFeedback(
         @Body() createFeedbackDto: CreateEvaluateFeedbackDto,
+        @Request() req
     ): Promise<EvaluateFeedback> {
+        const accountFromId = req.user?.id;
+        createFeedbackDto.accountFromId = accountFromId;
+        
         return this.evaluateFeedbackService.createFeedback(createFeedbackDto);
     }
 

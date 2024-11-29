@@ -3,7 +3,6 @@ import * as dotenv from 'dotenv';
 
 // Load Firebase environment variables
 dotenv.config();
-console.log('Private Key:', process.env.FIREBASE_PRIVATE_KEY);
 
 const firebaseConfig = {
     projectId: process.env.FIREBASE_PROJECT_ID,

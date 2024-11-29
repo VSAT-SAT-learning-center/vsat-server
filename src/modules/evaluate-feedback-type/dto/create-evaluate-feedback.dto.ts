@@ -13,18 +13,19 @@ import { Type } from 'class-transformer';
 
 export class CreateEvaluateFeedbackDto {
 
-    @ApiProperty({ description: 'ID of the account providing the feedback.' })
-    @IsUUID()
     accountFromId: string;
 
     @ApiProperty({ description: 'ID of the account receiving the feedback.' })
-    @IsUUID()
+    @IsOptional()
     accountToId: string;
 
     @ApiProperty({ description: 'ID of the staff member reviewing the feedback.', required: false })
-    @IsUUID()
     @IsOptional()
     accountReviewId?: string;
+
+    @ApiProperty({ description: 'ID of the student study profile for feedback.', required: false })
+    @IsOptional()
+    studyProfileId?: string;
 
     @ApiProperty({ description: 'Narrative feedback.', required: false })
     @IsString()
@@ -35,6 +36,11 @@ export class CreateEvaluateFeedbackDto {
     @IsBoolean()
     @IsOptional()
     isEscalated?: boolean;
+
+    @ApiProperty()
+    @IsBoolean()
+    @IsOptional()
+    isSendToStaff?: boolean;
 
     @ApiProperty({ description: 'Scores for criteria.', type: [FeedbackCriteriaScoreDto] })
     @ValidateNested({ each: true })
