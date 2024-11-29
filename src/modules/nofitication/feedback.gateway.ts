@@ -24,7 +24,7 @@ export class FeedbacksGateway
     constructor(private readonly jwtService: JwtService) {}
 
     afterInit(server: Server) {
-        console.log('WebSocket server initialized');
+        //console.log('WebSocket server initialized');
     }
 
     async handleConnection(client: Socket) {
@@ -44,21 +44,21 @@ export class FeedbacksGateway
 
             const userId = payload.id;
             this.users.set(userId, client); // Store the socket connection
-            console.log(`User authenticated and connected: ${userId}`);
+           // console.log(`User authenticated and connected: ${userId}`);
         } catch (error) {
-            console.error('Authentication failed:', error.message);
+           // console.error('Authentication failed:', error.message);
             client.disconnect();
         }
     }
 
     handleDisconnect(client: Socket) {
-        console.log('Client disconnected: ' + client.id);
+        //console.log('Client disconnected: ' + client.id);
         const userId = [...this.users.entries()].find(
             ([, socket]) => socket.id === client.id,
         )?.[0];
         if (userId) {
             this.users.delete(userId);
-            console.log(`User disconnected: ${userId}`);
+            //console.log(`User disconnected: ${userId}`);
         }
     }
 
@@ -77,9 +77,9 @@ export class FeedbacksGateway
                 eventType: eventType,
                 to: userSocket.id,
             });
-            console.log(`Notification sent to user: ${userId}`);
+            //console.log(`Notification sent to user: ${userId}`);
         } else {
-            console.log(`User not connected: ${userId}`);
+           console.log(`User not connected: ${userId}`);
         }
     }
 
@@ -96,7 +96,7 @@ export class FeedbacksGateway
     
 
     broadcastNotification(data: any) {
-        console.log('Broadcasting feedback notification...');
+       // console.log('Broadcasting feedback notification...');
         this.handleEmitSocket({
             data: data,
             event: 'feedbackNotification',
@@ -123,7 +123,7 @@ export class FeedbacksGateway
             data: data
         };
 
-        console.log("Payload is: ",payload);
+        //console.log("Payload is: ",payload);
         
         if (to) {
             this.server.to(to).emit(event, payload);
