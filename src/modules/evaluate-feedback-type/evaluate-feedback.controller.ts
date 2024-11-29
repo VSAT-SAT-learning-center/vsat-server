@@ -15,6 +15,7 @@ import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity'
 import { create } from 'domain';
 import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
 import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 
 @ApiTags('EvaluateFeedback') // Tag for Swagger grouping
 @Controller('evaluate-feedback')
@@ -114,14 +115,32 @@ export class EvaluateFeedbackController {
         type: EvaluateFeedback,
     })
     @ApiResponse({ status: 400, description: 'Invalid data or missing fields.' })
-    async createFeedback(
+    async createEvaluateFeedback(
         @Body() createFeedbackDto: CreateEvaluateFeedbackDto,
         @Request() req,
     ): Promise<EvaluateFeedback> {
         const accountFromId = req.user?.id;
         createFeedbackDto.accountFromId = accountFromId;
 
-        return this.evaluateFeedbackService.createFeedback(createFeedbackDto);
+        return this.evaluateFeedbackService.createEvaluateFeedback(createFeedbackDto);
+    }
+
+    @Post('createFeedback')
+    @ApiOperation({ summary: 'Create new feedback' })
+    @ApiResponse({
+        status: 201,
+        description: 'Feedback created successfully.',
+        type: EvaluateFeedback,
+    })
+    @ApiResponse({ status: 400, description: 'Invalid data or missing fields.' })
+    async createFeedback(
+        @Body() createFeedbackDto: CreateFeedbackDto,
+        @Request() req,
+    ): Promise<EvaluateFeedback> {
+        const accountFromId = req.user?.id;
+        createFeedbackDto.accountFromId = accountFromId;
+
+        return this.evaluateFeedbackService.createFeedbackd(createFeedbackDto);
     }
 
     @Get('received')

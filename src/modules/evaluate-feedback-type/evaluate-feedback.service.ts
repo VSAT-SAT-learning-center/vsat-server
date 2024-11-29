@@ -8,8 +8,8 @@ import { FeedbackCriteriaScores } from 'src/database/entities/feedbackcriteriasc
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { EvaluateFeedbackResponseDto } from './dto/evaluate-feedback-response.dto';
 import { Account } from 'src/database/entities/account.entity';
-import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
 import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
+import { CreateFeedbackDto } from './dto/create-feedback.dto';
 
 @Injectable()
 export class EvaluateFeedbackService {
@@ -22,7 +22,9 @@ export class EvaluateFeedbackService {
         private readonly accountRepository: Repository<Account>,
     ) {}
 
-    async createFeedback(createFeedbackDto: CreateEvaluateFeedbackDto): Promise<any> {
+    async createEvaluateFeedback(
+        createFeedbackDto: CreateEvaluateFeedbackDto,
+    ): Promise<any> {
         const {
             accountFromId,
             accountToId,
@@ -35,7 +37,7 @@ export class EvaluateFeedbackService {
         } = createFeedbackDto;
 
         if (isSendToStaff) {
-            await this.handleSendToStaffFeedback(
+            await this.handleSendToStaffEvaluateFeedback(
                 accountFromId,
                 accountReviewId,
                 studyProfileId,
@@ -70,7 +72,24 @@ export class EvaluateFeedbackService {
         return savedFeedback;
     }
 
-    private async handleSendToStaffFeedback(
+    async createFeedbackd(createFeedbackDto: CreateFeedbackDto): Promise<any> {
+        const { accountFromId, reason, narrativeFeedback, isSendToStaff } =
+            createFeedbackDto;
+
+        if (isSendToStaff) {
+            await this.handleSendToStaffFeedback(
+                accountFromId,
+                reason,
+                narrativeFeedback,
+            );
+            return 'Feedback sent to all staff success';
+        }
+
+        await this.handleSendToManagerFeedback(accountFromId, reason, narrativeFeedback);
+        return 'Feedback sent to all manager success';
+    }
+
+    private async handleSendToStaffEvaluateFeedback(
         accountFromId: string,
         accountReviewId: string | null,
         studyProfileId: string | null,
@@ -119,6 +138,81 @@ export class EvaluateFeedbackService {
         }
     }
 
+    private async handleSendToStaffFeedback(
+        accountFromId: string,
+        reason: string,
+        narrativeFeedback: string,
+    ): Promise<void> {
+        const accountFrom = await this.accountRepository.findOne({
+            where: { id: accountFromId },
+            select: ['id', 'role'],
+            relations: ['role'],
+        });
+
+        if (!accountFrom) {
+            throw new Error('AccountFrom not found.');
+        }
+
+        const staffAccounts = await this.accountRepository.find({
+            where: { role: { rolename: 'Staff' } },
+            select: ['id', 'role'],
+            relations: ['role'],
+        });
+
+        const feedbackType =
+            accountFrom.role.rolename === 'Teacher'
+                ? EvaluateFeedbackType.TEACHER_TO_STAFF
+                : EvaluateFeedbackType.STUDENT_TO_STAFF;
+
+        for (const staff of staffAccounts) {
+            const feedback = this.evaluateFeedbackRepository.create({
+                accountFrom: { id: accountFromId },
+                accountTo: { id: staff.id },
+                reason: reason,
+                narrativeFeedback: narrativeFeedback,
+                evaluateFeedbackType: feedbackType,
+            });
+
+            await this.evaluateFeedbackRepository.save(feedback);
+        }
+    }
+
+    private async handleSendToManagerFeedback(
+        accountFromId: string,
+        reason: string,
+        narrativeFeedback: string,
+    ): Promise<void> {
+        const accountFrom = await this.accountRepository.findOne({
+            where: { id: accountFromId },
+            select: ['id', 'role'],
+            relations: ['role'],
+        });
+
+        if (!accountFrom) {
+            throw new Error('AccountFrom not found.');
+        }
+
+        const managerAccounts = await this.accountRepository.find({
+            where: { role: { rolename: 'Manager' } },
+            select: ['id', 'role'],
+            relations: ['role'],
+        });
+
+        const feedbackType = EvaluateFeedbackType.STAFF_TO_MANAGER;
+
+        for (const manager of managerAccounts) {
+            const feedback = this.evaluateFeedbackRepository.create({
+                accountFrom: { id: accountFromId },
+                accountTo: { id: manager.id },
+                reason: reason,
+                narrativeFeedback: narrativeFeedback,
+                evaluateFeedbackType: feedbackType,
+            });
+
+            await this.evaluateFeedbackRepository.save(feedback);
+        }
+    }
+
     private mapCriteriaScores(
         criteriaScores: { criteriaId: string; score: number }[],
         feedback: EvaluateFeedback,
@@ -142,13 +236,13 @@ export class EvaluateFeedbackService {
                     id: feedback.accountFrom.id,
                     username: feedback.accountFrom.username,
                     role: feedback.accountFrom.role,
-                    profileImage: feedback.accountFrom.profilepictureurl
+                    profileImage: feedback.accountFrom.profilepictureurl,
                 },
                 accountTo: {
                     id: feedback.accountTo.id,
                     username: feedback.accountTo.username,
                     role: feedback.accountTo.role,
-                    profileImage: feedback.accountFrom.profilepictureurl
+                    profileImage: feedback.accountFrom.profilepictureurl,
                 },
                 accountReview: feedback.accountReview
                     ? {
@@ -386,7 +480,9 @@ export class EvaluateFeedbackService {
         return uniqueStudyProfileIds.map((studyProfileId) => ({ studyProfileId }));
     }
 
-    async getFeedbackDetail(feedbackId: string): Promise<EvaluateFeedbackDetailResponseDto> {
+    async getFeedbackDetail(
+        feedbackId: string,
+    ): Promise<EvaluateFeedbackDetailResponseDto> {
         const feedback = await this.evaluateFeedbackRepository.findOne({
             where: {
                 id: feedbackId,

@@ -18,10 +18,10 @@ export class EvaluateCriteria {
     updatedby: string;
 
     @Column({ type: 'varchar', length: 255 })
-    name: string; // Criterion name (e.g., Academic Performance)
+    name: string; 
 
     @Column({ type: 'text', nullable: true })
-    description?: string; // Optional description of the criterion
+    description?: string; 
 
     @Column({ type: 'enum', enum: ['Student', 'Teacher'] })
     applicableTo: 'Student' | 'Teacher';

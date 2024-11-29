@@ -12,18 +12,23 @@ import { FeedbackCriteriaScoreDto } from './feedback-criteria-score.dto';
 import { Type } from 'class-transformer';
 
 export class CreateEvaluateFeedbackDto {
-
     accountFromId: string;
 
     @ApiProperty({ description: 'ID of the account receiving the feedback.' })
     @IsOptional()
     accountToId: string;
 
-    @ApiProperty({ description: 'ID of the staff member reviewing the feedback.', required: false })
+    @ApiProperty({
+        description: 'ID of the staff member reviewing the feedback.',
+        required: false,
+    })
     @IsOptional()
     accountReviewId?: string;
 
-    @ApiProperty({ description: 'ID of the student study profile for feedback.', required: false })
+    @ApiProperty({
+        description: 'ID of the student study profile for feedback.',
+        required: false,
+    })
     @IsOptional()
     studyProfileId?: string;
 
@@ -32,7 +37,10 @@ export class CreateEvaluateFeedbackDto {
     @IsOptional()
     narrativeFeedback?: string;
 
-    @ApiProperty({ description: 'Is feedback escalated to a staff member?', default: false })
+    @ApiProperty({
+        description: 'Is feedback escalated to a staff member?',
+        default: false,
+    })
     @IsBoolean()
     @IsOptional()
     isEscalated?: boolean;
@@ -42,9 +50,11 @@ export class CreateEvaluateFeedbackDto {
     @IsOptional()
     isSendToStaff?: boolean;
 
-    @ApiProperty({ description: 'Scores for criteria.', type: [FeedbackCriteriaScoreDto] })
+    @ApiProperty({
+        description: 'Scores for criteria.',
+        type: [FeedbackCriteriaScoreDto],
+    })
     @ValidateNested({ each: true })
     @Type(() => FeedbackCriteriaScoreDto)
     criteriaScores: FeedbackCriteriaScoreDto[];
 }
-
