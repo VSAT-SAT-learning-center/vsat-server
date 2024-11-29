@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { EvaluateCriteria } from "./evaluatecriteria.entity";
 import { EvaluateFeedback } from "./evaluatefeedback.entity";
 
@@ -6,6 +6,18 @@ import { EvaluateFeedback } from "./evaluatefeedback.entity";
 export class FeedbackCriteriaScores {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @CreateDateColumn({ type: 'timestamp' })
+    createdat: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    createdby: string;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedat: Date;
+
+    @Column({ type: 'uuid', nullable: true })
+    updatedby: string;
 
     @ManyToOne(() => EvaluateFeedback, { nullable: false })
     @JoinColumn({ name: 'feedbackid' })

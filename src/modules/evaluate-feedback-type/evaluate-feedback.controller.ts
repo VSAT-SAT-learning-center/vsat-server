@@ -24,8 +24,6 @@ import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity'
 
 @ApiTags('EvaluateFeedback') // Tag for Swagger grouping
 @Controller('evaluate-feedback')
-//@ApiBearerAuth('JWT-auth')
-// @UseGuards(JwtAuthGuard)
 export class EvaluateFeedbackController {
     constructor(private readonly evaluateFeedbackService: EvaluateFeedbackService) {}
 
@@ -74,7 +72,8 @@ export class EvaluateFeedbackController {
         return this.evaluateFeedbackService.getFeedbacksForStaffToTeacher(staffId);
     }
 
-
+    @ApiBearerAuth('JWT-auth')
+    @UseGuards(JwtAuthGuard)
     @Post('create')
     @ApiOperation({ summary: 'Create new feedback' })
     @ApiResponse({
