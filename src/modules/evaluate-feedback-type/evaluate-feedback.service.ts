@@ -153,28 +153,19 @@ export class EvaluateFeedbackService {
             throw new Error('AccountFrom not found.');
         }
 
-        const staffAccounts = await this.accountRepository.find({
-            where: { role: { rolename: 'Staff' } },
-            select: ['id', 'role'],
-            relations: ['role'],
-        });
-
         const feedbackType =
             accountFrom.role.rolename === 'Teacher'
                 ? EvaluateFeedbackType.TEACHER_TO_STAFF
                 : EvaluateFeedbackType.STUDENT_TO_STAFF;
 
-        for (const staff of staffAccounts) {
-            const feedback = this.evaluateFeedbackRepository.create({
-                accountFrom: { id: accountFromId },
-                accountTo: { id: staff.id },
-                reason: reason,
-                narrativeFeedback: narrativeFeedback,
-                evaluateFeedbackType: feedbackType,
-            });
+        const feedback = this.evaluateFeedbackRepository.create({
+            accountFrom: { id: accountFromId },
+            reason: reason,
+            narrativeFeedback: narrativeFeedback,
+            evaluateFeedbackType: feedbackType,
+        });
 
-            await this.evaluateFeedbackRepository.save(feedback);
-        }
+        await this.evaluateFeedbackRepository.save(feedback);
     }
 
     private async handleSendToManagerFeedback(
@@ -192,25 +183,16 @@ export class EvaluateFeedbackService {
             throw new Error('AccountFrom not found.');
         }
 
-        const managerAccounts = await this.accountRepository.find({
-            where: { role: { rolename: 'Manager' } },
-            select: ['id', 'role'],
-            relations: ['role'],
-        });
-
         const feedbackType = EvaluateFeedbackType.STAFF_TO_MANAGER;
 
-        for (const manager of managerAccounts) {
-            const feedback = this.evaluateFeedbackRepository.create({
-                accountFrom: { id: accountFromId },
-                accountTo: { id: manager.id },
-                reason: reason,
-                narrativeFeedback: narrativeFeedback,
-                evaluateFeedbackType: feedbackType,
-            });
+        const feedback = this.evaluateFeedbackRepository.create({
+            accountFrom: { id: accountFromId },
+            reason: reason,
+            narrativeFeedback: narrativeFeedback,
+            evaluateFeedbackType: feedbackType,
+        });
 
-            await this.evaluateFeedbackRepository.save(feedback);
-        }
+        await this.evaluateFeedbackRepository.save(feedback);
     }
 
     private mapCriteriaScores(
