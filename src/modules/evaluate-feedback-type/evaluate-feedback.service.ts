@@ -1,14 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { EvaluateFeedbackType } from 'src/common/enums/evaluate-feedback-type.enum';
 import { CreateEvaluateFeedbackDto } from './dto/create-evaluate-feedback.dto';
 import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FeedbackCriteriaScores } from 'src/database/entities/feedbackcriteriascores.entity';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { EvaluateFeedbackResponseDto } from './dto/evaluate-feedback-response.dto';
 import { Account } from 'src/database/entities/account.entity';
 import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
+import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
 
 @Injectable()
 export class EvaluateFeedbackService {
@@ -131,7 +132,7 @@ export class EvaluateFeedbackService {
         );
     }
 
-    private transfromData(
+    private transfromListData(
         evaluateFeedbacks: EvaluateFeedback[],
     ): EvaluateFeedbackResponseDto[] {
         return evaluateFeedbacks.map((feedback) =>
@@ -219,7 +220,7 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
 
     async getSendedEvaluateFeedbacks(
@@ -237,7 +238,7 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
 
     async getFeedbacksForTeacherToStudent(
@@ -258,7 +259,7 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
 
     async getFeedbacksForTeacherToStaffAboutStudent(
@@ -279,9 +280,8 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
-
 
     async getFeedbacksForTeacherSended(
         teacherId: string,
@@ -289,7 +289,9 @@ export class EvaluateFeedbackService {
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: {
                 accountFrom: { id: teacherId },
-                evaluateFeedbackType: EvaluateFeedbackType.TEACHER_TO_STAFF || EvaluateFeedbackType.TEACHER_TO_STUDENT,
+                evaluateFeedbackType:
+                    EvaluateFeedbackType.TEACHER_TO_STAFF ||
+                    EvaluateFeedbackType.TEACHER_TO_STUDENT,
             },
             relations: [
                 'accountFrom',
@@ -301,7 +303,7 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
 
     async getFeedbacksForStudentToTeacher(
@@ -322,7 +324,7 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
 
     async getFeedbacksForStudentToStaffAboutTeacher(
@@ -343,7 +345,7 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
 
     async getFeedbacksForStaffToTeacher(
@@ -364,22 +366,58 @@ export class EvaluateFeedbackService {
             order: { createdat: 'DESC' },
         });
 
-        return this.transfromData(feedbacks);
+        return this.transfromListData(feedbacks);
     }
 
     async getStudyProfileIdsByAccountFrom(
         accountFromId: string,
     ): Promise<{ studyProfileId: string }[]> {
-        
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: { accountFrom: { id: accountFromId } },
-            relations: ['studyProfileid'], 
+            relations: ['studyProfileid'],
         });
-        
+
         const uniqueStudyProfileIds = Array.from(
-            new Set(feedbacks.map((feedback) => feedback.studyProfileid?.id)), 
-        ).filter((id): id is string => id !== undefined); 
-        
+            new Set(feedbacks.map((feedback) => feedback.studyProfileid?.id)),
+        ).filter((id): id is string => id !== undefined);
+
         return uniqueStudyProfileIds.map((studyProfileId) => ({ studyProfileId }));
+    }
+
+    async getFeedbackDetail(feedbackId: string): Promise<EvaluateFeedbackDetailResponseDto> {
+        const feedback = await this.evaluateFeedbackRepository.findOne({
+            where: {
+                id: feedbackId,
+            },
+            relations: [
+                'accountFrom',
+                'accountTo',
+                'accountReview',
+                'criteriaScores',
+                'criteriaScores.criteria',
+            ],
+            order: { createdat: 'DESC' },
+        });
+
+        if (!feedback) {
+            throw new NotFoundException(`Feedback with ID ${feedbackId} not found`);
+        }
+
+        // Transform and sort `criteriaScores`
+        const sortedCriteriaScores = feedback.criteriaScores
+            .map((score) => ({
+                name: score.criteria.name,
+                description: score.criteria.description,
+                score: score.score,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        // Inject sorted criteriaScores into DTO
+        const feedbackDto = plainToInstance(EvaluateFeedbackDetailResponseDto, feedback, {
+            excludeExtraneousValues: true,
+        });
+        feedbackDto.criteriaScores = sortedCriteriaScores;
+
+        return feedbackDto;
     }
 }
