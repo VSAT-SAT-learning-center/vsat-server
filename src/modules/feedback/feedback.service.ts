@@ -119,21 +119,21 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        const feedbackPromises = managers.map(async (manager) => {
-            createFeedbackDto.accountFrom = accountFrom;
-            createFeedbackDto.accountTo = manager;
-            const feedback = this.feedbackRepository.create(createFeedbackDto);
-            this.feedbackRepository.save(feedback);
+        // const feedbackPromises = managers.map(async (manager) => {
+        //     createFeedbackDto.accountFrom = accountFrom;
+        //     createFeedbackDto.accountTo = manager;
+        //     const feedback = this.feedbackRepository.create(createFeedbackDto);
+        //     this.feedbackRepository.save(feedback);
 
-            // Store feedback details in the list
-            feedbackList.push({
-                feedbackId: feedback.id,
-                accountFrom: feedback.accountFrom.id,
-                accountTo: feedback.accountTo.id,
-            });
-        });
+        //     // Store feedback details in the list
+        //     feedbackList.push({
+        //         feedbackId: feedback.id,
+        //         accountFrom: feedback.accountFrom.id,
+        //         accountTo: feedback.accountTo.id,
+        //     });
+        // });
 
-        await Promise.all(feedbackPromises);
+        // await Promise.all(feedbackPromises);
 
         // const nofiticationData: NotificationDataDto = {
         //     data: feedbackList,
@@ -338,30 +338,30 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Process feedback for each question
-        for (const question of questions) {
-            const feedbackData = {
-                ...createFeedbackDto,
-                question,
-                accountFrom,
-            };
+        // for (const question of questions) {
+        //     const feedbackData = {
+        //         ...createFeedbackDto,
+        //         question,
+        //         accountFrom,
+        //     };
 
-            const feedback = this.feedbackRepository.create(feedbackData);
-            await this.feedbackRepository.save(feedback);
+        //     const feedback = this.feedbackRepository.create(feedbackData);
+        //     await this.feedbackRepository.save(feedback);
 
-            // Add feedback details to the return list
-            feedbackList.push({
-                feedbackId: feedback.id,
-                questionId: question.id,
-                account: {
-                    id: accountFrom.id,
-                    firstname: accountFrom.firstname,
-                    lastname: accountFrom.lastname,
-                    username: accountFrom.username,
-                    profilePicture: accountFrom.profilepictureurl,
-                },
-                createdAt: feedback.createdat,
-            });
-        }
+        //     // Add feedback details to the return list
+        //     feedbackList.push({
+        //         feedbackId: feedback.id,
+        //         questionId: question.id,
+        //         account: {
+        //             id: accountFrom.id,
+        //             firstname: accountFrom.firstname,
+        //             lastname: accountFrom.lastname,
+        //             username: accountFrom.username,
+        //             profilePicture: accountFrom.profilepictureurl,
+        //         },
+        //         createdAt: feedback.createdat,
+        //     });
+        // }
 
         // Prepare notification message
         const notificationMessage = `${accountFrom.username} has submitted ${feedbackList.length} question(s) for review`;
@@ -370,7 +370,7 @@ export class FeedbackService extends BaseService<Feedback> {
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
             accountFrom.id,
-            feedbackList,
+            questions,
             notificationMessage,
             FeedbackType.QUESTION,
             FeedbackEventType.PUBLISH_QUESTION,
@@ -383,7 +383,7 @@ export class FeedbackService extends BaseService<Feedback> {
     }
 
     async rejectQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
-        const { feedbackId, questionId, content, reason, accountFromId, accountToId } =
+        const { questionId, content, reason, accountFromId, accountToId } =
             feedbackDto;
 
         const question = await this.questionSerivce.findOneById(questionId);
@@ -524,30 +524,30 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Process feedback for each question
-        for (const quizQuestion of quizQuestions) {
-            const feedbackData = {
-                ...createFeedbackDto,
-                quizQuestion,
-                accountFrom,
-            };
+        // for (const quizQuestion of quizQuestions) {
+        //     const feedbackData = {
+        //         ...createFeedbackDto,
+        //         quizQuestion,
+        //         accountFrom,
+        //     };
 
-            const feedback = this.feedbackRepository.create(feedbackData);
-            await this.feedbackRepository.save(feedback);
+        //     const feedback = this.feedbackRepository.create(feedbackData);
+        //     await this.feedbackRepository.save(feedback);
 
-            // Add feedback details to the return list
-            feedbackList.push({
-                feedbackId: feedback.id,
-                quizQuestionId: quizQuestion.id,
-                account: {
-                    id: accountFrom.id,
-                    firstname: accountFrom.firstname,
-                    lastname: accountFrom.lastname,
-                    username: accountFrom.username,
-                    profilePicture: accountFrom.profilepictureurl,
-                },
-                createdAt: feedback.createdat,
-            });
-        }
+        //     // Add feedback details to the return list
+        //     feedbackList.push({
+        //         feedbackId: feedback.id,
+        //         quizQuestionId: quizQuestion.id,
+        //         account: {
+        //             id: accountFrom.id,
+        //             firstname: accountFrom.firstname,
+        //             lastname: accountFrom.lastname,
+        //             username: accountFrom.username,
+        //             profilePicture: accountFrom.profilepictureurl,
+        //         },
+        //         createdAt: feedback.createdat,
+        //     });
+        // }
 
         // Prepare notification message
         const notificationMessage = `${accountFrom.username} has submitted ${feedbackList.length} quiz question(s) for review`;
@@ -1798,21 +1798,21 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        const feedbackPromises = managers.map(async (manager) => {
-            createFeedbackDto.accountFrom = accountFrom;
-            createFeedbackDto.accountTo = manager;
-            const feedback = this.feedbackRepository.create(createFeedbackDto);
-            this.feedbackRepository.save(feedback);
+        // const feedbackPromises = managers.map(async (manager) => {
+        //     createFeedbackDto.accountFrom = accountFrom;
+        //     createFeedbackDto.accountTo = manager;
+        //     const feedback = this.feedbackRepository.create(createFeedbackDto);
+        //     this.feedbackRepository.save(feedback);
 
-            // Store feedback details in the list
-            feedbackList.push({
-                feedbackId: feedback.id,
-                accountFrom: feedback.accountFrom.id,
-                accountTo: feedback.accountTo.id,
-            });
-        });
+        //     // Store feedback details in the list
+        //     feedbackList.push({
+        //         feedbackId: feedback.id,
+        //         accountFrom: feedback.accountFrom.id,
+        //         accountTo: feedback.accountTo.id,
+        //     });
+        // });
 
-        await Promise.all(feedbackPromises);
+        // await Promise.all(feedbackPromises);
 
         // Prepare notification message
         const notificationMessage = 'New exam was submitted';

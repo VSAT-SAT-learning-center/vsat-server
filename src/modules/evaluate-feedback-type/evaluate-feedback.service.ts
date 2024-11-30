@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { EvaluateFeedbackType } from 'src/common/enums/evaluate-feedback-type.enum';
 import { CreateEvaluateFeedbackDto } from './dto/create-evaluate-feedback.dto';
 import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FeedbackCriteriaScores } from 'src/database/entities/feedbackcriteriascores.entity';
 import { plainToClass, plainToInstance } from 'class-transformer';
@@ -564,9 +564,10 @@ export class EvaluateFeedbackService {
     async getStaffReceivedEvaluateFeedbacks(): Promise<FeedbackResponseDto[]> {
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: {
-                evaluateFeedbackType:
-                    EvaluateFeedbackType.TEACHER_TO_STAFF ||
+                evaluateFeedbackType: In([
+                    EvaluateFeedbackType.TEACHER_TO_STAFF,
                     EvaluateFeedbackType.STUDENT_TO_STAFF,
+                ]),
             },
             relations: ['accountFrom', 'criteriaScores', 'studyProfileid'],
             order: { createdat: 'DESC' },

@@ -29,7 +29,6 @@ import { ExamStructureType } from 'src/database/entities/examstructuretype.entit
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
 import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
-import { CreateExamWithExamAttemptDto } from './dto/create-examwithattempt.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()
@@ -56,9 +55,6 @@ export class ExamService extends BaseService<Exam> {
         @Inject(forwardRef(() => FeedbackService))
         private readonly feedbackService: FeedbackService,
         private readonly examQuestionservice: ExamQuestionService,
-
-        @Inject(forwardRef(() => ExamAttemptService))
-        private readonly examAttemptService: ExamAttemptService,
     ) {
         super(examRepository);
     }

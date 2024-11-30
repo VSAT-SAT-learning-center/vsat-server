@@ -7,10 +7,10 @@ export class FeedbackResponseDto {
     id: string;
 
     @Expose()
-    createdAt: Date;
+    createdat: Date;
 
     @Expose()
-    updatedAt: Date;
+    updatedat: Date;
 
     @Expose()
     narrativeFeedback?: string;
