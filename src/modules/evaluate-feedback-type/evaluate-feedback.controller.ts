@@ -185,10 +185,10 @@ export class EvaluateFeedbackController {
         type: [EvaluateFeedback],
     })
     @ApiResponse({ status: 400, description: 'Invalid role or account ID.' })
-    async getSendedFeedbacks(@Request() req): Promise<EvaluateFeedbackResponseDto[]> {
+    async getSentFeedbacks(@Request() req): Promise<EvaluateFeedbackResponseDto[]> {
         const userId = req.user?.id;
 
-        return this.evaluateFeedbackService.getSendedEvaluateFeedbacks(userId);
+        return this.evaluateFeedbackService.getSentEvaluateFeedbacks(userId);
     }
 
     @Get('manager')

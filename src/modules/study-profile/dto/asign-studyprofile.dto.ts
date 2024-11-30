@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsUUID, IsString, ValidateNested, ArrayNotEmpty } from 'class-validator';
+import { IsUUID } from 'class-validator';
 
 export class StudyProfile {
     @ApiProperty()

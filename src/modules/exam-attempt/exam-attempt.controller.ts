@@ -282,11 +282,14 @@ export class ExamAttemptController {
     @Post('createExamAttemptWithExam/exam')
     @UseGuards(JwtAuthGuard)
     async createExamAttemptWithExam(
+        @Request() req,
         @Body() createExamAttemptDto: CreateExamWithExamAttemptDto,
     ) {
         try {
+            const accountFromId = req?.user.id;
             const createExamAttempt =
                 await this.examAttemptService.createExamAttemptWithExam(
+                    accountFromId,
                     createExamAttemptDto,
                 );
             return ResponseHelper.success(
@@ -363,8 +366,7 @@ export class ExamAttemptController {
     //@UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
     async getReport(@Param('examAttemptId') examId: string) {
         try {
-            const examAttempt =
-                await this.examAttemptService.getReport(examId);
+            const examAttempt = await this.examAttemptService.getReport(examId);
 
             return ResponseHelper.success(
                 HttpStatus.OK,
