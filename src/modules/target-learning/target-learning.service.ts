@@ -199,8 +199,8 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         const accountTo = targetLearning.studyProfile.account;
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             updatedTargetLearning,
             notificationMessage,
             FeedbackType.TARGET_LEARNING,
@@ -229,10 +229,10 @@ export class TargetLearningService extends BaseService<TargetLearning> {
         const accountTo = targetLearning.studyProfile.account;
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             targetLearning,
-            'Your Target Learning has been approved.',
+            `Your Target Learning has been approved by ${accountFrom.username}`,
             FeedbackType.TARGET_LEARNING,
             FeedbackEventType.APPROVE_TARGET_LEARNING,
         );

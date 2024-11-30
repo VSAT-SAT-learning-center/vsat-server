@@ -13,7 +13,6 @@ import { LessonService } from '../lesson/lesson.service';
 import { LearningMaterialFeedbackDto } from './dto/learning-material-feedback.dto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { AccountService } from '../account/account.service';
-import { FeedbacksGateway } from '../nofitication/feedback.gateway';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
@@ -24,33 +23,18 @@ import { ExamCensorFeedbackDto } from './dto/exam-feedback.dto';
 import { ModuleTypeService } from '../module-type/module-type.service';
 import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
 import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
-import {
-    LessonDto,
-    UnitFeedbackWithLessonResponseDto,
-} from './dto/get-unit-feedback-with-lesson.dto';
-import {
-    ExamDto,
-    FeedbackDetailResponseDto,
-    QuestionDto,
-    UnitDto,
-} from './dto/get-feedback-details.dto';
+import { UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-lesson.dto';
+import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
 import { UserFeedbackResponseDto } from './dto/get-user-feedback-details.dto';
-import { NotificationDataDto } from 'src/common/dto/notification-data.dto';
-import { Unit } from 'src/database/entities/unit.entity';
 import { Question } from 'src/database/entities/question.entity';
 import { AccountDto } from 'src/common/dto/common.dto';
 import { NotificationService } from 'src/nofitication/notification.service';
 import { QuestionService } from '../question/question.service';
-import { QuestionStatus } from 'src/common/enums/question-status.enum';
 import { QuestionMessages } from 'src/common/message/question-message';
 import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
 import { QuizQuestionService } from '../quizquestion/quiz-question.service';
-import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 import { UnitService } from '../unit/unit.service';
 import { ExamService } from '../exam/exam.service';
-import { ExamStatus } from 'src/common/enums/exam-status.enum';
-import { QuizQuestionMessages } from 'src/common/message/quiz-question-message';
-import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { LearningMaterialMessages } from 'src/common/message/learning-material-message';
 import { ExamMessages } from 'src/common/message/exam-message';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
@@ -168,7 +152,7 @@ export class FeedbackService extends BaseService<Feedback> {
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
-            accountFrom,
+            accountFrom.id,
             feedbackList,
             notificationMessage,
             FeedbackType.LEARNING_MATERIAL,
@@ -255,8 +239,8 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             rejectFeedback,
             notificationMessage,
             FeedbackType.LEARNING_MATERIAL,
@@ -323,8 +307,8 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const notificationMessage = 'Learning material was approved';
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             unitFeedback.unitId,
             notificationMessage,
             FeedbackType.LEARNING_MATERIAL,
@@ -385,7 +369,7 @@ export class FeedbackService extends BaseService<Feedback> {
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
-            accountFrom,
+            accountFrom.id,
             feedbackList,
             notificationMessage,
             FeedbackType.QUESTION,
@@ -440,8 +424,8 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             rejectFeedback,
             notificationMessage,
             FeedbackType.QUESTION,
@@ -509,8 +493,8 @@ export class FeedbackService extends BaseService<Feedback> {
         const notificationMessage = `${accountFrom.username} has approve your question`;
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             questionId,
             notificationMessage,
             FeedbackType.QUESTION,
@@ -571,7 +555,7 @@ export class FeedbackService extends BaseService<Feedback> {
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
-            accountFrom,
+            accountFrom.id,
             feedbackList,
             notificationMessage,
             FeedbackType.QUIZ_QUESTION,
@@ -628,8 +612,8 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             rejectFeedback,
             notificationMessage,
             FeedbackType.QUIZ_QUESTION,
@@ -699,8 +683,8 @@ export class FeedbackService extends BaseService<Feedback> {
         const notificationMessage = `${accountFrom.username} has approve your quiz question`;
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             quizQuestionId,
             notificationMessage,
             FeedbackType.QUIZ_QUESTION,
@@ -784,8 +768,8 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             rejectFeedback,
             notificationMessage,
             FeedbackType.EXAM,
@@ -849,8 +833,8 @@ export class FeedbackService extends BaseService<Feedback> {
         const notificationMessage = `${accountFrom.username} has approve your exam`;
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             examFeedback.examId,
             notificationMessage,
             FeedbackType.EXAM,
@@ -1836,7 +1820,7 @@ export class FeedbackService extends BaseService<Feedback> {
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
-            accountFrom,
+            accountFrom.id,
             feedbackList,
             notificationMessage,
             FeedbackType.EXAM,
@@ -1847,8 +1831,7 @@ export class FeedbackService extends BaseService<Feedback> {
     }
 
     async createQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
-        const { questionId, content, reason, accountFromId, accountToId } =
-            feedbackDto;
+        const { questionId, content, reason, accountFromId, accountToId } = feedbackDto;
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -1874,8 +1857,8 @@ export class FeedbackService extends BaseService<Feedback> {
         let notificationMessage = 'Has feedback about Questiion';
 
         await this.notificationService.createAndSendNotification(
-            accountTo,
-            accountFrom,
+            accountTo.id,
+            accountFrom.id,
             feedback,
             notificationMessage,
             FeedbackType.QUESTION,

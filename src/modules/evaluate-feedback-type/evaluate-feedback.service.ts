@@ -12,6 +12,9 @@ import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detai
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { FeedbackResponseDto } from './dto/feedback-response.dto';
 import { CreateTeacherFeedbackDto } from './dto/create-teacher-feedback.dto';
+import { NotificationService } from 'src/nofitication/notification.service';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
+import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 
 @Injectable()
 export class EvaluateFeedbackService {
@@ -22,6 +25,7 @@ export class EvaluateFeedbackService {
         private readonly feedbackCriteriaScoresRepository: Repository<FeedbackCriteriaScores>,
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
+        private readonly notificationService: NotificationService,
     ) {}
 
     async createEvaluateFeedback(
@@ -30,7 +34,6 @@ export class EvaluateFeedbackService {
         const {
             accountFromId,
             accountToId,
-            accountReviewId,
             studyProfileId,
             narrativeFeedback,
             isEscalated,
@@ -41,7 +44,6 @@ export class EvaluateFeedbackService {
         if (isSendToStaff) {
             await this.handleSendToStaffEvaluateFeedback(
                 accountFromId,
-                accountReviewId,
                 studyProfileId,
                 narrativeFeedback,
                 isEscalated,
@@ -58,7 +60,6 @@ export class EvaluateFeedbackService {
         const feedback = this.evaluateFeedbackRepository.create({
             accountFrom: { id: accountFromId },
             accountTo: { id: accountToId },
-            accountReview: accountReviewId ? { id: accountReviewId } : null,
             studyProfileid: studyProfileId ? { id: studyProfileId } : null,
             narrativeFeedback,
             isEscalated,
@@ -71,6 +72,19 @@ export class EvaluateFeedbackService {
             const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
             await this.feedbackCriteriaScoresRepository.save(scores);
         }
+
+        const notificationMessage = 'New evaluate was sent';
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendNotification(
+            accountToId,
+            accountFromId,
+            savedFeedback,
+            notificationMessage,
+            FeedbackType.EVALUATE,
+            FeedbackEventType.SEND_EVALUATE,
+        );
+
         return savedFeedback;
     }
 
@@ -91,17 +105,23 @@ export class EvaluateFeedbackService {
         return 'Feedback sent to all manager success';
     }
 
-    async createTeacherFeedback(createFeedbackDto: CreateTeacherFeedbackDto): Promise<any> {
+    async createTeacherFeedback(
+        createFeedbackDto: CreateTeacherFeedbackDto,
+    ): Promise<any> {
         const { accountFromId, accountToId, reason, narrativeFeedback } =
             createFeedbackDto;
 
-        await this.handleSendToTeacherFeedback(accountFromId, accountToId, reason, narrativeFeedback);
+        await this.handleSendToTeacherFeedback(
+            accountFromId,
+            accountToId,
+            reason,
+            narrativeFeedback,
+        );
         return 'Feedback sent to teahcer success';
     }
 
     private async handleSendToStaffEvaluateFeedback(
         accountFromId: string,
-        accountReviewId: string | null,
         studyProfileId: string | null,
         narrativeFeedback: string,
         isEscalated: boolean,
@@ -124,7 +144,6 @@ export class EvaluateFeedbackService {
 
         const feedback = this.evaluateFeedbackRepository.create({
             accountFrom: { id: accountFromId },
-            accountReview: accountReviewId ? { id: accountReviewId } : null,
             studyProfileid: studyProfileId ? { id: studyProfileId } : null,
             narrativeFeedback,
             isEscalated,
@@ -166,7 +185,23 @@ export class EvaluateFeedbackService {
             evaluateFeedbackType: feedbackType,
         });
 
-        await this.evaluateFeedbackRepository.save(feedback);
+        const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
+
+        const notificationMessage = 'New feedback was sent';
+
+        const managers = await this.accountRepository.find({
+            where: { role: { rolename: 'Staff' } },
+        });
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            managers,
+            accountFrom.id,
+            savedFeedback,
+            notificationMessage,
+            FeedbackType.FEEDBACK,
+            FeedbackEventType.SEND_FEEDBACK,
+        );
     }
 
     private async handleSendToManagerFeedback(
@@ -174,16 +209,6 @@ export class EvaluateFeedbackService {
         reason: string,
         narrativeFeedback: string,
     ): Promise<void> {
-        const accountFrom = await this.accountRepository.findOne({
-            where: { id: accountFromId },
-            select: ['id', 'role'],
-            relations: ['role'],
-        });
-
-        if (!accountFrom) {
-            throw new Error('AccountFrom not found.');
-        }
-
         const feedbackType = EvaluateFeedbackType.STAFF_TO_MANAGER;
 
         const feedback = this.evaluateFeedbackRepository.create({
@@ -193,7 +218,23 @@ export class EvaluateFeedbackService {
             evaluateFeedbackType: feedbackType,
         });
 
-        await this.evaluateFeedbackRepository.save(feedback);
+        const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
+
+        const notificationMessage = 'New feedback was sent';
+
+        const managers = await this.accountRepository.find({
+            where: { role: { rolename: 'Manager' } },
+        });
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            managers,
+            accountFromId,
+            savedFeedback,
+            notificationMessage,
+            FeedbackType.FEEDBACK,
+            FeedbackEventType.SEND_FEEDBACK,
+        );
     }
 
     private async handleSendToTeacherFeedback(
@@ -202,16 +243,6 @@ export class EvaluateFeedbackService {
         reason: string,
         narrativeFeedback: string,
     ): Promise<void> {
-        const accountFrom = await this.accountRepository.findOne({
-            where: { id: accountFromId },
-            select: ['id', 'role'],
-            relations: ['role'],
-        });
-
-        if (!accountFrom) {
-            throw new Error('AccountFrom not found.');
-        }
-
         const feedbackType = EvaluateFeedbackType.STUDENT_TO_TEACHER;
 
         const feedback = this.evaluateFeedbackRepository.create({
@@ -222,7 +253,19 @@ export class EvaluateFeedbackService {
             evaluateFeedbackType: feedbackType,
         });
 
-        await this.evaluateFeedbackRepository.save(feedback);
+        const savedFeedback = await this.evaluateFeedbackRepository.save(feedback);
+
+        const notificationMessage = 'New feedback was sent';
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendNotification(
+            accountToId,
+            accountFromId,
+            savedFeedback,
+            notificationMessage,
+            FeedbackType.FEEDBACK,
+            FeedbackEventType.SEND_FEEDBACK,
+        );
     }
 
     private mapCriteriaScores(
@@ -258,45 +301,7 @@ export class EvaluateFeedbackService {
                           profileImage: feedback.accountTo.profilepictureurl,
                       }
                     : null,
-                accountReview: feedback.accountReview
-                    ? {
-                          id: feedback.accountReview.id,
-                          username: feedback.accountReview.username,
-                          role: feedback.accountReview.role,
-                      }
-                    : null,
             }),
-        );
-    }
-
-    private transformFeedListData(
-        evaluateFeedbacks: EvaluateFeedback[],
-    ): EvaluateFeedbackResponseDto[] {
-        return evaluateFeedbacks.map((feedback) =>
-            plainToInstance(
-                EvaluateFeedbackResponseDto,
-                {
-                    id: feedback.id,
-                    createdAt: feedback.createdat,
-                    updatedAt: feedback.updatedat,
-                    narrativeFeedback: feedback.narrativeFeedback,
-                    reason: feedback.reason,
-                    evaluateFeedbackType: feedback.evaluateFeedbackType,
-                    accountFrom: {
-                        id: feedback.accountFrom.id,
-                        username: feedback.accountFrom.username,
-                        role: feedback.accountFrom.role,
-                        profileImage: feedback.accountFrom.profilepictureurl,
-                    },
-                    accountTo: {
-                        id: feedback.accountTo.id,
-                        username: feedback.accountTo.username,
-                        role: feedback.accountTo.role,
-                        profileImage: feedback.accountTo.profilepictureurl,
-                    },
-                },
-                { excludeExtraneousValues: true },
-            ),
         );
     }
 
@@ -336,12 +341,13 @@ export class EvaluateFeedbackService {
             } else if (accountTo.role.rolename === 'Staff') {
                 return EvaluateFeedbackType.TEACHER_TO_STAFF;
             }
-        } else if (
-            accountFrom.role.rolename === 'Staff' &&
-            accountTo.role.rolename === 'Teacher'
-        ) {
-            return EvaluateFeedbackType.STAFF_TO_TEACHER;
         }
+        // else if (
+        //     accountFrom.role.rolename === 'Staff' &&
+        //     accountTo.role.rolename === 'Teacher'
+        // ) {
+        //     return EvaluateFeedbackType.STAFF_TO_TEACHER;
+        // }
 
         throw new BadRequestException('Invalid role mapping for feedback type');
     }
@@ -354,7 +360,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -364,7 +369,7 @@ export class EvaluateFeedbackService {
         return this.transfromListData(feedbacks);
     }
 
-    async getSendedEvaluateFeedbacks(
+    async getSentEvaluateFeedbacks(
         accountId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
         const feedbacks = await this.evaluateFeedbackRepository.find({
@@ -372,7 +377,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -393,7 +397,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -414,7 +417,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -424,7 +426,7 @@ export class EvaluateFeedbackService {
         return this.transfromListData(feedbacks);
     }
 
-    async getFeedbacksForTeacherSended(
+    async getFeedbacksForTeacherSent(
         teacherId: string,
     ): Promise<EvaluateFeedbackResponseDto[]> {
         const feedbacks = await this.evaluateFeedbackRepository.find({
@@ -437,7 +439,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -458,7 +459,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -479,7 +479,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -489,26 +488,25 @@ export class EvaluateFeedbackService {
         return this.transfromListData(feedbacks);
     }
 
-    async getFeedbacksForStaffToTeacher(
-        staffId: string,
-    ): Promise<EvaluateFeedbackResponseDto[]> {
-        const feedbacks = await this.evaluateFeedbackRepository.find({
-            where: {
-                accountFrom: { id: staffId },
-                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_TEACHER,
-            },
-            relations: [
-                'accountFrom',
-                'accountTo',
-                'accountReview',
-                'criteriaScores',
-                'criteriaScores.criteria',
-            ],
-            order: { createdat: 'DESC' },
-        });
+    // async getFeedbacksForStaffToTeacher(
+    //     staffId: string,
+    // ): Promise<EvaluateFeedbackResponseDto[]> {
+    //     const feedbacks = await this.evaluateFeedbackRepository.find({
+    //         where: {
+    //             accountFrom: { id: staffId },
+    //             evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_TEACHER,
+    //         },
+    //         relations: [
+    //             'accountFrom',
+    //             'accountTo',
+    //             'criteriaScores',
+    //             'criteriaScores.criteria',
+    //         ],
+    //         order: { createdat: 'DESC' },
+    //     });
 
-        return this.transfromListData(feedbacks);
-    }
+    //     return this.transfromListData(feedbacks);
+    // }
 
     async getStudyProfileIdsByAccountFrom(
         accountFromId: string,
@@ -535,7 +533,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -564,37 +561,6 @@ export class EvaluateFeedbackService {
         return feedbackDto;
     }
 
-    async getReceivedEvaluateFeedbacksByRole(
-        accountId: string,
-        role: string,
-    ): Promise<EvaluateFeedbackResponseDto[]> {
-        let where;
-        if (role === 'Staff') {
-            where = {
-                evaluateFeedbackType:
-                    EvaluateFeedbackType.TEACHER_TO_STAFF ||
-                    EvaluateFeedbackType.STUDENT_TO_STAFF,
-            };
-        } else if (role === 'Manager') {
-            where = {
-                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_MANAGER,
-            };
-        }
-        const feedbacks = await this.evaluateFeedbackRepository.find({
-            where,
-            relations: [
-                'accountFrom',
-                'accountTo',
-                'accountReview',
-                'criteriaScores',
-                'criteriaScores.criteria',
-            ],
-            order: { createdat: 'DESC' },
-        });
-
-        return this.transfromListData(feedbacks);
-    }
-
     async getStaffReceivedEvaluateFeedbacks(): Promise<FeedbackResponseDto[]> {
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: {
@@ -602,31 +568,64 @@ export class EvaluateFeedbackService {
                     EvaluateFeedbackType.TEACHER_TO_STAFF ||
                     EvaluateFeedbackType.STUDENT_TO_STAFF,
             },
-            relations: ['accountFrom'],
+            relations: ['accountFrom', 'criteriaScores', 'studyProfileid'],
             order: { createdat: 'DESC' },
         });
 
-        return feedbacks.map((feedback) => {
-            // Manually map `accountFrom` into the `AccountDto` format
-            const feedbackDto = plainToInstance(
-                FeedbackResponseDto,
-                {
-                    ...feedback,
-                    accountFrom: feedback.accountFrom
-                        ? {
-                              id: feedback.accountFrom.id,
-                              username: feedback.accountFrom.username,
-                              firstname: feedback.accountFrom.firstname,
-                              lastname: feedback.accountFrom.lastname,
-                              profileImage: feedback.accountFrom.profilepictureurl,
-                          }
-                        : null,
-                },
-                { excludeExtraneousValues: true },
-            );
-
-            return feedbackDto;
-        });
+        return Promise.all(
+            feedbacks.map(async (feedback) => {
+                const feedbackDto = plainToInstance(
+                    FeedbackResponseDto,
+                    {
+                        ...feedback,
+                        accountFrom: feedback.accountFrom
+                            ? {
+                                  id: feedback.accountFrom.id,
+                                  username: feedback.accountFrom.username,
+                                  firstname: feedback.accountFrom.firstname,
+                                  lastname: feedback.accountFrom.lastname,
+                                  profileImage: feedback.accountFrom.profilepictureurl,
+                              }
+                            : null,
+                    },
+                    { excludeExtraneousValues: true },
+                );
+    
+                // Map `criteriaScores` to desired format
+                const criteriaScores = feedback.criteriaScores?.map((score) => ({
+                    name: score.criteria.name,
+                    description: score.criteria.description,
+                    score: score.score,
+                })) || [];
+    
+                // Fetch teacher information if `studyProfileid` exists
+                let teacherInfo = null;
+                if (feedback.studyProfileid?.teacherId) {
+                    const teacher = await this.accountRepository.findOne({
+                        where: { id: feedback.studyProfileid.teacherId },
+                        select: ['id', 'firstname', 'lastname', 'username', 'email', 'profilepictureurl'],
+                    });
+    
+                    if (teacher) {
+                        teacherInfo = {
+                            id: teacher.id,
+                            firstname: teacher.firstname,
+                            lastname: teacher.lastname,
+                            username: teacher.username,
+                            email: teacher.email,
+                            profilePicture: teacher.profilepictureurl,
+                        };
+                    }
+                }
+    
+                // Append new data to the DTO
+                return {
+                    ...feedbackDto,
+                    criteriaScores,
+                    teacherInfo,
+                };
+            }),
+        );
     }
 
     async getManagerReceivedEvaluateFeedbacks(): Promise<FeedbackResponseDto[]> {

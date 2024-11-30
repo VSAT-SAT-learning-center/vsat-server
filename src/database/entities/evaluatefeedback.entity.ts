@@ -38,10 +38,6 @@ export class EvaluateFeedback {
     @JoinColumn({ name: 'accounttoid' })
     accountTo: Account;
 
-    @ManyToOne(() => Account, { nullable: true })
-    @JoinColumn({ name: 'accountreviewid' })
-    accountReview: Account;
-
     @ManyToOne(() => StudyProfile, { nullable: true })
     @JoinColumn({ name: 'studyprofileid' })
     studyProfileid: StudyProfile;

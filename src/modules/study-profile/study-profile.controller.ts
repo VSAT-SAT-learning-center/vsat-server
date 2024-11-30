@@ -191,10 +191,15 @@ export class StudyProfileController {
 
     @Put('assignTeacher')
     @UseGuards(JwtAuthGuard)
-    async asignTeacher(@Body() assignStudyProfile: AssignStudyProfile) {
+    async assignTeacher(
+        @Request() req,
+        @Body() assignStudyProfile: AssignStudyProfile
+    ) {
         try {
+            const accountFromId = req.user.id;
+
             const studyProfile =
-                await this.studyProfileService.asignTeacher(assignStudyProfile);
+                await this.studyProfileService.assignTeacher(accountFromId, assignStudyProfile);
             return ResponseHelper.success(
                 HttpStatus.OK,
                 studyProfile,

@@ -82,18 +82,18 @@ export class EvaluateFeedbackController {
         );
     }
 
-    @Get('staff-to-teacher/:staffId')
-    @ApiOperation({ summary: 'Get feedbacks from Staff to Teacher' })
-    @ApiResponse({
-        status: 200,
-        description: 'Feedback list retrieved successfully.',
-        type: [EvaluateFeedback],
-    })
-    async getFeedbacksForStaffToTeacher(
-        @Param('staffId') staffId: string,
-    ): Promise<EvaluateFeedbackResponseDto[]> {
-        return this.evaluateFeedbackService.getFeedbacksForStaffToTeacher(staffId);
-    }
+    // @Get('staff-to-teacher/:staffId')
+    // @ApiOperation({ summary: 'Get feedbacks from Staff to Teacher' })
+    // @ApiResponse({
+    //     status: 200,
+    //     description: 'Feedback list retrieved successfully.',
+    //     type: [EvaluateFeedback],
+    // })
+    // async getFeedbacksForStaffToTeacher(
+    //     @Param('staffId') staffId: string,
+    // ): Promise<EvaluateFeedbackResponseDto[]> {
+    //     return this.evaluateFeedbackService.getFeedbacksForStaffToTeacher(staffId);
+    // }
 
     @Get('study-profiles')
     @ApiOperation({ summary: 'Get all study profile IDs by accountFrom' })
@@ -185,10 +185,10 @@ export class EvaluateFeedbackController {
         type: [EvaluateFeedback],
     })
     @ApiResponse({ status: 400, description: 'Invalid role or account ID.' })
-    async getSendedFeedbacks(@Request() req): Promise<EvaluateFeedbackResponseDto[]> {
+    async getSentFeedbacks(@Request() req): Promise<EvaluateFeedbackResponseDto[]> {
         const userId = req.user?.id;
 
-        return this.evaluateFeedbackService.getSendedEvaluateFeedbacks(userId);
+        return this.evaluateFeedbackService.getSentEvaluateFeedbacks(userId);
     }
 
     @Get('manager')

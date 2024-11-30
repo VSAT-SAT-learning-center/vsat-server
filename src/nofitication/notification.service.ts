@@ -18,18 +18,18 @@ export class NotificationService {
     ) {}
 
     async createAndSendMultipleNotifications(
-        managers: Account[],
-        accountFrom: Account,
+        accountTos: Account[],
+        accountFromId: string,
         notificationData: any,
         message: string,
         type: FeedbackType,
         eventType: FeedbackEventType,
     ): Promise<void> {
-        const notifications = managers.map((manager) => ({
+        const notifications = accountTos.map((accountTo) => ({
             message,
             data: notificationData,
-            accountFrom,
-            accountTo: manager,
+            accountFrom: { id: accountFromId },
+            accountTo: accountTo,
             isRead: false,
             type: type,
             eventType: eventType,
@@ -38,16 +38,45 @@ export class NotificationService {
         await this.notificationRepository.save(notifications);
 
         this.feedbackGateway.sendNotificationToMultipleUsers(
-            managers.map((manager) => manager.id),
+            accountTos.map((accountTo) => accountTo.id),
             { data: notificationData, message },
             type,
             eventType,
         );
     }
 
+    async createAndSendMultipleNotificationsNew(
+        accountToIds: string[],
+        accountFromId: string,
+        notificationData: any,
+        message: string,
+        type: FeedbackType,
+        eventType: FeedbackEventType,
+    ): Promise<void> {
+        const notifications = accountToIds.map((accountToId) => ({
+            message,
+            data: notificationData,
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
+            isRead: false,
+            type: type,
+            eventType: eventType,
+        }));
+
+        await this.notificationRepository.save(notifications);
+
+        this.feedbackGateway.sendNotificationToMultipleUsers(
+            accountToIds,
+            { data: notificationData, message },
+            type,
+            eventType,
+        );
+    }
+    
+
     async createAndSendNotification(
-        accountTo: Account,
-        accountFrom: Account,
+        accountToId: string,
+        accountFromId: string,
         notificationData: any,
         message: string,
         type: FeedbackType,
@@ -56,8 +85,8 @@ export class NotificationService {
         const notification = {
             message,
             data: notificationData,
-            accountFrom,
-            accountTo: accountTo,
+            accountFrom: { id: accountFromId },
+            accountTo: { id: accountToId },
             isRead: false,
             type: type,
             eventType: eventType,
@@ -66,7 +95,7 @@ export class NotificationService {
         await this.notificationRepository.save(notification);
 
         this.feedbackGateway.sendNotificationToUser(
-            accountTo.id,
+            accountToId,
             { data: notificationData, message },
             type,
             eventType,

@@ -31,11 +31,6 @@ export class EvaluateFeedbackDetailResponseDto {
     @Type(() => AccountDto)
     accountTo: AccountDto;
 
-    @ApiProperty({ description: 'Account reviewed in the feedback, if applicable' })
-    @Expose()
-    @Type(() => AccountDto)
-    accountReview: AccountDto;
-
     @ApiProperty({ description: 'Narrative feedback content' })
     @Expose()
     narrativeFeedback: string;

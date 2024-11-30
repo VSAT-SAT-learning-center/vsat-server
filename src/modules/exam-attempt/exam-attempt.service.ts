@@ -36,6 +36,9 @@ import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
+import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { NotificationService } from 'src/nofitication/notification.service';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
@@ -79,6 +82,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         @Inject(forwardRef(() => ExamAttemptDetailService))
         private readonly examAttemptDetailService: ExamAttemptDetailService,
         private readonly studyProfileService: StudyProfileService,
+        private readonly notificationService: NotificationService,
     ) {
         super(examAttemptRepository);
     }
@@ -1230,7 +1234,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return examAttemptArrs;
     }
 
-    async createExamAttemptWithExam(createExamDto: CreateExamWithExamAttemptDto) {
+    async createExamAttemptWithExam(
+        accountFromId: string,
+        createExamDto: CreateExamWithExamAttemptDto,
+    ) {
         const exam = await this.examRepository.findOne({
             where: { id: createExamDto.examId },
         });
@@ -1252,7 +1259,21 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             }),
         );
 
-        return await this.examAttemptRepository.save(examAttemptArrs);
+        const savedExamAttemptArrs =
+            await this.examAttemptRepository.save(examAttemptArrs);
+
+        const notificationMessage = `You have been assigned the test: ${exam.title}`;
+
+        await this.notificationService.createAndSendMultipleNotificationsNew(
+            createExamDto.studyProfileIds,
+            accountFromId,
+            savedExamAttemptArrs,
+            notificationMessage,
+            FeedbackType.ASSIGN_EXAM,
+            FeedbackEventType.ASSIGN_EXAM,
+        );
+
+        return savedExamAttemptArrs;
     }
 
     async getExamAttemptWithStudyProfileByTeacher(teacherId: string) {

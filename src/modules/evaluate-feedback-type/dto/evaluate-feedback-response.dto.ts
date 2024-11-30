@@ -27,9 +27,4 @@ export class EvaluateFeedbackResponseDto {
     @ApiProperty({ description: 'Account details of the feedback recipient.' })
     accountTo: AccountDto;
 
-    @ApiProperty({
-        description: 'Account details of the staff reviewing the feedback.',
-        required: false,
-    })
-    accountReview?: AccountDto;
 }

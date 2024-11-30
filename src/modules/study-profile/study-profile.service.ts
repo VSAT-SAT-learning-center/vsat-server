@@ -1,7 +1,7 @@
 import { UpdateStudyProfileDto } from './dto/update-studyprofile.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
@@ -12,6 +12,9 @@ import { TargetLearningStatus } from 'src/common/enums/target-learning-status.en
 import { Account } from 'src/database/entities/account.entity';
 import { CreateStudyProfileDto } from './dto/create-studyprofile.dto';
 import { AccountDto } from 'src/common/dto/common.dto';
+import { NotificationService } from 'src/nofitication/notification.service';
+import { FeedbackType } from 'src/common/enums/feedback-type.enum';
+import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 
 @Injectable()
 export class StudyProfileService {
@@ -22,6 +25,7 @@ export class StudyProfileService {
         private readonly targetLearningRepository: Repository<TargetLearning>,
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
+        private readonly notificationService: NotificationService
     ) {}
 
     async getStudyProfileByAccountId(accountId: string) {
@@ -113,8 +117,15 @@ export class StudyProfileService {
         return save;
     }
 
-    async asignTeacher(assignStudyProfile: AssignStudyProfile) {
+    async assignTeacher(
+        accountFromId: string,
+        assignStudyProfile: AssignStudyProfile
+    ) {
         const studyArr = [];
+
+        const teacher = await this.accountRepository.findOne({
+            where: { id: assignStudyProfile.teacherId },
+        });
 
         for (const studyData of assignStudyProfile.studyProfiles) {
             const studyProfile = await this.studyProfileRepository.findOne({
@@ -122,6 +133,7 @@ export class StudyProfileService {
                     id: studyData.studyProfileId,
                     status: StudyProfileStatus.ACTIVE,
                 },
+                relations: ['account'],
             });
 
             if (!studyProfile) {
@@ -132,8 +144,31 @@ export class StudyProfileService {
 
             studyArr.push(studyProfile);
         }
+        
+        const savedStudyprofile = await this.studyProfileRepository.save(studyArr);
 
-        return await this.studyProfileRepository.save(studyArr);
+        //Send noti to teacher
+        await this.notificationService.createAndSendNotification(
+            teacher.id,
+            accountFromId,
+            savedStudyprofile,
+            'You has been assigned a study profile',
+            FeedbackType.ASSIGN_TEACHER,
+            FeedbackEventType.ASSIGN_TEACHER,
+        );
+
+        const listStudentId = studyArr.map((item) => item.account.id);
+        //Send noti to student
+        await this.notificationService.createAndSendMultipleNotificationsNew(
+            listStudentId,
+            accountFromId,
+            savedStudyprofile,
+            `Your study profile has been assigned to ${teacher.username}`,
+            FeedbackType.ASSIGN_TEACHER,
+            FeedbackEventType.ASSIGN_TEACHER,
+        );
+
+        return savedStudyprofile;
     }
 
     async get(page: number, pageSize: number): Promise<any> {
