@@ -569,7 +569,12 @@ export class EvaluateFeedbackService {
                     EvaluateFeedbackType.STUDENT_TO_STAFF,
                 ]),
             },
-            relations: ['accountFrom', 'criteriaScores', 'studyProfileid'],
+            relations: [
+                'accountFrom',
+                'criteriaScores',
+                'criteriaScores.criteria',
+                'studyProfileid',
+            ],
             order: { createdat: 'DESC' },
         });
 
@@ -591,22 +596,31 @@ export class EvaluateFeedbackService {
                     },
                     { excludeExtraneousValues: true },
                 );
-    
+
                 // Map `criteriaScores` to desired format
-                const criteriaScores = feedback.criteriaScores?.map((score) => ({
-                    name: score.criteria.name,
-                    description: score.criteria.description,
-                    score: score.score,
-                })) || [];
-    
+                const criteriaScores =
+                    feedback.criteriaScores?.map((score) => ({
+                        id: score.criteria.id,
+                        name: score.criteria.name,
+                        description: score.criteria.description,
+                        score: score.score,
+                    })) || [];
+
                 // Fetch teacher information if `studyProfileid` exists
                 let teacherInfo = null;
                 if (feedback.studyProfileid?.teacherId) {
                     const teacher = await this.accountRepository.findOne({
                         where: { id: feedback.studyProfileid.teacherId },
-                        select: ['id', 'firstname', 'lastname', 'username', 'email', 'profilepictureurl'],
+                        select: [
+                            'id',
+                            'firstname',
+                            'lastname',
+                            'username',
+                            'email',
+                            'profilepictureurl',
+                        ],
                     });
-    
+
                     if (teacher) {
                         teacherInfo = {
                             id: teacher.id,
@@ -618,7 +632,7 @@ export class EvaluateFeedbackService {
                         };
                     }
                 }
-    
+
                 // Append new data to the DTO
                 return {
                     ...feedbackDto,
