@@ -34,7 +34,6 @@ export class EvaluateFeedbackService {
         const {
             accountFromId,
             accountToId,
-            accountReviewId,
             studyProfileId,
             narrativeFeedback,
             isEscalated,
@@ -45,7 +44,6 @@ export class EvaluateFeedbackService {
         if (isSendToStaff) {
             await this.handleSendToStaffEvaluateFeedback(
                 accountFromId,
-                accountReviewId,
                 studyProfileId,
                 narrativeFeedback,
                 isEscalated,
@@ -62,7 +60,6 @@ export class EvaluateFeedbackService {
         const feedback = this.evaluateFeedbackRepository.create({
             accountFrom: { id: accountFromId },
             accountTo: { id: accountToId },
-            accountReview: accountReviewId ? { id: accountReviewId } : null,
             studyProfileid: studyProfileId ? { id: studyProfileId } : null,
             narrativeFeedback,
             isEscalated,
@@ -125,7 +122,6 @@ export class EvaluateFeedbackService {
 
     private async handleSendToStaffEvaluateFeedback(
         accountFromId: string,
-        accountReviewId: string | null,
         studyProfileId: string | null,
         narrativeFeedback: string,
         isEscalated: boolean,
@@ -148,7 +144,6 @@ export class EvaluateFeedbackService {
 
         const feedback = this.evaluateFeedbackRepository.create({
             accountFrom: { id: accountFromId },
-            accountReview: accountReviewId ? { id: accountReviewId } : null,
             studyProfileid: studyProfileId ? { id: studyProfileId } : null,
             narrativeFeedback,
             isEscalated,
@@ -306,13 +301,6 @@ export class EvaluateFeedbackService {
                           profileImage: feedback.accountTo.profilepictureurl,
                       }
                     : null,
-                accountReview: feedback.accountReview
-                    ? {
-                          id: feedback.accountReview.id,
-                          username: feedback.accountReview.username,
-                          role: feedback.accountReview.role,
-                      }
-                    : null,
             }),
         );
     }
@@ -372,7 +360,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -390,7 +377,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -411,7 +397,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -432,7 +417,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -455,7 +439,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -476,7 +459,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -497,7 +479,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -518,7 +499,6 @@ export class EvaluateFeedbackService {
     //         relations: [
     //             'accountFrom',
     //             'accountTo',
-    //             'accountReview',
     //             'criteriaScores',
     //             'criteriaScores.criteria',
     //         ],
@@ -553,7 +533,6 @@ export class EvaluateFeedbackService {
             relations: [
                 'accountFrom',
                 'accountTo',
-                'accountReview',
                 'criteriaScores',
                 'criteriaScores.criteria',
             ],
@@ -589,31 +568,64 @@ export class EvaluateFeedbackService {
                     EvaluateFeedbackType.TEACHER_TO_STAFF ||
                     EvaluateFeedbackType.STUDENT_TO_STAFF,
             },
-            relations: ['accountFrom'],
+            relations: ['accountFrom', 'criteriaScores', 'studyProfileid'],
             order: { createdat: 'DESC' },
         });
 
-        return feedbacks.map((feedback) => {
-            // Manually map `accountFrom` into the `AccountDto` format
-            const feedbackDto = plainToInstance(
-                FeedbackResponseDto,
-                {
-                    ...feedback,
-                    accountFrom: feedback.accountFrom
-                        ? {
-                              id: feedback.accountFrom.id,
-                              username: feedback.accountFrom.username,
-                              firstname: feedback.accountFrom.firstname,
-                              lastname: feedback.accountFrom.lastname,
-                              profileImage: feedback.accountFrom.profilepictureurl,
-                          }
-                        : null,
-                },
-                { excludeExtraneousValues: true },
-            );
-
-            return feedbackDto;
-        });
+        return Promise.all(
+            feedbacks.map(async (feedback) => {
+                const feedbackDto = plainToInstance(
+                    FeedbackResponseDto,
+                    {
+                        ...feedback,
+                        accountFrom: feedback.accountFrom
+                            ? {
+                                  id: feedback.accountFrom.id,
+                                  username: feedback.accountFrom.username,
+                                  firstname: feedback.accountFrom.firstname,
+                                  lastname: feedback.accountFrom.lastname,
+                                  profileImage: feedback.accountFrom.profilepictureurl,
+                              }
+                            : null,
+                    },
+                    { excludeExtraneousValues: true },
+                );
+    
+                // Map `criteriaScores` to desired format
+                const criteriaScores = feedback.criteriaScores?.map((score) => ({
+                    name: score.criteria.name,
+                    description: score.criteria.description,
+                    score: score.score,
+                })) || [];
+    
+                // Fetch teacher information if `studyProfileid` exists
+                let teacherInfo = null;
+                if (feedback.studyProfileid?.teacherId) {
+                    const teacher = await this.accountRepository.findOne({
+                        where: { id: feedback.studyProfileid.teacherId },
+                        select: ['id', 'firstname', 'lastname', 'username', 'email', 'profilepictureurl'],
+                    });
+    
+                    if (teacher) {
+                        teacherInfo = {
+                            id: teacher.id,
+                            firstname: teacher.firstname,
+                            lastname: teacher.lastname,
+                            username: teacher.username,
+                            email: teacher.email,
+                            profilePicture: teacher.profilepictureurl,
+                        };
+                    }
+                }
+    
+                // Append new data to the DTO
+                return {
+                    ...feedbackDto,
+                    criteriaScores,
+                    teacherInfo,
+                };
+            }),
+        );
     }
 
     async getManagerReceivedEvaluateFeedbacks(): Promise<FeedbackResponseDto[]> {

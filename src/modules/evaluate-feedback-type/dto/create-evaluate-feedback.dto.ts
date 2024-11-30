@@ -19,13 +19,6 @@ export class CreateEvaluateFeedbackDto {
     accountToId: string;
 
     @ApiProperty({
-        description: 'ID of the staff member reviewing the feedback.',
-        required: false,
-    })
-    @IsOptional()
-    accountReviewId?: string;
-
-    @ApiProperty({
         description: 'ID of the student study profile for feedback.',
         required: false,
     })
