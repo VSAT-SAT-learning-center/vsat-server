@@ -336,12 +336,13 @@ export class EvaluateFeedbackService {
             } else if (accountTo.role.rolename === 'Staff') {
                 return EvaluateFeedbackType.TEACHER_TO_STAFF;
             }
-        } else if (
-            accountFrom.role.rolename === 'Staff' &&
-            accountTo.role.rolename === 'Teacher'
-        ) {
-            return EvaluateFeedbackType.STAFF_TO_TEACHER;
-        }
+        } 
+        // else if (
+        //     accountFrom.role.rolename === 'Staff' &&
+        //     accountTo.role.rolename === 'Teacher'
+        // ) {
+        //     return EvaluateFeedbackType.STAFF_TO_TEACHER;
+        // }
 
         throw new BadRequestException('Invalid role mapping for feedback type');
     }
@@ -489,26 +490,26 @@ export class EvaluateFeedbackService {
         return this.transfromListData(feedbacks);
     }
 
-    async getFeedbacksForStaffToTeacher(
-        staffId: string,
-    ): Promise<EvaluateFeedbackResponseDto[]> {
-        const feedbacks = await this.evaluateFeedbackRepository.find({
-            where: {
-                accountFrom: { id: staffId },
-                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_TEACHER,
-            },
-            relations: [
-                'accountFrom',
-                'accountTo',
-                'accountReview',
-                'criteriaScores',
-                'criteriaScores.criteria',
-            ],
-            order: { createdat: 'DESC' },
-        });
+    // async getFeedbacksForStaffToTeacher(
+    //     staffId: string,
+    // ): Promise<EvaluateFeedbackResponseDto[]> {
+    //     const feedbacks = await this.evaluateFeedbackRepository.find({
+    //         where: {
+    //             accountFrom: { id: staffId },
+    //             evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_TEACHER,
+    //         },
+    //         relations: [
+    //             'accountFrom',
+    //             'accountTo',
+    //             'accountReview',
+    //             'criteriaScores',
+    //             'criteriaScores.criteria',
+    //         ],
+    //         order: { createdat: 'DESC' },
+    //     });
 
-        return this.transfromListData(feedbacks);
-    }
+    //     return this.transfromListData(feedbacks);
+    // }
 
     async getStudyProfileIdsByAccountFrom(
         accountFromId: string,
