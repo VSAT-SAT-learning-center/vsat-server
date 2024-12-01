@@ -38,7 +38,7 @@ export class EvaluateFeedbackService {
 
         const checkExist = await this.checkEvaluateFeedbackExist(createFeedbackDto.accountFromId )
         if (checkExist.IsExisted) {
-            return 'You have already evaluated';
+            throw new BadRequestException('Evaluate feedback already exist');
         }
 
         const studyProfileId = checkExist.StudyProfile.id;
