@@ -1270,7 +1270,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             accountFromId,
             savedExamAttemptArrs,
             notificationMessage,
-            FeedbackType.ASSIGN_EXAM,
+            FeedbackType.EXAM,
             FeedbackEventType.ASSIGN_EXAM,
         );
 

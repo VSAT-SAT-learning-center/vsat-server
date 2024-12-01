@@ -92,7 +92,7 @@ export class EvaluateFeedbackService {
             accountFromId,
             savedFeedback,
             notificationMessage,
-            FeedbackType.EVALUATE,
+            FeedbackType.FEEDBACK,
             FeedbackEventType.SEND_EVALUATE,
         );
 

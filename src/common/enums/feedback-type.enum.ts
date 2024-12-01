@@ -1,12 +1,9 @@
 export enum FeedbackType {
-    LEARNING_MATERIAL = 'learningMaterialNotification',
-    EXAM = 'examNotification',
-    QUESTION = 'questionNotification',
-    QUIZ_QUESTION = 'quizQuestionNotification',
-    TARGET_LEARNING = 'targetLearningNotification',
-    EVALUATE = 'evaluateNotification',
-    FEEDBACK = 'feedbackNotification',
-    ASSIGN_EXAM = 'assignExamNotification',
-    ASSIGN_TEACHER = 'assignTeacherNotification',
+    LEARNING_MATERIAL = 'learningMaterial',
+    EXAM = 'exam',
+    QUESTION = 'question',
+    TARGET_LEARNING = 'targetLearning',
+    FEEDBACK = 'feedback',
+    USER = 'user',
     UNKNOWN = 'unknown',
 }

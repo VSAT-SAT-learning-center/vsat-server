@@ -13,7 +13,9 @@ import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { SocketNotificationDto } from 'src/nofitication/notification.dto';
 
-@WebSocketGateway({ namespace: '/socket', cors: { origin: '*' } })
+@WebSocketGateway({ namespace: '/socket', cors: { origin: ['https://vsatcenter.edu.vn/'], // Replace with your frontend domain
+    methods: ['GET', 'POST'],
+    credentials: true } })
 export class FeedbacksGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
