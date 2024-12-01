@@ -13,9 +13,14 @@ import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { SocketNotificationDto } from 'src/nofitication/notification.dto';
 
-@WebSocketGateway({ namespace: '/socket', cors: { origin: ['https://vsatcenter.edu.vn/'], // Replace with your frontend domain
-    methods: ['GET', 'POST'],
-    credentials: true } })
+@WebSocketGateway({
+    namespace: '/socket',
+    cors: {
+        origin: ['https://vsatcenter.edu.vn'], // Replace with your frontend domain
+        methods: ['GET', 'POST'],
+        credentials: true,
+    },
+})
 export class FeedbacksGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -45,9 +50,9 @@ export class FeedbacksGateway
 
             const userId = payload.id;
             this.users.set(userId, client); // Store the socket connection
-           // console.log(`User authenticated and connected: ${userId}`);
+            // console.log(`User authenticated and connected: ${userId}`);
         } catch (error) {
-           // console.error('Authentication failed:', error.message);
+            // console.error('Authentication failed:', error.message);
             client.disconnect();
         }
     }
@@ -80,7 +85,7 @@ export class FeedbacksGateway
             });
             //console.log(`Notification sent to user: ${userId}`);
         } else {
-           console.log(`User not connected: ${userId}`);
+            console.log(`User not connected: ${userId}`);
         }
     }
 
@@ -94,10 +99,9 @@ export class FeedbacksGateway
             this.sendNotificationToUser(userId, data, type, eventType);
         });
     }
-    
 
     broadcastNotification(data: any) {
-       // console.log('Broadcasting feedback notification...');
+        // console.log('Broadcasting feedback notification...');
         this.handleEmitSocket({
             data: data,
             event: 'feedbackNotification',
@@ -121,11 +125,11 @@ export class FeedbacksGateway
         const payload = {
             type: type,
             eventType: eventType,
-            data: data
+            data: data,
         };
 
         //console.log("Payload is: ",payload);
-        
+
         if (to) {
             this.server.to(to).emit(event, payload);
         } else {
