@@ -15,6 +15,9 @@ jobs:
             # Bước 1: Tải mã nguồn từ repository về VPS
             - name: Checkout code
               uses: actions/checkout@v2
+              with:
+                fetch-depth: 1
+                debug: true
 
             # Bước 2: Kiểm tra người dùng hiện tại
             - name: Check current user
