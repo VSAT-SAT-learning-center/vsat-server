@@ -614,7 +614,7 @@ export class StudyProfileService {
                     .getQuery();
                 return `studyProfile.createdat = ${subQuery}`;
             })
-            .orderBy('studyProfile.createdat', 'DESC') // Sắp xếp theo createdat mới nhất
+            .orderBy('studyProfile.createdat', 'DESC')
             .skip(skip)
             .take(pageSize);
 
