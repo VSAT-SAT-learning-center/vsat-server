@@ -30,19 +30,19 @@ jobs:
             # Bước 3: Tạo file .env với các thông tin cấu hình
             - name: Create .env file
               run: |
-                  echo "POSTGRES_HOST=103.163.25.160" > .env
-                  echo "POSTGRES_PORT=5432" >> .env
-                  echo "POSTGRES_USER=postgres" >> .env
-                  echo "POSTGRES_DB=vsat" >> .env
-                  echo "POSTGRES_SYNC=true" >> .env
-                  echo "POSTGRES_LOGGING=true" >> .env
-                  echo "MONGO_URI=mongodb://localhost:27017/nest" >> .env
-                  echo "MAIL_USER=vsat.center.official@gmail.com" >> .env
-                  echo "ACCESS_TOKEN_KEY=${{ secrets.ACCESS_TOKEN_KEY }}" >> .env
-                  echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-                  echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
-                  echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> .env
+                echo "POSTGRES_HOST=103.163.25.160" > /home/runner/vsat-server/.env
+                echo "POSTGRES_PORT=5432" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_USER=postgres" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_DB=vsat" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_SYNC=true" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_LOGGING=true" >> /home/runner/vsat-server/.env
+                echo "MONGO_URI=mongodb://localhost:27017/nest" >> /home/runner/vsat-server/.env
+                echo "MAIL_USER=vsat.center.official@gmail.com" >> /home/runner/vsat-server/.env
+                echo "ACCESS_TOKEN_KEY=${{ secrets.ACCESS_TOKEN_KEY }}" >> /home/runner/vsat-server/.env
+                echo "API_KEY=${{ secrets.API_KEY }}" >> /home/runner/vsat-server/.env
+                echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> /home/runner/vsat-server/.env
+                echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> /home/runner/vsat-server/.env
 
             # Bước 4: Cập nhật mã nguồn mới nhất (nếu đã clone từ trước)
             - name: Pull latest code
