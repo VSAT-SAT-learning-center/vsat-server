@@ -1549,8 +1549,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
     ): Promise<string[]> {
         const accounts = await this.studyProfileRepository.find({
             where: { id: In(studyProfileId) },
+            relations: ['account'],
         });
 
-        return accounts.map((account) => account.id);
+        return accounts.map((studyProfile) => studyProfile.account.id);
     }
 }
