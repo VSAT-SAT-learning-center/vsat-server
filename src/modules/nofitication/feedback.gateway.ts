@@ -8,13 +8,11 @@ import {
     OnGatewayDisconnect,
     SubscribeMessage,
 } from '@nestjs/websockets';
-import { Console } from 'console';
 import { Server, Socket } from 'socket.io';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
-import { Feedback } from 'src/database/entities/feedback.entity';
 
-@WebSocketGateway(5001, { namespace: '/feedbacks', cors: { origin: '*' } })
+@WebSocketGateway({ namespace: '/socket', cors: { origin: '*' } })
 export class FeedbacksGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {

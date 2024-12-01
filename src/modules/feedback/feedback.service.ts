@@ -338,30 +338,30 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         // Process feedback for each question
-        // for (const question of questions) {
-        //     const feedbackData = {
-        //         ...createFeedbackDto,
-        //         question,
-        //         accountFrom,
-        //     };
+        for (const question of questions) {
+            const feedbackData = {
+                ...createFeedbackDto,
+                question,
+                accountFrom,
+            };
 
-        //     const feedback = this.feedbackRepository.create(feedbackData);
-        //     await this.feedbackRepository.save(feedback);
+            const feedback = this.feedbackRepository.create(feedbackData);
+            await this.feedbackRepository.save(feedback);
 
-        //     // Add feedback details to the return list
-        //     feedbackList.push({
-        //         feedbackId: feedback.id,
-        //         questionId: question.id,
-        //         account: {
-        //             id: accountFrom.id,
-        //             firstname: accountFrom.firstname,
-        //             lastname: accountFrom.lastname,
-        //             username: accountFrom.username,
-        //             profilePicture: accountFrom.profilepictureurl,
-        //         },
-        //         createdAt: feedback.createdat,
-        //     });
-        // }
+            // Add feedback details to the return list
+            feedbackList.push({
+                feedbackId: feedback.id,
+                questionId: question.id,
+                account: {
+                    id: accountFrom.id,
+                    firstname: accountFrom.firstname,
+                    lastname: accountFrom.lastname,
+                    username: accountFrom.username,
+                    profilePicture: accountFrom.profilepictureurl,
+                },
+                createdAt: feedback.createdat,
+            });
+        }
 
         // Prepare notification message
         const notificationMessage = `${accountFrom.username} has submitted ${feedbackList.length} question(s) for review`;
