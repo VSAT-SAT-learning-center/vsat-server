@@ -119,33 +119,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // const feedbackPromises = managers.map(async (manager) => {
-        //     createFeedbackDto.accountFrom = accountFrom;
-        //     createFeedbackDto.accountTo = manager;
-        //     const feedback = this.feedbackRepository.create(createFeedbackDto);
-        //     this.feedbackRepository.save(feedback);
-
-        //     // Store feedback details in the list
-        //     feedbackList.push({
-        //         feedbackId: feedback.id,
-        //         accountFrom: feedback.accountFrom.id,
-        //         accountTo: feedback.accountTo.id,
-        //     });
-        // });
-
-        // await Promise.all(feedbackPromises);
-
-        // const nofiticationData: NotificationDataDto = {
-        //     data: feedbackList,
-        //     message: 'New learning material was submitted',
-        // };
-
-        // this.feedbackGateway.sendNotificationToMultipleUsers(
-        //     managers.map((manager) => manager.id),
-        //     nofiticationData,
-        //     FeedbackEventType.UNIT_FEEDBACK,
-        // );
-
         // Prepare notification message
         const notificationMessage = 'New learning material was submitted';
 
@@ -218,18 +191,6 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
         });
 
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: rejectFeedback.id, unitId: unitFeedback.unitId },
-        //     message: `Learning material was rejected`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.UNIT_FEEDBACK,
-        // );
-
         let notificationMessage;
 
         if (!unit.isActive) {
@@ -284,27 +245,6 @@ export class FeedbackService extends BaseService<Feedback> {
             );
         }
 
-        // // Create feedback entry for the approved unit
-        // const approvedFeedback = await this.feedbackRepository.save({
-        //     unit: { id: unitFeedback.unitId },
-        //     accountFrom: { id: accountFromId },
-        //     accountTo: { id: accountToId },
-        //     content: 'Approved',
-        //     status: FeedbackStatus.APPROVED,
-        // });
-
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: approvedFeedback.id, unitId: unitFeedback.unitId },
-        //     message: `Learning material was approved`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.UNIT_FEEDBACK,
-        // );
-
         const notificationMessage = 'Learning material was approved';
         await this.notificationService.createAndSendNotification(
             accountTo.id,
@@ -337,34 +277,8 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // Process feedback for each question
-        for (const question of questions) {
-            const feedbackData = {
-                ...createFeedbackDto,
-                question,
-                accountFrom,
-            };
-
-            const feedback = this.feedbackRepository.create(feedbackData);
-            await this.feedbackRepository.save(feedback);
-
-            // Add feedback details to the return list
-            feedbackList.push({
-                feedbackId: feedback.id,
-                questionId: question.id,
-                account: {
-                    id: accountFrom.id,
-                    firstname: accountFrom.firstname,
-                    lastname: accountFrom.lastname,
-                    username: accountFrom.username,
-                    profilePicture: accountFrom.profilepictureurl,
-                },
-                createdAt: feedback.createdat,
-            });
-        }
-
         // Prepare notification message
-        const notificationMessage = `${accountFrom.username} has submitted ${feedbackList.length} question(s) for review`;
+        const notificationMessage = `${accountFrom.username} has submitted ${questions.length} question(s) for review`;
 
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
@@ -432,18 +346,6 @@ export class FeedbackService extends BaseService<Feedback> {
             FeedbackEventType.REJECT_QUESTION,
         );
 
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: rejectFeedback.id, questionId: questionId },
-        //     message: `Question was rejected`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.REJECT_QUESTION_FEEDBACK,
-        // );
-
         return rejectFeedback;
     }
 
@@ -469,26 +371,6 @@ export class FeedbackService extends BaseService<Feedback> {
         if (accountTo === null) {
             throw new NotFoundException('Account To not found');
         }
-
-        // const approvedFeedback = await this.feedbackRepository.save({
-        //     question: { id: questionId },
-        //     accountFrom: { id: accountFromId },
-        //     accountTo: { id: accountToId },
-        //     content,
-        //     status: FeedbackStatus.APPROVED,
-        // });
-
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: approvedFeedback.id, questionId: questionId },
-        //     message: `Question was approved`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.APPROVE_QUESTION_FEEDBACK,
-        // );
 
         const notificationMessage = `${accountFrom.username} has approve your question`;
 
@@ -523,34 +405,8 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // Process feedback for each question
-        // for (const quizQuestion of quizQuestions) {
-        //     const feedbackData = {
-        //         ...createFeedbackDto,
-        //         quizQuestion,
-        //         accountFrom,
-        //     };
-
-        //     const feedback = this.feedbackRepository.create(feedbackData);
-        //     await this.feedbackRepository.save(feedback);
-
-        //     // Add feedback details to the return list
-        //     feedbackList.push({
-        //         feedbackId: feedback.id,
-        //         quizQuestionId: quizQuestion.id,
-        //         account: {
-        //             id: accountFrom.id,
-        //             firstname: accountFrom.firstname,
-        //             lastname: accountFrom.lastname,
-        //             username: accountFrom.username,
-        //             profilePicture: accountFrom.profilepictureurl,
-        //         },
-        //         createdAt: feedback.createdat,
-        //     });
-        // }
-
         // Prepare notification message
-        const notificationMessage = `${accountFrom.username} has submitted ${feedbackList.length} quiz question(s) for review`;
+        const notificationMessage = `${accountFrom.username} has submitted ${quizQuestions.length} quiz question(s) for review`;
 
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
@@ -558,7 +414,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom.id,
             feedbackList,
             notificationMessage,
-            FeedbackType.QUIZ_QUESTION,
+            FeedbackType.QUESTION,
             FeedbackEventType.PUBLISH_QUIZ_QUESTION,
         );
 
@@ -616,21 +472,9 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom.id,
             rejectFeedback,
             notificationMessage,
-            FeedbackType.QUIZ_QUESTION,
+            FeedbackType.QUESTION,
             FeedbackEventType.REJECT_QUIZ_QUESTION,
         );
-
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: rejectFeedback.id, quizQuestionId: quizQuestionId },
-        //     message: `Quiz Question was rejected`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
-        // );
 
         return rejectFeedback;
     }
@@ -660,26 +504,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account To not found');
         }
 
-        // const approvedFeedback = await this.feedbackRepository.save({
-        //     quizQuestion: { id: quizQuestionId },
-        //     accountFrom: { id: accountFromId },
-        //     accountTo: { id: accountToId },
-        //     content,
-        //     status: FeedbackStatus.APPROVED,
-        // });
-
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: approvedFeedback.id, quizQuestionId: quizQuestionId },
-        //     message: `Quiz Question was Approved`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.QUIZ_QUESTION_FEEDBACK,
-        // );
-
         const notificationMessage = `${accountFrom.username} has approve your quiz question`;
 
         await this.notificationService.createAndSendNotification(
@@ -687,7 +511,7 @@ export class FeedbackService extends BaseService<Feedback> {
             accountFrom.id,
             quizQuestionId,
             notificationMessage,
-            FeedbackType.QUIZ_QUESTION,
+            FeedbackType.QUESTION,
             FeedbackEventType.APPROVE_QUIZ_QUESTION,
         );
     }
@@ -747,18 +571,6 @@ export class FeedbackService extends BaseService<Feedback> {
             accountTo: { id: accountToId },
         });
 
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: rejectFeedback.id, examId: examFeedback.examId },
-        //     message: `Exam was rejected`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.EXAM_FEEDBACK,
-        // );
-
         let notificationMessage;
 
         if (!exam.isActive) {
@@ -817,18 +629,6 @@ export class FeedbackService extends BaseService<Feedback> {
             content: 'Approved',
             status: FeedbackStatus.APPROVED,
         });
-
-        // const nofiticationData: NotificationDataDto = {
-        //     data: { feedbackId: approvedFeedback.id, examId: examFeedback.examId },
-        //     message: `Exam was approved`,
-        // };
-
-        // console.log('sending notification to user: ', accountToId);
-        // this.feedbackGateway.sendNotificationToUser(
-        //     accountToId,
-        //     nofiticationData,
-        //     FeedbackEventType.EXAM_FEEDBACK,
-        // );
 
         const notificationMessage = `${accountFrom.username} has approve your exam`;
 

@@ -153,7 +153,7 @@ export class StudyProfileService {
             accountFromId,
             savedStudyprofile,
             'You has been assigned a study profile',
-            FeedbackType.ASSIGN_TEACHER,
+            FeedbackType.USER,
             FeedbackEventType.ASSIGN_TEACHER,
         );
 
@@ -164,7 +164,7 @@ export class StudyProfileService {
             accountFromId,
             savedStudyprofile,
             `Your study profile has been assigned to ${teacher.username}`,
-            FeedbackType.ASSIGN_TEACHER,
+            FeedbackType.USER,
             FeedbackEventType.ASSIGN_TEACHER,
         );
 
