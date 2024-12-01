@@ -11,19 +11,20 @@ jobs:
         runs-on: self-hosted  # Sử dụng runner tự quản trên VPS
         environment: docker
         steps:
-            # Bước 1: Kiểm tra mã nguồn hiện tại nếu đã clone trước đó
-            - name: Checkout code (First time)
+            # Bước 1: Sử dụng lệnh git để clone mã nguồn vào thư mục có quyền ghi
+            - name: Clone code with git
               run: |
-                if [ ! -d "/root/vsat-server" ]; then
-                  git clone https://github.com/VSAT-SAT-learning-center/vsat-server.git /root/vsat-server
+                # Chọn thư mục không phải là /root, ví dụ /home/runner hoặc thư mục tùy chỉnh
+                if [ ! -d "/home/runner/vsat-server" ]; then
+                  git clone https://github.com/VSAT-SAT-learning-center/vsat-server.git /home/runner/vsat-server
                 fi
-                cd /root/vsat-server
+                cd /home/runner/vsat-server
                 git checkout main
 
             # Bước 2: Cài đặt npm dependencies
             - name: Install npm dependencies
               run: |
-                cd /root/vsat-server
+                cd /home/runner/vsat-server
                 npm install
 
             # Bước 3: Tạo file .env với các thông tin cấu hình
@@ -46,10 +47,10 @@ jobs:
             # Bước 4: Cập nhật mã nguồn mới nhất (nếu đã clone từ trước)
             - name: Pull latest code
               run: |
-                cd /root/vsat-server
+                cd /home/runner/vsat-server
                 git pull origin main
 
             # Bước 5: Thiết lập Docker Compose và khởi động container backend
             - name: Build and Deploy Backend with Docker Compose
               run: |
-                docker compose -f /root/vsat-server/compose.yaml up --build -d
+                docker compose -f /home/runner/vsat-server/compose.yaml up --build -d
