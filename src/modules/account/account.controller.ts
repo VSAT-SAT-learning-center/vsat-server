@@ -374,19 +374,4 @@ export class AccountController {
             );
         }
     }
-
-    @Get('test')
-    async test() {
-        try {
-            return 'test';
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
 }

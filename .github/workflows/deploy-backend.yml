@@ -21,6 +21,11 @@ jobs:
                 cd /home/runner/vsat-server
                 git checkout main
 
+            - name: Pull latest code
+              run: |
+                cd /home/runner/vsat-server
+                git pull origin main  
+
             # Bước 2: Cài đặt npm dependencies
             - name: Install npm dependencies
               run: |
@@ -43,12 +48,6 @@ jobs:
                 echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /home/runner/vsat-server/.env
                 echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> /home/runner/vsat-server/.env
                 echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> /home/runner/vsat-server/.env
-
-            # Bước 4: Cập nhật mã nguồn mới nhất (nếu đã clone từ trước)
-            - name: Pull latest code
-              run: |
-                cd /home/runner/vsat-server
-                git pull origin main
 
             # Bước 5: Thiết lập Docker Compose và khởi động container backend
             - name: Build and Deploy Backend with Docker Compose
