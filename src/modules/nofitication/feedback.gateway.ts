@@ -133,33 +133,33 @@ export class FeedbacksGateway
         }
     }
 
-    // @SubscribeMessage('sendToUser')
-    // handleSendToUser(
-    //     client: Socket,
-    //     data: {
-    //         userId: string;
-    //         message: string;
-    //         type?: FeedbackType;
-    //         eventType?: FeedbackEventType;
-    //     },
-    // ) {
-    //     const { userId, message, eventType, type } = data;
-    //     this.sendNotificationToUser(userId, message, type, eventType);
-    // }
+    // // @SubscribeMessage('sendToUser')
+    // // handleSendToUser(
+    // //     client: Socket,
+    // //     data: {
+    // //         userId: string;
+    // //         message: string;
+    // //         type?: FeedbackType;
+    // //         eventType?: FeedbackEventType;
+    // //     },
+    // // ) {
+    // //     const { userId, message, eventType, type } = data;
+    // //     this.sendNotificationToUser(userId, message, type, eventType);
+    // // }
 
-    // @SubscribeMessage('sendToMultipleUsers')
-    // handleSendToMultipleUsers(
-    //     client: Socket,
-    //     data: {
-    //         userIds: string[];
-    //         message: string;
-    //         type?: FeedbackType;
-    //         eventType?: FeedbackEventType;
-    //     },
-    // ) {
-    //     const { userIds, message, type, eventType } = data;
-    //     this.sendNotificationToMultipleUsers(userIds, message, type, eventType);
-    // }
+    // // @SubscribeMessage('sendToMultipleUsers')
+    // // handleSendToMultipleUsers(
+    // //     client: Socket,
+    // //     data: {
+    // //         userIds: string[];
+    // //         message: string;
+    // //         type?: FeedbackType;
+    // //         eventType?: FeedbackEventType;
+    // //     },
+    // // ) {
+    // //     const { userIds, message, type, eventType } = data;
+    // //     this.sendNotificationToMultipleUsers(userIds, message, type, eventType);
+    // // }
 
     @SubscribeMessage('broadcast')
     handleBroadcast(client: Socket, message: string) {
