@@ -9,6 +9,8 @@ on:
 jobs:
     deploy-backend:
         runs-on: self-hosted # Sử dụng runner tự quản trên VPS
+        permissions:
+            contents: write # Cấp quyền ghi cho repository
         steps:
             # Bước 1: Tải mã nguồn từ repository về VPS
             - name: Checkout code
