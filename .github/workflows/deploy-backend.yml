@@ -12,18 +12,31 @@ jobs:
         permissions:
             contents: write # Cấp quyền ghi cho repository
         steps:
-            # Bước 1: Tải mã nguồn từ repository về VPS
+            # Bước 1: Dọn dẹp thư mục làm việc
+            - name: Clean workspace
+              run: rm -rf /home/ci_runner/actions-runner/_work/* || true
+
+            # Bước 2: Tải mã nguồn từ repository về VPS
             - name: Checkout code
               uses: actions/checkout@v2
               with:
                 fetch-depth: 1
-                debug: true
+                clean: true
+                ref: main # Đảm bảo checkout nhánh main
 
-            # Bước 2: Kiểm tra người dùng hiện tại
+            # Bước 3: Kiểm tra trạng thái repository
+            - name: Verify repository
+              run: |
+                echo "Current directory: $(pwd)"
+                ls -la /home/ci_runner/actions-runner/_work/vsat-server/vsat-server || echo "Repository not found"
+                cd /home/ci_runner/actions-runner/_work/vsat-server/vsat-server || echo "Failed to access repository"
+                git status || echo "Not a git repository"
+
+            # Bước 4: Kiểm tra người dùng hiện tại
             - name: Check current user
               run: whoami
 
-            # Bước 3: Tạo file .env với các thông tin cấu hình
+            # Bước 5: Tạo file .env với các thông tin cấu hình
             - name: Create .env file
               run: |
                   echo "POSTGRES_HOST=103.163.25.160" > .env
@@ -40,9 +53,12 @@ jobs:
                   echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
                   echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> .env
 
+            # Bước 6: Dừng và dọn dẹp container cũ
             - name: Stop and clean up old containers
-              run: docker compose down || true
+              run: |
+                docker compose down || true
+                docker system prune -af || true
 
-            # Bước 4: Thiết lập Docker Compose và khởi động container backend
+            # Bước 7: Thiết lập Docker Compose và khởi động container backend
             - name: Build and Deploy Backend with Docker Compose
               run: docker compose -f compose.yaml up --build -d
