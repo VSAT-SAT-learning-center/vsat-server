@@ -1264,8 +1264,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const notificationMessage = `You have been assigned the test: ${exam.title}`;
 
+        const listAccountTo = await this.getAccountByStudyProfileId(createExamDto.studyProfileIds);
         await this.notificationService.createAndSendMultipleNotificationsNew(
-            createExamDto.studyProfileIds,
+            listAccountTo,
             accountFromId,
             savedExamAttemptArrs,
             notificationMessage,
@@ -1541,5 +1542,15 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             totalTime,
             modules: moduleDetails,
         };
+    }
+
+    private async getAccountByStudyProfileId(
+        studyProfileId: string[],
+    ): Promise<string[]> {
+        const accounts = await this.studyProfileRepository.find({
+            where: { id: In(studyProfileId) },
+        });
+
+        return accounts.map((account) => account.id);
     }
 }
