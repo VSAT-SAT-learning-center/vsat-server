@@ -4,7 +4,6 @@ import { EvaluateCriteria } from 'src/database/entities/evaluatecriteria.entity'
 import { Repository } from 'typeorm';
 import { EvaluateCriteriaResponseDto } from './dto/evaluate-criteria.dto';
 import { plainToInstance } from 'class-transformer';
-import { app } from 'firebase-admin';
 
 @Injectable()
 export class EvaluateCriteriaService {
