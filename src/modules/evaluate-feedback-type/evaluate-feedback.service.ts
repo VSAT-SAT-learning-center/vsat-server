@@ -15,6 +15,8 @@ import { CreateTeacherFeedbackDto } from './dto/create-teacher-feedback.dto';
 import { NotificationService } from 'src/nofitication/notification.service';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 
 @Injectable()
 export class EvaluateFeedbackService {
@@ -25,16 +27,25 @@ export class EvaluateFeedbackService {
         private readonly feedbackCriteriaScoresRepository: Repository<FeedbackCriteriaScores>,
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
         private readonly notificationService: NotificationService,
     ) {}
 
     async createEvaluateFeedback(
         createFeedbackDto: CreateEvaluateFeedbackDto,
     ): Promise<any> {
+
+        const checkExist = await this.checkEvaluateFeedbackExist(createFeedbackDto.accountFromId )
+        if (checkExist.IsExisted) {
+            return 'You have already evaluated';
+        }
+
+        const studyProfileId = checkExist.StudyProfile.id;
+
         const {
             accountFromId,
             accountToId,
-            studyProfileId,
             narrativeFeedback,
             isEscalated,
             criteriaScores,
@@ -86,6 +97,30 @@ export class EvaluateFeedbackService {
         );
 
         return savedFeedback;
+    }
+
+    private async checkEvaluateFeedbackExist(
+        accountFromId: string,
+    ): Promise<{ IsExisted: boolean; StudyProfile: StudyProfile }> {
+        const currentStudyProfile = await this.studyProfileRepository.findOne({
+            where: { account: { id: accountFromId }, status: StudyProfileStatus.ACTIVE },
+        });
+
+        if (!currentStudyProfile) {
+            return { IsExisted: false, StudyProfile: null };
+        }
+
+        const lastEvaluateStudyProfile = await this.evaluateFeedbackRepository.findOne({
+            where: {
+                accountFrom: { id: accountFromId },
+                studyProfileid: { id: currentStudyProfile.id },
+            },
+        });
+
+        if (lastEvaluateStudyProfile) {
+            return { IsExisted: true, StudyProfile: currentStudyProfile };
+        }
+        return { IsExisted: false, StudyProfile: currentStudyProfile };
     }
 
     async createFeedback(createFeedbackDto: CreateFeedbackDto): Promise<any> {

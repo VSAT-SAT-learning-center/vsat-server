@@ -6,13 +6,18 @@ import { EvaluateFeedbackService } from './evaluate-feedback.service';
 import { FeedbackCriteriaScores } from 'src/database/entities/feedbackcriteriascores.entity';
 import { Account } from 'src/database/entities/account.entity';
 import { NotificationModule } from 'src/nofitication/notification.module';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([EvaluateFeedback, FeedbackCriteriaScores, Account]),
+        TypeOrmModule.forFeature([
+            EvaluateFeedback,
+            FeedbackCriteriaScores,
+            Account,
+            StudyProfile,
+        ]),
         NotificationModule,
-    ]
-    ,
+    ],
     providers: [EvaluateFeedbackService],
     controllers: [EvaluateFeedbackController],
 })
