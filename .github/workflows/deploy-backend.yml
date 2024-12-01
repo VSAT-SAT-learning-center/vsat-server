@@ -35,6 +35,9 @@ jobs:
                   echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
                   echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> .env
 
+            - name: Stop and clean up old containers
+              run: docker compose down || true
+
             # Bước 4: Thiết lập Docker Compose và khởi động container backend
             - name: Build and Deploy Backend with Docker Compose
               run: docker compose -f compose.yaml up --build -d
