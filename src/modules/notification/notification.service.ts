@@ -6,7 +6,7 @@ import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { Account } from 'src/database/entities/account.entity';
 import { Notification } from 'src/database/entities/notification.entity';
-import { FeedbacksGateway } from 'src/modules/nofitication/feedback.gateway';
+import { FeedbacksGateway } from 'src/modules/notification/feedback.gateway';
 import { Repository } from 'typeorm';
 import { SocketNotificationDto } from './notification.dto';
 import { AccountService } from 'src/modules/account/account.service';

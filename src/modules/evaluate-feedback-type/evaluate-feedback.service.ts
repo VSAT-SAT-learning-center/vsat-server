@@ -12,7 +12,7 @@ import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detai
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { FeedbackResponseDto } from './dto/feedback-response.dto';
 import { CreateTeacherFeedbackDto } from './dto/create-teacher-feedback.dto';
-import { NotificationService } from 'src/nofitication/notification.service';
+import { NotificationService } from 'src/modules/notification/notification.service';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
@@ -146,6 +146,10 @@ export class EvaluateFeedbackService {
         const { accountFromId, accountToId, reason, narrativeFeedback } =
             createFeedbackDto;
 
+        if(!accountToId) {
+            throw new BadRequestException('Teacher for this student not found!');
+        }
+
         await this.handleSendToTeacherFeedback(
             accountFromId,
             accountToId,
@@ -274,7 +278,7 @@ export class EvaluateFeedbackService {
 
     private async handleSendToTeacherFeedback(
         accountFromId: string,
-        accountToId: string,
+        teacherId: string,
         reason: string,
         narrativeFeedback: string,
     ): Promise<void> {
@@ -282,7 +286,7 @@ export class EvaluateFeedbackService {
 
         const feedback = this.evaluateFeedbackRepository.create({
             accountFrom: { id: accountFromId },
-            accountTo: { id: accountToId },
+            accountTo: { id: teacherId },
             reason: reason,
             narrativeFeedback: narrativeFeedback,
             evaluateFeedbackType: feedbackType,
@@ -294,7 +298,7 @@ export class EvaluateFeedbackService {
 
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendNotification(
-            accountToId,
+            teacherId,
             accountFromId,
             savedFeedback,
             notificationMessage,

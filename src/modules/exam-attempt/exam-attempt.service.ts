@@ -38,7 +38,7 @@ import { TargetLearningStatus } from 'src/common/enums/target-learning-status.en
 import { GetAccountDTO } from '../account/dto/get-account.dto';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
-import { NotificationService } from 'src/nofitication/notification.service';
+import { NotificationService } from 'src/modules/notification/notification.service';
 
 @Injectable()
 export class ExamAttemptService extends BaseService<ExamAttempt> {
