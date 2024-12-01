@@ -12,22 +12,15 @@ jobs:
         permissions:
             contents: write # Cấp quyền ghi cho repository
         steps:
-            # Bước 1: Dọn dẹp thư mục làm việc
-            - name: Clean workspace
-              run: rm -rf /home/ci_runner/actions-runner/_work/vsat-server || true
-
-            # Bước 2: Tải mã nguồn từ repository về VPS
+            # Bước 1: Tải mã nguồn từ repository về VPS
             - name: Checkout code
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 1
-                  debug: true
+              uses: actions/checkout@v2
 
-            # Bước 3: Kiểm tra người dùng hiện tại
+            # Bước 2: Kiểm tra người dùng hiện tại
             - name: Check current user
               run: whoami
 
-            # Bước 4: Tạo file .env với các thông tin cấu hình
+            # Bước 3: Tạo file .env với các thông tin cấu hình
             - name: Create .env file
               run: |
                   echo "POSTGRES_HOST=103.163.25.160" > .env
@@ -44,10 +37,9 @@ jobs:
                   echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
                   echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> .env
 
-            # Bước 5: Dừng và xóa container cũ
             - name: Stop and clean up old containers
               run: docker compose down || true
 
-            # Bước 6: Thiết lập Docker Compose và khởi động container backend
+            # Bước 4: Thiết lập Docker Compose và khởi động container backend
             - name: Build and Deploy Backend with Docker Compose
               run: docker compose -f compose.yaml up --build -d
