@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { AccountDto } from 'src/common/dto/common.dto';
@@ -8,6 +8,9 @@ import { Account } from 'src/database/entities/account.entity';
 import { Notification } from 'src/database/entities/notification.entity';
 import { FeedbacksGateway } from 'src/modules/nofitication/feedback.gateway';
 import { Repository } from 'typeorm';
+import { SocketNotificationDto } from './notification.dto';
+import { AccountService } from 'src/modules/account/account.service';
+import { create } from 'domain';
 
 @Injectable()
 export class NotificationService {
@@ -15,6 +18,8 @@ export class NotificationService {
         @InjectRepository(Notification)
         private readonly notificationRepository: Repository<Notification>,
         private readonly feedbackGateway: FeedbacksGateway,
+        @Inject(forwardRef(() => AccountService))
+        private readonly accountService: AccountService
     ) {}
 
     async createAndSendMultipleNotifications(
@@ -36,10 +41,12 @@ export class NotificationService {
         }));
 
         await this.notificationRepository.save(notifications);
-
+        const account = await this.accountService.findById(accountFromId);
+        
+        const socketNotification = {accountFrom: account, message: message, createdAt: new Date()} as SocketNotificationDto;
         this.feedbackGateway.sendNotificationToMultipleUsers(
             accountTos.map((accountTo) => accountTo.id),
-            { data: notificationData, message },
+            socketNotification,
             type,
             eventType,
         );
@@ -64,10 +71,12 @@ export class NotificationService {
         }));
 
         await this.notificationRepository.save(notifications);
+        const account = await this.accountService.findById(accountFromId);
+        const socketNotification = {accountFrom: account, message: message, createdAt: new Date()} as SocketNotificationDto;
 
         this.feedbackGateway.sendNotificationToMultipleUsers(
             accountToIds,
-            { data: notificationData, message },
+            socketNotification,
             type,
             eventType,
         );
@@ -93,10 +102,11 @@ export class NotificationService {
         };
 
         await this.notificationRepository.save(notification);
-
+        const account = await this.accountService.findById(accountFromId);
+        const socketNotification = {accountFrom: account, message: message, createdAt: new Date()} as SocketNotificationDto;
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
-            { data: notificationData, message },
+            socketNotification,
             type,
             eventType,
         );
@@ -153,14 +163,14 @@ export class NotificationService {
                 username: notification.accountFrom.username,
                 firstname: notification.accountFrom.firstname,
                 lastname: notification.accountFrom.lastname,
-                profilePicture: notification.accountFrom.profilepictureurl,
+                profilepictureurl: notification.accountFrom.profilepictureurl,
             }),
             accountTo: plainToInstance(AccountDto, {
                 id: notification.accountTo.id,
                 username: notification.accountTo.username,
                 firstname: notification.accountTo.firstname,
                 lastname: notification.accountTo.lastname,
-                profilePicture: notification.accountTo.profilepictureurl,
+                profilepictureurl: notification.accountTo.profilepictureurl,
             }),
         }));
 

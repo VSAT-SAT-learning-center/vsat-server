@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
+import { SocketNotificationDto } from 'src/nofitication/notification.dto';
 
 @WebSocketGateway({ namespace: '/socket', cors: { origin: '*' } })
 export class FeedbacksGateway
@@ -62,7 +63,7 @@ export class FeedbacksGateway
 
     sendNotificationToUser(
         userId: string,
-        data: any,
+        data: SocketNotificationDto,
         type: FeedbackType,
         eventType: FeedbackEventType,
     ) {
@@ -83,7 +84,7 @@ export class FeedbacksGateway
 
     sendNotificationToMultipleUsers(
         userIds: string[],
-        data: any,
+        data: SocketNotificationDto,
         type: FeedbackType,
         eventType: FeedbackEventType,
     ) {
@@ -130,33 +131,33 @@ export class FeedbacksGateway
         }
     }
 
-    @SubscribeMessage('sendToUser')
-    handleSendToUser(
-        client: Socket,
-        data: {
-            userId: string;
-            message: string;
-            type?: FeedbackType;
-            eventType?: FeedbackEventType;
-        },
-    ) {
-        const { userId, message, eventType, type } = data;
-        this.sendNotificationToUser(userId, message, type, eventType);
-    }
+    // @SubscribeMessage('sendToUser')
+    // handleSendToUser(
+    //     client: Socket,
+    //     data: {
+    //         userId: string;
+    //         message: string;
+    //         type?: FeedbackType;
+    //         eventType?: FeedbackEventType;
+    //     },
+    // ) {
+    //     const { userId, message, eventType, type } = data;
+    //     this.sendNotificationToUser(userId, message, type, eventType);
+    // }
 
-    @SubscribeMessage('sendToMultipleUsers')
-    handleSendToMultipleUsers(
-        client: Socket,
-        data: {
-            userIds: string[];
-            message: string;
-            type?: FeedbackType;
-            eventType?: FeedbackEventType;
-        },
-    ) {
-        const { userIds, message, type, eventType } = data;
-        this.sendNotificationToMultipleUsers(userIds, message, type, eventType);
-    }
+    // @SubscribeMessage('sendToMultipleUsers')
+    // handleSendToMultipleUsers(
+    //     client: Socket,
+    //     data: {
+    //         userIds: string[];
+    //         message: string;
+    //         type?: FeedbackType;
+    //         eventType?: FeedbackEventType;
+    //     },
+    // ) {
+    //     const { userIds, message, type, eventType } = data;
+    //     this.sendNotificationToMultipleUsers(userIds, message, type, eventType);
+    // }
 
     @SubscribeMessage('broadcast')
     handleBroadcast(client: Socket, message: string) {
