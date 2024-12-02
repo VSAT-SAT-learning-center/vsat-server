@@ -15,8 +15,9 @@ import { SocketNotificationDto } from 'src/modules/notification/notification.dto
 
 @WebSocketGateway({
     namespace: '/socket',
-    cors: {
-        origin: ['https://vsatcenter.edu.vn'], // Replace with your frontend domain
+    cors: { 
+        //origin: '*',
+        origin: ['https://vsatcenter.edu.vn'], 
         methods: ['GET', 'POST'],
         credentials: true,
     },

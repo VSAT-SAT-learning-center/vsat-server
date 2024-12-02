@@ -35,13 +35,19 @@ export class EvaluateFeedbackService {
     async createEvaluateFeedback(
         createFeedbackDto: CreateEvaluateFeedbackDto,
     ): Promise<any> {
-
-        const checkExist = await this.checkEvaluateFeedbackExist(createFeedbackDto.accountFromId )
+        const checkExist = await this.checkEvaluateFeedbackExist(
+            createFeedbackDto.accountFromId,
+        );
         if (checkExist.IsExisted) {
             throw new BadRequestException('Evaluate feedback already exist');
         }
 
-        const studyProfileId = checkExist.StudyProfile.id;
+        let studyProfileId;
+        if (createFeedbackDto.studyProfileId) {
+            studyProfileId = createFeedbackDto.studyProfileId;
+        } else {
+            studyProfileId = checkExist.StudyProfile.id;
+        }
 
         const {
             accountFromId,
@@ -146,7 +152,7 @@ export class EvaluateFeedbackService {
         const { accountFromId, accountToId, reason, narrativeFeedback } =
             createFeedbackDto;
 
-        if(!accountToId) {
+        if (!accountToId) {
             throw new BadRequestException('Teacher for this student not found!');
         }
 
@@ -195,6 +201,22 @@ export class EvaluateFeedbackService {
             const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
             await this.feedbackCriteriaScoresRepository.save(scores);
         }
+
+        const notificationMessage = 'New evaluate was sent';
+
+        const staffs = await this.accountRepository.find({
+            where: { role: { rolename: 'Staff' } },
+        });
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            staffs,
+            accountFrom.id,
+            savedFeedback,
+            notificationMessage,
+            FeedbackType.FEEDBACK,
+            FeedbackEventType.SEND_EVALUATE,
+        );
     }
 
     private async handleSendToStaffFeedback(
@@ -228,13 +250,13 @@ export class EvaluateFeedbackService {
 
         const notificationMessage = 'New feedback was sent';
 
-        const managers = await this.accountRepository.find({
+        const staffs = await this.accountRepository.find({
             where: { role: { rolename: 'Staff' } },
         });
 
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
-            managers,
+            staffs,
             accountFrom.id,
             savedFeedback,
             notificationMessage,
