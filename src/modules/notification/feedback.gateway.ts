@@ -17,9 +17,7 @@ import { SocketNotificationDto } from 'src/modules/notification/notification.dto
     namespace: '/socket',
     cors: { 
         //origin: '*',
-        origin: ['https://vsatcenter.edu.vn'], 
-        methods: ['GET', 'POST'],
-        credentials: true,
+        origin: ['https://vsatcenter.edu.vn'], methods: ['GET', 'POST'], credentials: true,
     },
 })
 export class FeedbacksGateway

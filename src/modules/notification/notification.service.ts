@@ -157,6 +157,7 @@ export class NotificationService {
             data: notification.data,
             isRead: notification.isRead,
             type: notification.type,
+            eventType: notification.eventType,
             createdAt: notification.createdat,
             accountFrom: plainToInstance(AccountDto, {
                 id: notification.accountFrom.id,
