@@ -12,7 +12,7 @@ import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detai
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { FeedbackResponseDto } from './dto/feedback-response.dto';
 import { CreateTeacherFeedbackDto } from './dto/create-teacher-feedback.dto';
-import { NotificationService } from 'src/nofitication/notification.service';
+import { NotificationService } from 'src/modules/notification/notification.service';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
@@ -35,13 +35,19 @@ export class EvaluateFeedbackService {
     async createEvaluateFeedback(
         createFeedbackDto: CreateEvaluateFeedbackDto,
     ): Promise<any> {
-
-        const checkExist = await this.checkEvaluateFeedbackExist(createFeedbackDto.accountFromId )
+        const checkExist = await this.checkEvaluateFeedbackExist(
+            createFeedbackDto.accountFromId,
+        );
         if (checkExist.IsExisted) {
             throw new BadRequestException('Evaluate feedback already exist');
         }
 
-        const studyProfileId = checkExist.StudyProfile.id;
+        let studyProfileId;
+        if (createFeedbackDto.studyProfileId) {
+            studyProfileId = createFeedbackDto.studyProfileId;
+        } else {
+            studyProfileId = checkExist.StudyProfile.id;
+        }
 
         const {
             accountFromId,
@@ -146,6 +152,10 @@ export class EvaluateFeedbackService {
         const { accountFromId, accountToId, reason, narrativeFeedback } =
             createFeedbackDto;
 
+        if (!accountToId) {
+            throw new BadRequestException('Teacher for this student not found!');
+        }
+
         await this.handleSendToTeacherFeedback(
             accountFromId,
             accountToId,
@@ -191,6 +201,22 @@ export class EvaluateFeedbackService {
             const scores = this.mapCriteriaScores(criteriaScores, savedFeedback);
             await this.feedbackCriteriaScoresRepository.save(scores);
         }
+
+        const notificationMessage = 'New evaluate was sent';
+
+        const staffs = await this.accountRepository.find({
+            where: { role: { rolename: 'Staff' } },
+        });
+
+        // Delegate notification handling to NotificationService
+        await this.notificationService.createAndSendMultipleNotifications(
+            staffs,
+            accountFrom.id,
+            savedFeedback,
+            notificationMessage,
+            FeedbackType.FEEDBACK,
+            FeedbackEventType.SEND_EVALUATE,
+        );
     }
 
     private async handleSendToStaffFeedback(
@@ -224,13 +250,13 @@ export class EvaluateFeedbackService {
 
         const notificationMessage = 'New feedback was sent';
 
-        const managers = await this.accountRepository.find({
+        const staffs = await this.accountRepository.find({
             where: { role: { rolename: 'Staff' } },
         });
 
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
-            managers,
+            staffs,
             accountFrom.id,
             savedFeedback,
             notificationMessage,
@@ -274,7 +300,7 @@ export class EvaluateFeedbackService {
 
     private async handleSendToTeacherFeedback(
         accountFromId: string,
-        accountToId: string,
+        teacherId: string,
         reason: string,
         narrativeFeedback: string,
     ): Promise<void> {
@@ -282,7 +308,7 @@ export class EvaluateFeedbackService {
 
         const feedback = this.evaluateFeedbackRepository.create({
             accountFrom: { id: accountFromId },
-            accountTo: { id: accountToId },
+            accountTo: { id: teacherId },
             reason: reason,
             narrativeFeedback: narrativeFeedback,
             evaluateFeedbackType: feedbackType,
@@ -294,7 +320,7 @@ export class EvaluateFeedbackService {
 
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendNotification(
-            accountToId,
+            teacherId,
             accountFromId,
             savedFeedback,
             notificationMessage,

@@ -40,7 +40,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
-import { FeedbacksGateway } from './modules/nofitication/feedback.gateway';
+import { FeedbacksGateway } from './modules/notification/feedback.gateway';
 import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
 import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-question-item.module';
 import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-structure-type.module';
@@ -53,7 +53,7 @@ import { PostgresConfigService } from './database/config/postgres.config';
 import { JwtService } from '@nestjs/jwt';
 import { ProgressModule } from './modules/progress/progress.module';
 import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
-import { NotificationModule } from './nofitication/notification.module';
+import { NotificationModule } from './modules/notification/notification.module';
 import { EvaluateFeedbackModule } from './modules/evaluate-feedback-type/evaluate-feedback-type.module';
 import { EvaluateCriteriaModule } from './modules/evaluate-criteria/evaluate-criteria.module';
 

@@ -18,7 +18,7 @@ import { ExamAttemptService } from '../exam-attempt/exam-attempt.service';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 import { AccountService } from '../account/account.service';
-import { NotificationService } from 'src/nofitication/notification.service';
+import { NotificationService } from 'src/modules/notification/notification.service';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 

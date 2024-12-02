@@ -6,7 +6,7 @@ import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { Account } from 'src/database/entities/account.entity';
 import { AccountModule } from '../account/account.module';
-import { NotificationModule } from 'src/nofitication/notification.module';
+import { NotificationModule } from 'src/modules/notification/notification.module';
 
 @Module({
     imports: [

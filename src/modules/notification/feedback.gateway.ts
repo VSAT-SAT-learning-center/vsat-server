@@ -11,12 +11,13 @@ import {
 import { Server, Socket } from 'socket.io';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
-import { SocketNotificationDto } from 'src/nofitication/notification.dto';
+import { SocketNotificationDto } from 'src/modules/notification/notification.dto';
 
 @WebSocketGateway({
     namespace: '/socket',
-    cors: {
-        origin: ['https://vsatcenter.edu.vn'], // Replace with your frontend domain
+    cors: { 
+        //origin: '*',
+        origin: ['https://vsatcenter.edu.vn'], 
         methods: ['GET', 'POST'],
         credentials: true,
     },

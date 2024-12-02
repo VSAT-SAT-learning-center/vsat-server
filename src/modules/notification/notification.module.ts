@@ -3,7 +3,7 @@ import { NotificationController } from './notification.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationService } from './notification.service';
 import { Notification } from 'src/database/entities/notification.entity';
-import { FeedbacksGateway } from 'src/modules/nofitication/feedback.gateway';
+import { FeedbacksGateway } from 'src/modules/notification/feedback.gateway';
 import { JwtService } from '@nestjs/jwt';
 import { AccountModule } from 'src/modules/account/account.module';
 

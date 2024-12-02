@@ -10,7 +10,7 @@ import { TargetLearningDetailModule } from '../target-learning-detail/target-lea
 import { UnitModule } from '../unit/unit.module';
 import { LessonProgressModule } from '../lesson-progress/lesson-progress.module';
 import { AccountModule } from '../account/account.module';
-import { NotificationModule } from 'src/nofitication/notification.module';
+import { NotificationModule } from 'src/modules/notification/notification.module';
 
 @Module({
     imports: [

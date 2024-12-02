@@ -28,7 +28,7 @@ import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
 import { UserFeedbackResponseDto } from './dto/get-user-feedback-details.dto';
 import { Question } from 'src/database/entities/question.entity';
 import { AccountDto } from 'src/common/dto/common.dto';
-import { NotificationService } from 'src/nofitication/notification.service';
+import { NotificationService } from 'src/modules/notification/notification.service';
 import { QuestionService } from '../question/question.service';
 import { QuestionMessages } from 'src/common/message/question-message';
 import { QuizQuestion } from 'src/database/entities/quizquestion.entity';

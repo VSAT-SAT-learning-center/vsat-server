@@ -26,7 +26,7 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { ExamModule } from '../exam/exam.module';
 import { ModuleTypeModule } from '../module-type/module-type.module';
 import { AccountModule } from '../account/account.module';
-import { NotificationModule } from 'src/nofitication/notification.module';
+import { NotificationModule } from 'src/modules/notification/notification.module';
 
 @Module({
     imports: [

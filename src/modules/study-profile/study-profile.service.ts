@@ -12,7 +12,7 @@ import { TargetLearningStatus } from 'src/common/enums/target-learning-status.en
 import { Account } from 'src/database/entities/account.entity';
 import { CreateStudyProfileDto } from './dto/create-studyprofile.dto';
 import { AccountDto } from 'src/common/dto/common.dto';
-import { NotificationService } from 'src/nofitication/notification.service';
+import { NotificationService } from 'src/modules/notification/notification.service';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 
