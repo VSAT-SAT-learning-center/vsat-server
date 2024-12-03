@@ -824,7 +824,6 @@ export class QuestionService extends BaseService<Question> {
             where: {
                 createdby: accountId,
                 status: ExamStatus.APPROVED,
-                createdat: Between(startOfMonth, endOfMonth),
             },
         });
 
@@ -832,7 +831,6 @@ export class QuestionService extends BaseService<Question> {
             where: {
                 createdby: accountId,
                 status: ExamStatus.REJECTED,
-                createdat: Between(startOfMonth, endOfMonth),
             },
         });
 
@@ -840,9 +838,31 @@ export class QuestionService extends BaseService<Question> {
             where: {
                 createdby: accountId,
                 status: ExamStatus.PENDING,
+            },
+        });
+
+        const createOfMonthExamCount = await this.examRepository.count({
+            where: {
+                createdby: accountId,
                 createdat: Between(startOfMonth, endOfMonth),
             },
         });
+
+        // const rejectedOfMonthExamCount = await this.examRepository.count({
+        //     where: {
+        //         createdby: accountId,
+        //         status: ExamStatus.REJECTED,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
+
+        // const pendingOfMonthExamCount = await this.examRepository.count({
+        //     where: {
+        //         createdby: accountId,
+        //         status: ExamStatus.PENDING,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
 
         // Count unit by status
         const approvedUnitCount = await this.unitRepository.count({
@@ -869,23 +889,40 @@ export class QuestionService extends BaseService<Question> {
         const inactiveStudy = await this.studyProfileRepository.count({
             where: {
                 status: StudyProfileStatus.INACTIVE,
-                createdat: Between(startOfMonth, endOfMonth),
             },
         });
 
         const activeStudy = await this.studyProfileRepository.count({
             where: {
                 status: StudyProfileStatus.ACTIVE,
-                createdat: Between(startOfMonth, endOfMonth),
             },
         });
 
         const completeStudy = await this.studyProfileRepository.count({
             where: {
                 status: StudyProfileStatus.COMPLETED,
+            },
+        });
+
+        const createOfMonthStudy = await this.studyProfileRepository.count({
+            where: {
                 createdat: Between(startOfMonth, endOfMonth),
             },
         });
+
+        // const activeOfMonthStudy = await this.studyProfileRepository.count({
+        //     where: {
+        //         status: StudyProfileStatus.ACTIVE,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
+
+        // const completeOfMonthStudy = await this.studyProfileRepository.count({
+        //     where: {
+        //         status: StudyProfileStatus.COMPLETED,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
 
         const domains = await this.domainRepository.find({
             select: ['content'],
@@ -982,6 +1019,7 @@ export class QuestionService extends BaseService<Question> {
                 approved: approvedExamCount,
                 rejected: rejectedExamCount,
                 pending: pendingExamCount,
+                createofmonth: createOfMonthExamCount
             },
             unit: {
                 approved: approvedUnitCount,
@@ -992,6 +1030,7 @@ export class QuestionService extends BaseService<Question> {
                 inactive: inactiveStudy,
                 active: activeStudy,
                 complete: completeStudy,
+                createofmonth: createOfMonthStudy
             },
             domainsquestion: domainStatistics,
             domainsquiz: domainQuizStatistics,
