@@ -10,7 +10,6 @@ import {
 import { BaseService } from '../base/base.service';
 import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
 import { In, IsNull, Repository } from 'typeorm';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateQuizQuestionDto } from './dto/create-quizquestion.dto';
 import { Level } from 'src/database/entities/level.entity';
@@ -25,16 +24,13 @@ import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
 import { GetQuizQuestionDTO } from './dto/get-quizquestion.dto';
 import { CreateQuizQuestionFileDto } from './dto/create-quizquestion-file.dto';
 import { UpdateQuizQuestionDTO } from './dto/update-quizquestion.dto';
-import { Answer } from 'src/database/entities/anwser.entity';
 import { QuizAnswer } from 'src/database/entities/quizanswer.entity';
 import { Feedback } from 'src/database/entities/feedback.entity';
 import { FeedbackService } from '../feedback/feedback.service';
-import { QuestionFeedbackDto } from '../feedback/dto/question-feedback.dto';
 import { QuizQuestionFeedbackDto } from '../feedback/dto/quizquestion-feedback.dto';
 import { AnswerHelper } from 'src/common/helpers/answer.helper';
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { Account } from 'src/database/entities/account.entity';
-import { GetQuestionDTO } from '../question/dto/get-question.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 
 @Injectable()

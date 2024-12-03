@@ -16,13 +16,13 @@ export class Notification {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @CreateDateColumn({ type: 'timestamptz' })
     createdat: Date;
 
     @Column({ type: 'uuid', nullable: true })
     createdby: string;
 
-    @UpdateDateColumn({ type: 'timestamp' })
+    @UpdateDateColumn({ type: 'timestamptz' })
     updatedat: Date;
 
     @Column({ type: 'uuid', nullable: true })
@@ -34,7 +34,7 @@ export class Notification {
     @Column({ type: 'json', nullable: true })
     data: any;
 
-    @ManyToOne(() => Account, { nullable: false })
+    @ManyToOne(() => Account, { nullable: true })
     @JoinColumn({ name: 'accountFromId' })
     accountFrom: Account;
 

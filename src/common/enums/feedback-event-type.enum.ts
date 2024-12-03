@@ -17,5 +17,6 @@ export enum FeedbackEventType {
     SEND_EVALUATE = 'sendEvaluateNotification',
     ASSIGN_EXAM = 'assignExamNotification',
     ASSIGN_TEACHER = 'assignTeacherNotification',
+    EXAM_ATTEMPT = 'examAttemptNotification',
     UNKNOWN = 'unknown',
 }
