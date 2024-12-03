@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from 'src/database/entities/question.entity';
-import { ILike, In, IsNull, Like, Repository } from 'typeorm';
+import { Between, ILike, In, IsNull, Like, Repository } from 'typeorm';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
 import { Level } from 'src/database/entities/level.entity';
@@ -771,6 +771,10 @@ export class QuestionService extends BaseService<Question> {
     }
 
     async statisticForStaff(accountId: string): Promise<any> {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
         // Count questions by status
         const approvedQuestionCount = await this.questionRepository.count({
             where: {
@@ -820,6 +824,7 @@ export class QuestionService extends BaseService<Question> {
             where: {
                 createdby: accountId,
                 status: ExamStatus.APPROVED,
+                createdat: Between(startOfMonth, endOfMonth),
             },
         });
 
@@ -827,6 +832,7 @@ export class QuestionService extends BaseService<Question> {
             where: {
                 createdby: accountId,
                 status: ExamStatus.REJECTED,
+                createdat: Between(startOfMonth, endOfMonth),
             },
         });
 
@@ -834,6 +840,7 @@ export class QuestionService extends BaseService<Question> {
             where: {
                 createdby: accountId,
                 status: ExamStatus.PENDING,
+                createdat: Between(startOfMonth, endOfMonth),
             },
         });
 
@@ -860,15 +867,24 @@ export class QuestionService extends BaseService<Question> {
         });
 
         const inactiveStudy = await this.studyProfileRepository.count({
-            where: { status: StudyProfileStatus.INACTIVE },
+            where: {
+                status: StudyProfileStatus.INACTIVE,
+                createdat: Between(startOfMonth, endOfMonth),
+            },
         });
 
         const activeStudy = await this.studyProfileRepository.count({
-            where: { status: StudyProfileStatus.ACTIVE },
+            where: {
+                status: StudyProfileStatus.ACTIVE,
+                createdat: Between(startOfMonth, endOfMonth),
+            },
         });
 
         const completeStudy = await this.studyProfileRepository.count({
-            where: { status: StudyProfileStatus.COMPLETED },
+            where: {
+                status: StudyProfileStatus.COMPLETED,
+                createdat: Between(startOfMonth, endOfMonth),
+            },
         });
 
         const domains = await this.domainRepository.find({
