@@ -1,7 +1,17 @@
-import { Controller, Get, Param, Patch, Query, Request, UseGuards } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Query,
+    Req,
+    Request,
+    UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { NotificationService } from './notification.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RoleGuard } from 'src/common/guards/role.guard';
 
 @Controller('notifications')
@@ -17,6 +27,15 @@ export class NotificationController {
     ): Promise<{ success: boolean; message: string }> {
         await this.notificationService.markAsRead(id);
         return { success: true, message: 'Notification marked as read' };
+    }
+
+    @Post('notifications/mark-all-read')
+    @ApiOperation({ summary: 'Mark all notifications as read' })
+    @ApiResponse({ status: 200, description: 'All notifications marked as read.' })
+    @ApiResponse({ status: 404, description: 'No unread notifications found.' })
+    async markAllAsRead(@Req() req): Promise<void> {
+        const userId = req.user.id;
+        await this.notificationService.markAllAsRead(userId);
     }
 
     @Get()

@@ -122,6 +122,7 @@ export class QuizQuestionController {
             },
         },
     })
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     async publishQuestions(@Body() body: { quizQuestionIds: string[] }) {
         try {
             const { quizQuestionIds } = body;
@@ -144,6 +145,7 @@ export class QuizQuestionController {
     }
 
     @Put('updateQuizQuestion/:id')
+    @UseGuards(JwtAuthGuard)
     async updateQuizQuestion(
         @Param('id') id: string,
         @Body() updateQuizQuestionDto: UpdateQuizQuestionDTO,
@@ -181,6 +183,7 @@ export class QuizQuestionController {
             },
         },
     })
+    @UseGuards(JwtAuthGuard)
     async updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
         try {
             const { status } = body;

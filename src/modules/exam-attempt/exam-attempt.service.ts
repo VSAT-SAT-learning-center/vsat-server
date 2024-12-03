@@ -898,6 +898,17 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 attemptId: savedExamAttempt.id,
             });
         }
+
+        const notificationMessage = `You have complete the ${exam.title}`;
+
+        await this.notificationService.createAndSendNotification(
+            account.id,
+            null,
+            studyProfile,
+            notificationMessage,
+            FeedbackType.EXAM,
+            FeedbackEventType.EXAM_ATTEMPT,
+        );
     }
 
     // async getExamAttemptByStudyProfileId(accountId: string) {

@@ -6,11 +6,10 @@ import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { Account } from 'src/database/entities/account.entity';
 import { Notification } from 'src/database/entities/notification.entity';
-import { FeedbacksGateway } from 'src/modules/notification/feedback.gateway';
+import { FeedbacksGateway } from 'src/modules/socket/feedback.gateway';
 import { Repository } from 'typeorm';
 import { SocketNotificationDto } from './notification.dto';
 import { AccountService } from 'src/modules/account/account.service';
-import { create } from 'domain';
 
 @Injectable()
 export class NotificationService {
@@ -121,6 +120,16 @@ export class NotificationService {
         }
     }
 
+    async markAllAsRead(accountId: string): Promise<void> {
+        const result = await this.notificationRepository.update(
+            { accountTo: { id: accountId } }, // Filter notifications for the user
+            { isRead: true },
+        );
+        if (result.affected === 0) {
+            throw new NotFoundException('No unread notifications found for this user');
+        }
+    }
+    
     async getNotificationsForUser(
         userId: string,
         isRead?: boolean,
