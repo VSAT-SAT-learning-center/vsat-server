@@ -87,8 +87,8 @@ export class LessonController extends BaseController<Lesson> {
         type: UpdateLessonWithContentsDto,
     })
     @ApiOperation({ summary: 'Update lessons and their contents' })
-    @Post('/edit')
-    async updateLessonsWithContents(@Body() lessonsData: UpdateLessonWithContentsDto[]) {
+    @Post('/update')
+    async updateLessonsWithContents(@Body() lessonsData: UpdateLessonWithContentsDto) {
         return await this.lessonService.updateLessonsWithContents(lessonsData);
     }
 }
