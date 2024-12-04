@@ -127,6 +127,39 @@ export class LessonContentService extends BaseService<LessonContent> {
                 contentData,
             );
 
+            // Handle `contents` (deep merge or replace)
+            if (contentData.contents) {
+                lessonContent.contents = contentData.contents.map((content, index) => ({
+                    ...lessonContent.contents?.[index], // Keep existing data if present
+                    ...content, // Update with new data
+                }));
+            }
+
+            // if (contentData.question) {
+            //     if (lessonContent.question) {
+            //         // Merge existing question data with new data
+            //         lessonContent.question = {
+            //             ...lessonContent.question,
+            //             ...contentData.question,
+            //             answers:
+            //                 contentData.question.answers?.map((answer, index) => ({
+            //                     ...lessonContent.question.answers?.[index], // Keep existing answer data if present
+            //                     ...answer, // Update with new answer data
+            //                 })) || [], // Fallback to an empty array if no answers are provided
+            //         };
+            //     } else {
+            //         if (contentData.question?.answers) {
+            //             lessonContent.question.answers = contentData.question.answers.map(
+            //                 (dbAnswer) => ({
+            //                     answerId: dbAnswer.id, // Map the `id` field from the database entity to `answerId`
+            //                     text: dbAnswer.text,
+            //                     label: dbAnswer.label || '', // Provide a default value for `label` if necessary
+            //                 }),
+            //             );
+            //         }
+            //     }
+            // }
+
             // Save the content
             await this.lessonContentRepository.save(lessonContent);
             updatedContents.push(lessonContent);
