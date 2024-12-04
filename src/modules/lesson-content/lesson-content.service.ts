@@ -109,15 +109,15 @@ export class LessonContentService extends BaseService<LessonContent> {
             throw new NotFoundException('Lesson not found');
         }
         
-        const existingContentIds = lesson.lessonContents.map((content) => content.id);
-        const inputContentIds = contentsData.map((content) => content.contentId);
+        // const existingContentIds = lesson.lessonContents.map((content) => content.id);
+        // const inputContentIds = contentsData.map((content) => content.contentId);
     
-        // Delete contents that are not in the input list
-        for (const contentId of existingContentIds) {
-            if (!inputContentIds.includes(contentId)) {
-                await this.lessonContentRepository.delete(contentId);
-            }
-        }
+        // // Delete contents that are not in the input list
+        // for (const contentId of existingContentIds) {
+        //     if (!inputContentIds.includes(contentId)) {
+        //         await this.lessonContentRepository.delete(contentId);
+        //     }
+        // }
     
         const updatedContents: LessonContent[] = [];
     
