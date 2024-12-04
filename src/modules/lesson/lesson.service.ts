@@ -162,7 +162,10 @@ export class LessonService extends BaseService<Lesson> {
             updateData.lessonContents,
         );
 
-        return lesson;
+        lesson.status = true;
+        const savedLesson = await this.lessonRepository.save(lesson);
+
+        return savedLesson;
     }
 
     private parseInputToLessonDtos(input: any): UpdateLessonWithContentsDto[] {
