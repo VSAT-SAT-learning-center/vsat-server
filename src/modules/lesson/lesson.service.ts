@@ -168,41 +168,41 @@ export class LessonService extends BaseService<Lesson> {
         return savedLesson;
     }
 
-    private parseInputToLessonDtos(input: any): UpdateLessonWithContentsDto[] {
-        const lessons: UpdateLessonWithContentsDto[] = [];
+    // private parseInputToLessonDtos(input: any): UpdateLessonWithContentsDto[] {
+    //     const lessons: UpdateLessonWithContentsDto[] = [];
 
-        // Iterate over unit areas
-        input.unitAreas.forEach((unitArea: any) => {
-            // Iterate over lessons within each unit area
-            unitArea.lessons.forEach((lesson: any) => {
-                // Parse lesson contents
-                const lessonContents: UpdateContentDto[] = lesson.lessonContents.map(
-                    (content: any) => ({
-                        id: content.id,
-                        title: content.title,
-                        contentType: content.contentType,
-                        contents: content.contents || [],
-                        question: content.question || null,
-                        image: content.image || null,
-                        url: content.url || null,
-                        sort: content.sort || null,
-                    }),
-                );
+    //     // Iterate over unit areas
+    //     input.unitAreas.forEach((unitArea: any) => {
+    //         // Iterate over lessons within each unit area
+    //         unitArea.lessons.forEach((lesson: any) => {
+    //             // Parse lesson contents
+    //             const lessonContents: UpdateContentDto[] = lesson.lessonContents.map(
+    //                 (content: any) => ({
+    //                     id: content.id,
+    //                     title: content.title,
+    //                     contentType: content.contentType,
+    //                     contents: content.contents || [],
+    //                     question: content.question || null,
+    //                     image: content.image || null,
+    //                     url: content.url || null,
+    //                     sort: content.sort || null,
+    //                 }),
+    //             );
 
-                // Parse lesson
-                lessons.push({
-                    lessonId: lesson.id,
-                    title: lesson.title,
-                    status: true, // Assuming status is always true when updating
-                    type: lesson.type,
-                    prerequisitelessonid: lesson.prerequisitelessonid || null,
-                    lessonContents: lessonContents,
-                });
-            });
-        });
+    //             // Parse lesson
+    //             lessons.push({
+    //                 lessonId: lesson.id,
+    //                 title: lesson.title,
+    //                 status: true, // Assuming status is always true when updating
+    //                 type: lesson.type,
+    //                 prerequisitelessonid: lesson.prerequisitelessonid || null,
+    //                 lessonContents: lessonContents,
+    //             });
+    //         });
+    //     });
 
-        return lessons;
-    }
+    //     return lessons;
+    // }
 
     // Tìm kiếm và xóa các bài học không còn trong danh sách lessonIds
     async removeMissingLessons(unitAreaId: string, lessonIds: string[]): Promise<void> {
