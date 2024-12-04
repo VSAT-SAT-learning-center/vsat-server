@@ -1,13 +1,7 @@
 import {
     Controller,
     Get,
-    Post,
-    Body,
     Param,
-    HttpStatus,
-    BadRequestException,
-    Patch,
-    HttpException,
     Request,
     Query,
     NotFoundException,
@@ -19,19 +13,10 @@ import { Feedback } from 'src/database/entities/feedback.entity';
 import {
     ApiBearerAuth,
     ApiOperation,
-    ApiParam,
-    ApiQuery,
     ApiTags,
 } from '@nestjs/swagger';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { UnitFeedbackResponseDto } from './dto/get-unit-feedback.dto';
-import { ExamFeedbackResponseDto } from './dto/get-exam-feedback.dto';
-import { QuestionFeedbackResponseDto } from './dto/get-question-feedback.dto';
-import { UnitFeedbackWithLessonResponseDto } from './dto/get-unit-feedback-with-lesson.dto';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
-import { QuestionFeedbackDto } from './dto/question-feedback.dto';
 import { FeedbackDetailResponseDto } from './dto/get-feedback-details.dto';
-import { Unit } from 'src/database/entities/unit.entity';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { LessonFeedbackResponseDto } from './dto/get-lesson-feedback.dto';

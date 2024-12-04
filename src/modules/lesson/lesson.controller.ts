@@ -6,7 +6,6 @@ import {
     Patch,
     HttpStatus,
     Get,
-    Query,
     UseGuards,
 } from '@nestjs/common';
 import { LessonService } from './lesson.service';
@@ -17,8 +16,6 @@ import { SuccessMessages } from 'src/common/message/success-messages';
 import { BaseController } from '../base/base.controller';
 import { Lesson } from 'src/database/entities/lesson.entity';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
-import { StartLessonProgressDto } from './dto/start-lesson-progress.dto';
-import { CompleteLessonProgressDto } from '../target-learning/dto/complete-lesson-progress.dto';
 import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';

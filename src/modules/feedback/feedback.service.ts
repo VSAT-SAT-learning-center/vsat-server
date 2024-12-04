@@ -1028,6 +1028,150 @@ export class FeedbackService extends BaseService<Feedback> {
         };
     }
 
+    async findoOneLearningMaterialFeedbackDetail(
+        userId: string,
+    ): Promise<any> {
+        const feedbacks = await this.feedbackRepository.find({
+            where: [{ unit: { createdby: userId } }],
+            relations: [
+                'unit',
+                'unit.section',
+                'unit.level',
+                'unit.domain',
+                'unit.unitAreas',
+                'unit.unitAreas.lessons',
+                'unit.unitAreas.lessons.lessonContents',
+                'accountFrom',
+                'accountTo',
+                'lesson',
+            ],
+            order: { createdat: 'DESC' },
+        });
+
+        const data = feedbacks.map((feedback) => {
+            const unit = feedback.unit;
+
+            return {
+                id: unit.id,
+                title: unit.title,
+                description: unit.description,
+                createdat: unit.createdat,
+                status: unit.status,
+                accountFrom: feedback.accountFrom
+                    ? {
+                          id: feedback.accountFrom.id,
+                          username: feedback.accountFrom.username,
+                          email: feedback.accountFrom.email,
+                      }
+                    : null,
+                accountTo: feedback.accountTo
+                    ? {
+                          id: feedback.accountTo.id,
+                          username: feedback.accountTo.username,
+                          email: feedback.accountTo.email,
+                      }
+                    : null,
+                unitAreas: Array.isArray(unit.unitAreas)
+                    ? unit.unitAreas.map((unitArea) => ({
+                          id: unitArea.id,
+                          title: unitArea.title,
+                          lessons: Array.isArray(unitArea.lessons)
+                              ? unitArea.lessons.map((lesson) => ({
+                                    id: lesson.id,
+                                    prerequisitelessonid: lesson.prerequisitelessonid,
+                                    type: lesson.type,
+                                    title: lesson.title,
+                                    status: lesson.status,
+                                    reason:
+                                        feedback.lesson?.id === lesson.id
+                                            ? feedback.reason
+                                            : null,
+                                    content:
+                                        feedback.lesson?.id === lesson.id
+                                            ? feedback.content
+                                            : null,
+                                    lessonContents: Array.isArray(lesson.lessonContents)
+                                        ? lesson.lessonContents.map((content) => ({
+                                              id: content.id,
+                                              title: content.title,
+                                              contentType: content.contentType,
+                                              contents: Array.isArray(content.contents)
+                                                  ? content.contents.map((c) => ({
+                                                        contentId: c.contentId,
+                                                        text: c.text,
+                                                        examples: Array.isArray(
+                                                            c.examples,
+                                                        )
+                                                            ? c.examples.map((e) => ({
+                                                                  exampleId: e.exampleId,
+                                                                  content: e.content,
+                                                                  explain:
+                                                                      e.explain || '',
+                                                              }))
+                                                            : [],
+                                                    }))
+                                                  : [],
+                                              question: content.question
+                                                  ? {
+                                                        questionId:
+                                                            content.question.questionId,
+                                                        prompt: content.question.prompt,
+                                                        correctAnswer:
+                                                            content.question
+                                                                .correctAnswer,
+                                                        explanation:
+                                                            content.question
+                                                                .explanation || '',
+                                                        answers: Array.isArray(
+                                                            content.question.answers,
+                                                        )
+                                                            ? content.question.answers.map(
+                                                                  (a) => ({
+                                                                      answerId:
+                                                                          a.answerId,
+                                                                      text: a.text,
+                                                                      label: a.label,
+                                                                  }),
+                                                              )
+                                                            : [],
+                                                    }
+                                                  : null, // Handle null if no question
+                                          }))
+                                        : [],
+                                }))
+                              : [],
+                      }))
+                    : [],
+                section: unit.section
+                    ? {
+                          id: unit.section.id,
+                          name: unit.section.name,
+                      }
+                    : null,
+                level: unit.level
+                    ? {
+                          id: unit.level.id,
+                          name: unit.level.name,
+                      }
+                    : null,
+                domain: unit.domain
+                    ? {
+                          id: unit.domain.id,
+                          name: unit.domain.content,
+                      }
+                    : null,
+                // Include counts for unitAreas and lessons
+                unitAreaCount: unit.unitAreas.length,
+                lessonCount: unit.unitAreas.reduce(
+                    (count, area) => count + area.lessons.length,
+                    0,
+                ),
+            };
+        });
+
+        return data;
+    }
+
     async searchExamFeedbackByStatus(
         status: FeedbackStatus,
         userId: string,
