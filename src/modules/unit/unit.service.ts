@@ -17,6 +17,7 @@ import { Feedback } from 'src/database/entities/feedback.entity';
 import { DomainService } from '../domain/domain.service';
 import { plainToInstance } from 'class-transformer';
 import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
+import { PagedUnitFeedbackResponseDto, UnitFeedbackResponseDto } from './dto/unit-feedback-detail-response.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -675,6 +676,355 @@ export class UnitService extends BaseService<Unit> {
         });
 
         return transformedData;
+    }
+
+    async getPendingUnitWithDetailsIncludeFeedback(
+        accountId: string,
+        page: number = 1,
+        pageSize: number = 10,
+    ): Promise<PagedUnitFeedbackResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.PENDING, createdby: accountId },
+            relations: [
+                'section',
+                'level',
+                'domain',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+                'unitAreas.lessons.feedback', // Include feedback for lessons
+            ],
+            skip,
+            take: pageSize,
+        });
+
+        if (!units || units.length === 0) {
+            return {
+                data: null,
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListDataIncludeFeedback(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getApproveUnitWithDetailsIncludeFeedback(
+        accountId: string,
+        page: number = 1,
+        pageSize: number = 10,
+    ): Promise<PagedUnitFeedbackResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.APPROVED, createdby: accountId },
+            relations: [
+                'section',
+                'level',
+                'domain',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+                'unitAreas.lessons.feedback', // Include feedback for lessons
+            ],
+            skip,
+            take: pageSize,
+        });
+
+        if (!units || units.length === 0) {
+            return {
+                data: null,
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListDataIncludeFeedback(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    async getRejectUnitWithDetailsIncludeFeedback(
+        accountId: string,
+        page: number = 1,
+        pageSize: number = 10,
+    ): Promise<PagedUnitFeedbackResponseDto> {
+        const skip = (page - 1) * pageSize;
+
+        const [units, totalCount] = await this.unitRepository.findAndCount({
+            where: { status: UnitStatus.REJECTED, createdby: accountId },
+            relations: [
+                'section',
+                'level',
+                'domain',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+                'unitAreas.lessons.feedback', // Include feedback for lessons
+            ],
+            skip,
+            take: pageSize,
+        });
+
+        if (!units || units.length === 0) {
+            return {
+                data: null,
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: page,
+            };
+        }
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+            data: await this.transformedListDataIncludeFeedback(units),
+            totalItems: totalCount,
+            totalPages,
+            currentPage: page,
+        };
+    }
+
+    private async transformedListDataIncludeFeedback(
+        units: any,
+    ): Promise<UnitFeedbackResponseDto[]> {
+        const transformedData = units.map((unit) => {
+            const unitAreaCount = unit.unitAreas?.length || 0;
+            const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
+                return total + (unitArea.lessons?.length || 0);
+            }, 0);
+
+            return {
+                id: unit.id,
+                title: unit.title,
+                description: unit.description,
+                createdat: unit.createdat,
+                status: unit.status,
+                unitAreas: Array.isArray(unit.unitAreas)
+                    ? unit.unitAreas.map((unitArea) => ({
+                          id: unitArea.id,
+                          title: unitArea.title,
+                          lessons: Array.isArray(unitArea.lessons)
+                              ? unitArea.lessons.map((lesson) => ({
+                                    id: lesson.id,
+                                    prerequisitelessonid: lesson.prerequisitelessonid,
+                                    type: lesson.type,
+                                    title: lesson.title,
+                                    reason:
+                                        lesson.feedback?.map((fb) => fb.reason) || null, // Include reasons from feedback
+                                    lessonContents: Array.isArray(lesson.lessonContents)
+                                        ? lesson.lessonContents.map((content) => ({
+                                              id: content.id,
+                                              title: content.title,
+                                              contentType: content.contentType,
+                                              contents: Array.isArray(content.contents)
+                                                  ? content.contents.map((c) => ({
+                                                        contentId: c.contentId,
+                                                        text: c.text,
+                                                        examples: Array.isArray(
+                                                            c.examples,
+                                                        )
+                                                            ? c.examples.map((e) => ({
+                                                                  exampleId: e.exampleId,
+                                                                  content: e.content,
+                                                                  explain:
+                                                                      e.explain || '',
+                                                              }))
+                                                            : [],
+                                                    }))
+                                                  : [],
+                                              question: content.question
+                                                  ? {
+                                                        questionId:
+                                                            content.question.questionId,
+                                                        prompt: content.question.prompt,
+                                                        correctAnswer:
+                                                            content.question
+                                                                .correctAnswer,
+                                                        explanation:
+                                                            content.question
+                                                                .explanation || '',
+                                                        answers: Array.isArray(
+                                                            content.question.answers,
+                                                        )
+                                                            ? content.question.answers.map(
+                                                                  (a) => ({
+                                                                      answerId:
+                                                                          a.answerId,
+                                                                      text: a.text,
+                                                                      label: a.label,
+                                                                  }),
+                                                              )
+                                                            : [],
+                                                    }
+                                                  : null, // Handle null if no question
+                                          }))
+                                        : [],
+                                }))
+                              : [],
+                      }))
+                    : [],
+                section: unit.section
+                    ? {
+                          id: unit.section.id,
+                          name: unit.section.name,
+                      }
+                    : null,
+                level: unit.level
+                    ? {
+                          id: unit.level.id,
+                          name: unit.level.name,
+                      }
+                    : null,
+                domain: unit.domain
+                    ? {
+                          id: unit.domain.id,
+                          name: unit.domain.content,
+                      }
+                    : null,
+
+                // Include counts for unitAreas and lessons
+                unitAreaCount,
+                lessonCount,
+            };
+        });
+
+        return transformedData;
+    }
+
+    async getOneUnitWithDetailsIncludeFeedback(
+        unitId: string,
+    ): Promise<UnitFeedbackResponseDto> {
+        // Fetch the Unit along with related UnitAreas, Lessons, LessonContents, and Feedback
+        const unit = await this.unitRepository.findOne({
+            where: { id: unitId },
+            relations: [
+                'section',
+                'level',
+                'domain',
+                'unitAreas',
+                'unitAreas.lessons',
+                'unitAreas.lessons.lessonContents',
+                'unitAreas.lessons.feedback', // Include feedback for lessons
+            ],
+        });
+
+        // If the unit is not found, throw an error
+        if (!unit) {
+            throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
+        }
+
+        return this.transformedDataIncludeFeedback(unit);
+    }
+
+    private async transformedDataIncludeFeedback(
+        unit: any,
+    ): Promise<UnitFeedbackResponseDto> {
+        const unitAreaCount = unit.unitAreas?.length || 0;
+        const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
+            return total + (unitArea.lessons?.length || 0);
+        }, 0);
+
+        return {
+            id: unit.id,
+            title: unit.title,
+            description: unit.description,
+            createdat: unit.createdat,
+            status: unit.status,
+            unitAreas: Array.isArray(unit.unitAreas)
+                ? unit.unitAreas.map((unitArea) => ({
+                      id: unitArea.id,
+                      title: unitArea.title,
+                      lessons: Array.isArray(unitArea.lessons)
+                          ? unitArea.lessons.map((lesson) => ({
+                                id: lesson.id,
+                                prerequisitelessonid: lesson.prerequisitelessonid,
+                                type: lesson.type,
+                                title: lesson.title,
+                                reason: lesson.feedback?.map((fb) => fb.reason) || null, // Include reasons from feedback
+                                lessonContents: Array.isArray(lesson.lessonContents)
+                                    ? lesson.lessonContents.map((content) => ({
+                                          id: content.id,
+                                          title: content.title,
+                                          contentType: content.contentType,
+                                          contents: Array.isArray(content.contents)
+                                              ? content.contents.map((c) => ({
+                                                    contentId: c.contentId,
+                                                    text: c.text,
+                                                    examples: Array.isArray(c.examples)
+                                                        ? c.examples.map((e) => ({
+                                                              exampleId: e.exampleId,
+                                                              content: e.content,
+                                                              explain: e.explain || '',
+                                                          }))
+                                                        : [],
+                                                }))
+                                              : [],
+                                          question: content.question
+                                              ? {
+                                                    questionId:
+                                                        content.question.questionId,
+                                                    prompt: content.question.prompt,
+                                                    correctAnswer:
+                                                        content.question.correctAnswer,
+                                                    explanation:
+                                                        content.question.explanation ||
+                                                        '',
+                                                    answers: Array.isArray(
+                                                        content.question.answers,
+                                                    )
+                                                        ? content.question.answers.map(
+                                                              (a) => ({
+                                                                  answerId: a.answerId,
+                                                                  text: a.text,
+                                                                  label: a.label,
+                                                              }),
+                                                          )
+                                                        : [],
+                                                }
+                                              : null, // Handle null if no question
+                                      }))
+                                    : [],
+                            }))
+                          : [],
+                  }))
+                : [],
+            section: unit.section
+                ? {
+                      id: unit.section.id,
+                      name: unit.section.name,
+                  }
+                : null,
+            level: unit.level
+                ? {
+                      id: unit.level.id,
+                      name: unit.level.name,
+                  }
+                : null,
+            domain: unit.domain
+                ? {
+                      id: unit.domain.id,
+                      name: unit.domain.content,
+                  }
+                : null,
+
+            // Include counts for unitAreas and lessons
+            unitAreaCount,
+            lessonCount,
+        };
     }
 
     async transformedData(unit: any): Promise<UnitResponseDto> {

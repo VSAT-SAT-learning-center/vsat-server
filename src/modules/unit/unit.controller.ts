@@ -26,10 +26,10 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PagedUnitResponseDto, UnitResponseDto } from './dto/get-unit.dto';
 import { GetUnitsByUserIdDto } from './dto/get-unit-by-userd.dto';
 import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-feedback.dto';
-import { plainToInstance } from 'class-transformer';
 import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
+import { PagedUnitFeedbackResponseDto } from './dto/unit-feedback-detail-response.dto';
 
 @ApiTags('Units')
 @Controller('units')
@@ -93,6 +93,57 @@ export class UnitController extends BaseController<Unit> {
                 units = await this.unitService.getApproveUnitWithDetails(page, pageSize);
             } else if (status === 'reject') {
                 units = await this.unitService.getRejectUnitWithDetails(page, pageSize);
+            } else {
+                return ResponseHelper.error(
+                    null,
+                    HttpStatus.BAD_REQUEST,
+                    'Invalid status parameter. Must be "pending", "approve", or "reject".',
+                );
+            }
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                units,
+                SuccessMessages.get(
+                    `${status.charAt(0).toUpperCase() + status.slice(1)}Unit`,
+                ),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    @Get('staff/:status')
+    async getUnitsWithDetailsByStaff(
+        @Request() req,
+        @Param('status') status: string,
+        @Query('page') page: number = 1,
+        @Query('pageSize') pageSize: number = 6,
+    ) {
+        if (!page) {
+            page = 1;
+        }
+        if (!pageSize) {
+            pageSize = 6;
+        }
+
+        const userId = req.user.id;
+
+        let units;
+        try {
+            if (status === 'pending') {
+                units = await this.unitService.getPendingUnitWithDetailsIncludeFeedback(userId, page, pageSize);
+            } else if (status === 'approve') {
+                units = await this.unitService.getApproveUnitWithDetailsIncludeFeedback(userId, page, pageSize);
+            } else if (status === 'reject') {
+                units = await this.unitService.getRejectUnitWithDetailsIncludeFeedback(userId, page, pageSize);
             } else {
                 return ResponseHelper.error(
                     null,
