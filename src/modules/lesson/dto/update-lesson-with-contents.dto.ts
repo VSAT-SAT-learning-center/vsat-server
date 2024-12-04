@@ -6,7 +6,7 @@ import { Question } from 'src/database/entities/question.entity';
 
 export class UpdateContentDto {
     @ApiProperty({ description: 'ID of the lesson content', required: false })
-    contentId?: string;
+    id?: string;
 
     @ApiProperty({ description: 'Title of the lesson content' })
     title: string;
@@ -36,10 +36,7 @@ export class UpdateContentDto {
 export class UpdateLessonWithContentsDto {
     @ApiProperty({ description: 'ID of the lesson', required: false })
     lessonId?: string;
-
-    @ApiProperty({ description: 'Title of the lesson' })
-    title: string;
-
+    
     @ApiProperty({
         description: 'List of lesson contents',
         type: [UpdateContentDto],

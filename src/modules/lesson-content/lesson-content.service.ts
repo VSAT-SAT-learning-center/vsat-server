@@ -113,12 +113,12 @@ export class LessonContentService extends BaseService<LessonContent> {
 
             // Update existing content
             lessonContent = await this.lessonContentRepository.findOne({
-                where: { id: contentData.contentId, lesson: { id: lesson.id } },
+                where: { id: contentData.id, lesson: { id: lesson.id } },
             });
 
             if (!lessonContent) {
                 throw new NotFoundException(
-                    `LessonContent with ID ${contentData.contentId} not found`,
+                    `LessonContent with ID ${contentData.id} not found`,
                 );
             }
 
