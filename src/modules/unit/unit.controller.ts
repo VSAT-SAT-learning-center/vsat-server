@@ -29,7 +29,7 @@ import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-f
 import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { PagedUnitFeedbackResponseDto } from './dto/unit-feedback-detail-response.dto';
+import { PagedUnitFeedbackResponseDto, UnitFeedbackResponseDto } from './dto/unit-feedback-detail-response.dto';
 
 @ApiTags('Units')
 @Controller('units')
@@ -245,6 +245,11 @@ export class UnitController extends BaseController<Unit> {
     @Get(':unitId/details')
     async getUnitDetails(@Param('unitId') unitId: string): Promise<UnitResponseDto> {
         return await this.unitService.getUnitWithDetails(unitId);
+    }
+
+    @Get('staff/:unitId/details')
+    async getStaffUnitDetails(@Param('unitId') unitId: string): Promise<UnitFeedbackResponseDto> {
+        return await this.unitService.getOneUnitWithDetailsIncludeFeedback(unitId);
     }
 
     @Post('user')
