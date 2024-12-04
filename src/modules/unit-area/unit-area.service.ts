@@ -80,7 +80,6 @@ export class UnitAreaService extends BaseService<UnitArea> {
             // Lưu UnitArea
             await this.unitAreaRepository.save(unitArea);
 
-            // Sử dụng LessonService để xử lý lesson
             await this.lessonService.createOrUpdateManyLessons(unitArea.id, lessons);
 
             createdOrUpdatedUnitAreas.push(unitArea);

@@ -14,6 +14,7 @@ import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
 import { CreateLessonContentDto } from './dto/create-lessoncontent.dto';
 import { UpdateLessonContentDto } from './dto/update-lessoncontent.dto';
+import { UpdateContentDto } from '../lesson/dto/update-lesson-with-contents.dto';
 
 @Injectable()
 export class LessonContentService extends BaseService<LessonContent> {
@@ -98,6 +99,64 @@ export class LessonContentService extends BaseService<LessonContent> {
             await this.lessonContentRepository.save(lessonContent);
         }
     }
+
+    async updateLessonContents(
+        lesson: Lesson,
+        contentsData: UpdateContentDto[],
+    ): Promise<LessonContent[]> {
+    
+        if (!lesson) {
+            throw new NotFoundException('Lesson not found');
+        }
+        
+        const existingContentIds = lesson.lessonContents.map((content) => content.id);
+        const inputContentIds = contentsData.map((content) => content.contentId);
+    
+        // Delete contents that are not in the input list
+        for (const contentId of existingContentIds) {
+            if (!inputContentIds.includes(contentId)) {
+                await this.lessonContentRepository.delete(contentId);
+            }
+        }
+    
+        const updatedContents: LessonContent[] = [];
+    
+        for (const contentData of contentsData) {
+            let lessonContent: LessonContent;
+    
+            if (contentData.contentId) {
+                // Update existing content
+                lessonContent = await this.lessonContentRepository.findOne({
+                    where: { id: contentData.contentId, lesson: { id: lesson.id } },
+                });
+    
+                if (!lessonContent) {
+                    throw new NotFoundException(
+                        `LessonContent with ID ${contentData.contentId} not found`,
+                    );
+                }
+    
+                lessonContent = this.lessonContentRepository.merge(
+                    lessonContent,
+                    contentData,
+                );
+            } else {
+                // // Create new content
+                // lessonContent = this.lessonContentRepository.create({
+                //     ...contentData,
+                //     lesson,
+                // });
+                console.log('Cong: create content!!!')
+            }
+    
+            // Save the content
+            await this.lessonContentRepository.save(lessonContent);
+            updatedContents.push(lessonContent);
+        }
+    
+        return updatedContents;
+    }
+    
 
     async getLessonContentsByLesson(lesson: Lesson): Promise<LessonContent[]> {
         return await this.lessonContentRepository.find({
