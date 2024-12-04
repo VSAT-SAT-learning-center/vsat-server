@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from 'src/database/entities/question.entity';
-import { ILike, In, IsNull, Like, Repository } from 'typeorm';
+import { Between, ILike, In, IsNull, Like, Repository } from 'typeorm';
 import { CreateQuestionDTO } from './dto/create-question.dto';
 import { plainToInstance } from 'class-transformer';
 import { Level } from 'src/database/entities/level.entity';
@@ -35,6 +35,16 @@ import { Account } from 'src/database/entities/account.entity';
 import { populateCreatedBy } from 'src/common/utils/populateCreatedBy.util';
 import { FeedbackStatus } from 'src/common/enums/feedback-status.enum';
 import { BaseService } from '../base/base.service';
+import { Quiz } from 'src/database/entities/quiz.entity';
+import { QuizQuestion } from 'src/database/entities/quizquestion.entity';
+import { QuizQuestionStatus } from 'src/common/enums/quiz-question.status.enum';
+import { Exam } from 'src/database/entities/exam.entity';
+import { ExamStatus } from 'src/common/enums/exam-status.enum';
+import { Unit } from 'src/database/entities/unit.entity';
+import { UnitStatus } from 'src/common/enums/unit-status.enum';
+import { StudyProfile } from 'src/database/entities/studyprofile.entity';
+import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
+import { Domain } from 'src/database/entities/domain.entity';
 
 @Injectable()
 export class QuestionService extends BaseService<Question> {
@@ -51,6 +61,16 @@ export class QuestionService extends BaseService<Question> {
         private readonly answerRepository: Repository<Answer>,
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
+        @InjectRepository(QuizQuestion)
+        private readonly quizQuestionRepository: Repository<QuizQuestion>,
+        @InjectRepository(Exam)
+        private readonly examRepository: Repository<Exam>,
+        @InjectRepository(StudyProfile)
+        private readonly studyProfileRepository: Repository<StudyProfile>,
+        @InjectRepository(Unit)
+        private readonly unitRepository: Repository<Unit>,
+        @InjectRepository(Domain)
+        private readonly domainRepository: Repository<Domain>,
         private readonly answerService: Answerservice,
 
         @Inject(forwardRef(() => FeedbackService))
@@ -748,5 +768,444 @@ export class QuestionService extends BaseService<Question> {
         return plainToInstance(GetQuestionDTO, questionsWithAccounts, {
             excludeExtraneousValues: true,
         });
+    }
+
+    async statisticForStaff(accountId: string): Promise<any> {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        // Count questions by status
+        const approvedQuestionCount = await this.questionRepository.count({
+            where: {
+                createdby: accountId,
+                status: QuestionStatus.APPROVED,
+            },
+        });
+
+        const rejectedQuestionCount = await this.questionRepository.count({
+            where: {
+                createdby: accountId,
+                status: QuestionStatus.REJECTED,
+            },
+        });
+
+        const pendingQuestionCount = await this.questionRepository.count({
+            where: {
+                createdby: accountId,
+                status: QuestionStatus.PENDING,
+            },
+        });
+
+        // Count quizzes by status
+        const approvedQuizCount = await this.quizQuestionRepository.count({
+            where: {
+                createdby: accountId,
+                status: QuizQuestionStatus.APPROVED,
+            },
+        });
+
+        const rejectedQuizCount = await this.quizQuestionRepository.count({
+            where: {
+                createdby: accountId,
+                status: QuizQuestionStatus.REJECTED,
+            },
+        });
+
+        const pendingQuizCount = await this.quizQuestionRepository.count({
+            where: {
+                createdby: accountId,
+                status: QuizQuestionStatus.PENDING,
+            },
+        });
+
+        // Count exam by status
+        const approvedExamCount = await this.examRepository.count({
+            where: {
+                createdby: accountId,
+                status: ExamStatus.APPROVED,
+            },
+        });
+
+        const rejectedExamCount = await this.examRepository.count({
+            where: {
+                createdby: accountId,
+                status: ExamStatus.REJECTED,
+            },
+        });
+
+        const pendingExamCount = await this.examRepository.count({
+            where: {
+                createdby: accountId,
+                status: ExamStatus.PENDING,
+            },
+        });
+
+        const createOfMonthExamCount = await this.examRepository.count({
+            where: {
+                createdby: accountId,
+                createdat: Between(startOfMonth, endOfMonth),
+            },
+        });
+
+        // const rejectedOfMonthExamCount = await this.examRepository.count({
+        //     where: {
+        //         createdby: accountId,
+        //         status: ExamStatus.REJECTED,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
+
+        // const pendingOfMonthExamCount = await this.examRepository.count({
+        //     where: {
+        //         createdby: accountId,
+        //         status: ExamStatus.PENDING,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
+
+        // Count unit by status
+        const approvedUnitCount = await this.unitRepository.count({
+            where: {
+                createdby: accountId,
+                status: UnitStatus.APPROVED,
+            },
+        });
+
+        const rejectedUnitCount = await this.unitRepository.count({
+            where: {
+                createdby: accountId,
+                status: UnitStatus.REJECTED,
+            },
+        });
+
+        const pendingUnitCount = await this.unitRepository.count({
+            where: {
+                createdby: accountId,
+                status: UnitStatus.PENDING,
+            },
+        });
+
+        const inactiveStudy = await this.studyProfileRepository.count({
+            where: {
+                status: StudyProfileStatus.INACTIVE,
+            },
+        });
+
+        const activeStudy = await this.studyProfileRepository.count({
+            where: {
+                status: StudyProfileStatus.ACTIVE,
+            },
+        });
+
+        const completeStudy = await this.studyProfileRepository.count({
+            where: {
+                status: StudyProfileStatus.COMPLETED,
+            },
+        });
+
+        const createOfMonthStudy = await this.studyProfileRepository.count({
+            where: {
+                createdat: Between(startOfMonth, endOfMonth),
+            },
+        });
+
+        // const activeOfMonthStudy = await this.studyProfileRepository.count({
+        //     where: {
+        //         status: StudyProfileStatus.ACTIVE,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
+
+        // const completeOfMonthStudy = await this.studyProfileRepository.count({
+        //     where: {
+        //         status: StudyProfileStatus.COMPLETED,
+        //         createdat: Between(startOfMonth, endOfMonth),
+        //     },
+        // });
+
+        const domains = await this.domainRepository.find({
+            select: ['content'],
+        });
+
+        const domainStatistics = await Promise.all(
+            domains.map(async (domain) => {
+                const approvedCount = await this.questionRepository.count({
+                    where: {
+                        skill: { domain: { content: domain.content } },
+                        status: QuestionStatus.APPROVED,
+                        createdby: accountId,
+                    },
+                    relations: ['skill', 'skill.domain'],
+                });
+
+                const pendingCount = await this.questionRepository.count({
+                    where: {
+                        skill: { domain: { content: domain.content } },
+                        status: QuestionStatus.PENDING,
+                        createdby: accountId,
+                    },
+                    relations: ['skill', 'skill.domain'],
+                });
+
+                const rejectedCount = await this.questionRepository.count({
+                    where: {
+                        skill: { domain: { content: domain.content } },
+                        status: QuestionStatus.REJECTED,
+                        createdby: accountId,
+                    },
+                    relations: ['skill', 'skill.domain'],
+                });
+
+                return {
+                    domain,
+                    approved: approvedCount,
+                    pending: pendingCount,
+                    rejected: rejectedCount,
+                };
+            }),
+        );
+
+        const domainQuizStatistics = await Promise.all(
+            domains.map(async (domain) => {
+                const approvedCount = await this.quizQuestionRepository.count({
+                    where: {
+                        skill: { domain: { content: domain.content } },
+                        status: QuizQuestionStatus.APPROVED,
+                        createdby: accountId,
+                    },
+                    relations: ['skill', 'skill.domain'],
+                });
+
+                const pendingCount = await this.quizQuestionRepository.count({
+                    where: {
+                        skill: { domain: { content: domain.content } },
+                        status: QuizQuestionStatus.PENDING,
+                        createdby: accountId,
+                    },
+                    relations: ['skill', 'skill.domain'],
+                });
+
+                const rejectedCount = await this.quizQuestionRepository.count({
+                    where: {
+                        skill: { domain: { content: domain.content } },
+                        status: QuizQuestionStatus.REJECTED,
+                        createdby: accountId,
+                    },
+                    relations: ['skill', 'skill.domain'],
+                });
+
+                return {
+                    domain,
+                    approved: approvedCount,
+                    pending: pendingCount,
+                    rejected: rejectedCount,
+                };
+            }),
+        );
+
+        return {
+            questions: {
+                approved: approvedQuestionCount,
+                rejected: rejectedQuestionCount,
+                pending: pendingQuestionCount,
+            },
+            quizquestion: {
+                approved: approvedQuizCount,
+                rejected: rejectedQuizCount,
+                pending: pendingQuizCount,
+            },
+            exam: {
+                approved: approvedExamCount,
+                rejected: rejectedExamCount,
+                pending: pendingExamCount,
+                createofmonth: createOfMonthExamCount
+            },
+            unit: {
+                approved: approvedUnitCount,
+                rejected: rejectedUnitCount,
+                pending: pendingUnitCount,
+            },
+            studyprofile: {
+                inactive: inactiveStudy,
+                active: activeStudy,
+                complete: completeStudy,
+                createofmonth: createOfMonthStudy
+            },
+            domainsquestion: domainStatistics,
+            domainsquiz: domainQuizStatistics,
+        };
+    }
+
+    async statisticForManager(): Promise<any> {
+        // Count questions by status
+        const approvedQuestionCount = await this.questionRepository.count({
+            where: {
+                status: QuestionStatus.APPROVED,
+            },
+        });
+
+        const rejectedQuestionCount = await this.questionRepository.count({
+            where: {
+                status: QuestionStatus.REJECTED,
+            },
+        });
+
+        // Count quizzes by status
+        const approvedQuizCount = await this.quizQuestionRepository.count({
+            where: {
+                status: QuizQuestionStatus.APPROVED,
+            },
+        });
+
+        const rejectedQuizCount = await this.quizQuestionRepository.count({
+            where: {
+                status: QuizQuestionStatus.REJECTED,
+            },
+        });
+
+        // Count exam by status
+        const approvedExamCount = await this.examRepository.count({
+            where: {
+                status: ExamStatus.APPROVED,
+            },
+        });
+
+        const rejectedExamCount = await this.examRepository.count({
+            where: {
+                status: ExamStatus.REJECTED,
+            },
+        });
+
+        // Count unit by status
+        const approvedUnitCount = await this.unitRepository.count({
+            where: {
+                status: UnitStatus.APPROVED,
+            },
+        });
+
+        const rejectedUnitCount = await this.unitRepository.count({
+            where: {
+                status: UnitStatus.REJECTED,
+            },
+        });
+
+        return {
+            questions: {
+                approved: approvedQuestionCount,
+                rejected: rejectedQuestionCount,
+            },
+            quizquestion: {
+                approved: approvedQuizCount,
+                rejected: rejectedQuizCount,
+            },
+            exam: {
+                approved: approvedExamCount,
+                rejected: rejectedExamCount,
+            },
+            unit: {
+                approved: approvedUnitCount,
+                rejected: rejectedUnitCount,
+            },
+        };
+    }
+
+    async statisticScores(): Promise<any> {
+        const MAX_SCORE = 800;
+        const students = await this.accountRepository.find({
+            where: { role: { rolename: 'Student' } },
+            relations: [
+                'studyProfiles',
+                'studyProfiles.targetlearning',
+                'studyProfiles.targetlearning.examattempt',
+            ],
+        });
+
+        let totalScoreMath = 0;
+        let totalScoreRW = 0;
+        let totalAttempts = 0;
+
+        students.forEach((student) => {
+            student.studyProfiles?.forEach((profile) => {
+                profile.targetlearning?.forEach((targetLearning) => {
+                    const examAttempt = targetLearning?.examattempt;
+                    if (examAttempt) {
+                        totalScoreMath += examAttempt.scoreMath || 0;
+                        totalScoreRW += examAttempt.scoreRW || 0;
+                        totalAttempts += 1;
+                    }
+                });
+            });
+        });
+
+        const totalMaxScoreMath = totalAttempts * MAX_SCORE;
+        const totalMaxScoreRW = totalAttempts * MAX_SCORE;
+
+        const averageScoreMath = totalAttempts > 0 ? totalScoreMath / totalAttempts : 0;
+        const averageScoreRW = totalAttempts > 0 ? totalScoreRW / totalAttempts : 0;
+
+        const percentageMath =
+            totalMaxScoreMath > 0 ? (totalScoreMath / totalMaxScoreMath) * 100 : 0;
+        const percentageRW =
+            totalMaxScoreRW > 0 ? (totalScoreRW / totalMaxScoreRW) * 100 : 0;
+
+        return {
+            totalAttempts,
+            averageScoreMath,
+            averageScoreRW,
+            percentageMath,
+            percentageRW,
+        };
+    }
+
+    async statisticScoresByTeacher(teacherId: string): Promise<any> {
+        const MAX_SCORE = 800;
+        const accounts = await this.accountRepository.find({
+            where: {
+                role: { rolename: 'Student' },
+                studyProfiles: { teacherId: teacherId },
+            },
+            relations: [
+                'studyProfiles',
+                'studyProfiles.targetlearning',
+                'studyProfiles.targetlearning.examattempt',
+            ],
+        });
+
+        let totalScoreMath = 0;
+        let totalScoreRW = 0;
+        let totalAttempts = 0;
+
+        accounts.forEach((student) => {
+            student.studyProfiles?.forEach((profile) => {
+                profile.targetlearning?.forEach((targetLearning) => {
+                    const examAttempt = targetLearning?.examattempt;
+                    if (examAttempt) {
+                        totalScoreMath += examAttempt.scoreMath || 0;
+                        totalScoreRW += examAttempt.scoreRW || 0;
+                        totalAttempts += 1;
+                    }
+                });
+            });
+        });
+
+        const totalMaxScoreMath = totalAttempts * MAX_SCORE;
+        const totalMaxScoreRW = totalAttempts * MAX_SCORE;
+
+        const averageScoreMath = totalAttempts > 0 ? totalScoreMath / totalAttempts : 0;
+        const averageScoreRW = totalAttempts > 0 ? totalScoreRW / totalAttempts : 0;
+
+        const percentageMath =
+            totalMaxScoreMath > 0 ? (totalScoreMath / totalMaxScoreMath) * 100 : 0;
+        const percentageRW =
+            totalMaxScoreRW > 0 ? (totalScoreRW / totalMaxScoreRW) * 100 : 0;
+
+        return {
+            totalAttempts,
+            averageScoreMath,
+            averageScoreRW,
+            percentageMath,
+            percentageRW,
+        };
     }
 }

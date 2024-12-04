@@ -373,4 +373,52 @@ export class QuestionController {
             );
         }
     }
+
+    @Get('statisticForStaff')
+    @UseGuards(JwtAuthGuard)
+    async statisticForStaff(@Request() req) {
+        try {
+            return await this.questionService.statisticForStaff(req.user.id);
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('statisticForManager')
+    //@UseGuards(JwtAuthGuard)
+    async statisticForManager() {
+        try {
+            return await this.questionService.statisticForManager();
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Get('statisticScores')
+    //@UseGuards(JwtAuthGuard)
+    async statisticScores() {
+        try {
+            return await this.questionService.statisticScores();
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
 }
