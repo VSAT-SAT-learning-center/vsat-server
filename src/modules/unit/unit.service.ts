@@ -950,6 +950,7 @@ export class UnitService extends BaseService<Unit> {
                                 prerequisitelessonid: lesson.prerequisitelessonid,
                                 type: lesson.type,
                                 title: lesson.title,
+                                status: lesson.status,
                                 reason: lesson.feedback?.map((fb) => fb.reason) || null, // Include reasons from feedback
                                 lessonContents: Array.isArray(lesson.lessonContents)
                                     ? lesson.lessonContents.map((content) => ({
