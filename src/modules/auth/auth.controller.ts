@@ -17,6 +17,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { GoogleGuard } from 'src/common/guards/google.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -29,6 +30,22 @@ export class AuthController {
     async login(@Request() req) {
         try {
             return this.authService.login(req.user);
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('google-login')
+    @UseGuards(GoogleGuard)
+    async loginGoogle(@Body() body: { email: string }) {
+        try {
+            return this.authService.googleLogin(body.email);
         } catch (error) {
             throw new HttpException(
                 {

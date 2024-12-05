@@ -45,6 +45,7 @@
     "mongoose": "^8.6.2",
     "nodemailer": "^6.9.15",
     "passport": "^0.7.0",
+    "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "pg": "^8.12.0",
