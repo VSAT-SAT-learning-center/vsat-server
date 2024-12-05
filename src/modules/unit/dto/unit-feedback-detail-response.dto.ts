@@ -29,6 +29,7 @@ export class LessonDto {
     prerequisitelessonid: string | null;
     type: string;
     title: string;
+    status: boolean;
     reason: string[] | null; // Include reasons from feedback
     lessonContents: ContentDto[];
 }

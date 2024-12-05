@@ -14,6 +14,7 @@ import { BaseService } from '../base/base.service';
 import { LessonService } from '../lesson/lesson.service';
 import { CreateLessonContentDto } from './dto/create-lessoncontent.dto';
 import { UpdateLessonContentDto } from './dto/update-lessoncontent.dto';
+import { UpdateContentDto } from '../lesson/dto/update-lesson-with-contents.dto';
 
 @Injectable()
 export class LessonContentService extends BaseService<LessonContent> {
@@ -37,9 +38,7 @@ export class LessonContentService extends BaseService<LessonContent> {
         // const existingContentIds = existingLessonContents.map(
         //     (content) => content.id,
         // );
-        const incomingContentIds = lessonContentsDto.map(
-            (contentDto) => contentDto.id,
-        );
+        const incomingContentIds = lessonContentsDto.map((contentDto) => contentDto.id);
 
         // 1. Xóa các LessonContent đã bị xóa từ phía UI (không có trong danh sách mới)
         for (const existingContent of existingLessonContents) {
@@ -99,6 +98,76 @@ export class LessonContentService extends BaseService<LessonContent> {
         }
     }
 
+    async updateLessonContents(
+        lesson: Lesson,
+        contentsData: UpdateContentDto[],
+    ): Promise<LessonContent[]> {
+        if (!lesson) {
+            throw new NotFoundException('Lesson not found');
+        }
+
+        const updatedContents: LessonContent[] = [];
+
+        for (const contentData of contentsData) {
+            let lessonContent: LessonContent;
+
+            // Update existing content
+            lessonContent = await this.lessonContentRepository.findOne({
+                where: { id: contentData.id, lesson: { id: lesson.id } },
+            });
+
+            if (!lessonContent) {
+                throw new NotFoundException(
+                    `LessonContent with ID ${contentData.id} not found`,
+                );
+            }
+
+            lessonContent = this.lessonContentRepository.merge(
+                lessonContent,
+                contentData,
+            );
+
+            // Handle `contents` (deep merge or replace)
+            if (contentData.contents) {
+                lessonContent.contents = contentData.contents.map((content, index) => ({
+                    ...lessonContent.contents?.[index], // Keep existing data if present
+                    ...content, // Update with new data
+                }));
+            }
+
+            // if (contentData.question) {
+            //     if (lessonContent.question) {
+            //         // Merge existing question data with new data
+            //         lessonContent.question = {
+            //             ...lessonContent.question,
+            //             ...contentData.question,
+            //             answers:
+            //                 contentData.question.answers?.map((answer, index) => ({
+            //                     ...lessonContent.question.answers?.[index], // Keep existing answer data if present
+            //                     ...answer, // Update with new answer data
+            //                 })) || [], // Fallback to an empty array if no answers are provided
+            //         };
+            //     } else {
+            //         if (contentData.question?.answers) {
+            //             lessonContent.question.answers = contentData.question.answers.map(
+            //                 (dbAnswer) => ({
+            //                     answerId: dbAnswer.id, // Map the `id` field from the database entity to `answerId`
+            //                     text: dbAnswer.text,
+            //                     label: dbAnswer.label || '', // Provide a default value for `label` if necessary
+            //                 }),
+            //             );
+            //         }
+            //     }
+            // }
+
+            // Save the content
+            await this.lessonContentRepository.save(lessonContent);
+            updatedContents.push(lessonContent);
+        }
+
+        return updatedContents;
+    }
+
     async getLessonContentsByLesson(lesson: Lesson): Promise<LessonContent[]> {
         return await this.lessonContentRepository.find({
             where: { lesson },
@@ -112,10 +181,7 @@ export class LessonContentService extends BaseService<LessonContent> {
             });
 
             if (!entity) {
-                throw new HttpException(
-                    `${lessonId} not found`,
-                    HttpStatus.NOT_FOUND,
-                );
+                throw new HttpException(`${lessonId} not found`, HttpStatus.NOT_FOUND);
             }
 
             return entity;
@@ -128,9 +194,7 @@ export class LessonContentService extends BaseService<LessonContent> {
         }
     }
 
-    async create(
-        createLessonContentDto: CreateLessonContentDto,
-    ): Promise<LessonContent> {
+    async create(createLessonContentDto: CreateLessonContentDto): Promise<LessonContent> {
         const { lessonId, ...lessonContentData } = createLessonContentDto;
 
         const lesson = await this.lessonService.findOneById(lessonId);

@@ -7,8 +7,12 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { BaseService } from '../base/base.service';
 import { UnitAreaService } from '../unit-area/unit-area.service';
 import { LessonContentService } from '../lesson-content/lesson-content.service';
-import { LessonResponseDto } from './dto/get-lesson.dto';import { v4 as uuidv4 } from 'uuid';
-
+import { LessonResponseDto } from './dto/get-lesson.dto';
+import { v4 as uuidv4 } from 'uuid';
+import {
+    UpdateContentDto,
+    UpdateLessonWithContentsDto,
+} from './dto/update-lesson-with-contents.dto';
 
 @Injectable()
 export class LessonService extends BaseService<Lesson> {
@@ -102,6 +106,103 @@ export class LessonService extends BaseService<Lesson> {
 
         return lessonIds;
     }
+
+    async updateLessonsWithContents(
+        updateData: UpdateLessonWithContentsDto,
+    ): Promise<Lesson> {
+
+        // for (const lessonData of updateData) {
+        //     let lesson: Lesson;
+
+        //     if (lessonData.lessonId) {
+        //         // Fetch the existing lesson
+        //         lesson = await this.lessonRepository.findOne({
+        //             where: { id: lessonData.lessonId },
+        //             relations: ['lessonContents'], // Load related lesson contents
+        //         });
+
+        //         if (!lesson) {
+        //             throw new NotFoundException(
+        //                 `Lesson with ID ${lessonData.lessonId} not found`,
+        //             );
+        //         }
+
+        //         // Update lesson fields
+        //         // lesson.title = lessonData.title;
+        //         // lesson.status = lessonData.status;
+        //         // lesson.type = lessonData.type;
+        //         // lesson.prerequisitelessonid = lessonData.prerequisitelessonid || null;
+        //     } else {
+        //         // // Create new lesson
+        //         // lesson = this.lessonRepository.create({
+        //         //     title: lessonData.title,
+        //         //     status: lessonData.status,
+        //         //     type: lessonData.type,
+        //         //     prerequisitelessonid: lessonData.prerequisitelessonid || null,
+        //         // });
+        //         console.log('Cong: create lesson!!!')
+        //     }
+
+        // Save the lesson
+        // const savedLesson = await this.lessonRepository.save(lesson);
+        const lesson = await this.lessonRepository.findOne({
+            where: { id: updateData.lessonId },
+            relations: ['lessonContents'], // Load related lesson contents
+        });
+
+        if (!lesson) {
+            throw new NotFoundException(
+                `Lesson with ID ${updateData.lessonId} not found`,
+            );
+        }
+
+        // Update lesson contents
+        await this.lessonContentService.updateLessonContents(
+            lesson,
+            updateData.lessonContents,
+        );
+
+        lesson.status = true;
+        const savedLesson = await this.lessonRepository.save(lesson);
+
+        return savedLesson;
+    }
+
+    // private parseInputToLessonDtos(input: any): UpdateLessonWithContentsDto[] {
+    //     const lessons: UpdateLessonWithContentsDto[] = [];
+
+    //     // Iterate over unit areas
+    //     input.unitAreas.forEach((unitArea: any) => {
+    //         // Iterate over lessons within each unit area
+    //         unitArea.lessons.forEach((lesson: any) => {
+    //             // Parse lesson contents
+    //             const lessonContents: UpdateContentDto[] = lesson.lessonContents.map(
+    //                 (content: any) => ({
+    //                     id: content.id,
+    //                     title: content.title,
+    //                     contentType: content.contentType,
+    //                     contents: content.contents || [],
+    //                     question: content.question || null,
+    //                     image: content.image || null,
+    //                     url: content.url || null,
+    //                     sort: content.sort || null,
+    //                 }),
+    //             );
+
+    //             // Parse lesson
+    //             lessons.push({
+    //                 lessonId: lesson.id,
+    //                 title: lesson.title,
+    //                 status: true, // Assuming status is always true when updating
+    //                 type: lesson.type,
+    //                 prerequisitelessonid: lesson.prerequisitelessonid || null,
+    //                 lessonContents: lessonContents,
+    //             });
+    //         });
+    //     });
+
+    //     return lessons;
+    // }
 
     // Tìm kiếm và xóa các bài học không còn trong danh sách lessonIds
     async removeMissingLessons(unitAreaId: string, lessonIds: string[]): Promise<void> {
@@ -232,5 +333,4 @@ export class LessonService extends BaseService<Lesson> {
     async delete(lesson: Lesson): Promise<void> {
         await this.lessonRepository.remove(lesson);
     }
-
 }

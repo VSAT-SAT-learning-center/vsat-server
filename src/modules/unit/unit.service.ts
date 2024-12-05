@@ -17,7 +17,10 @@ import { Feedback } from 'src/database/entities/feedback.entity';
 import { DomainService } from '../domain/domain.service';
 import { plainToInstance } from 'class-transformer';
 import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
-import { PagedUnitFeedbackResponseDto, UnitFeedbackResponseDto } from './dto/unit-feedback-detail-response.dto';
+import {
+    PagedUnitFeedbackResponseDto,
+    UnitFeedbackResponseDto,
+} from './dto/unit-feedback-detail-response.dto';
 
 @Injectable()
 export class UnitService extends BaseService<Unit> {
@@ -39,7 +42,7 @@ export class UnitService extends BaseService<Unit> {
             where: {
                 isActive: true,
                 status: UnitStatus.APPROVED,
-                section: { id: sectionId }
+                section: { id: sectionId },
             },
             relations: ['section', 'level', 'unitAreas', 'unitAreas.lessons'],
         });
@@ -930,15 +933,8 @@ export class UnitService extends BaseService<Unit> {
         return this.transformedDataIncludeFeedback(unit);
     }
 
-    private async transformedDataIncludeFeedback(
-        unit: any,
-    ): Promise<UnitFeedbackResponseDto> {
-        const unitAreaCount = unit.unitAreas?.length || 0;
-        const lessonCount = unit.unitAreas.reduce((total, unitArea) => {
-            return total + (unitArea.lessons?.length || 0);
-        }, 0);
-
-        return {
+    private async transformedDataIncludeFeedback(unit: any): Promise<UnitFeedbackResponseDto> {
+        const transformedData: UnitFeedbackResponseDto = {
             id: unit.id,
             title: unit.title,
             description: unit.description,
@@ -954,6 +950,7 @@ export class UnitService extends BaseService<Unit> {
                                 prerequisitelessonid: lesson.prerequisitelessonid,
                                 type: lesson.type,
                                 title: lesson.title,
+                                status: lesson.status,
                                 reason: lesson.feedback?.map((fb) => fb.reason) || null, // Include reasons from feedback
                                 lessonContents: Array.isArray(lesson.lessonContents)
                                     ? lesson.lessonContents.map((content) => ({
@@ -1021,10 +1018,11 @@ export class UnitService extends BaseService<Unit> {
                   }
                 : null,
 
-            // Include counts for unitAreas and lessons
-            unitAreaCount,
-            lessonCount,
+            unitAreaCount: unit.unitAreaCount,
+            lessonCount: unit.lessonCount,
         };
+
+        return await transformedData;
     }
 
     async transformedData(unit: any): Promise<UnitResponseDto> {
@@ -1146,7 +1144,7 @@ export class UnitService extends BaseService<Unit> {
         if (action === 'reject') {
             return await this.rejectLearningMaterial(feedbackDto);
         } else if (action === 'approve') {
-            return await this.approveLearningMaterial(feedbackDto); 
+            return await this.approveLearningMaterial(feedbackDto);
         }
     }
 
