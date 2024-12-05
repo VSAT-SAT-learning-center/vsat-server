@@ -201,4 +201,49 @@ export class AuthService {
 
         return true;
     }
+
+    async googleLogin(email: string) {
+        const findAcc = await this.authRepository.findOne({
+            where: { email: email },
+            relations: ['role'],
+        });
+
+        console.log(email);
+
+        if (!findAcc) {
+            throw new HttpException('Email is not registered ', HttpStatus.UNAUTHORIZED);
+        }
+
+        const accessToken = this.createAccessToken(findAcc);
+        const refreshToken = this.createRefreshToken(findAcc);
+
+        if (findAcc.refreshToken) {
+            findAcc.refreshToken = null;
+        }
+
+        findAcc.refreshToken = refreshToken;
+
+        if (findAcc.status === AccountStatus.INACTIVE) {
+            const activationToken = this.createAccessToken(findAcc);
+
+            await this.sendMail(findAcc.email, activationToken);
+
+            throw new HttpException(
+                'The account is inactive. Please activate your account through the email link provided.',
+                HttpStatus.BAD_REQUEST,
+            );
+        } else if (findAcc.status === AccountStatus.BANNED) {
+            throw new HttpException('Account is not permission', HttpStatus.UNAUTHORIZED);
+        }
+
+        const account = plainToInstance(GetAccountDTO, findAcc, {
+            excludeExtraneousValues: true,
+        });
+
+        return {
+            accessToken,
+            refreshToken,
+            account,
+        };
+    }
 }
