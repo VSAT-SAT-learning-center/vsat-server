@@ -208,8 +208,6 @@ export class AuthService {
             relations: ['role'],
         });
 
-        console.log(email);
-
         if (!findAcc) {
             throw new HttpException('Email is not registered ', HttpStatus.UNAUTHORIZED);
         }
