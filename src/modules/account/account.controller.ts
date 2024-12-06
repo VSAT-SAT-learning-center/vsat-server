@@ -108,7 +108,7 @@ export class AccountController {
 
             this.accountService.active(userId);
 
-            return res.redirect('http://localhost:3000/');
+            return res.redirect('https://vsatcenter.edu.vn/');
         } catch (error) {
             throw new HttpException(
                 {
