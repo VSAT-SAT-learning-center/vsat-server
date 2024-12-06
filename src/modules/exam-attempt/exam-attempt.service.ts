@@ -1,3 +1,4 @@
+import { CreateCertifyDto } from './dto/create-certify.dto';
 import { UpdateDateDto } from './dto/update-date.dto';
 import { CreateExamWithExamAttemptDto } from './../exam/dto/create-examwithattempt.dto';
 import sanitizeHtml from 'sanitize-html';
@@ -1569,9 +1570,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return accounts.map((studyProfile) => studyProfile.account.id);
     }
 
-    async updateDateExamAttempt(
-        updateDate: UpdateDateDto,
-    ): Promise<any> {
+    async updateDateExamAttempt(updateDate: UpdateDateDto): Promise<any> {
         const targetLearning = await this.targetLearningRepository.findOne({
             where: { id: updateDate.targetLeaningId },
         });
@@ -1585,5 +1584,27 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const update = await this.examAttemptRepository.save(examAttempt);
 
         return update;
+    }
+
+    async createExamAttemptCertified(createCertify: CreateCertifyDto) {
+        const createTargetLearning = await this.targetLearningRepository.create({
+            studyProfile: { id: createCertify.studyProfileId },
+            startdate: createCertify.attemptdatetime,
+            enddate: createCertify.attemptdatetime,
+            status: TargetLearningStatus.CERTIFIED,
+        });
+
+        const saveTarget = await this.targetLearningRepository.save(createTargetLearning);
+
+        const createExamAttempt = await this.examAttemptRepository.create({
+            targetlearning: { id: saveTarget.id },
+            attemptdatetime: createCertify.attemptdatetime,
+            scoreMath: createCertify.scorMath,
+            scoreRW: createCertify.scoreRW,
+            status: true,
+        });
+
+        const saveExamAttempt = await this.examAttemptRepository.save(createExamAttempt);
+        return saveExamAttempt;
     }
 }
