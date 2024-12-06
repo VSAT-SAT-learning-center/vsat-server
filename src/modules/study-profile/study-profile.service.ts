@@ -566,7 +566,7 @@ export class StudyProfileService {
             throw new NotFoundException('No TargetLearning found for this StudyProfile');
         }
 
-        latestTargetLearning.status = TargetLearningStatus.COMPLETED;
+        latestTargetLearning.status = TargetLearningStatus.FINISH;
         latestTargetLearning.startdate = new Date();
         latestTargetLearning.enddate = new Date();
 
