@@ -1,3 +1,4 @@
+import { UpdateDateDto } from './dto/update-date.dto';
 import { CreateExamWithExamAttemptDto } from './../exam/dto/create-examwithattempt.dto';
 import sanitizeHtml from 'sanitize-html';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -1275,7 +1276,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const notificationMessage = `You have been assigned the test: ${exam.title}`;
 
-        const listAccountTo = await this.getAccountByStudyProfileId(createExamDto.studyProfileIds);
+        const listAccountTo = await this.getAccountByStudyProfileId(
+            createExamDto.studyProfileIds,
+        );
         await this.notificationService.createAndSendMultipleNotificationsNew(
             listAccountTo,
             accountFromId,
@@ -1564,5 +1567,23 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         return accounts.map((studyProfile) => studyProfile.account.id);
+    }
+
+    async updateDateExamAttempt(
+        updateDate: UpdateDateDto,
+    ): Promise<any> {
+        const targetLearning = await this.targetLearningRepository.findOne({
+            where: { id: updateDate.targetLeaningId },
+        });
+
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { targetlearning: { id: targetLearning.id } },
+        });
+
+        examAttempt.attemptdatetime = updateDate.attemptdatetime;
+
+        const update = await this.examAttemptRepository.save(examAttempt);
+
+        return update;
     }
 }

@@ -26,6 +26,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
 import { CreateExamWithExamAttemptDto } from '../exam/dto/create-examwithattempt.dto';
+import { UpdateDateDto } from './dto/update-date.dto';
 
 @ApiTags('ExamAttempts')
 @Controller('exam-attempts')
@@ -372,6 +373,32 @@ export class ExamAttemptController {
                 HttpStatus.OK,
                 examAttempt,
                 SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Put('updateDateExamAttempt/:examAttemptId')
+    //@UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    async updateDateExamAttempt(
+        @Body() updateDate: UpdateDateDto,
+    ) {
+        try {
+            const examAttempt = await this.examAttemptService.updateDateExamAttempt(
+                updateDate,
+            );
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examAttempt,
+                SuccessMessages.update('ExamAttempt'),
             );
         } catch (error) {
             throw new HttpException(
