@@ -25,7 +25,7 @@ export class StudyProfileService {
         private readonly targetLearningRepository: Repository<TargetLearning>,
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
-        private readonly notificationService: NotificationService
+        private readonly notificationService: NotificationService,
     ) {}
 
     async getStudyProfileByAccountId(accountId: string) {
@@ -117,10 +117,7 @@ export class StudyProfileService {
         return save;
     }
 
-    async assignTeacher(
-        accountFromId: string,
-        assignStudyProfile: AssignStudyProfile
-    ) {
+    async assignTeacher(accountFromId: string, assignStudyProfile: AssignStudyProfile) {
         const studyArr = [];
 
         const teacher = await this.accountRepository.findOne({
@@ -144,7 +141,7 @@ export class StudyProfileService {
 
             studyArr.push(studyProfile);
         }
-        
+
         const savedStudyprofile = await this.studyProfileRepository.save(studyArr);
 
         //Send noti to teacher
@@ -222,17 +219,21 @@ export class StudyProfileService {
         page: number,
         pageSize: number,
         teacherId: string,
+        status?: StudyProfileStatus,
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
-        const [studyProfiles, total] = await this.studyProfileRepository
+        const queryBuilder = this.studyProfileRepository
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account')
-            .where('studyProfile.status = :status', {
-                status: StudyProfileStatus.ACTIVE,
-                teacherId: teacherId,
-            })
-            .andWhere('studyProfile.teacherId IS NOT NULL')
+            .where('studyProfile.teacherId = :teacherId', { teacherId })
+            .andWhere('studyProfile.teacherId IS NOT NULL');
+
+        if (status) {
+            queryBuilder.andWhere('studyProfile.status = :status', { status });
+        }
+
+        const [studyProfiles, total] = await queryBuilder
             .skip(skip)
             .take(pageSize)
             .orderBy('studyProfile.updatedat', 'DESC')
@@ -565,7 +566,7 @@ export class StudyProfileService {
             throw new NotFoundException('No TargetLearning found for this StudyProfile');
         }
 
-        latestTargetLearning.status = TargetLearningStatus.COMPLETED;
+        latestTargetLearning.status = TargetLearningStatus.FINISH;
         latestTargetLearning.startdate = new Date();
         latestTargetLearning.enddate = new Date();
 

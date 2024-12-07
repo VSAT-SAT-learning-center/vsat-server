@@ -26,6 +26,8 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
 import { CreateExamWithExamAttemptDto } from '../exam/dto/create-examwithattempt.dto';
+import { UpdateDateDto } from './dto/update-date.dto';
+import { CreateCertifyDto } from './dto/create-certify.dto';
 
 @ApiTags('ExamAttempts')
 @Controller('exam-attempts')
@@ -372,6 +374,52 @@ export class ExamAttemptController {
                 HttpStatus.OK,
                 examAttempt,
                 SuccessMessages.get('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Put('updateDateExamAttempt')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    async updateDateExamAttempt(@Body() updateDate: UpdateDateDto) {
+        try {
+            const examAttempt =
+                await this.examAttemptService.updateDateExamAttempt(updateDate);
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examAttempt,
+                SuccessMessages.update('ExamAttempt'),
+            );
+        } catch (error) {
+            throw new HttpException(
+                {
+                    statusCode: error.status || HttpStatus.BAD_REQUEST,
+                    message: error.message || 'An error occurred',
+                },
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    @Post('createExamAttemptCertified/certify')
+    //@UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    async createExamAttemptCertified(@Body() createCertify: CreateCertifyDto) {
+        try {
+            const examAttempt =
+                await this.examAttemptService.createExamAttemptCertified(createCertify);
+
+            return ResponseHelper.success(
+                HttpStatus.OK,
+                examAttempt,
+                SuccessMessages.create('ExamAttempt'),
             );
         } catch (error) {
             throw new HttpException(

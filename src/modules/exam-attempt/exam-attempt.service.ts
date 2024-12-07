@@ -1,3 +1,5 @@
+import { CreateCertifyDto } from './dto/create-certify.dto';
+import { UpdateDateDto } from './dto/update-date.dto';
 import { CreateExamWithExamAttemptDto } from './../exam/dto/create-examwithattempt.dto';
 import sanitizeHtml from 'sanitize-html';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -1275,7 +1277,9 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const notificationMessage = `You have been assigned the test: ${exam.title}`;
 
-        const listAccountTo = await this.getAccountByStudyProfileId(createExamDto.studyProfileIds);
+        const listAccountTo = await this.getAccountByStudyProfileId(
+            createExamDto.studyProfileIds,
+        );
         await this.notificationService.createAndSendMultipleNotificationsNew(
             listAccountTo,
             accountFromId,
@@ -1564,5 +1568,43 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         });
 
         return accounts.map((studyProfile) => studyProfile.account.id);
+    }
+
+    async updateDateExamAttempt(updateDate: UpdateDateDto): Promise<any> {
+        const targetLearning = await this.targetLearningRepository.findOne({
+            where: { id: updateDate.targetLeaningId },
+        });
+
+        const examAttempt = await this.examAttemptRepository.findOne({
+            where: { targetlearning: { id: targetLearning.id } },
+        });
+
+        examAttempt.attemptdatetime = updateDate.attemptdatetime;
+
+        const update = await this.examAttemptRepository.save(examAttempt);
+
+        return update;
+    }
+
+    async createExamAttemptCertified(createCertify: CreateCertifyDto) {
+        const createTargetLearning = await this.targetLearningRepository.create({
+            studyProfile: { id: createCertify.studyProfileId },
+            startdate: createCertify.attemptdatetime,
+            enddate: createCertify.attemptdatetime,
+            status: TargetLearningStatus.CERTIFIED,
+        });
+
+        const saveTarget = await this.targetLearningRepository.save(createTargetLearning);
+
+        const createExamAttempt = await this.examAttemptRepository.create({
+            targetlearning: { id: saveTarget.id },
+            attemptdatetime: createCertify.attemptdatetime,
+            scoreMath: createCertify.scorMath,
+            scoreRW: createCertify.scoreRW,
+            status: true,
+        });
+
+        const saveExamAttempt = await this.examAttemptRepository.save(createExamAttempt);
+        return saveExamAttempt;
     }
 }
