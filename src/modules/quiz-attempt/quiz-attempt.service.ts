@@ -15,11 +15,10 @@ import {
 } from './dto/response-complete-quiz-attempt.dto';
 import { QuizQuestionItemService } from '../quiz-question-item/quiz-question-item.service';
 import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
-import { SkillDto, UnitAreaDto, UnitDto } from 'src/common/dto/common.dto';
+import { UnitAreaDto, UnitDto } from 'src/common/dto/common.dto';
 import { CategorizedSkillDetailsDto } from './dto/categoried-skill-details.dto';
 import { RecommendationService } from '../recommendation-service/recommendation.service';
 import { plainToInstance } from 'class-transformer';
-import { UnitProgress } from 'src/database/entities/unitprogress.entity';
 
 @Injectable()
 export class QuizAttemptService extends BaseService<QuizAttempt> {

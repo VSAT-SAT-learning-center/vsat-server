@@ -125,26 +125,6 @@ export class LevelController extends BaseController<Level> {
         );
     }
 
-    // @Get()
-    // async find() {
-    //     try {
-    //         const level = await this.levelService.find();
-    //         return ResponseHelper.success(
-    //             HttpStatus.OK,
-    //             level,
-    //             SuccessMessages.create('Level'),
-    //         );
-    //     } catch (error) {
-    //         throw new HttpException(
-    //             {
-    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
-    //                 message: error.message || 'An error occurred',
-    //             },
-    //             error.status || HttpStatus.BAD_REQUEST,
-    //         );
-    //     }
-    // }
-
     @Get(':id')
     async findById(@Param('id') id: string) {
         try {

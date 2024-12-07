@@ -15,13 +15,8 @@ import {
     UseGuards,
     Patch,
 } from '@nestjs/common';
-import { CreateTargetLearningDto } from './dto/create-targetlearning.dto';
-import { UpdateTargetLearningDto } from './dto/update-targetlearning.dto';
 import { TargetLearningService } from './target-learning.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { BaseController } from '../base/base.controller';
-import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SuccessMessages } from 'src/common/message/success-messages';
 import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
@@ -29,7 +24,6 @@ import { UnitService } from '../unit/unit.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { LessonProgressService } from '../lesson-progress/lesson-progress.service';
-import { CompleteLessonProgressDto } from './dto/complete-lesson-progress.dto';
 import { TargetLearningStatus } from 'src/common/enums/target-learning-status.enum';
 
 @ApiTags('TargetLearnings')
@@ -175,7 +169,6 @@ export class TargetLearningController {
         }
     }
 
-    //@UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
     @Put(':id')
     @ApiBody({
         type: String,

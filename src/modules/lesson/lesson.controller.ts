@@ -26,7 +26,6 @@ import { UpdateLessonWithContentsDto } from './dto/update-lesson-with-contents.d
 export class LessonController extends BaseController<Lesson> {
     constructor(
         private readonly lessonService: LessonService,
-        private readonly lessonProgressService: LessonProgressService,
     ) {
         super(lessonService, 'Lesson');
     }
@@ -68,17 +67,6 @@ export class LessonController extends BaseController<Lesson> {
             HttpStatus.CREATED,
             createdLesson,
             SuccessMessages.create('Lesson'),
-        );
-    }
-
-    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
-    @Patch(':id')
-    async update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
-        const updatedLesson = await this.lessonService.update(id, updateLessonDto);
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            updatedLesson,
-            SuccessMessages.update('Lesson'),
         );
     }
 

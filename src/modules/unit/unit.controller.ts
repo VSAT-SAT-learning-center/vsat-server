@@ -29,7 +29,7 @@ import { LearningMaterialFeedbackDto } from '../feedback/dto/learning-material-f
 import { UnitWithSkillsDto } from './dto/get-unit-with-domain-skill.dto';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { PagedUnitFeedbackResponseDto, UnitFeedbackResponseDto } from './dto/unit-feedback-detail-response.dto';
+import { UnitFeedbackResponseDto } from './dto/unit-feedback-detail-response.dto';
 
 @ApiTags('Units')
 @Controller('units')
@@ -158,26 +158,6 @@ export class UnitController extends BaseController<Unit> {
                 SuccessMessages.get(
                     `${status.charAt(0).toUpperCase() + status.slice(1)}Unit`,
                 ),
-            );
-        } catch (error) {
-            throw new HttpException(
-                {
-                    statusCode: error.status || HttpStatus.BAD_REQUEST,
-                    message: error.message || 'An error occurred',
-                },
-                error.status || HttpStatus.BAD_REQUEST,
-            );
-        }
-    }
-
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-        try {
-            const unit = await this.unitService.findOneById(id, ['unitAreas']);
-            return ResponseHelper.success(
-                HttpStatus.OK,
-                unit,
-                SuccessMessages.get('Unit'),
             );
         } catch (error) {
             throw new HttpException(

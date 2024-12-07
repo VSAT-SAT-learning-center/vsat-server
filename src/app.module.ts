@@ -28,7 +28,6 @@ import { QuestionModule } from './modules/question/question.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { QuizAttemptModule } from './modules/quiz-attempt/quiz-attempt.module';
 import { QuizAttemptAnswerModule } from './modules/quiz-attempt-answer/quiz-attempt-answer.module';
-import { QuizAttemptSkillModule } from './modules/quiz-attempt-skill/quiz-attempt-skill.module';
 import { QuizConfigModule } from './modules/quiz-config/quiz-config.module';
 import { RoleModule } from './modules/role/role.module';
 import { SkillModule } from './modules/skill/skill.module';
@@ -40,7 +39,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AnswerModule } from './modules/answer/answer.module';
 import { GptModule } from './modules/gpt/gpt.module';
-import { FeedbacksGateway } from './modules/socket/feedback.gateway';
 import { QuizAnswerModule } from './modules/quizanswer/quiz-answer.module';
 import { QuizQuestionItemModule } from './modules/quiz-question-item/quiz-question-item.module';
 import { ExamStructureTypeModule } from './modules/exam-structure-type/exam-structure-type.module';
@@ -51,7 +49,6 @@ import { RequestContextMiddleware } from './common/middleware/request-context.mi
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostgresConfigService } from './database/config/postgres.config';
 import { JwtService } from '@nestjs/jwt';
-import { ProgressModule } from './modules/progress/progress.module';
 import { TargetLearningDetailModule } from './modules/target-learning-detail/target-learning-detail.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { EvaluateFeedbackModule } from './modules/evaluate-feedback-type/evaluate-feedback-type.module';
@@ -92,7 +89,6 @@ import { SocketModule } from './modules/socket/socket.module';
         QuizModule,
         QuizAttemptModule,
         QuizAttemptAnswerModule,
-        QuizAttemptSkillModule,
         QuizConfigModule,
         QuizQuestionModule,
         RoleModule,
@@ -112,7 +108,6 @@ import { SocketModule } from './modules/socket/socket.module';
         ExamStructureConfigModule,
         ExamSemesterModule,
         DomainDistributionConfigModule,
-        ProgressModule,
         TargetLearningDetailModule,
         NotificationModule,
         EvaluateFeedbackModule,
