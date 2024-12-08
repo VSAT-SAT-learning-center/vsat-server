@@ -1,55 +1,55 @@
-# name: Deploy Backend
+name: Deploy Backend
 
-# # Kích hoạt khi có push lên nhánh main
-# on:
-#     push:
-#         branches:
-#             - main
+# Kích hoạt khi có push lên nhánh main
+on:
+    push:
+        branches:
+            - main
 
-# jobs:
-#     deploy-backend:
-#         runs-on: self-hosted  # Sử dụng runner tự quản trên VPS
-#         environment: docker
-#         steps:
-#             # Bước 1: Sử dụng lệnh git để clone mã nguồn vào thư mục có quyền ghi
-#             - name: Clone code with git
-#               run: |
-#                 # Chọn thư mục không phải là /root, ví dụ /home/runner hoặc thư mục tùy chỉnh
-#                 if [ ! -d "/home/runner/vsat-server" ]; then
-#                   git clone https://github.com/VSAT-SAT-learning-center/vsat-server.git /home/runner/vsat-server
-#                 fi
-#                 cd /home/runner/vsat-server
-#                 git checkout main
+jobs:
+    deploy-backend:
+        runs-on: self-hosted  # Sử dụng runner tự quản trên VPS
+        environment: docker
+        steps:
+            # Bước 1: Sử dụng lệnh git để clone mã nguồn vào thư mục có quyền ghi
+            - name: Clone code with git
+              run: |
+                # Chọn thư mục không phải là /root, ví dụ /home/runner hoặc thư mục tùy chỉnh
+                if [ ! -d "/home/runner/vsat-server" ]; then
+                  git clone https://github.com/VSAT-SAT-learning-center/vsat-server.git /home/runner/vsat-server
+                fi
+                cd /home/runner/vsat-server
+                git checkout main
 
-#             - name: Pull latest code
-#               run: |
-#                 cd /home/runner/vsat-server
-#                 git pull origin main  
+            - name: Pull latest code
+              run: |
+                cd /home/runner/vsat-server
+                git pull origin main  
 
-#             # Bước 2: Cài đặt npm dependencies
-#             - name: Install npm dependencies
-#               run: |
-#                 cd /home/runner/vsat-server
-#                 npm install
+            # Bước 2: Cài đặt npm dependencies
+            - name: Install npm dependencies
+              run: |
+                cd /home/runner/vsat-server
+                npm install
 
-#             # Bước 3: Tạo file .env với các thông tin cấu hình
-#             - name: Create .env file
-#               run: |
-#                 echo "POSTGRES_HOST=103.163.25.160" > /home/runner/vsat-server/.env
-#                 echo "POSTGRES_PORT=5432" >> /home/runner/vsat-server/.env
-#                 echo "POSTGRES_USER=postgres" >> /home/runner/vsat-server/.env
-#                 echo "POSTGRES_DB=vsat" >> /home/runner/vsat-server/.env
-#                 echo "POSTGRES_SYNC=true" >> /home/runner/vsat-server/.env
-#                 echo "POSTGRES_LOGGING=true" >> /home/runner/vsat-server/.env
-#                 echo "MONGO_URI=mongodb://localhost:27017/nest" >> /home/runner/vsat-server/.env
-#                 echo "MAIL_USER=vsat.center.official@gmail.com" >> /home/runner/vsat-server/.env
-#                 echo "ACCESS_TOKEN_KEY=${{ secrets.ACCESS_TOKEN_KEY }}" >> /home/runner/vsat-server/.env
-#                 echo "API_KEY=${{ secrets.API_KEY }}" >> /home/runner/vsat-server/.env
-#                 echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /home/runner/vsat-server/.env
-#                 echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> /home/runner/vsat-server/.env
-#                 echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> /home/runner/vsat-server/.env
+            # Bước 3: Tạo file .env với các thông tin cấu hình
+            - name: Create .env file
+              run: |
+                echo "POSTGRES_HOST=103.163.25.160" > /home/runner/vsat-server/.env
+                echo "POSTGRES_PORT=5432" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_USER=postgres" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_DB=vsat" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_SYNC=true" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_LOGGING=true" >> /home/runner/vsat-server/.env
+                echo "MONGO_URI=mongodb://localhost:27017/nest" >> /home/runner/vsat-server/.env
+                echo "MAIL_USER=vsat.center.official@gmail.com" >> /home/runner/vsat-server/.env
+                echo "ACCESS_TOKEN_KEY=${{ secrets.ACCESS_TOKEN_KEY }}" >> /home/runner/vsat-server/.env
+                echo "API_KEY=${{ secrets.API_KEY }}" >> /home/runner/vsat-server/.env
+                echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /home/runner/vsat-server/.env
+                echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> /home/runner/vsat-server/.env
+                echo "REFRESH_TOKEN_KEY=${{ secrets.REFRESH_TOKEN_KEY }}" >> /home/runner/vsat-server/.env
 
-#             # Bước 5: Thiết lập Docker Compose và khởi động container backend
-#             - name: Build and Deploy Backend with Docker Compose
-#               run: |
-#                 docker compose -f /home/runner/vsat-server/compose.yaml up --build -d
+            # Bước 5: Thiết lập Docker Compose và khởi động container backend
+            - name: Build and Deploy Backend with Docker Compose
+              run: |
+                docker compose -f /home/runner/vsat-server/compose.yaml up --build -d

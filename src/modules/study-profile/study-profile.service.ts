@@ -380,8 +380,7 @@ export class StudyProfileService {
 
         const [studyProfiles, total] = await this.studyProfileRepository
             .createQueryBuilder('studyProfile')
-            .leftJoinAndSelect('studyProfile.account', 'account') // Tham chiếu accountId
-            .where('studyProfile.status = :status', { status: StudyProfileStatus.ACTIVE })
+            .leftJoinAndSelect('studyProfile.account', 'account')
             .skip(skip)
             .take(pageSize)
             .orderBy('studyProfile.updatedat', 'DESC')

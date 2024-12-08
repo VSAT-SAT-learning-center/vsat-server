@@ -13,6 +13,6 @@ export class UpdateDateDto {
     @IsOptional()
     @ApiProperty()
     @Expose()
-    @Transform(({ value }) => (value ? format(new Date(value), 'dd/MM/yyyy') : value))
+    @Transform(({ value }) => (value ? format(new Date(value), 'MM/dd/yyyy') : value))
     attemptdatetime?: Date;
 }
