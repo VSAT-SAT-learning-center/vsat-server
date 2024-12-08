@@ -410,7 +410,7 @@ export class ExamAttemptController {
     }
 
     @Post('createExamAttemptCertified/certify')
-    //@UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
     async createExamAttemptCertified(@Body() createCertify: CreateCertifyDto) {
         try {
             const examAttempt =
