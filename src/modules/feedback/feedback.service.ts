@@ -456,7 +456,7 @@ export class FeedbackService extends BaseService<Feedback> {
             content,
             reason,
             status: FeedbackStatus.REJECTED,
-            quizQuestion: { id: quizQuestionId },
+            quizquestion: { id: quizQuestionId },
         });
 
         let notificationMessage;
