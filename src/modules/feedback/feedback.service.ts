@@ -550,7 +550,7 @@ export class FeedbackService extends BaseService<Feedback> {
                     await this.feedbackRepository.save({
                         accountFrom: { id: accountFromId },
                         accountTo: { id: accountToId },
-                        moduletype: { id: moduleTypeId },
+                        moduleType: { id: moduleTypeId },
                         exam: { id: examFeedback.examId },
                         content,
                         reason,

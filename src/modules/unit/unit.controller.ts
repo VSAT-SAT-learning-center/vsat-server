@@ -118,6 +118,7 @@ export class UnitController extends BaseController<Unit> {
             );
         }
     }
+    
 
     @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Get('staff/:status')
@@ -244,98 +245,6 @@ export class UnitController extends BaseController<Unit> {
             pageSize,
             getUnitsByUserIdDto,
         );
-    }
-
-    // @Post('user/draft')
-    // async getDraftUnitsWithDetailsByUserId(
-    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-    //     pageSize: number,
-    // ): Promise<PagedUnitResponseDto> {
-    //     const { userId } = getUnitsByUserIdDto;
-
-    //     return this.unitService.getDraftUnitWithDetailsByUserId(page, pageSize, userId);
-    // }
-
-    // @Post('user/pending')
-    // async getPendingUnitsWithDetailsByUserId(
-    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-    //     pageSize: number,
-    // ): Promise<PagedUnitResponseDto> {
-    //     const { userId } = getUnitsByUserIdDto;
-
-    //     return this.unitService.getPendingUnitWithDetailsByUserId(page, pageSize, userId);
-    // }
-
-    // @Post('user/approve')
-    // async getApproveUnitsWithDetailsByUserId(
-    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-    //     pageSize: number,
-    // ): Promise<PagedUnitResponseDto> {
-    //     const { userId } = getUnitsByUserIdDto;
-
-    //     return this.unitService.getApproveUnitWithDetailsByUserId(page, pageSize, userId);
-    // }
-
-    // @Post('user/reject')
-    // async getRejectUnitsWithDetailsByUserId(
-    //     @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-    //     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    //     @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-    //     pageSize: number,
-    // ): Promise<PagedUnitResponseDto> {
-    //     const { userId } = getUnitsByUserIdDto;
-
-    //     return this.unitService.getRejectUnitWithDetailsByUserId(page, pageSize, userId);
-    // }
-
-    @Post('user/:status')
-    async getUnitsWithDetailsByUserId(
-        @Param('status') status: string,
-        @Body() getUnitsByUserIdDto: GetUnitsByUserIdDto,
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-        @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe)
-        pageSize: number,
-    ): Promise<PagedUnitResponseDto> {
-        const { userId } = getUnitsByUserIdDto;
-
-        let units;
-
-        // Determine the status and call the appropriate service method
-        if (status === 'draft') {
-            units = await this.unitService.getDraftUnitWithDetailsByUserId(
-                page,
-                pageSize,
-                userId,
-            );
-        } else if (status === 'pending') {
-            units = await this.unitService.getPendingUnitWithDetailsByUserId(
-                page,
-                pageSize,
-                userId,
-            );
-        } else if (status === 'approve') {
-            units = await this.unitService.getApproveUnitWithDetailsByUserId(
-                page,
-                pageSize,
-                userId,
-            );
-        } else if (status === 'reject') {
-            units = await this.unitService.getRejectUnitWithDetailsByUserId(
-                page,
-                pageSize,
-                userId,
-            );
-        } else {
-            return null;
-        }
-
-        return units;
     }
 
     @Get('domain/:id')

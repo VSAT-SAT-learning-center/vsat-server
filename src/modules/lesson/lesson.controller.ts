@@ -75,6 +75,7 @@ export class LessonController extends BaseController<Lesson> {
         type: UpdateLessonWithContentsDto,
     })
     @ApiOperation({ summary: 'Update lessons and their contents' })
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post('/update')
     async updateLessonsWithContents(@Body() lessonsData: UpdateLessonWithContentsDto) {
         return await this.lessonService.updateLessonsWithContents(lessonsData);
