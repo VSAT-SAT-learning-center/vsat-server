@@ -12,7 +12,6 @@ import {
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { NotificationService } from './notification.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { RoleGuard } from 'src/common/guards/role.guard';
 
 @Controller('notifications')
 @ApiTags('Notifications')

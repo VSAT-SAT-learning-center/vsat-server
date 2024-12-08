@@ -9,9 +9,7 @@ import { LessonService } from '../lesson/lesson.service';
 import { UnitAreaProgressService } from '../unit-area-progress/unit-area-progress.service';
 import { UpdateLessonProgressStatusDto } from './dto/update-lessonprogress-status.dto';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
-import { ApiOperation } from '@nestjs/swagger';
 import { UnitProgressService } from '../unit-progress/unit-progress.service';
-import { CompleteLessonProgressDto } from '../target-learning/dto/complete-lesson-progress.dto';
 
 @Injectable()
 export class LessonProgressService extends BaseService<LessonProgress> {

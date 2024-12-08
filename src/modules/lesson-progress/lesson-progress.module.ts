@@ -4,7 +4,6 @@ import { Lesson } from 'src/database/entities/lesson.entity';
 import { LessonProgress } from 'src/database/entities/lessonprogress.entity';
 import { UnitAreaProgress } from 'src/database/entities/unitareaprogress.entity';
 import { LessonProgressService } from './lesson-progress.service';
-import { LessonProgressController } from './lesson-progress.controller';
 import { UnitAreaProgressModule } from '../unit-area-progress/unit-area-progress.module';
 import { LessonModule } from '../lesson/lesson.module';
 import { UnitProgressModule } from '../unit-progress/unit-progress.module';
@@ -17,7 +16,6 @@ import { UnitProgressModule } from '../unit-progress/unit-progress.module';
         forwardRef(() => UnitProgressModule)
     ],
     providers: [LessonProgressService],
-    controllers: [LessonProgressController],
     exports: [LessonProgressService],
 })
 export class LessonProgressModule {}

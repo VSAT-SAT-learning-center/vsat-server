@@ -1,7 +1,5 @@
 import {
-    ConflictException,
     Injectable,
-    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -42,8 +40,7 @@ export class QuizConfigService extends BaseService<QuizConfig> {
                 return quizConfig;
             },
         );
-
-        // Save all quizConfig to database
+        
         return this.quizConfigRepository.save(quizConfigsToSave);
     }
 }

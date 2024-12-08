@@ -146,8 +146,7 @@ export class LessonService extends BaseService<Lesson> {
         // Save the lesson
         // const savedLesson = await this.lessonRepository.save(lesson);
         const lesson = await this.lessonRepository.findOne({
-            where: { id: updateData.lessonId },
-            relations: ['lessonContents'], // Load related lesson contents
+            where: { id: updateData.lessonId }
         });
 
         if (!lesson) {

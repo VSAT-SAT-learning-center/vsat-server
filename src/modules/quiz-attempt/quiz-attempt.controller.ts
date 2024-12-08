@@ -21,12 +21,11 @@ import { SaveQuizAttemptProgressDto } from './dto/save-quiz-attempt.dto';
 import { QuizAttemptStatus } from 'src/common/enums/quiz-attempt-status.enum';
 import { SkipQuizAttemptProgressDto } from './dto/skip-quiz-attempt.dto';
 import { ResetQuizAttemptProgressDto } from './dto/reset-quiz-attempt.dto';
-import { RoleGuard } from 'src/common/guards/role.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @ApiTags('QuizAttempts')
 @Controller('quiz-attempts')
-//@UseGuards(JwtAuthGuard, new RoleGuard(['student']))
+@UseGuards(JwtAuthGuard)
 export class QuizAttemptController extends BaseController<QuizAttempt> {
     constructor(
         private readonly quizAttemptService: QuizAttemptService,
@@ -88,7 +87,7 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
                 quizAttemptId: quizAttempt.id,
                 quizId: quiz.id,
                 totalQuestions: quiz.totalquestion,
-                questions: quizQuestions, // Includes answers and correct status if needed
+                questions: quizQuestions,
             },
             quizAttempt.status === QuizAttemptStatus.IN_PROGRESS
                 ? 'Quiz resumed successfully'
@@ -97,9 +96,6 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
     }
 
     @ApiOperation({ summary: 'Student submit answer' })
-    /**
-     * Save the student's answer for a question as they progress through the quiz.
-     */
     @Post(':quizAttemptId/progress')
     async saveQuizAttemptProgress(
         @Param('quizAttemptId') quizAttemptId: string,
