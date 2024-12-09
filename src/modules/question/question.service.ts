@@ -662,7 +662,7 @@ export class QuestionService extends BaseService<Question> {
             skip: skip,
             take: pageSize,
             where: whereCondition,
-            order: { updatedat: 'DESC' },
+            order: { createdat: 'DESC' },
         });
 
         const totalPages = Math.ceil(total / pageSize);
@@ -682,7 +682,7 @@ export class QuestionService extends BaseService<Question> {
         };
     }
 
-    async searchQuestionsByCreateBy(
+    async searchQuestionsByStatus(
         page: number,
         pageSize: number,
         skillId?: string,
@@ -690,7 +690,6 @@ export class QuestionService extends BaseService<Question> {
         levelId?: string,
         sectionId?: string,
         status?: QuestionStatus,
-        accountId?: string,
     ): Promise<any> {
         const skip = (page - 1) * pageSize;
 
@@ -715,16 +714,12 @@ export class QuestionService extends BaseService<Question> {
             whereCondition.section = { id: sectionId };
         }
 
-        if (accountId) {
-            whereCondition.createdby = accountId;
-        }
-
         const [questions, total] = await this.questionRepository.findAndCount({
             relations: ['section', 'level', 'skill', 'skill.domain', 'answers'],
             skip: skip,
             take: pageSize,
             where: whereCondition,
-            order: { updatedat: 'DESC' },
+            order: { createdat: 'DESC' },
         });
 
         const questionsWithAccounts = await populateCreatedBy(
@@ -1019,7 +1014,7 @@ export class QuestionService extends BaseService<Question> {
                 approved: approvedExamCount,
                 rejected: rejectedExamCount,
                 pending: pendingExamCount,
-                createofmonth: createOfMonthExamCount
+                createofmonth: createOfMonthExamCount,
             },
             unit: {
                 approved: approvedUnitCount,
@@ -1030,7 +1025,7 @@ export class QuestionService extends BaseService<Question> {
                 inactive: inactiveStudy,
                 active: activeStudy,
                 complete: completeStudy,
-                createofmonth: createOfMonthStudy
+                createofmonth: createOfMonthStudy,
             },
             domainsquestion: domainStatistics,
             domainsquiz: domainQuizStatistics,
