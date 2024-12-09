@@ -103,6 +103,16 @@ export class QuestionService extends BaseService<Question> {
             .trim();
     }
 
+    jaccardSimilarity(str1: string, str2: string): number {
+        const set1 = new Set(str1.split(' '));
+        const set2 = new Set(str2.split(' '));
+
+        const intersection = new Set([...set1].filter((x) => set2.has(x)));
+        const union = new Set([...set1, ...set2]);
+
+        return intersection.size / union.size;
+    }
+
     async rejectQuestion(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
         const { questionId } = feedbackDto;
 
@@ -160,15 +170,23 @@ export class QuestionService extends BaseService<Question> {
 
                 const normalizedContent = this.normalizeContent(content);
 
-                const existingQuestion = await this.questionRepository.findOne({
-                    where: { plainContent: normalizedContent },
-                });
+                const existingContents = await this.questionRepository
+                    .createQueryBuilder('question')
+                    .select('question.plainContent')
+                    .getMany();
 
-                if (existingQuestion) {
-                    throw new HttpException(
-                        `Question already exists`,
-                        HttpStatus.BAD_REQUEST,
+                for (const plainContent of existingContents.map((q) => q.plainContent)) {
+                    const similarity = this.jaccardSimilarity(
+                        normalizedContent,
+                        plainContent,
                     );
+
+                    if (similarity > 0.8) {
+                        throw new HttpException(
+                            'Question already exists',
+                            HttpStatus.BAD_REQUEST,
+                        );
+                    }
                 }
 
                 if (!foundLevel) {
@@ -270,12 +288,20 @@ export class QuestionService extends BaseService<Question> {
 
         const normalizedContent = this.normalizeContent(content);
 
-        const existingQuestion = await this.questionRepository.findOne({
-            where: { plainContent: normalizedContent },
-        });
+        const existingContents = await this.questionRepository
+            .createQueryBuilder('question')
+            .select('question.plainContent')
+            .getMany();
 
-        if (existingQuestion) {
-            throw new HttpException(`Question already exists`, HttpStatus.BAD_REQUEST);
+        for (const plainContent of existingContents.map((q) => q.plainContent)) {
+            const similarity = this.jaccardSimilarity(normalizedContent, plainContent);
+
+            if (similarity > 0.8) {
+                throw new HttpException(
+                    'Question already exists',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
         }
 
         if (createQuestionDto.isSingleChoiceQuestion === null) {
