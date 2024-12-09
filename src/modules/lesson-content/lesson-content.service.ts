@@ -168,32 +168,6 @@ export class LessonContentService extends BaseService<LessonContent> {
         return updatedContents;
     }
 
-    async getLessonContentsByLesson(lesson: Lesson): Promise<LessonContent[]> {
-        return await this.lessonContentRepository.find({
-            where: { lesson },
-        });
-    }
-
-    async findByLessonId(lessonId: string | number): Promise<LessonContent[]> {
-        try {
-            const entity = await this.lessonContentRepository.find({
-                where: { lesson: { id: lessonId } } as any,
-            });
-
-            if (!entity) {
-                throw new HttpException(`${lessonId} not found`, HttpStatus.NOT_FOUND);
-            }
-
-            return entity;
-        } catch (error) {
-            console.error('Log Error:', error);
-            throw new HttpException(
-                'Failed to retrieve entity',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
-    }
-
     async create(createLessonContentDto: CreateLessonContentDto): Promise<LessonContent> {
         const { lessonId, ...lessonContentData } = createLessonContentDto;
 

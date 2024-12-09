@@ -26,7 +26,6 @@ import { UpdateLessonWithContentsDto } from './dto/update-lesson-with-contents.d
 export class LessonController extends BaseController<Lesson> {
     constructor(
         private readonly lessonService: LessonService,
-        private readonly lessonProgressService: LessonProgressService,
     ) {
         super(lessonService, 'Lesson');
     }
@@ -71,22 +70,12 @@ export class LessonController extends BaseController<Lesson> {
         );
     }
 
-    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
-    @Patch(':id')
-    async update(@Param('id') id: string, @Body() updateLessonDto: UpdateLessonDto) {
-        const updatedLesson = await this.lessonService.update(id, updateLessonDto);
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            updatedLesson,
-            SuccessMessages.update('Lesson'),
-        );
-    }
-
     @ApiBody({
         description: 'Update lesson with its contents',
         type: UpdateLessonWithContentsDto,
     })
     @ApiOperation({ summary: 'Update lessons and their contents' })
+    @UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
     @Post('/update')
     async updateLessonsWithContents(@Body() lessonsData: UpdateLessonWithContentsDto) {
         return await this.lessonService.updateLessonsWithContents(lessonsData);

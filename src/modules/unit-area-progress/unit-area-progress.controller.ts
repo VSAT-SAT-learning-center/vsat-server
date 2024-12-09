@@ -50,32 +50,4 @@ export class UnitAreaProgressController extends BaseController<UnitAreaProgress>
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }
     }
-
-    @Post()
-    async create(@Body() createUnitAreaProgressDto: CreateUnitAreaProgressDto) {
-        const createdUnit = await this.unitAreaProgressService.create(
-            createUnitAreaProgressDto,
-        );
-        return ResponseHelper.success(
-            HttpStatus.CREATED,
-            createdUnit,
-            SuccessMessages.create('UnitAreaProgress'),
-        );
-    }
-
-    @Patch(':id')
-    async update(
-        @Param('id') id: string,
-        @Body() updateUnitAreaProgressDto: UpdateUnitAreaProgressDto,
-    ) {
-        const updatedUnitArea = await this.unitAreaProgressService.update(
-            id,
-            updateUnitAreaProgressDto,
-        );
-        return ResponseHelper.success(
-            HttpStatus.OK,
-            updatedUnitArea,
-            SuccessMessages.update('UnitAreaProgress'),
-        );
-    }
 }

@@ -1,7 +1,6 @@
 import { Body, Controller, HttpException, HttpStatus, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { QuizConfigService } from './quiz-config.service';
-import { QuizConfig } from 'src/database/entities/quizconfig.entity';
 import { CreateQuizConfigForUnitDto } from './dto/create-quizconfig.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 

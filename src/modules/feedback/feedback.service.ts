@@ -456,7 +456,7 @@ export class FeedbackService extends BaseService<Feedback> {
             content,
             reason,
             status: FeedbackStatus.REJECTED,
-            quizQuestion: { id: quizQuestionId },
+            quizquestion: { id: quizQuestionId },
         });
 
         let notificationMessage;
@@ -550,7 +550,7 @@ export class FeedbackService extends BaseService<Feedback> {
                     await this.feedbackRepository.save({
                         accountFrom: { id: accountFromId },
                         accountTo: { id: accountToId },
-                        moduletype: { id: moduleTypeId },
+                        moduleType: { id: moduleTypeId },
                         exam: { id: examFeedback.examId },
                         content,
                         reason,
