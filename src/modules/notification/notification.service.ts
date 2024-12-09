@@ -145,15 +145,15 @@ export class NotificationService {
             throw new BadRequestException('User ID is required');
         }
 
-        const where: any = { accountTo: { id: userId } };
+        // const where: any = { accountTo: { id: userId } };
 
-        if (isRead !== undefined) {
-            where.isRead = isRead;
-        }
+        // if (isRead !== undefined) {
+        //     where.isRead = isRead;
+        // }
 
         const [notifications, totalItems] =
             await this.notificationRepository.findAndCount({
-                where,
+                where: { accountTo: { id: userId }, isRead: false },
                 relations: ['accountFrom', 'accountTo'],
                 order: { createdat: 'DESC' },
                 // skip: (page - 1) * limit,
