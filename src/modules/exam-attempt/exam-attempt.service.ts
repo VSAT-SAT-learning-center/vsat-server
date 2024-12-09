@@ -1,3 +1,4 @@
+import { format, toZonedTime } from 'date-fns-tz';
 import { CreateCertifyDto } from './dto/create-certify.dto';
 import { UpdateDateDto } from './dto/update-date.dto';
 import { CreateExamWithExamAttemptDto } from './../exam/dto/create-examwithattempt.dto';
@@ -1216,6 +1217,13 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         }
 
         const examAttemptArrs = [];
+        const timeZone = 'Asia/Ho_Chi_Minh';
+
+        const currentDate = new Date();
+        const currentTimeInTimeZone = toZonedTime(currentDate, timeZone);
+        const currentTime = format(currentTimeInTimeZone, 'yyyy-MM-dd HH:mm:ssXXX', {
+            timeZone,
+        });
 
         for (const studyProfileData of studyProfiles) {
             const targetLearnings = await this.targetLearningRepository.find({
@@ -1233,7 +1241,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         examAttempt.exam.id,
                     );
 
-                    // Gắn thông tin exam vào examAttempt
                     examAttempt.exam = {
                         ...examAttempt.exam,
                         ...examDetails,
@@ -1244,7 +1251,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
             }
         }
 
-        return examAttemptArrs;
+        return {
+            examAttemptArrs,
+            currentTime,
+        };
     }
 
     async createExamAttemptWithExam(
