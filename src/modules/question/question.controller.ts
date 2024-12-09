@@ -169,10 +169,9 @@ export class QuestionController {
         }
     }
 
-    @Get('searchQuestionsByCreateBy/:status')
+    @Get('searchQuestionsByStatus/:status')
     @UseGuards(JwtAuthGuard)
-    async searchQuestionsByCreateBy(
-        @Request() req,
+    async searchQuestionsByStatus(
         @Query('page') page: number = 1,
         @Query('pageSize') pageSize: number = 10,
         @Query('skillId') skillId?: string,
@@ -182,7 +181,7 @@ export class QuestionController {
         @Param('status') status?: QuestionStatus,
     ) {
         try {
-            const questions = await this.questionService.searchQuestionsByCreateBy(
+            const questions = await this.questionService.searchQuestionsByStatus(
                 page,
                 pageSize,
                 skillId,
@@ -190,7 +189,6 @@ export class QuestionController {
                 levelId,
                 sectionId,
                 status,
-                req.user.id,
             );
             return ResponseHelper.success(
                 HttpStatus.OK,
