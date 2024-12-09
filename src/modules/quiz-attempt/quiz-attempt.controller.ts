@@ -116,7 +116,6 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
             await this.quizAttemptService.saveQuizAttemptProgress(
                 quizAttemptId,
                 questionId,
-
                 studentdAnswerId,
                 studentdAnswerText,
             );

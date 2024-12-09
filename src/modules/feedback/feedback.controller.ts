@@ -161,7 +161,7 @@ export class FeedbackController extends BaseController<Feedback> {
     }
 
     @ApiOperation({ summary: 'Get feedback details by question id' })
-    @Get('question/reason/:quizQuestionId')
+    @Get('quizQuestion/reason/:quizQuestionId')
     async getRejectFeedbackByQuestionQuizId(
         @Param('quizQuestionId') quizQuestionId: string,
     ): Promise<{
