@@ -29,7 +29,7 @@ export class AuthService {
         await this.mailerService.sendMail({
             to: email,
             subject: 'Activate Your Account',
-            template: './common/mail/templates/active.hbs',
+            template: 'active',
             context: {
                 activation_link: activationLink,
             },
