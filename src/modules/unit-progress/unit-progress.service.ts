@@ -362,47 +362,47 @@ export class UnitProgressService extends BaseService<UnitProgress> {
 
         const targetLearningDetailId = targetLearningDetail.id;
 
-        // // Step 2: Existing UnitProgress processing remains the same
-        // const existingUnitProgresses = await this.unitProgressRepository.find({
-        //     where: { targetLearningDetail: { id: targetLearningDetailId } },
-        //     relations: ['unit'],
-        // });
+        // Step 2: Existing UnitProgress processing remains the same
+        const existingUnitProgresses = await this.unitProgressRepository.find({
+            where: { targetLearningDetail: { id: targetLearningDetailId } },
+            relations: ['unit'],
+        });
 
-        // const existingUnitProgressMap = new Map(
-        //     existingUnitProgresses.map((up) => [up.unit.id, up]),
-        // );
+        const existingUnitProgressMap = new Map(
+            existingUnitProgresses.map((up) => [up.unit.id, up]),
+        );
 
-        // const unitProgressesToInsert = [];
-        // const incomingUnitIds = new Set(unitProgressDtos.map((dto) => dto.unitId));
+        const unitProgressesToInsert = [];
+        const incomingUnitIds = new Set(unitProgressDtos.map((dto) => dto.unitId));
 
-        // for (const dto of unitProgressDtos) {
-        //     if (!existingUnitProgressMap.has(dto.unitId)) {
-        //         const newUnitProgress = this.unitProgressRepository.create({
-        //             unit: { id: dto.unitId },
-        //             targetLearningDetail: { id: targetLearningDetailId },
-        //             progress: 0,
-        //             status: ProgressStatus.NOT_STARTED,
-        //         });
-        //         unitProgressesToInsert.push(newUnitProgress);
-        //     }
-        // }
+        for (const dto of unitProgressDtos) {
+            if (!existingUnitProgressMap.has(dto.unitId)) {
+                const newUnitProgress = this.unitProgressRepository.create({
+                    unit: { id: dto.unitId },
+                    targetLearningDetail: { id: targetLearningDetailId },
+                    progress: 0,
+                    status: ProgressStatus.NOT_STARTED,
+                });
+                unitProgressesToInsert.push(newUnitProgress);
+            }
+        }
 
-        // const unitProgressesToDelete = existingUnitProgresses.filter(
-        //     (up) => !incomingUnitIds.has(up.unit.id),
-        // );
+        const unitProgressesToDelete = existingUnitProgresses.filter(
+            (up) => !incomingUnitIds.has(up.unit.id),
+        );
 
-        // if (unitProgressesToDelete.length > 0) {
-        //     await this.unitProgressRepository.remove(unitProgressesToDelete);
-        // }
+        if (unitProgressesToDelete.length > 0) {
+            await this.unitProgressRepository.remove(unitProgressesToDelete);
+        }
 
-        // if (unitProgressesToInsert.length > 0) {
-        //     await this.unitProgressRepository.save(unitProgressesToInsert);
-        // }
+        if (unitProgressesToInsert.length > 0) {
+            await this.unitProgressRepository.save(unitProgressesToInsert);
+        }
 
-        // const updatedUnitProgresses = await this.unitProgressRepository.find({
-        //     where: { targetLearningDetail: { id: targetLearningDetailId } },
-        //     relations: ['unit'],
-        // });
+        const updatedUnitProgresses = await this.unitProgressRepository.find({
+            where: { targetLearningDetail: { id: targetLearningDetailId } },
+            relations: ['unit'],
+        });
 
         await this.targetLearningDetailRepository.update(targetLearningDetailId, {
             status: TargetLearningStatus.ACTIVE, // Set status to active
