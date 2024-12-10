@@ -24,7 +24,7 @@ export class AuthService {
     ) {}
 
     async sendMail(email: string, activationToken: string) {
-        const activationLink = `http://localhost:5000/account/activate?token=${activationToken}`;
+        const activationLink = `https://server.vsatcenter.edu.vn/account/activate?token=${activationToken}`;
 
         await this.mailerService.sendMail({
             to: email,
