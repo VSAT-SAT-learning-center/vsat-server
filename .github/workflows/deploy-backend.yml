@@ -13,7 +13,7 @@ jobs:
         steps:
             - name: Pull latest code
               run: |
-                cd ~/home/runner/vsat-server
+                cd /home/runner/vsat-server
                 git pull origin main  
 
             # Bước 3: Tạo file .env với các thông tin cấu hình
