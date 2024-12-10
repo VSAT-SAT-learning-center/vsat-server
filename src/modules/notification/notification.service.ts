@@ -1,4 +1,10 @@
-import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+    BadRequestException,
+    forwardRef,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { AccountDto } from 'src/common/dto/common.dto';
@@ -18,7 +24,7 @@ export class NotificationService {
         private readonly notificationRepository: Repository<Notification>,
         private readonly feedbackGateway: FeedbacksGateway,
         @Inject(forwardRef(() => AccountService))
-        private readonly accountService: AccountService
+        private readonly accountService: AccountService,
     ) {}
 
     async createAndSendMultipleNotifications(
@@ -41,8 +47,12 @@ export class NotificationService {
 
         await this.notificationRepository.save(notifications);
         const account = await this.accountService.findById(accountFromId);
-        
-        const socketNotification = {accountFrom: account, message: message, createdAt: new Date()} as SocketNotificationDto;
+
+        const socketNotification = {
+            accountFrom: account,
+            message: message,
+            createdAt: new Date(),
+        } as SocketNotificationDto;
         this.feedbackGateway.sendNotificationToMultipleUsers(
             accountTos.map((accountTo) => accountTo.id),
             socketNotification,
@@ -71,7 +81,11 @@ export class NotificationService {
 
         await this.notificationRepository.save(notifications);
         const account = await this.accountService.findById(accountFromId);
-        const socketNotification = {accountFrom: account, message: message, createdAt: new Date()} as SocketNotificationDto;
+        const socketNotification = {
+            accountFrom: account,
+            message: message,
+            createdAt: new Date(),
+        } as SocketNotificationDto;
 
         this.feedbackGateway.sendNotificationToMultipleUsers(
             accountToIds,
@@ -80,7 +94,6 @@ export class NotificationService {
             eventType,
         );
     }
-    
 
     async createAndSendNotification(
         accountToId: string,
@@ -102,7 +115,11 @@ export class NotificationService {
 
         await this.notificationRepository.save(notification);
         const account = await this.accountService.findById(accountFromId);
-        const socketNotification = {accountFrom: account, message: message, createdAt: new Date()} as SocketNotificationDto;
+        const socketNotification = {
+            accountFrom: account,
+            message: message,
+            createdAt: new Date(),
+        } as SocketNotificationDto;
         this.feedbackGateway.sendNotificationToUser(
             accountToId,
             socketNotification,
@@ -129,7 +146,7 @@ export class NotificationService {
             throw new NotFoundException('No unread notifications found for this user');
         }
     }
-    
+
     async getNotificationsForUser(
         userId: string,
         isRead?: boolean,
@@ -168,13 +185,15 @@ export class NotificationService {
             type: notification.type,
             eventType: notification.eventType,
             createdAt: notification.createdat,
-            accountFrom: plainToInstance(AccountDto, {
-                id: notification.accountFrom.id,
-                username: notification.accountFrom.username,
-                firstname: notification.accountFrom.firstname,
-                lastname: notification.accountFrom.lastname,
-                profilepictureurl: notification.accountFrom.profilepictureurl,
-            }),
+            accountFrom: notification.accountFrom
+                ? plainToInstance(AccountDto, {
+                      id: notification.accountFrom.id,
+                      username: notification.accountFrom.username,
+                      firstname: notification.accountFrom.firstname,
+                      lastname: notification.accountFrom.lastname,
+                      profilepictureurl: notification.accountFrom.profilepictureurl,
+                  })
+                : null,
             accountTo: plainToInstance(AccountDto, {
                 id: notification.accountTo.id,
                 username: notification.accountTo.username,

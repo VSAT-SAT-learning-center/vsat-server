@@ -871,6 +871,28 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         updateExamAttempt.id,
                     );
 
+                    const staffs = await this.accountRepository.find({
+                        where: { role: { rolename: 'Staff' } },
+                    });
+
+                    await this.notificationService.createAndSendMultipleNotifications(
+                        staffs,
+                        null,
+                        studyProfile,
+                        `Student ${account.username} has completed the exam ${exam.title}`,
+                        FeedbackType.EXAM,
+                        FeedbackEventType.EXAM_ATTEMPT,
+                    );
+
+                    await this.notificationService.createAndSendNotification(
+                        account.id,
+                        null,
+                        studyProfile,
+                        `You have complete the ${exam.title}`,
+                        FeedbackType.EXAM,
+                        FeedbackEventType.EXAM_ATTEMPT,
+                    );
+
                     return plainToInstance(CreateExamAttemptDto, {
                         scoreMath: updateExamAttempt.scoreMath,
                         scoreRW: updateExamAttempt.scoreRW,
@@ -895,23 +917,21 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 savedExamAttempt.id,
             );
 
+            await this.notificationService.createAndSendNotification(
+                account.id,
+                null,
+                studyProfile,
+                `You have complete the ${exam.title}`,
+                FeedbackType.EXAM,
+                FeedbackEventType.EXAM_ATTEMPT,
+            );
+
             return plainToInstance(CreateExamAttemptDto, {
                 scoreMath: savedExamAttempt.scoreMath,
                 scoreRW: savedExamAttempt.scoreRW,
                 attemptId: savedExamAttempt.id,
             });
         }
-
-        const notificationMessage = `You have complete the ${exam.title}`;
-
-        await this.notificationService.createAndSendNotification(
-            account.id,
-            null,
-            studyProfile,
-            notificationMessage,
-            FeedbackType.EXAM,
-            FeedbackEventType.EXAM_ATTEMPT,
-        );
     }
 
     // async getExamAttemptByStudyProfileId(accountId: string) {
