@@ -32,12 +32,6 @@ jobs:
                 cd /home/runner/vsat-server
                 npm install
 
-            # Bước 3: Build project
-            - name: Build code
-              run: |
-                cd /home/runner/vsat-server
-                npm run build
-
             # Bước 3: Tạo file .env với các thông tin cấu hình
             - name: Create .env file
               run: |
