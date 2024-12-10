@@ -8,7 +8,7 @@ on:
 
 jobs:
     deploy-backend:
-        runs-on: self-hosted  # Sử dụng runner tự quản trên VPS
+        runs-on: self-hosted
         environment: docker
         steps:
             # Bước 1: Sử dụng lệnh git để clone mã nguồn vào thư mục có quyền ghi
