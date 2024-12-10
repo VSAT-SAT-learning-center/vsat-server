@@ -8,7 +8,7 @@ on:
 
 jobs:
     deploy-backend:
-        runs-on: self-hosted
+        runs-on: self-hosted  # Sử dụng runner tự quản trên VPS
         environment: docker
         steps:
             # Bước 1: Sử dụng lệnh git để clone mã nguồn vào thư mục có quyền ghi
@@ -16,7 +16,7 @@ jobs:
               run: |
                 # Chọn thư mục không phải là /root, ví dụ /home/runner hoặc thư mục tùy chỉnh
                 if [ ! -d "/home/runner/vsat-server" ]; then
-                  git clone https://github.com/VSAT-SAT-learning-center/vsat-server.git /home/runner/vsat-server
+                  git clone git@github.com:VSAT-SAT-learning-center/vsat-server.git /home/runner/vsat-server
                 fi
                 cd /home/runner/vsat-server
                 git checkout main
