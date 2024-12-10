@@ -188,7 +188,7 @@ export class AccountService extends BaseService<Account> {
         await this.mailerService.sendMail({
             to: email,
             subject: 'Welcome to VSAT Learning Center!',
-            template: './common/mail/templates/welcome.hbs',
+            template: 'welcome',
             context: {
                 username: email,
                 password: password,

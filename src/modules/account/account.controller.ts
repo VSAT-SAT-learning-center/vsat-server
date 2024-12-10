@@ -42,7 +42,7 @@ export class AccountController {
     ) {}
 
     @Post()
-    @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
+    // @UseGuards(JwtAuthGuard, new RoleGuard(['admin']))
     async save(@Body() accountDto: CreateAccountDTO) {
         try {
             const saveAccount = await this.accountService.save(accountDto);
@@ -373,10 +373,5 @@ export class AccountController {
                 error.status || HttpStatus.BAD_REQUEST,
             );
         }
-    }
-
-    @Get('test')
-    async test() {
-        return 'test';
     }
 }
