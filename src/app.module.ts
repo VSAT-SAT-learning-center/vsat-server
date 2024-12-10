@@ -130,7 +130,7 @@ import { SocketModule } from './modules/socket/socket.module';
                 },
                 //preview: true,
                 template: {
-                    dir: process.cwd() + '/src/',
+                    dir: __dirname + '/common/mail/templates',
                     adapter: new HandlebarsAdapter(),
                     options: {
                         strict: true,
