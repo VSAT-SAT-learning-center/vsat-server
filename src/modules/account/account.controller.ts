@@ -374,4 +374,9 @@ export class AccountController {
             );
         }
     }
+
+    @Get('test')
+    async test() {
+        return 'test';
+    }
 }
