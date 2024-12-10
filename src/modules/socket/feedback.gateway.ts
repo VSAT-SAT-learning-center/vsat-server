@@ -15,14 +15,10 @@ import { SocketNotificationDto } from 'src/modules/notification/notification.dto
 
 @WebSocketGateway({
     namespace: '/socket',
-    // cors: { 
-    //     //origin: '*',
-    //     origin: ['https://vsatcenter.edu.vn'], methods: ['GET', 'POST'], credentials: true,
-    // },
     cors: {
         //origin: '*',
-        // origin: ['https://vsatcenter.edu.vn/'],
-        origin: ['http://localhost:3000/'],
+        origin: ['https://vsatcenter.edu.vn/'],
+        //origin: ['http://localhost:3000/'],
         methods: ['GET', 'POST'],
         credentials: true,
     },
