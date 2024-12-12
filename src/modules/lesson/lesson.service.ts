@@ -29,7 +29,7 @@ export class LessonService extends BaseService<Lesson> {
 
     async findOne(lessonId: string, unitAreaId: string): Promise<Lesson> {
         return this.lessonRepository.findOne({
-            where: { id: lessonId, unitArea: { id: unitAreaId } }, // Tìm bài học theo id và unitAreaId
+            where: { id: lessonId, unitArea: { id: unitAreaId } }, 
         });
     }
 
@@ -42,22 +42,21 @@ export class LessonService extends BaseService<Lesson> {
     async createLesson(updateLessonDto: UpdateLessonDto): Promise<Lesson> {
         const { lessonId, title, type, lessonContents } = updateLessonDto;
 
-        // Tìm Lesson theo ID
         let lesson = await this.lessonRepository.findOne({
             where: { id: lessonId },
-            relations: ['lessonContents'], // Include lessonContents to process them later
+            relations: ['lessonContents'], 
         });
 
         if (!lesson) {
             throw new NotFoundException('Lesson not found');
         }
 
-        // Cập nhật thông tin của Lesson
+        
         lesson.title = title;
         lesson.type = type;
         await this.lessonRepository.save(lesson);
 
-        // Gọi LessonContentService để xử lý danh sách LessonContents (thêm, xóa, cập nhật)
+        
         await this.lessonContentService.saveLessonContents(lesson, lessonContents);
 
         return lesson;
@@ -72,18 +71,16 @@ export class LessonService extends BaseService<Lesson> {
         for (const lessonData of lessons) {
             let lesson;
 
-            // Kiểm tra nếu lessonId là chuỗi rỗng, tạo bài học mới với UUID
             if (!lessonData.id || lessonData.id === '') {
                 lesson = await this.create({
                     ...lessonData,
-                    id: uuidv4(), // Tạo UUID mới cho Lesson
+                    id: uuidv4(), 
                     unitAreaId,
                 });
             } else {
                 lesson = await this.findOne(lessonData.id, unitAreaId);
 
                 if (lesson) {
-                    // Cập nhật bài học hiện có
                     lesson = await this.update(lesson.id, {
                         ...lessonData,
                         unitAreaId,
@@ -100,7 +97,6 @@ export class LessonService extends BaseService<Lesson> {
             lessonIds.push(lesson.id);
         }
 
-        // Xóa các bài học không còn trong danh sách
         await this.removeMissingLessons(unitAreaId, lessonIds);
 
         return lessonIds;
@@ -120,7 +116,7 @@ export class LessonService extends BaseService<Lesson> {
             );
         }
 
-        // Update lesson contents
+        
         await this.lessonContentService.updateLessonContents(
             lesson,
             updateData.lessonContents,
@@ -151,7 +147,7 @@ export class LessonService extends BaseService<Lesson> {
     async getLessonById(id: string): Promise<any> {
         const lesson = await this.lessonRepository.findOne({
             where: { id },
-            relations: ['lessonContents'], // Tải thông tin lessonContents cùng với lesson
+            relations: ['lessonContents'], 
         });
 
         if (!lesson) {
@@ -176,28 +172,28 @@ export class LessonService extends BaseService<Lesson> {
                                     ? c.examples.map((e) => ({
                                           exampleId: e.exampleId,
                                           content: e.content,
-                                          explain: e.explain || '', // Default to empty string if null
+                                          explain: e.explain || '', 
                                       }))
-                                    : [], // Default to empty array if no examples
+                                    : [], 
                             }))
-                          : [], // Default to empty array if no contents
+                          : [], 
                       question: content.question
                           ? {
                                 questionId: content.question.questionId,
                                 prompt: content.question.prompt,
                                 correctAnswer: content.question.correctAnswer,
-                                explanation: content.question.explanation || '', // Default to empty string if null
+                                explanation: content.question.explanation || '', 
                                 answers: Array.isArray(content.question.answers)
                                     ? content.question.answers.map((a) => ({
                                           text: a.text,
                                           label: a.label,
                                           answerId: a.answerId,
                                       }))
-                                    : [], // Default to empty array if no answers
+                                    : [], 
                             }
-                          : null, // Default to null if no question
+                          : null, 
                   }))
-                : [], // Default to empty array if no lessonContents
+                : [], 
         };
         return transformedLesson;
     }

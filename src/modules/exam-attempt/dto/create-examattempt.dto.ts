@@ -2,25 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import {
     IsUUID,
-    IsInt,
-    IsOptional,
     ValidateNested,
     IsArray,
     IsNumber,
     IsBoolean,
 } from 'class-validator';
 import { CheckExamAttemptDetail } from 'src/modules/exam-attempt-detail/dto/check-examattemptdetail';
-
-// export class CreateExamAttemptDetail {
-//     @IsUUID()
-//     @ApiProperty()
-//     @Expose()
-//     questionId: string;
-
-//     @ApiProperty()
-//     @Expose()
-//     studentAnswer: string;
-// }
 
 export class CreateExamAttemptDto {
     @IsUUID()

@@ -34,8 +34,6 @@ export class ExamSemesterService {
     async getExamSemestersWithDetails(): Promise<ExamSemesterWithDetailsDto[]> {
         const examSemesters = await this.examSemesterRepository.find({
             relations: [
-                // 'examStructures',
-                // 'examStructures.examStructureType',
                 'domainDistributionConfigs',
                 'domainDistributionConfigs.domain',
                 'domainDistributionConfigs.domain.section',
@@ -47,11 +45,6 @@ export class ExamSemesterService {
             title: semester.title,
             time: semester.time,
             createdat: semester.createdat,
-            // examStructure: semester.examStructures.map((structure) => ({
-            //     id: structure.id,
-            //     name: structure.structurename,
-            //     structureType: structure.examStructureType?.name,
-            // })),
             domainDistributionConfig: semester.domainDistributionConfigs.map(
                 (config) => ({
                     id: config.id,
@@ -61,7 +54,7 @@ export class ExamSemesterService {
                     maxQuestion: config.maxQuestion,
                     section: config.domain?.section
                         ? {
-                              // Check if section exists
+                              
                               id: config.domain.section.id,
                               name: config.domain.section.name,
                           }
@@ -77,8 +70,6 @@ export class ExamSemesterService {
         const examSemesters = await this.examSemesterRepository.find({
             where: { createdby: accountId },
             relations: [
-                // 'examStructures',
-                // 'examStructures.examStructureType',
                 'domainDistributionConfigs',
                 'domainDistributionConfigs.domain',
                 'domainDistributionConfigs.domain.section',
@@ -90,11 +81,6 @@ export class ExamSemesterService {
             title: semester.title,
             time: semester.time,
             createdat: semester.createdat,
-            // examStructure: semester.examStructures.map((structure) => ({
-            //     id: structure.id,
-            //     name: structure.structurename,
-            //     structureType: structure.examStructureType?.name,
-            // })),
             domainDistributionConfig: semester.domainDistributionConfigs.map(
                 (config) => ({
                     id: config.id,
@@ -104,7 +90,7 @@ export class ExamSemesterService {
                     maxQuestion: config.maxQuestion,
                     section: config.domain?.section
                         ? {
-                              // Check if section exists
+                              
                               id: config.domain.section.id,
                               name: config.domain.section.name,
                           }
@@ -118,8 +104,6 @@ export class ExamSemesterService {
         const semester = await this.examSemesterRepository.findOne({
             where: { id },
             relations: [
-                // 'examStructures',
-                // 'examStructures.examStructureType',
                 'domainDistributionConfigs',
                 'domainDistributionConfigs.domain',
                 'domainDistributionConfigs.domain.section',
@@ -134,11 +118,6 @@ export class ExamSemesterService {
             id: semester.id,
             title: semester.title,
             time: semester.time,
-            // examStructure: semester.examStructures.map((structure) => ({
-            //     id: structure.id,
-            //     name: structure.structurename,
-            //     structureType: structure.examStructureType?.name,
-            // })),
             domainDistributionConfig: semester.domainDistributionConfigs.map(
                 (config) => ({
                     id: config.id,
@@ -148,7 +127,6 @@ export class ExamSemesterService {
                     maxQuestion: config.maxQuestion,
                     section: config.domain?.section
                         ? {
-                              // Check if section exists
                               id: config.domain.section.id,
                               name: config.domain.section.name,
                           }
@@ -185,7 +163,7 @@ export class ExamSemesterService {
                 const { minQuestion, maxQuestion, percent, domain } =
                     createDomainDistributionConfigDto;
 
-                // Find Domain by name
+                
                 const foundDomain = await this.domainRepository.findOne({
                     where: { content: domain },
                 });
@@ -194,7 +172,7 @@ export class ExamSemesterService {
                     throw new NotFoundException(`Domain not found: ${domain}`);
                 }
 
-                // Validate the DTO fields
+                
                 const configInstance = plainToInstance(
                     UploadFileDomainDistributionConfigDto,
                     createDomainDistributionConfigDto,
@@ -208,7 +186,7 @@ export class ExamSemesterService {
                     throw new Error(validationMessages);
                 }
 
-                // Check for existing config with same title in the same ExamSemester and Domain
+                
                 const existingConfig =
                     await this.domainDistributionConfigRepository.findOne({
                         where: {
@@ -225,7 +203,7 @@ export class ExamSemesterService {
                     );
                 }
 
-                // Create new DomainDistributionConfig
+                
                 const newConfig = this.domainDistributionConfigRepository.create({
                     title,
                     minQuestion,
@@ -235,7 +213,7 @@ export class ExamSemesterService {
                     examSemester: examSemester,
                 });
 
-                // Save the new config
+                
                 const savedConfig =
                     await this.domainDistributionConfigRepository.save(newConfig);
                 savedConfigs.push(savedConfig);

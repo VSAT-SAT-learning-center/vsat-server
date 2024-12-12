@@ -81,7 +81,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Feedback not found');
         }
 
-        // Transform feedback entity to the response DTO
         return plainToClass(FeedbackDetailResponseDto, {
             id: feedback.id,
             createdat: feedback.createdat,
@@ -97,8 +96,6 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    //For consistency and better error handling, it’s good to wrap feedback creation and status updates inside a try-catch block
-    //and possibly use Promise.all to parallelize lesson feedback updates.
     async submitLearningMaterialFeedback(
         createFeedbackDto: CreateFeedbackDto,
     ): Promise<{ feedbackId: string; accountFrom: string; accountTo: string }[]> {
@@ -108,7 +105,6 @@ export class FeedbackService extends BaseService<Feedback> {
             accountTo: string;
         }[] = [];
 
-        //Notify managers when feedback is submitted
         const managers = await this.accountService.findManagers();
 
         const accountFrom = await this.accountService.findOneById(
@@ -119,10 +115,8 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // Prepare notification message
         const notificationMessage = 'New learning material was submitted';
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
             accountFrom.id,
@@ -141,12 +135,6 @@ export class FeedbackService extends BaseService<Feedback> {
         const { unitFeedback, accountFromId, accountToId } = feedbackDto;
 
         const unit = await this.unitService.findOneById(unitFeedback.unitId);
-
-        // if (!unit || unit.status !== UnitStatus.PENDING) {
-        //     throw new BadRequestException(
-        //         'Learning material has already been censored by another',
-        //     );
-        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -182,7 +170,6 @@ export class FeedbackService extends BaseService<Feedback> {
 
         await Promise.all(feedbackPromises);
 
-        // Create feedback entry for the unit
         const rejectFeedback = await this.feedbackRepository.save({
             unit: { id: unitFeedback.unitId },
             content: 'Rejected due to lesson issues',
@@ -218,12 +205,6 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const unit = await this.unitService.findOneById(unitFeedback.unitId);
 
-        // if (!unit || unit.status !== UnitStatus.PENDING) {
-        //     throw new BadRequestException(
-        //         'Learning material has already been censored by another',
-        //     );
-        // }
-
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
         if (accountFrom === null) {
@@ -236,13 +217,8 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account To not found');
         }
 
-        // Approve all lessons by setting their status to true
         for (const lessonFeedback of unitFeedback.lessonsFeedback) {
-            // Update each lesson's status to true
-            await this.lessonService.updateLessonStatus(
-                lessonFeedback.lessonId,
-                true, // Set status to true for approved lessons
-            );
+            await this.lessonService.updateLessonStatus(lessonFeedback.lessonId, true);
         }
 
         const notificationMessage = 'Learning material was approved';
@@ -267,7 +243,6 @@ export class FeedbackService extends BaseService<Feedback> {
             createdAt: Date;
         }[] = [];
 
-        //Notify managers when feedback is submitted
         const managers = await this.accountService.findManagers();
         const accountFrom = await this.accountService.findOneById(
             createFeedbackDto.accountFromId,
@@ -277,10 +252,8 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // Prepare notification message
         const notificationMessage = `${accountFrom.username} has submitted ${questions.length} question(s) for review`;
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
             accountFrom.id,
@@ -297,16 +270,9 @@ export class FeedbackService extends BaseService<Feedback> {
     }
 
     async rejectQuestionFeedback(feedbackDto: QuestionFeedbackDto): Promise<Feedback> {
-        const { questionId, content, reason, accountFromId, accountToId } =
-            feedbackDto;
+        const { questionId, content, reason, accountFromId, accountToId } = feedbackDto;
 
         const question = await this.questionSerivce.findOneById(questionId);
-
-        // if (!question || question.status !== QuestionStatus.PENDING) {
-        //     throw new BadRequestException(
-        //         'Question has already been censored by another',
-        //     );
-        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -354,12 +320,6 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const question = await this.questionSerivce.findOneById(questionId);
 
-        // if (!question || question.status !== QuestionStatus.PENDING) {
-        //     throw new BadRequestException(
-        //         'Question has already been censored by another',
-        //     );
-        // }
-
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
         if (accountFrom === null) {
@@ -395,7 +355,6 @@ export class FeedbackService extends BaseService<Feedback> {
             createdAt: Date;
         }[] = [];
 
-        //Notify managers when feedback is submitted
         const managers = await this.accountService.findManagers();
         const accountFrom = await this.accountService.findOneById(
             createFeedbackDto.accountFromId,
@@ -405,10 +364,8 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // Prepare notification message
         const notificationMessage = `${accountFrom.username} has submitted ${quizQuestions.length} quiz question(s) for review`;
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
             accountFrom.id,
@@ -431,12 +388,6 @@ export class FeedbackService extends BaseService<Feedback> {
             feedbackDto;
 
         const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
-
-        // if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
-        //     throw new BadRequestException(
-        //         'Quiz Question has already been censored by another',
-        //     );
-        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -486,12 +437,6 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const quizQuestion = await this.quizQuestionSerivce.findOneById(quizQuestionId);
 
-        // if (!quizQuestion || quizQuestion.status !== QuizQuestionStatus.PENDING) {
-        //     throw new BadRequestException(
-        //         'Quiz Question has already been censored by another',
-        //     );
-        // }
-
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
         if (accountFrom === null) {
@@ -520,10 +465,6 @@ export class FeedbackService extends BaseService<Feedback> {
         const { examFeedback, accountFromId, accountToId } = feedbackDto;
 
         const exam = await this.examService.findOneById(examFeedback.examId);
-
-        // if (!exam || exam.status !== ExamStatus.PENDING) {
-        //     throw new BadRequestException('Exam has already been censored by another');
-        // }
 
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
@@ -562,7 +503,6 @@ export class FeedbackService extends BaseService<Feedback> {
 
         await Promise.all(feedbackPromises);
 
-        // Create feedback entry for the unit
         const rejectFeedback = await this.feedbackRepository.save({
             exam: { id: examFeedback.examId },
             content: 'Rejected due to module issues',
@@ -596,10 +536,6 @@ export class FeedbackService extends BaseService<Feedback> {
 
         const exam = await this.examService.findOneById(examFeedback.examId);
 
-        // if (!exam || exam.status !== ExamStatus.PENDING) {
-        //     throw new BadRequestException('Exam has already been censored by another');
-        // }
-
         const accountFrom = await this.accountService.findOneById(accountFromId);
 
         if (accountFrom === null) {
@@ -612,16 +548,13 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account To not found');
         }
 
-        // Approve all lessons by setting their status to true
         for (const moduleTypeFeedback of examFeedback.moduleTypesFeedback) {
-            // Update each lesson's status to true
             await this.moduleTypeService.updateModuleTypestatus(
                 moduleTypeFeedback.moduleTypeId,
-                true, // Set status to true for approved lessons
+                true,
             );
         }
 
-        // Create feedback entry for the approved unit
         const approvedFeedback = await this.feedbackRepository.save({
             exam: { id: examFeedback.examId },
             accountFrom: { id: accountFromId },
@@ -655,7 +588,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new Error('Feedback not found');
         }
 
-        // Transform the feedback entities into DTOs
         return plainToInstance(UserFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
@@ -675,7 +607,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new Error('Feedback not found');
         }
 
-        // Transform the entity to DTO
         return plainToInstance(ExamFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
@@ -692,7 +623,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new Error('Feedback not found');
         }
 
-        // Transform the entity to DTO
         return plainToInstance(ExamFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
@@ -712,7 +642,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new Error('Feedback not found');
         }
 
-        // Transform the entity to DTO
         return plainToInstance(UnitFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
@@ -738,7 +667,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new Error('No feedback with lessons found');
         }
 
-        // Chuyển đổi dữ liệu sang DTO
         return plainToInstance(UnitFeedbackWithLessonResponseDto, feedbacks, {
             excludeExtraneousValues: true,
         });
@@ -757,7 +685,6 @@ export class FeedbackService extends BaseService<Feedback> {
 
         console.log('feedback: ', feedback);
 
-        // Transform the entity to DTO
         return plainToInstance(LessonFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
@@ -776,13 +703,11 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new Error('Feedback not found');
         }
 
-        // Transform the entity to DTO
         return plainToInstance(ModuleTypeFeedbackResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
     }
 
-    // Fetch feedback for exams with a dynamic status
     async getExamFeedbackByStatus(
         status: FeedbackStatus,
     ): Promise<ExamFeedbackResponseDto[]> {
@@ -801,7 +726,6 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    // Fetch feedback for units with a dynamic status
     async getUnitFeedbackByStatus(
         status: FeedbackStatus,
     ): Promise<UnitFeedbackResponseDto[]> {
@@ -819,7 +743,6 @@ export class FeedbackService extends BaseService<Feedback> {
         });
     }
 
-    // Fetch feedback for questions with a dynamic status
     async getQuestionFeedbackByStatus(
         status: FeedbackStatus,
     ): Promise<QuestionFeedbackResponseDto[]> {
@@ -857,10 +780,6 @@ export class FeedbackService extends BaseService<Feedback> {
         }
 
         const where: any = {
-            // ...(
-            //     status === FeedbackStatus.PENDING
-            //     ? { accountFrom: { id: userId } }
-            //     : { accountTo: { id: userId } }),
             status,
         };
 
@@ -879,7 +798,6 @@ export class FeedbackService extends BaseService<Feedback> {
             where.level = { id: level };
         }
 
-        // Truy vấn dữ liệu feedback
         const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
             where,
             relations: [
@@ -986,7 +904,7 @@ export class FeedbackService extends BaseService<Feedback> {
                                                               )
                                                             : [],
                                                     }
-                                                  : null, // Handle null if no question
+                                                  : null,
                                           }))
                                         : [],
                                 }))
@@ -1011,7 +929,7 @@ export class FeedbackService extends BaseService<Feedback> {
                           name: unit.domain.content,
                       }
                     : null,
-                // Include counts for unitAreas and lessons
+
                 unitAreaCount: unit.unitAreas.length,
                 lessonCount: unit.unitAreas.reduce(
                     (count, area) => count + area.lessons.length,
@@ -1028,9 +946,7 @@ export class FeedbackService extends BaseService<Feedback> {
         };
     }
 
-    async findoOneLearningMaterialFeedbackDetail(
-        userId: string,
-    ): Promise<any> {
+    async findoOneLearningMaterialFeedbackDetail(userId: string): Promise<any> {
         const feedbacks = await this.feedbackRepository.find({
             where: [{ unit: { createdby: userId } }],
             relations: [
@@ -1135,7 +1051,7 @@ export class FeedbackService extends BaseService<Feedback> {
                                                               )
                                                             : [],
                                                     }
-                                                  : null, // Handle null if no question
+                                                  : null,
                                           }))
                                         : [],
                                 }))
@@ -1160,7 +1076,7 @@ export class FeedbackService extends BaseService<Feedback> {
                           name: unit.domain.content,
                       }
                     : null,
-                // Include counts for unitAreas and lessons
+
                 unitAreaCount: unit.unitAreas.length,
                 lessonCount: unit.unitAreas.reduce(
                     (count, area) => count + area.lessons.length,
@@ -1332,7 +1248,6 @@ export class FeedbackService extends BaseService<Feedback> {
             where['question.section'] = { id: section };
         }
 
-        // Truy vấn dữ liệu feedback
         const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
             where,
             relations: [
@@ -1457,7 +1372,6 @@ export class FeedbackService extends BaseService<Feedback> {
             where['quizquestion.section'] = { id: section };
         }
 
-        // Truy vấn dữ liệu feedback
         const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
             where,
             relations: [
@@ -1551,7 +1465,6 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
         };
 
-        // Fetch feedback with pagination
         const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
             where,
             relations: ['question', 'accountFrom', 'accountTo'],
@@ -1562,7 +1475,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('No feedbacks found');
         }
 
-        // Map feedbacks to the desired structure
         const data = feedbacks.map((feedback) => ({
             id: feedback.id,
             content: feedback.content,
@@ -1570,15 +1482,6 @@ export class FeedbackService extends BaseService<Feedback> {
             status: feedback.status,
             createdat: feedback.createdat,
             updatedat: feedback.updatedat,
-            //nếu muốn get thêm question
-            // question: feedback.question
-            //     ? {
-            //           id: feedback.question.id,
-            //           content: feedback.question.content,
-            //           plainContent: feedback.question.plainContent,
-            //           explain: feedback.question.explain,
-            //       }
-            //     : null,
             accountFrom: feedback.accountFrom
                 ? {
                       id: feedback.accountFrom.id,
@@ -1598,8 +1501,6 @@ export class FeedbackService extends BaseService<Feedback> {
         return {
             data,
             totalItems,
-            // totalPages: Math.ceil(totalItems / limit),
-            // currentPage: page,
         };
     }
 
@@ -1616,7 +1517,6 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
         };
 
-        // Fetch feedback with pagination
         const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
             where,
             relations: ['question', 'accountFrom', 'accountTo'],
@@ -1627,7 +1527,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('No feedbacks found');
         }
 
-        // Map feedbacks to the desired structure
         const data = feedbacks.map((feedback) => ({
             id: feedback.id,
             content: feedback.content,
@@ -1635,15 +1534,6 @@ export class FeedbackService extends BaseService<Feedback> {
             status: feedback.status,
             createdat: feedback.createdat,
             updatedat: feedback.updatedat,
-            //nếu muốn get thêm question
-            // question: feedback.question
-            //     ? {
-            //           id: feedback.question.id,
-            //           content: feedback.question.content,
-            //           plainContent: feedback.question.plainContent,
-            //           explain: feedback.question.explain,
-            //       }
-            //     : null,
             accountFrom: feedback.accountFrom
                 ? {
                       id: feedback.accountFrom.id,
@@ -1663,8 +1553,6 @@ export class FeedbackService extends BaseService<Feedback> {
         return {
             data,
             totalItems,
-            // totalPages: Math.ceil(totalItems / limit),
-            // currentPage: page,
         };
     }
 
@@ -1681,7 +1569,6 @@ export class FeedbackService extends BaseService<Feedback> {
             status: FeedbackStatus.REJECTED,
         };
 
-        // Fetch feedback with pagination
         const [feedbacks, totalItems] = await this.feedbackRepository.findAndCount({
             where,
             relations: ['exam', 'accountFrom', 'accountTo'],
@@ -1692,7 +1579,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('No feedbacks found');
         }
 
-        // Map feedbacks to the desired structure
         const data = feedbacks.map((feedback) => ({
             id: feedback.id,
             content: feedback.content,
@@ -1731,7 +1617,6 @@ export class FeedbackService extends BaseService<Feedback> {
             accountTo: string;
         }[] = [];
 
-        //Notify managers when feedback is submitted
         const managers = await this.accountService.findManagers();
 
         const accountFrom = await this.accountService.findOneById(
@@ -1742,10 +1627,8 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // Prepare notification message
         const notificationMessage = 'New exam was submitted';
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
             accountFrom.id,

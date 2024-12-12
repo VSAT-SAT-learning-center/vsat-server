@@ -21,7 +21,7 @@ import { ModuleType } from 'src/database/entities/moduletype.entity';
             Domain,
             ModuleType
         ]),
-        forwardRef(() => ExamModule), // Import với forwardRef
+        forwardRef(() => ExamModule), 
         forwardRef(() => ModuleTypeModule),
     ],
     controllers: [ExamQuestionController],

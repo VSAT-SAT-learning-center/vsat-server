@@ -139,7 +139,7 @@ export class NotificationService {
 
     async markAllAsRead(accountId: string): Promise<void> {
         const result = await this.notificationRepository.update(
-            { accountTo: { id: accountId } }, // Filter notifications for the user
+            { accountTo: { id: accountId } }, 
             { isRead: true },
         );
         if (result.affected === 0) {

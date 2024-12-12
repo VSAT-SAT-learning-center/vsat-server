@@ -98,7 +98,6 @@ export class LessonContentService extends BaseService<LessonContent> {
         for (const contentData of contentsData) {
             let lessonContent: LessonContent;
 
-            // Update existing content
             lessonContent = await this.lessonContentRepository.findOne({
                 where: { id: contentData.id, lesson: { id: lesson.id } },
             });
@@ -116,12 +115,11 @@ export class LessonContentService extends BaseService<LessonContent> {
 
             if (contentData.contents) {
                 lessonContent.contents = contentData.contents.map((content, index) => ({
-                    ...lessonContent.contents?.[index], 
-                    ...content, 
+                    ...lessonContent.contents?.[index],
+                    ...content,
                 }));
             }
 
-            // Save the content
             await this.lessonContentRepository.save(lessonContent);
             updatedContents.push(lessonContent);
         }
@@ -163,7 +161,7 @@ export class LessonContentService extends BaseService<LessonContent> {
 
         const updatedLessonContent = await this.lessonContentRepository.save({
             ...lessonContent,
-            ...lessonContentData, // Update only the fields provided
+            ...lessonContentData,
             lesson: lesson,
         });
 

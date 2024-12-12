@@ -44,7 +44,7 @@ export class NotificationController {
         data: any[];
         totalItems: number
     }> {
-        const userId = req.user.id; // Retrieve logged-in user's ID
+        const userId = req.user.id; 
         return this.notificationService.getNotificationsForUser(
             userId
         );

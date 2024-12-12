@@ -85,7 +85,6 @@ export class ModuleTypeService extends BaseService<ModuleType> {
             throw new Error('Exam structure not found for the provided attempt');
         }
 
-        // Bước 2: Lấy `ModuleType` với `examStructureId`, `sectionId`, và tên là "Module 2"
         const moduleType = await this.moduleTypeRepository.findOne({
             where: {
                 examStructure: { id: examStructureId },
