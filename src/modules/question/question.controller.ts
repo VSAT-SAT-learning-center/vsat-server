@@ -76,7 +76,7 @@ export class QuestionController {
     }
 
     @Get()
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async getAllWithStatus(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
@@ -136,6 +136,7 @@ export class QuestionController {
     }
 
     @Get('searchQuestions/:plainContent')
+    @UseGuards(JwtAuthGuard)
     async searchQuestions(
         @Query('page') page: number = 1,
         @Query('pageSize') pageSize: number = 10,
@@ -207,6 +208,7 @@ export class QuestionController {
     }
 
     @Put('update-status/:id')
+    @UseGuards(JwtAuthGuard)
     @ApiBody({
         schema: {
             type: 'object',
@@ -241,6 +243,7 @@ export class QuestionController {
     }
 
     @Put('updateQuestion/:id')
+    @UseGuards(JwtAuthGuard)
     async updateQuestion(
         @Param('id') id: string,
         @Body() updateQuestionDto: UpdateQuestionDTO,
@@ -267,6 +270,7 @@ export class QuestionController {
     }
 
     @Get('get-question-with-answer')
+    @UseGuards(JwtAuthGuard)
     async getQuestionWithAnswer(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
@@ -357,6 +361,7 @@ export class QuestionController {
     }
 
     @Post('fetchByContent')
+    @UseGuards(JwtAuthGuard)
     @ApiBody({ type: FetchByContentDTO })
     async fetchByContent(@Body() fetchByContentDto: FetchByContentDTO) {
         try {
@@ -389,7 +394,7 @@ export class QuestionController {
     }
 
     @Get('statisticForManager')
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async statisticForManager() {
         try {
             return await this.questionService.statisticForManager();
@@ -405,7 +410,7 @@ export class QuestionController {
     }
 
     @Get('statisticScores')
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async statisticScores() {
         try {
             return await this.questionService.statisticScores();

@@ -65,6 +65,7 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptDomainRW/:id')
+    @UseGuards(JwtAuthGuard)
     async getExamAtemptDomainRW(
         @Param('id') id: string,
         @Query('isCorrect') isCorrect: boolean,
@@ -89,6 +90,7 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptsSkillRW/:id')
+    @UseGuards(JwtAuthGuard)
     async getExamAtemptsSkillRW(
         @Param('id') id: string,
         @Query('isCorrect') isCorrect: boolean,
@@ -113,6 +115,7 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptDomainMath/:id')
+    @UseGuards(JwtAuthGuard)
     async getExamAtemptDomainMath(
         @Param('id') id: string,
         @Query('isCorrect') isCorrect: boolean,
@@ -137,6 +140,7 @@ export class ExamAttemptController {
     }
 
     @Get('getExamAtemptsSkillMath/:id')
+    @UseGuards(JwtAuthGuard)
     async getExamAtemptsSkillMath(
         @Param('id') id: string,
         @Query('isCorrect') isCorrect: boolean,
@@ -187,8 +191,8 @@ export class ExamAttemptController {
         }
     }
 
-
     @Get('statistics/:id')
+    @UseGuards(JwtAuthGuard)
     async getExamAttemptStatistics(@Param('id') id: string) {
         try {
             const examAttemptStatistics =
@@ -344,7 +348,7 @@ export class ExamAttemptController {
     }
 
     @Get('getReport/:examAttemptId')
-    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    @UseGuards(JwtAuthGuard)
     async getReport(@Param('examAttemptId') examId: string) {
         try {
             const examAttempt = await this.examAttemptService.getReport(examId);

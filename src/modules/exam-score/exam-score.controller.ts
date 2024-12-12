@@ -30,6 +30,7 @@ export class ExamScoreController {
     constructor(private readonly examScoreService: ExamScoreService) {}
 
     @Post()
+    @UseGuards(JwtAuthGuard)
     async create(@Body() createExamScoreDto: CreateExamScoreDto) {
         try {
             const savedExamScore = await this.examScoreService.create(createExamScoreDto);
@@ -50,6 +51,7 @@ export class ExamScoreController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     async getAllExamScoreWithDetails(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
@@ -105,6 +107,7 @@ export class ExamScoreController {
     }
 
     @Get(':id')
+    @UseGuards(JwtAuthGuard)
     async getExamScoreById(@Param('id') id: string) {
         try {
             const savedExamScore = await this.examScoreService.getExamScoreById(id);
@@ -125,6 +128,7 @@ export class ExamScoreController {
     }
 
     @Post('/exam-structure-type')
+    @UseGuards(JwtAuthGuard)
     async getExamScoreWithExamStructureType(@Body() getExamScoreDto: GetExamScoreDto) {
         try {
             const savedExamScore =

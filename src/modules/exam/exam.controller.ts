@@ -50,6 +50,7 @@ export class ExamController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     async GetExamWithExamQuestion() {
         try {
             const exam = await this.examService.GetExamWithExamQuestion();
@@ -95,6 +96,7 @@ export class ExamController {
     }
 
     @Get(':status')
+    @UseGuards(JwtAuthGuard)
     async GetExamWithExamQuestionByStatus(@Param('status') status: ExamStatus) {
         try {
             const exam = await this.examService.GetExamWithExamQuestionByStatus(status);
@@ -144,6 +146,7 @@ export class ExamController {
     }
 
     @Post('/censor/:action')
+    @UseGuards(JwtAuthGuard)
     async approveOrRejectExam(
         @Param('action') action: 'approve' | 'reject',
         @Body() feedbackDto: ExamCensorFeedbackDto,
@@ -172,6 +175,7 @@ export class ExamController {
     }
 
     @Patch('/updateStatus/:id/:status')
+    @UseGuards(JwtAuthGuard)
     async updateStatus(@Param('id') id: string, @Param('status') status: ExamStatus) {
         try {
             const exam = this.examService.updateStatus(id, status);
@@ -193,6 +197,7 @@ export class ExamController {
     }
 
     @Get('getExamById/:id')
+    @UseGuards(JwtAuthGuard)
     async getExamDetails(@Param('id') examId: string) {
         try {
             const exam = await this.examService.getExamDetails(examId);
@@ -214,6 +219,7 @@ export class ExamController {
     }
 
     @Get('getExamByExamType/:name')
+    @UseGuards(JwtAuthGuard)
     async GetExamWithExamQuestionByExamType(@Param('name') examTypeName: string) {
         try {
             const exam =
