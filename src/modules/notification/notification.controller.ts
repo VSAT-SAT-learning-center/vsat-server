@@ -28,7 +28,7 @@ export class NotificationController {
         return { success: true, message: 'Notification marked as read' };
     }
 
-    @Post('notifications/mark-all-read')
+    @Post('/mark-all-read')
     @ApiOperation({ summary: 'Mark all notifications as read' })
     @ApiResponse({ status: 200, description: 'All notifications marked as read.' })
     @ApiResponse({ status: 404, description: 'No unread notifications found.' })
