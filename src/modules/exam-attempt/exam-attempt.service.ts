@@ -1217,16 +1217,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return statistics;
     }
 
-    // async assignExam(assignExamAttemptDto: AssignExamAttemptDto) {
-    //     const create = this.examAttemptRepository.create({
-    //         exam: { id: assignExamAttemptDto.examId },
-    //         studyProfile: { id: assignExamAttemptDto.studyProfileId },
-    //         attemptdatetime: assignExamAttemptDto.attempDate,
-    //     });
-
-    //     return await this.examAttemptRepository.save(create);
-    // }
-
     async getExamAttemptByStudyProfile(accountId: string) {
         const studyProfiles = await this.studyProfileRepository.find({
             where: { account: { id: accountId } },

@@ -1167,13 +1167,4 @@ export class ExamService extends BaseService<Exam> {
 
         return result;
     }
-
-    // async createExamWithExamAttempt(
-    //     createExamDto: CreateExamWithExamAttemptDto,
-    // ): Promise<any> {
-    //     await this.examAttemptService.createExamAttemptWithExam(
-    //         createExamDto.examId,
-    //         createExamDto.studyProfileIds,
-    //     );
-    // }
 }
