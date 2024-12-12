@@ -54,32 +54,6 @@ export class AnswerController {
         }
     }
 
-    // @Post('create-multiple-answers')
-    // async createMultipleAnswers(
-    //     @Body() createMultipleAnswersDto: CreateMultipleAnswersDTO,
-    //     @Param() id: string,
-    // ) {
-    //     try {
-    //         const newAnswers = await this.answerService.createMultipleAnswers(
-    //             createMultipleAnswersDto,
-    //             id,
-    //         );
-    //         return ResponseHelper.success(
-    //             HttpStatus.CREATED,
-    //             newAnswers,
-    //             SuccessMessages.create('Answers'),
-    //         );
-    //     } catch (error) {
-    //         throw new HttpException(
-    //             {
-    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
-    //                 message: error.message || 'An error occurred',
-    //             },
-    //             error.status || HttpStatus.BAD_REQUEST,
-    //         );
-    //     }
-    // }
-
     @Post('check-answer')
     @ApiBody({
         schema: {

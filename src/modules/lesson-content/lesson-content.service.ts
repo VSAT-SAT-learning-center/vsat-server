@@ -34,25 +34,17 @@ export class LessonContentService extends BaseService<LessonContent> {
     ): Promise<void> {
         const existingLessonContents = lesson.lessonContents || [];
 
-        // // Extract IDs of the existing contents and the incoming contents
-        // const existingContentIds = existingLessonContents.map(
-        //     (content) => content.id,
-        // );
         const incomingContentIds = lessonContentsDto.map((contentDto) => contentDto.id);
 
-        // 1. Xóa các LessonContent đã bị xóa từ phía UI (không có trong danh sách mới)
         for (const existingContent of existingLessonContents) {
             if (!incomingContentIds.includes(existingContent.id)) {
-                // Xóa lesson content không còn trong danh sách mới
                 await this.lessonContentRepository.remove(existingContent);
             }
         }
 
-        // 2. Xử lý cập nhật và thêm mới
         for (const contentDto of lessonContentsDto) {
             let { id, contentType, title, contents, question } = contentDto;
 
-            // Kiểm tra contentType có giá trị hay không
             if (!contentType) {
                 throw new Error('Content type is required for lesson content.');
             }
@@ -60,19 +52,16 @@ export class LessonContentService extends BaseService<LessonContent> {
             let lessonContent;
 
             if (id) {
-                // Cập nhật nội dung hiện có nếu tồn tại
                 lessonContent = await this.lessonContentRepository.findOne({
                     where: { id, lesson: { id: lesson.id } },
                 });
 
                 if (lessonContent) {
-                    // Cập nhật nếu lesson content đã tồn tại
                     lessonContent.contentType = contentType;
                     lessonContent.title = title;
                     lessonContent.contents = contents;
                     lessonContent.question = question || null;
                 } else {
-                    // Nếu không tìm thấy ID thì tạo mới (tránh trường hợp dữ liệu sai)
                     lessonContent = this.lessonContentRepository.create({
                         id,
                         contentType,
@@ -83,7 +72,6 @@ export class LessonContentService extends BaseService<LessonContent> {
                     });
                 }
             } else {
-                // Nếu không có ID (dữ liệu mới từ UI), tạo mới nội dung
                 lessonContent = this.lessonContentRepository.create({
                     contentType,
                     title,
@@ -93,7 +81,6 @@ export class LessonContentService extends BaseService<LessonContent> {
                 });
             }
 
-            // Lưu nội dung vào cơ sở dữ liệu
             await this.lessonContentRepository.save(lessonContent);
         }
     }
@@ -127,38 +114,12 @@ export class LessonContentService extends BaseService<LessonContent> {
                 contentData,
             );
 
-            // Handle `contents` (deep merge or replace)
             if (contentData.contents) {
                 lessonContent.contents = contentData.contents.map((content, index) => ({
-                    ...lessonContent.contents?.[index], // Keep existing data if present
-                    ...content, // Update with new data
+                    ...lessonContent.contents?.[index], 
+                    ...content, 
                 }));
             }
-
-            // if (contentData.question) {
-            //     if (lessonContent.question) {
-            //         // Merge existing question data with new data
-            //         lessonContent.question = {
-            //             ...lessonContent.question,
-            //             ...contentData.question,
-            //             answers:
-            //                 contentData.question.answers?.map((answer, index) => ({
-            //                     ...lessonContent.question.answers?.[index], // Keep existing answer data if present
-            //                     ...answer, // Update with new answer data
-            //                 })) || [], // Fallback to an empty array if no answers are provided
-            //         };
-            //     } else {
-            //         if (contentData.question?.answers) {
-            //             lessonContent.question.answers = contentData.question.answers.map(
-            //                 (dbAnswer) => ({
-            //                     answerId: dbAnswer.id, // Map the `id` field from the database entity to `answerId`
-            //                     text: dbAnswer.text,
-            //                     label: dbAnswer.label || '', // Provide a default value for `label` if necessary
-            //                 }),
-            //             );
-            //         }
-            //     }
-            // }
 
             // Save the content
             await this.lessonContentRepository.save(lessonContent);

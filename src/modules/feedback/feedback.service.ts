@@ -1742,22 +1742,6 @@ export class FeedbackService extends BaseService<Feedback> {
             throw new NotFoundException('Account not found');
         }
 
-        // const feedbackPromises = managers.map(async (manager) => {
-        //     createFeedbackDto.accountFrom = accountFrom;
-        //     createFeedbackDto.accountTo = manager;
-        //     const feedback = this.feedbackRepository.create(createFeedbackDto);
-        //     this.feedbackRepository.save(feedback);
-
-        //     // Store feedback details in the list
-        //     feedbackList.push({
-        //         feedbackId: feedback.id,
-        //         accountFrom: feedback.accountFrom.id,
-        //         accountTo: feedback.accountTo.id,
-        //     });
-        // });
-
-        // await Promise.all(feedbackPromises);
-
         // Prepare notification message
         const notificationMessage = 'New exam was submitted';
 

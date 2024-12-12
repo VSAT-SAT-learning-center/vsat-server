@@ -16,7 +16,6 @@ export class RecommendationService {
     async recommendUnitAreas(quizAttemptId: string): Promise<UnitArea[]> {
         const weakSkills = await this.quizAttemptService.findWeakSkillsByQuizAttempt(quizAttemptId);
 
-        // Lấy danh sách UnitArea liên quan đến các kỹ năng yếu
         const recommendedUnitAreas = [];
         for (const skill of weakSkills) {
             const unitAreas = await this.unitAreaService.findUnitAreasBySkill(skill.id);
@@ -31,7 +30,6 @@ export class RecommendationService {
         
         const unitProgress = await this.unitProgressService.findOneById(unitProgressId, ['unit']);
 
-        // Lấy danh sách UnitArea liên quan đến các kỹ năng yếu
         const recommendedUnitAreas = [];
         for (const skill of weakSkills) {
             const unitAreas = await this.unitAreaService.findUnitAreasBySkillAndUnit(skill.id, unitProgress.unit.id);

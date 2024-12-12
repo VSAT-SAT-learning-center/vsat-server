@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Section } from './section.entity';
 import { DomainDistributionConfig } from './domaindistributionconfig.entity';
-import { Unit } from './unit.entity'; // Import Unit entity
+import { Unit } from './unit.entity'; 
 import { Skill } from './skill.entity';
 import { DomainDistribution } from './domaindistribution.entity';
 

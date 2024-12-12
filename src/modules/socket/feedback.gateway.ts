@@ -26,12 +26,11 @@ export class FeedbacksGateway
     implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
     @WebSocketServer() server: Server;
-    private users: Map<string, Socket> = new Map(); // Store active users
+    private users: Map<string, Socket> = new Map(); 
 
     constructor(private readonly jwtService: JwtService) {}
 
     afterInit(server: Server) {
-        //console.log('WebSocket server initialized');
     }
 
     async handleConnection(client: Socket) {
@@ -50,22 +49,18 @@ export class FeedbacksGateway
             }
 
             const userId = payload.id;
-            this.users.set(userId, client); // Store the socket connection
-            // console.log(`User authenticated and connected: ${userId}`);
+            this.users.set(userId, client); 
         } catch (error) {
-            // console.error('Authentication failed:', error.message);
             client.disconnect();
         }
     }
 
     handleDisconnect(client: Socket) {
-        //console.log('Client disconnected: ' + client.id);
         const userId = [...this.users.entries()].find(
             ([, socket]) => socket.id === client.id,
         )?.[0];
         if (userId) {
             this.users.delete(userId);
-            //console.log(`User disconnected: ${userId}`);
         }
     }
 
@@ -84,7 +79,6 @@ export class FeedbacksGateway
                 eventType: eventType,
                 to: userSocket.id,
             });
-            //console.log(`Notification sent to user: ${userId}`);
         } else {
             console.log(`User not connected: ${userId}`);
         }
@@ -102,7 +96,6 @@ export class FeedbacksGateway
     }
 
     broadcastNotification(data: any) {
-        // console.log('Broadcasting feedback notification...');
         this.handleEmitSocket({
             data: data,
             event: 'feedbackNotification',
@@ -129,42 +122,12 @@ export class FeedbacksGateway
             data: data,
         };
 
-        //console.log("Payload is: ",payload);
-
         if (to) {
             this.server.to(to).emit(event, payload);
         } else {
             this.server.emit(event, payload);
         }
     }
-
-    // // @SubscribeMessage('sendToUser')
-    // // handleSendToUser(
-    // //     client: Socket,
-    // //     data: {
-    // //         userId: string;
-    // //         message: string;
-    // //         type?: FeedbackType;
-    // //         eventType?: FeedbackEventType;
-    // //     },
-    // // ) {
-    // //     const { userId, message, eventType, type } = data;
-    // //     this.sendNotificationToUser(userId, message, type, eventType);
-    // // }
-
-    // // @SubscribeMessage('sendToMultipleUsers')
-    // // handleSendToMultipleUsers(
-    // //     client: Socket,
-    // //     data: {
-    // //         userIds: string[];
-    // //         message: string;
-    // //         type?: FeedbackType;
-    // //         eventType?: FeedbackEventType;
-    // //     },
-    // // ) {
-    // //     const { userIds, message, type, eventType } = data;
-    // //     this.sendNotificationToMultipleUsers(userIds, message, type, eventType);
-    // // }
 
     @SubscribeMessage('broadcast')
     handleBroadcast(client: Socket, message: string) {

@@ -17,11 +17,11 @@ export abstract class BaseEntity {
 
   @ApiProperty({ description: 'Ngày tạo bản ghi', example: '2023-10-08T07:23:34.000Z' })
   @IsDate()
-  @CreateDateColumn({ type: 'timestamp' }) // Tự động tạo ngày giờ khi bản ghi được tạo
+  @CreateDateColumn({ type: 'timestamp' }) 
   createdOn: Date;
 
   @ApiProperty({ description: 'Ngày cập nhật bản ghi', example: '2023-10-09T10:14:12.000Z' })
   @IsDate()
-  @UpdateDateColumn({ type: 'timestamp' }) // Tự động cập nhật ngày giờ khi bản ghi được cập nhật
+  @UpdateDateColumn({ type: 'timestamp' }) 
   updatedOn: Date;
 }

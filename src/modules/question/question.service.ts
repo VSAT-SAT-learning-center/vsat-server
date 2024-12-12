@@ -869,22 +869,6 @@ export class QuestionService extends BaseService<Question> {
             },
         });
 
-        // const rejectedOfMonthExamCount = await this.examRepository.count({
-        //     where: {
-        //         createdby: accountId,
-        //         status: ExamStatus.REJECTED,
-        //         createdat: Between(startOfMonth, endOfMonth),
-        //     },
-        // });
-
-        // const pendingOfMonthExamCount = await this.examRepository.count({
-        //     where: {
-        //         createdby: accountId,
-        //         status: ExamStatus.PENDING,
-        //         createdat: Between(startOfMonth, endOfMonth),
-        //     },
-        // });
-
         // Count unit by status
         const approvedUnitCount = await this.unitRepository.count({
             where: {
@@ -930,20 +914,6 @@ export class QuestionService extends BaseService<Question> {
                 createdat: Between(startOfMonth, endOfMonth),
             },
         });
-
-        // const activeOfMonthStudy = await this.studyProfileRepository.count({
-        //     where: {
-        //         status: StudyProfileStatus.ACTIVE,
-        //         createdat: Between(startOfMonth, endOfMonth),
-        //     },
-        // });
-
-        // const completeOfMonthStudy = await this.studyProfileRepository.count({
-        //     where: {
-        //         status: StudyProfileStatus.COMPLETED,
-        //         createdat: Between(startOfMonth, endOfMonth),
-        //     },
-        // });
 
         const domains = await this.domainRepository.find({
             select: ['content'],

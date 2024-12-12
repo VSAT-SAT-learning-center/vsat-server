@@ -39,8 +39,6 @@ export class CreateQuestionExamDto extends BaseDTO {
     content: string;
 
     @Expose()
-    // @IsString()
-    // @IsNotEmpty()
     @ApiProperty()
     explain: string;
 

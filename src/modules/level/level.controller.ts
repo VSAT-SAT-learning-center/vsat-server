@@ -84,7 +84,6 @@ export class LevelController extends BaseController<Level> {
     async findAll(@Query() paginationOptions: PaginationOptionsDto) {
         const { page, pageSize } = paginationOptions;
 
-        // Nếu không có page và pageSize, thì gọi phương thức lấy tất cả dữ liệu (không phân trang)
         if (!page || !pageSize) {
             const data = await this.levelService.getAll();
             return ResponseHelper.success(
@@ -102,7 +101,6 @@ export class LevelController extends BaseController<Level> {
             paginationOptions.pageSize = 10;
         }
         
-        // Nếu có page và pageSize thì thực hiện phân trang
         const { data, totalItems, totalPages } = await this.levelService.findAll(paginationOptions);
         const paging = {
             page: paginationOptions.page,

@@ -8,7 +8,7 @@ import {
     Post,
     Query,
 } from '@nestjs/common';
-import { BaseService } from './base.service'; // Giả sử bạn đã tạo BaseService như đã nói
+import { BaseService } from './base.service'; 
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessMessages } from 'src/common/message/success-messages';
 import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
@@ -16,8 +16,8 @@ import { ApiQuery } from '@nestjs/swagger';
 
 export class BaseController<T> {
     constructor(
-        private readonly baseService: BaseService<T>, // Sử dụng BaseService
-        private readonly entityName: string, // Để sử dụng trong SuccessMessages
+        private readonly baseService: BaseService<T>, 
+        private readonly entityName: string, 
     ) {}
 
     @Get()
@@ -49,7 +49,7 @@ export class BaseController<T> {
     async findAll(@Query() paginationOptions: PaginationOptionsDto) {
         const { page, pageSize, relations } = paginationOptions;
 
-        // Nếu không có page và pageSize, thì gọi phương thức lấy tất cả dữ liệu (không phân trang)
+        
         if (!page || !pageSize) {
             const data = await this.baseService.getAll(relations);
             return ResponseHelper.success(
@@ -67,7 +67,7 @@ export class BaseController<T> {
             paginationOptions.pageSize = 10;
         }
         
-        // Nếu có page và pageSize thì thực hiện phân trang
+        
         const { data, totalItems, totalPages } = await this.baseService.findAll(paginationOptions);
         const paging = {
             page: paginationOptions.page,
@@ -93,9 +93,9 @@ export class BaseController<T> {
     @Post()
     async create(
         @Body() createDto: any,
-        //@Req() request: any
+        
     ) {
-        //const userId = request.user.id;
+        
         const createdEntity = await this.baseService.create(createDto);
         return ResponseHelper.success(
             HttpStatus.CREATED,
@@ -121,30 +121,30 @@ export class BaseController<T> {
         );
     }
 
-    // @Get(':id')
-    // async findOne(@Param('id') id: string, @Query('relations') relations: string[] = []) {
-    //     try {
-    //         const entity = await this.baseService.findOne(id, relations);
-    //         if (!entity) {
-    //             return ResponseHelper.error(
-    //                 null,
-    //                 HttpStatus.NOT_FOUND,
-    //                 `${this.entityName} not found`,
-    //             );
-    //         }
-    //         return ResponseHelper.success(
-    //             HttpStatus.OK,
-    //             entity,
-    //             SuccessMessages.get(this.entityName),
-    //         );
-    //     } catch (error) {
-    //         return ResponseHelper.error(
-    //             error,
-    //             HttpStatus.INTERNAL_SERVER_ERROR,
-    //             `Failed to retrieve ${this.entityName}`,
-    //         );
-    //     }
-    // }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     @Patch(':id')
     async update(@Param('id') id: string, @Body() updateDto: any) {

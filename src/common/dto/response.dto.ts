@@ -8,6 +8,6 @@ export class ResponseFormat<T> {
     message: string;
     errorCode?: string;
     details?: any;
-    paging?: PagingDto; // Thông tin phân trang, nếu có
-    sorting?: SortingDto; // Thông tin sắp xếp, nếu có
+    paging?: PagingDto; 
+    sorting?: SortingDto; 
 }

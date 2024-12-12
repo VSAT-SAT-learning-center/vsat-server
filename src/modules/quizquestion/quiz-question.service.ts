@@ -529,14 +529,13 @@ export class QuizQuestionService extends BaseService<QuizQuestion> {
         skillId: string,
         quantity: number,
     ): Promise<QuizQuestion[]> {
-        // Fetch all matching quiz questions
         const questions = await this.quizQuestionRepository.find({
             where: {
                 level: { id: levelId },
                 skill: { id: skillId },
-                status: QuizQuestionStatus.APPROVED, // Filter by approved status if needed
+                status: QuizQuestionStatus.APPROVED, 
             },
-            relations: ['answers'], // Optionally include related answers
+            relations: ['answers'], 
         });
 
         // Shuffle questions and select a specified quantity

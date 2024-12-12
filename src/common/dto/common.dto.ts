@@ -89,17 +89,3 @@ export class AccountDto {
     @Expose()
     profilePicture: string;
 }
-    // @Expose()
-    // gender: boolean;
-
-    // @Expose()
-    // dateofbirth: Date;
-
-    // @Expose()
-    // phonenumber: string;
-
-    // @Expose()
-    // email: string;
-
-    // @Expose()
-    // address: string; 

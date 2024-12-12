@@ -78,7 +78,6 @@ export class ModuleTypeService extends BaseService<ModuleType> {
         examAttemptId: string,
         sectionName: string,
     ): Promise<string> {
-        // Bước 1: Lấy `examStructureId` từ `ExamAttempt`
         const examAttempt = await this.examAttemptService.findOneById(examAttemptId);
         const examStructureId = examAttempt?.exam?.examStructure?.id;
 

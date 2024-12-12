@@ -23,7 +23,6 @@ export class QuizQuestionItemService extends BaseService<QuizQuestionItem> {
         quizId: string,
         questions: QuizQuestion[],
     ): Promise<void> {
-        // Chuẩn bị dữ liệu cho các bản ghi QuizQuestionItem mới
         const quizQuestionItems = questions.map((question) => ({
             quiz: { id: quizId },
             quizquestion: { id: question.id }

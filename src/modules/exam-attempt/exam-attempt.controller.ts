@@ -187,27 +187,6 @@ export class ExamAttemptController {
         }
     }
 
-    // @Get('getExamAttemptByStudyProfileId')
-    // @UseGuards(JwtAuthGuard)
-    // async getExamAttemptByStudyProfileId(@Request() req) {
-    //     try {
-    //         const getExamAtempt =
-    //             await this.examAttemptService.getExamAttemptByStudyProfileId(req.user.id);
-    //         return ResponseHelper.success(
-    //             HttpStatus.OK,
-    //             getExamAtempt,
-    //             SuccessMessages.get('ExamAttempt'),
-    //         );
-    //     } catch (error) {
-    //         throw new HttpException(
-    //             {
-    //                 statusCode: error.status || HttpStatus.BAD_REQUEST,
-    //                 message: error.message || 'An error occurred',
-    //             },
-    //             error.status || HttpStatus.BAD_REQUEST,
-    //         );
-    //     }
-    // }
 
     @Get('statistics/:id')
     async getExamAttemptStatistics(@Param('id') id: string) {
@@ -255,7 +234,7 @@ export class ExamAttemptController {
     }
 
     @Get('getAllExamAttemptByStudyProfile/:studyProfileId')
-    //@UseGuards(JwtAuthGuard, new RoleGuard(['student']))
+    @UseGuards(JwtAuthGuard)
     async getAllExamAttemptByStudyProfile(
         @Param('studyProfileId') studyProfileId: string,
     ) {
@@ -365,7 +344,7 @@ export class ExamAttemptController {
     }
 
     @Get('getReport/:examAttemptId')
-    //@UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
     async getReport(@Param('examAttemptId') examId: string) {
         try {
             const examAttempt = await this.examAttemptService.getReport(examId);

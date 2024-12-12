@@ -9,7 +9,7 @@ export class PaginationOptionsDto {
     example: 1,
   })
   @IsOptional()
-  @Type(() => Number)  // Đảm bảo rằng tham số 'page' sẽ được chuyển thành kiểu số
+  @Type(() => Number)  
   @IsInt()
   @Min(1)
   page?: number;
@@ -39,12 +39,12 @@ export class PaginationOptionsDto {
     enum: ['ASC', 'DESC']
   })
   @IsOptional()
-  @IsIn(['ASC', 'DESC'])  // Chỉ chấp nhận 'ASC' hoặc 'DESC'
+  @IsIn(['ASC', 'DESC'])  
   sortOrder?: 'ASC' | 'DESC';
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  relations?: string[] = []; //// Trường quan hệ tùy chọn để bao gồm các thực thể liên quan
+  relations?: string[] = []; 
 
 }

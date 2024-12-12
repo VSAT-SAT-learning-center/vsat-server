@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { ModuleType } from './moduletype.entity';
-import { Question } from './question.entity'; // Import Question entity
+import { Question } from './question.entity'; 
 import { QuizQuestion } from './quizquestion.entity';
 
 @Entity('section')

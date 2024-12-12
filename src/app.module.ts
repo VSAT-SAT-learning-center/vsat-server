@@ -63,7 +63,7 @@ import { SocketModule } from './modules/socket/socket.module';
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
-            useClass: PostgresConfigService, // Sử dụng PostgresConfigService để đăng ký AuditSubscriber
+            useClass: PostgresConfigService,
         }),
         DatabaseModule,
         AccountModule,
@@ -128,7 +128,6 @@ import { SocketModule } from './modules/socket/socket.module';
                 defaults: {
                     from: '"VSAT Center" <no-reply@localhost>',
                 },
-                //preview: true,
                 template: {
                     dir: __dirname + '/common/mail/templates',
                     adapter: new HandlebarsAdapter(),
@@ -143,8 +142,6 @@ import { SocketModule } from './modules/socket/socket.module';
         EvaluateCriteriaModule,
     ],
     providers: [JwtService],
-    // providers: [PaginationService],
-    // exports: [PaginationService]
 })
 export class AppModule {
     configure(consumer: MiddlewareConsumer) {

@@ -405,7 +405,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         });
 
         await this.targetLearningDetailRepository.update(targetLearningDetailId, {
-            status: TargetLearningStatus.ACTIVE, // Set status to active
+            status: TargetLearningStatus.ACTIVE,
         });
 
         // Step 2: Delete all existing UnitProgress for this TargetLearningDetail
@@ -426,7 +426,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
         const savedUnitProgresses =
             await this.unitProgressRepository.save(newUnitProgresses);
 
-        // Step 3: Initialize UnitArea and Lesson Progresses
+        // Step 4: Initialize UnitArea and Lesson Progresses
         await this.initializeUnitAreaAndLessonProgresses(
             savedUnitProgresses,
             targetLearningDetailId,
@@ -492,7 +492,7 @@ export class UnitProgressService extends BaseService<UnitProgress> {
                 for (const lesson of unitArea.lessons) {
                     const lessonProgress = this.lessonProgressRepository.create({
                         lesson: { id: lesson.id },
-                        unitAreaProgress, // Directly associate with UnitAreaProgress
+                        unitAreaProgress,
                         targetLearningDetails: { id: targetLearningDetailId },
                         progress: 0,
                         status: ProgressStatus.NOT_STARTED,

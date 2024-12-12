@@ -3,24 +3,24 @@ import { IsString, IsUUID, IsOptional, IsNotEmpty } from 'class-validator';
 export class CreateCommentDto {
   @IsUUID()
   @IsNotEmpty()
-  accountId: string; // UUID của người dùng tạo comment
+  accountId: string; 
 
   @IsUUID()
   @IsOptional()
-  parentCommentId?: string; // UUID của comment cha (nếu có)
+  parentCommentId?: string; 
 
   @IsUUID()
   @IsNotEmpty()
-  lessonId: string; // UUID của lesson liên quan
+  lessonId: string; 
 
   @IsString()
   @IsNotEmpty()
-  content: string; // Nội dung của comment
+  content: string; 
 
   @IsOptional()
   @IsUUID()
-  childCommentId?: string; // UUID của comment con (nếu có)
+  childCommentId?: string; 
 
   @IsOptional()
-  status?: boolean; // Trạng thái của comment (mặc định là true)
+  status?: boolean; 
 }

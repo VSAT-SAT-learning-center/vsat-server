@@ -26,7 +26,7 @@ export class UpdateUnitAreaDto {
   status?: boolean;
 
   @ApiProperty({
-    type: [UpdateLessonDto], // Specify the correct type here
+    type: [UpdateLessonDto],
     description: 'List of lessons under the Unit Area',
   })
   @ValidateNested({ each: true })

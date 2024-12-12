@@ -43,6 +43,6 @@ export class GetTecherDTO {
     status: AccountStatus;
 
     @Expose()
-    @Transform(({ obj }) => obj.totalMember || 0) // Lấy giá trị từ obj hoặc mặc định 0
+    @Transform(({ obj }) => obj.totalMember || 0) 
     totalMember: number;
 }

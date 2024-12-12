@@ -17,15 +17,13 @@ async function bootstrap() {
 
     const dataSource = app.get(DataSource);
     dataSource.setOptions({
-        subscribers: [AuditSubscriber], // Thêm subscriber của bạn vào đây
+        subscribers: [AuditSubscriber],
     });
 
     // Enable global validation pipe
     app.useGlobalPipes(
         new ValidationPipe({
-            //whitelist: true, // Strip any properties not defined in the DTO
-            // forbidNonWhitelisted: true, // Throw an error when non-whitelisted properties are passed
-            transform: true, // Automatically transform payloads to be objects typed according to their DTO classes
+            transform: true,
         }),
     );
     // Register global exception filter

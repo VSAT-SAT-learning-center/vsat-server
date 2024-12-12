@@ -209,11 +209,6 @@ export class QuizAttemptService extends BaseService<QuizAttempt> {
             }
         }
 
-        // // Find weak skills and recommend lessons
-        // const recommendedUnits = await this.findWeakSkillsByQuizAttempt(
-        //     savedQuizAttempt.id,
-        // );
-
         // Find weak skills and recommend lessons
         const recommendedUnits =
             await this.recommendationService.recommendUnitAreasWithUnitProgress(

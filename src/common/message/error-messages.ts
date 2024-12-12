@@ -11,5 +11,4 @@ export const HttpStatusMessages = {
   [HttpStatus.CONFLICT]: (message: string = 'Conflict') => `There is a conflict with the current state of the resource: ${message}.`,
   [HttpStatus.INTERNAL_SERVER_ERROR]: (message: string = 'Server error') => `An internal server error occurred: ${message}.`,
   [HttpStatus.SERVICE_UNAVAILABLE]: (message: string = 'Service unavailable') => `The service is temporarily unavailable: ${message}. Please try again later.`,
-  // Add more status codes and messages as needed
 };

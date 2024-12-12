@@ -21,12 +21,12 @@ export class FeedbackCriteriaScores {
 
     @ManyToOne(() => EvaluateFeedback, { nullable: false })
     @JoinColumn({ name: 'feedbackid' })
-    feedback: EvaluateFeedback; // Links to a feedback instance
+    feedback: EvaluateFeedback; 
 
     @ManyToOne(() => EvaluateCriteria, { nullable: false })
     @JoinColumn({ name: 'criteriaid' })
-    criteria: EvaluateCriteria; // Links to a specific criterion
+    criteria: EvaluateCriteria; 
 
     @Column({ type: 'int', nullable: false })
-    score: number; // Score for this criterion
+    score: number; 
 }

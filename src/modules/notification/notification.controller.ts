@@ -40,21 +40,13 @@ export class NotificationController {
     @Get()
     async getNotifications(
         @Request() req,
-        @Query('isRead') isRead?: boolean,
-        // @Query('page') page: number = 1,
-        // @Query('limit') limit: number = 10,
     ): Promise<{
         data: any[];
-        totalItems: number;
-        // totalPages: number;
-        // currentPage: number;
+        totalItems: number
     }> {
         const userId = req.user.id; // Retrieve logged-in user's ID
         return this.notificationService.getNotificationsForUser(
-            userId,
-            isRead,
-            // page,
-            // limit,
+            userId
         );
     }
 }

@@ -5,7 +5,7 @@ import { ExamController } from './exam.controller';
 import { Exam } from 'src/database/entities/exam.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamType } from 'src/database/entities/examtype.entity';
-import { ExamQuestionModule } from '../examquestion/examquestion.module'; // Sử dụng forwardRef
+import { ExamQuestionModule } from '../examquestion/examquestion.module'; 
 import { ModuleTypeModule } from '../module-type/module-type.module';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
 import { Domain } from 'src/database/entities/domain.entity';
@@ -29,7 +29,7 @@ import { ExamAttemptModule } from '../exam-attempt/exam-attempt.module';
             ExamStructureType,
             Account,
         ]),
-        forwardRef(() => ExamQuestionModule), // Import với forwardRef
+        forwardRef(() => ExamQuestionModule), 
         forwardRef(() => ModuleTypeModule),
         forwardRef(() => ExamAttemptModule),
         forwardRef(() => FeedbackModule),

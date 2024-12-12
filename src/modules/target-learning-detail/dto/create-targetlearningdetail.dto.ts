@@ -7,11 +7,6 @@ export class CreateTargetLearningDetailDto {
 
     sectionId: string;
 
-    // @IsUUID()
-    // @Expose()
-    // @ApiProperty({ example: '42c5a718-67f1-4c24-ba81-feecb9deb1f0' })
-    // studyProfileId: string;
-
     @Expose()
     @ApiProperty()
     targetLearningRW: number;

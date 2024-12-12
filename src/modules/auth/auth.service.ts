@@ -7,18 +7,14 @@ import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 import { AccountStatus } from 'src/common/enums/account-status.enum';
-import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { plainToInstance } from 'class-transformer';
 import { GetAccountDTO } from '../account/dto/get-account.dto';
-import { AccountDTO } from '../account/dto/account.dto';
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectRepository(Account)
         private readonly authRepository: Repository<Account>,
-        @InjectRepository(StudyProfile)
-        private readonly studyProfileRepository: Repository<StudyProfile>,
         private readonly jwtService: JwtService,
         private readonly mailerService: MailerService,
     ) {}
@@ -59,7 +55,6 @@ export class AuthService {
         });
     }
 
-    //login
     async login(user: any) {
         const findAcc = await this.authRepository.findOne({
             where: { email: user.email },

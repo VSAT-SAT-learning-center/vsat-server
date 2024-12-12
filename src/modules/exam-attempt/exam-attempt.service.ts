@@ -934,42 +934,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         }
     }
 
-    // async getExamAttemptByStudyProfileId(accountId: string) {
-    //     const studyProfile = await this.studyProfileRepository.findOne({
-    //         where: { account: { id: accountId } },
-    //         order: { createdat: 'ASC' },
-    //     });
-
-    //     const examAttempt = await this.examAttemptRepository.find({
-    //         where: { studyProfile: { id: studyProfile.id } },
-    //         relations: [
-    //             'exam',
-    //             'studyProfile',
-    //             'exam.examquestion',
-    //             'exam.examquestion.question',
-    //         ],
-    //     });
-
-    //     if (!examAttempt) {
-    //         throw new NotFoundException('ExamAttempt is not found');
-    //     }
-
-    //     const detailedExamAttempts = await Promise.all(
-    //         examAttempt.map(async (attempt) => {
-    //             const examDetails = await this.GetExamWithExamQuestionByExamId(
-    //                 attempt.exam.id,
-    //             );
-
-    //             return {
-    //                 ...attempt,
-    //                 exam: examDetails,
-    //             };
-    //         }),
-    //     );
-
-    //     return detailedExamAttempts;
-    // }
-
     async GetExamWithExamQuestionByExamId(examId: string) {
         const exam = await this.examRepository
             .createQueryBuilder('exam')

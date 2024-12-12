@@ -56,7 +56,7 @@ export class RecommendedUnitDto {
 
 export class ProgressEvaluationDto {
     @ApiProperty()
-    comparison: string; // e.g., "Improvement", "Same", "Decline"
+    comparison: string;
 
     @ApiProperty()
     previousScore: number;

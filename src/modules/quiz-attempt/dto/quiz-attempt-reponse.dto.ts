@@ -1,13 +1,13 @@
 export class QuizQuestionAnswerDto {
-    id: string; // answer ID
+    id: string;
     label: string;
     text: string;
 }
 
 export class QuizQuestionItemDto {
-    id: string; // question item ID
+    id: string;
     quizquestion: {
-        id: string; // quiz question ID
+        id: string;
         content: string;
         answers: QuizQuestionAnswerDto[]; 
     };

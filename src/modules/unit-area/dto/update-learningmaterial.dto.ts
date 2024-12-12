@@ -37,20 +37,20 @@ export class UpdateLearningMaterialDto {
   })
   @IsUUID()
   @IsOptional()
-  unitId?: string; // Optional for update
+  unitId?: string;
 
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
-  title?: string; // Optional for update
+  title?: string; 
 
   @ApiProperty({
-    type: [UpdateLessonDto], // Specify the correct type here
+    type: [UpdateLessonDto], 
     description: 'List of lessons under the Unit Area',
     required: false,
   })
   @ValidateNested({ each: true })
   @Type(() => UpdateLessonDto)
   @IsOptional()
-  lessons?: UpdateLessonDto[]; // Optional lessons for update
+  lessons?: UpdateLessonDto[];
 }

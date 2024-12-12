@@ -2,8 +2,6 @@ import {
     ApiTags,
     ApiOperation,
     ApiResponse,
-    ApiBody,
-    ApiQuery,
     ApiBearerAuth,
 } from '@nestjs/swagger';
 import { EvaluateFeedbackResponseDto } from './dto/evaluate-feedback-response.dto';
@@ -12,14 +10,13 @@ import { CreateEvaluateFeedbackDto } from './dto/create-evaluate-feedback.dto';
 import { EvaluateFeedbackService } from './evaluate-feedback.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
-import { create } from 'domain';
 import { StudyProfileFeedbackResponseDto } from './dto/studyprofile-feedback.dto';
 import { EvaluateFeedbackDetailResponseDto } from './dto/evaluate-feedback-detail-response.dto';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
 import { FeedbackResponseDto } from './dto/feedback-response.dto';
 import { CreateTeacherFeedbackDto } from './dto/create-teacher-feedback.dto';
 
-@ApiTags('EvaluateFeedback') // Tag for Swagger grouping
+@ApiTags('EvaluateFeedback') 
 @Controller('evaluate-feedback')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
@@ -81,19 +78,6 @@ export class EvaluateFeedbackController {
             studentId,
         );
     }
-
-    // @Get('staff-to-teacher/:staffId')
-    // @ApiOperation({ summary: 'Get feedbacks from Staff to Teacher' })
-    // @ApiResponse({
-    //     status: 200,
-    //     description: 'Feedback list retrieved successfully.',
-    //     type: [EvaluateFeedback],
-    // })
-    // async getFeedbacksForStaffToTeacher(
-    //     @Param('staffId') staffId: string,
-    // ): Promise<EvaluateFeedbackResponseDto[]> {
-    //     return this.evaluateFeedbackService.getFeedbacksForStaffToTeacher(staffId);
-    // }
 
     @Get('study-profiles')
     @ApiOperation({ summary: 'Get all study profile IDs by accountFrom' })

@@ -18,10 +18,8 @@ import { SyncUnitProgressDto } from './dto/sync-updateprogress.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { TargetLearningService } from '../target-learning/target-learning.service';
-//mark
 @ApiTags('UnitProgress')
 @Controller('unit-progress')
-//@UseGuards(JwtAuthGuard)
 export class UnitProgressController extends BaseController<UnitProgress> {
     constructor(
         private readonly unitProgressService: UnitProgressService,
@@ -29,23 +27,6 @@ export class UnitProgressController extends BaseController<UnitProgress> {
     ) {
         super(unitProgressService, 'UnitProgress');
     }
-
-    // @Get('details/:unitProgressId')
-    // @ApiOperation({ summary: 'Get unit progress detail' })
-    // async getUnitProgressDetail(@Param('unitProgressId') unitProgressId: string) {
-    //     try {
-    //         const unitProgressDetail =
-    //             await this.unitProgressService.getUnitProgressDetail(unitProgressId);
-
-    //         return ResponseHelper.success(
-    //             HttpStatus.OK,
-    //             unitProgressDetail,
-    //             'UnitProgress detail retrieved successfully',
-    //         );
-    //     } catch (error) {
-    //         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    //     }
-    // }
 
     @Get(':targetLearningDetailId')
     @ApiOperation({ summary: 'Get all unit progress in target learning details' })
@@ -66,12 +47,12 @@ export class UnitProgressController extends BaseController<UnitProgress> {
         }
     }
    
-    //@UseGuards(JwtAuthGuard, new RoleGuard(['staff']))
+    @UseGuards(JwtAuthGuard)
     @Post('multiple-sync')
     @ApiBody({
         description: 'Payload for syncing multiple unit progresses',
-        type: SyncUnitProgressDto, // Directly refer to the DTO
-        isArray: true, // Since the method expects an array of SyncUnitProgressDto
+        type: SyncUnitProgressDto,
+        isArray: true,
     })
     @UseGuards(JwtAuthGuard, new RoleGuard(['staff', 'teacher']))
     @ApiOperation({ summary: 'Sync multiple unit progresses' })

@@ -89,10 +89,9 @@ export class LessonService extends BaseService<Lesson> {
                         unitAreaId,
                     });
                 } else {
-                    // Tạo mới bài học nếu không tìm thấy
                     lesson = await this.create({
                         ...lessonData,
-                        id: lessonData.id, // Sử dụng ID được cung cấp
+                        id: lessonData.id, 
                         unitAreaId,
                     });
                 }
@@ -111,40 +110,6 @@ export class LessonService extends BaseService<Lesson> {
         updateData: UpdateLessonWithContentsDto,
     ): Promise<Lesson> {
 
-        // for (const lessonData of updateData) {
-        //     let lesson: Lesson;
-
-        //     if (lessonData.lessonId) {
-        //         // Fetch the existing lesson
-        //         lesson = await this.lessonRepository.findOne({
-        //             where: { id: lessonData.lessonId },
-        //             relations: ['lessonContents'], // Load related lesson contents
-        //         });
-
-        //         if (!lesson) {
-        //             throw new NotFoundException(
-        //                 `Lesson with ID ${lessonData.lessonId} not found`,
-        //             );
-        //         }
-
-        //         // Update lesson fields
-        //         // lesson.title = lessonData.title;
-        //         // lesson.status = lessonData.status;
-        //         // lesson.type = lessonData.type;
-        //         // lesson.prerequisitelessonid = lessonData.prerequisitelessonid || null;
-        //     } else {
-        //         // // Create new lesson
-        //         // lesson = this.lessonRepository.create({
-        //         //     title: lessonData.title,
-        //         //     status: lessonData.status,
-        //         //     type: lessonData.type,
-        //         //     prerequisitelessonid: lessonData.prerequisitelessonid || null,
-        //         // });
-        //         console.log('Cong: create lesson!!!')
-        //     }
-
-        // Save the lesson
-        // const savedLesson = await this.lessonRepository.save(lesson);
         const lesson = await this.lessonRepository.findOne({
             where: { id: updateData.lessonId }
         });
@@ -167,43 +132,6 @@ export class LessonService extends BaseService<Lesson> {
         return savedLesson;
     }
 
-    // private parseInputToLessonDtos(input: any): UpdateLessonWithContentsDto[] {
-    //     const lessons: UpdateLessonWithContentsDto[] = [];
-
-    //     // Iterate over unit areas
-    //     input.unitAreas.forEach((unitArea: any) => {
-    //         // Iterate over lessons within each unit area
-    //         unitArea.lessons.forEach((lesson: any) => {
-    //             // Parse lesson contents
-    //             const lessonContents: UpdateContentDto[] = lesson.lessonContents.map(
-    //                 (content: any) => ({
-    //                     id: content.id,
-    //                     title: content.title,
-    //                     contentType: content.contentType,
-    //                     contents: content.contents || [],
-    //                     question: content.question || null,
-    //                     image: content.image || null,
-    //                     url: content.url || null,
-    //                     sort: content.sort || null,
-    //                 }),
-    //             );
-
-    //             // Parse lesson
-    //             lessons.push({
-    //                 lessonId: lesson.id,
-    //                 title: lesson.title,
-    //                 status: true, // Assuming status is always true when updating
-    //                 type: lesson.type,
-    //                 prerequisitelessonid: lesson.prerequisitelessonid || null,
-    //                 lessonContents: lessonContents,
-    //             });
-    //         });
-    //     });
-
-    //     return lessons;
-    // }
-
-    // Tìm kiếm và xóa các bài học không còn trong danh sách lessonIds
     async removeMissingLessons(unitAreaId: string, lessonIds: string[]): Promise<void> {
         const existingLessons = await this.findLessonsByUnitArea(unitAreaId);
         for (const existingLesson of existingLessons) {

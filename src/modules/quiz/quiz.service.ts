@@ -23,7 +23,6 @@ export class QuizService extends BaseService<Quiz> {
     }
 
     async createQuiz(unitId: string): Promise<Quiz> {
-        // Step 1: Get the quiz by unitId
         const unit = await this.unitService.findOneById(unitId, ['level']);
 
         if (!unit) {
@@ -40,12 +39,10 @@ export class QuizService extends BaseService<Quiz> {
 
         const levelId = unit.level.id;
 
-        //Get random question by level and skill
         for (const config of quizConfigs) {
             const skillId = config.skill.id;
             const questionQuantity = config.totalquestion;
 
-            // Fetch questions based on skillId and levelId
             const questions =
                 await this.quizQuestionService.getRandomQuizQuestionsByLevelAndSkill(
                     levelId,
@@ -53,7 +50,6 @@ export class QuizService extends BaseService<Quiz> {
                     questionQuantity,
                 );
 
-            // Append the questions to the main list
             quizQuestions.push(...questions);
         }
 

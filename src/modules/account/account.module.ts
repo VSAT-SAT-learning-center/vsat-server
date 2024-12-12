@@ -11,10 +11,10 @@ import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Role, Account, StudyProfile]),
-        forwardRef(() => StudyProfileModule), // Import StudyProfileModule
+        forwardRef(() => StudyProfileModule), 
     ],
     controllers: [AccountController],
-    providers: [AccountService, JwtService], // Remove StudyProfileService
+    providers: [AccountService, JwtService], 
     exports: [AccountService],
 })
 export class AccountModule {}

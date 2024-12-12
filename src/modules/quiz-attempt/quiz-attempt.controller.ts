@@ -57,7 +57,6 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
         @Param('unitId') unitId: string,
         @Body() { unitProgressId }: { unitProgressId: string },
     ) {
-        // Step 1: Check if there's an ongoing quiz attempt for this unit and study profile
         let quizAttempt = await this.quizAttemptService.getOngoingQuizAttemptForUnit(
             unitProgressId,
             unitId,
@@ -65,10 +64,8 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
 
         let quiz;
         if (quizAttempt) {
-            // Step 2: If there's an ongoing attempt, retrieve the quiz from the attempt
             quiz = quizAttempt.quiz;
         } else {
-            // Step 3: No ongoing attempt found, so create a new quiz and start a new attempt
             quiz = await this.quizService.createQuiz(unitId);
             quizAttempt = await this.quizAttemptService.startQuizAttempt(
                 unitProgressId,
@@ -76,11 +73,9 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
             );
         }
 
-        // Step 4: Retrieve quiz questions with answers to send to the frontend
         const quizQuestions =
             await this.quizQuestionItemService.getQuizQuestionsWithAnswers(quiz.id);
 
-        // Prepare response data to send quiz details and questions with answers for rendering
         return ResponseHelper.success(
             HttpStatus.OK,
             {
@@ -120,9 +115,6 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
                 studentdAnswerText,
             );
 
-            // // Return the current progress of the quiz attempt
-            // const progress =
-            //     await this.quizAttemptService.getProgress(quizAttemptId);
             return {
                 message: 'Progress saved successfully',
                 //progress,
@@ -154,9 +146,6 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
                 questionId,
             );
 
-            // // Return the current progress of the quiz attempt
-            // const progress =
-            //     await this.quizAttemptService.getProgress(quizAttemptId);
             return {
                 message: 'Progress saved successfully',
                 //progress,

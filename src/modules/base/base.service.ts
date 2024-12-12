@@ -7,13 +7,13 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 export class BaseService<T> {
     constructor(
         protected readonly repository: Repository<T>,
-        protected readonly paginationService?: PaginationService, // Inject PaginationService
+        protected readonly paginationService?: PaginationService, 
     ) {}
 
     async getAll(relations?: string[]): Promise<any> {
         try {
             return await this.repository.find({
-                relations, // Fetch related entities if needed
+                relations, 
             });
         } catch (error) {
             console.error('Log Error:', error);
@@ -34,7 +34,7 @@ export class BaseService<T> {
             const findOptions: FindManyOptions<T> = {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
-                relations, // Fetch related entities
+                relations, 
             };
 
             if (sortBy && sortOrder) {
@@ -84,10 +84,10 @@ export class BaseService<T> {
 
     async create(
         entity: DeepPartial<T>,
-        //userId: string
+        
     ): Promise<T> {
         try {
-            //(entity as any).createdby = userId;
+            
             const newEntity = this.repository.create(entity);
             return this.repository.save(newEntity);
         } catch (error) {
@@ -121,8 +121,8 @@ export class BaseService<T> {
             );
         }
     }
-    //QueryDeepPartialEntity<T>: Đây là kiểu đặc biệt được sử dụng cho các thao tác cập nhật trong TypeORM.
-    //Nó đảm bảo rằng bạn có thể cập nhật một phần của thực thể mà không gặp phải vấn đề tương thích kiểu.
+    
+    
     async remove(id: string | number): Promise<void> {
         try {
             const deleteResult = await this.repository.delete(id);

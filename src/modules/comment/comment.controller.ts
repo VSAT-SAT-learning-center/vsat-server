@@ -9,6 +9,6 @@ import { Comment } from 'src/database/entities/comment.entity';
 @ApiBearerAuth('JWT-auth')
 export class CommentController extends BaseController<Comment> {
   constructor(commentService: CommentService) {
-    super(commentService, 'Comment'); // Use commentService directly in the constructor
+    super(commentService, 'Comment'); 
   }
 }

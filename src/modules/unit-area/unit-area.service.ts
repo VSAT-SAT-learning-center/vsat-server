@@ -35,22 +35,18 @@ export class UnitAreaService extends BaseService<UnitArea> {
 
         const { unitId } = createUnitAreaDtoList[0];
 
-        // Lấy danh sách tất cả các UnitArea hiện có của Unit
         const existingUnitAreas = await this.unitAreaRepository.find({
             where: { unit: { id: unitId } },
-            relations: ['lessons'], // Load cả các lesson liên quan
+            relations: ['lessons'],
         });
 
-        // Lưu giữ các unitAreaId hiện tại để theo dõi xóa các bản ghi không còn tồn tại
         const unitAreaIdsInRequest = createUnitAreaDtoList.map((unitArea) => unitArea.id);
 
-        // Xử lý từng UnitArea trong danh sách được truyền lên
         for (const createUnitAreaDto of createUnitAreaDtoList) {
             const { unitId, lessons, skillId, ...unitAreaData } = createUnitAreaDto;
 
             let unitArea;
 
-            // Kiểm tra nếu unitAreaId là chuỗi rỗng hoặc không tồn tại
             if (!unitAreaData.id) {
                 unitArea = this.unitAreaRepository.create({
                     ...unitAreaData,
@@ -58,16 +54,13 @@ export class UnitAreaService extends BaseService<UnitArea> {
                     skill: { id: skillId },
                 });
             } else {
-                // Tìm kiếm UnitArea hiện có trong cơ sở dữ liệu
                 unitArea = await this.unitAreaRepository.findOne({
                     where: { id: unitAreaData.id, unit: { id: unitId } },
                 });
 
                 if (unitArea) {
-                    // Cập nhật UnitArea hiện có
                     unitArea = this.unitAreaRepository.merge(unitArea, unitAreaData);
                 } else {
-                    // Tạo mới UnitArea nếu không tìm thấy với ID được cung cấp
                     unitArea = this.unitAreaRepository.create({
                         ...unitAreaData,
                         id: unitAreaData.id,
@@ -77,7 +70,6 @@ export class UnitAreaService extends BaseService<UnitArea> {
                 }
             }
 
-            // Lưu UnitArea
             await this.unitAreaRepository.save(unitArea);
 
             await this.lessonService.createOrUpdateManyLessons(unitArea.id, lessons);
@@ -85,13 +77,10 @@ export class UnitAreaService extends BaseService<UnitArea> {
             createdOrUpdatedUnitAreas.push(unitArea);
         }
 
-        // Xóa các UnitArea không còn trong danh sách truyền lên
         for (const existingUnitArea of existingUnitAreas) {
             if (!unitAreaIdsInRequest.includes(existingUnitArea.id)) {
-                // Xóa tất cả các bài học (lesson) liên quan trước khi xóa UnitArea
                 await this.lessonService.deleteLessonsByUnitArea(existingUnitArea.id);
 
-                // Sau đó xóa UnitArea
                 await this.unitAreaRepository.remove(existingUnitArea);
             }
         }
@@ -102,10 +91,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
     async findAllWithLessons(
         paginationOptions: PaginationOptionsDto,
     ): Promise<{ data: UnitArea[]; totalItems: number; totalPages: number }> {
-        //const filter = unitId ? { unit: { id: unitId } } : {};
-        //paginationOptions.filter = filter;
-        // Fetch unit areas with lessons as relation
-        paginationOptions.relations = ['lessons']; // Đảm bảo bao gồm quan hệ lessons
+        paginationOptions.relations = ['lessons']; 
         return this.findAll(paginationOptions);
     }
 
@@ -122,15 +108,15 @@ export class UnitAreaService extends BaseService<UnitArea> {
             }
             console.warn(`Retrying... attempts left: ${retries}`);
             await new Promise((resolve) => setTimeout(resolve, delay));
-            return this.retryWithBackoff(fn, retries - 1, delay * 2); // Exponential backoff
+            return this.retryWithBackoff(fn, retries - 1, delay * 2);
         }
     }
 
     async findByUnitIdWithLessons(unitId: string): Promise<UnitAreaResponseDto[]> {
         const fetchUnitAreas = async () => {
             const unitAreas = await this.unitAreaRepository.find({
-                where: { unit: { id: unitId } }, // Filter by unitId
-                relations: ['unit', 'lessons'], // Load related lessons
+                where: { unit: { id: unitId } },
+                relations: ['unit', 'lessons'],
             });
 
             if (!unitAreas || unitAreas.length === 0) {
@@ -152,7 +138,6 @@ export class UnitAreaService extends BaseService<UnitArea> {
             return transformedData;
         };
 
-        // Use the custom retryWithBackoff function to retry if there are issues
         return this.retryWithBackoff(fetchUnitAreas, 3, 1000);
     }
 
@@ -187,7 +172,7 @@ export class UnitAreaService extends BaseService<UnitArea> {
 
         const updatedUnitArea = await this.unitAreaRepository.save({
             ...unitArea,
-            ...unitAreaData, // Update only the fields provided
+            ...unitAreaData,
             unit: unit,
         });
 
@@ -230,18 +215,14 @@ export class UnitAreaService extends BaseService<UnitArea> {
     }
 
     async recommendUnitAreasBasedOnWeakSkills(weakSkills: Skill[]): Promise<UnitArea[]> {
-        // Tạo danh sách `UnitArea` khuyến nghị dựa trên danh sách kỹ năng yếu
         const recommendedUnitAreas: UnitArea[] = [];
 
         for (const skill of weakSkills) {
-            // Tìm các UnitArea liên quan đến skill hiện tại
             const unitAreasForSkill = await this.findUnitAreasBySkill(skill.id);
 
-            // Thêm các UnitArea tìm được vào danh sách khuyến nghị
             recommendedUnitAreas.push(...unitAreasForSkill);
         }
 
-        // Loại bỏ trùng lặp các UnitArea trong danh sách khuyến nghị
         const uniqueRecommendedUnitAreas = Array.from(
             new Set(recommendedUnitAreas.map((ua) => ua.id)),
         ).map((id) => recommendedUnitAreas.find((ua) => ua.id === id));

@@ -92,7 +92,6 @@ export class EvaluateFeedbackService {
 
         const notificationMessage = 'New evaluate was sent';
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendNotification(
             accountToId,
             accountFromId,
@@ -208,7 +207,6 @@ export class EvaluateFeedbackService {
             where: { role: { rolename: 'Staff' } },
         });
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             staffs,
             accountFrom.id,
@@ -254,7 +252,6 @@ export class EvaluateFeedbackService {
             where: { role: { rolename: 'Staff' } },
         });
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             staffs,
             accountFrom.id,
@@ -287,7 +284,6 @@ export class EvaluateFeedbackService {
             where: { role: { rolename: 'Manager' } },
         });
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
             managers,
             accountFromId,
@@ -318,7 +314,6 @@ export class EvaluateFeedbackService {
 
         const notificationMessage = 'New feedback was sent';
 
-        // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendNotification(
             teacherId,
             accountFromId,
@@ -403,12 +398,6 @@ export class EvaluateFeedbackService {
                 return EvaluateFeedbackType.TEACHER_TO_STAFF;
             }
         }
-        // else if (
-        //     accountFrom.role.rolename === 'Staff' &&
-        //     accountTo.role.rolename === 'Teacher'
-        // ) {
-        //     return EvaluateFeedbackType.STAFF_TO_TEACHER;
-        // }
 
         throw new BadRequestException('Invalid role mapping for feedback type');
     }
@@ -549,26 +538,6 @@ export class EvaluateFeedbackService {
         return this.transfromListData(feedbacks);
     }
 
-    // async getFeedbacksForStaffToTeacher(
-    //     staffId: string,
-    // ): Promise<EvaluateFeedbackResponseDto[]> {
-    //     const feedbacks = await this.evaluateFeedbackRepository.find({
-    //         where: {
-    //             accountFrom: { id: staffId },
-    //             evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_TEACHER,
-    //         },
-    //         relations: [
-    //             'accountFrom',
-    //             'accountTo',
-    //             'criteriaScores',
-    //             'criteriaScores.criteria',
-    //         ],
-    //         order: { createdat: 'DESC' },
-    //     });
-
-    //     return this.transfromListData(feedbacks);
-    // }
-
     async getStudyProfileIdsByAccountFrom(
         accountFromId: string,
     ): Promise<{ studyProfileId: string }[]> {
@@ -604,7 +573,6 @@ export class EvaluateFeedbackService {
             throw new NotFoundException(`Feedback with ID ${feedbackId} not found`);
         }
 
-        // Transform and sort `criteriaScores`
         const sortedCriteriaScores = feedback.criteriaScores
             .map((score) => ({
                 name: score.criteria.name,
@@ -613,7 +581,6 @@ export class EvaluateFeedbackService {
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
-        // Inject sorted criteriaScores into DTO
         const feedbackDto = plainToInstance(EvaluateFeedbackDetailResponseDto, feedback, {
             excludeExtraneousValues: true,
         });
@@ -658,7 +625,6 @@ export class EvaluateFeedbackService {
                     { excludeExtraneousValues: true },
                 );
 
-                // Map `criteriaScores` to desired format
                 const criteriaScores =
                     feedback.criteriaScores?.map((score) => ({
                         id: score.criteria.id,
@@ -667,7 +633,6 @@ export class EvaluateFeedbackService {
                         score: score.score,
                     })) || [];
 
-                // Fetch teacher information if `studyProfileid` exists
                 let teacherInfo = null;
                 if (feedback.studyProfileid?.teacherId) {
                     const teacher = await this.accountRepository.findOne({
@@ -694,7 +659,6 @@ export class EvaluateFeedbackService {
                     }
                 }
 
-                // Append new data to the DTO
                 return {
                     ...feedbackDto,
                     criteriaScores,
@@ -714,7 +678,6 @@ export class EvaluateFeedbackService {
         });
 
         return feedbacks.map((feedback) => {
-            // Manually map `accountFrom` into the `AccountDto` format
             const feedbackDto = plainToInstance(
                 FeedbackResponseDto,
                 {

@@ -110,7 +110,7 @@ export class StudyProfileController {
     }
 
     @Get('getStudyProfile')
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async get(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
         try {
             const studyProfile = await this.studyProfileService.get(page, pageSize);
@@ -131,7 +131,7 @@ export class StudyProfileController {
     }
 
     @Get('getStudyProfileComplete')
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async getStudyProfileComplete(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,
@@ -158,7 +158,7 @@ export class StudyProfileController {
     }
 
     @Get('getStudyProfileWithTeacherDetail')
-    //@UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async getStudyProfileWithTeacherDetail(
         @Query('page') page?: number,
         @Query('pageSize') pageSize?: number,

@@ -30,7 +30,7 @@ export class LessonDto {
     type: string;
     title: string;
     status: boolean;
-    reason: string[] | null; // Include reasons from feedback
+    reason: string[] | null;
     lessonContents: ContentDto[];
 }
 

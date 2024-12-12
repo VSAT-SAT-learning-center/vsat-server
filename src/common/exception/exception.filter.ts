@@ -33,7 +33,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 ? exception.getResponse()
                 : null;
 
-        // Log the detailed error for developers
         const logMessage = `
         Error: ${message}
         Status: ${status}
@@ -44,14 +43,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         Request Body: ${JSON.stringify(request.body)}
         Stack: ${exception instanceof HttpException ? exception.stack : (exception as Error)?.stack}
       `;
-        this.logger.error(logMessage); // Log the error details
+        this.logger.error(logMessage); 
 
-        // Use ResponseHelper for consistency
         return response.status(status).json(
             ResponseHelper.error(
-                details, // You can pass more detailed information if available
+                details, 
                 status,
-                message, // Message from exception or fallback to default
+                message, 
             ),
         );
     }

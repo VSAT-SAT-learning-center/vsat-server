@@ -149,32 +149,19 @@ export class NotificationService {
 
     async getNotificationsForUser(
         userId: string,
-        isRead?: boolean,
-        // page: number = 1,
-        // limit: number = 10,
     ): Promise<{
         data: any[];
         totalItems: number;
-        // totalPages: number;
-        // currentPage: number;
     }> {
         if (!userId) {
             throw new BadRequestException('User ID is required');
         }
-
-        // const where: any = { accountTo: { id: userId } };
-
-        // if (isRead !== undefined) {
-        //     where.isRead = isRead;
-        // }
 
         const [notifications, totalItems] =
             await this.notificationRepository.findAndCount({
                 where: { accountTo: { id: userId }, isRead: false },
                 relations: ['accountFrom', 'accountTo'],
                 order: { createdat: 'DESC' },
-                // skip: (page - 1) * limit,
-                // take: limit,
             });
 
         const data = notifications.map((notification) => ({
@@ -206,8 +193,6 @@ export class NotificationService {
         return {
             data,
             totalItems,
-            // totalPages: Math.ceil(totalItems / limit),
-            // currentPage: page,
         };
     }
 }

@@ -53,7 +53,7 @@ export class QuizAttemptAnswerService extends BaseService<QuizAttemptAnswer> {
     ): Promise<QuizAttemptAnswer[]> {
         return this.quizAttemptAnswerRepository.find({
             where: { quizAttempt: { id: quizAttemptId } },
-            relations: ['quizQuestion', 'quizQuestion.skill'], // Bao gồm thông tin skill cho mỗi câu hỏi
+            relations: ['quizQuestion', 'quizQuestion.skill'],
         });
     }
 }

@@ -326,7 +326,6 @@ export class StudyProfileService {
                     'targetlearningdetail.level',
                     'targetlearningdetail.section',
                     'targetlearningdetail.unitprogress',
-                    // 'targetlearningdetail.unitprogress.unitAreaProgresses',
                     'targetlearningdetail.unitprogress.unitAreaProgresses.lessonProgresses',
                 ],
             });
@@ -348,17 +347,10 @@ export class StudyProfileService {
                             0,
                         );
 
-                        // const updatedUnitProgress = detail.unitprogress.map((unitProgress) => ({
-                        //     unitarea: unitProgress.unitAreaProgresses.map((unitArea) => ({
-                        //         lessonprogressCount: unitArea.lessonProgresses?.length || 0,
-                        //     })),
-                        // }));
-
                         return {
                             ...detail,
                             unitprogressCount,
                             lessonProgressCount,
-                            //unitprogress: updatedUnitProgress,
                         };
                     },
                 );
@@ -598,7 +590,6 @@ export class StudyProfileService {
     async getStudyProfileComplete(page: number, pageSize: number): Promise<any> {
         const skip = (page - 1) * pageSize;
 
-        // Lấy studyProfile mới nhất theo accountId
         const query = this.studyProfileRepository
             .createQueryBuilder('studyProfile')
             .leftJoinAndSelect('studyProfile.account', 'account')
@@ -653,7 +644,7 @@ export class StudyProfileService {
     async getTeacherInfoByAccountId(accountId: string): Promise<AccountDto> {
         const studyProfile = await this.studyProfileRepository.findOne({
             where: { account: { id: accountId }, status: StudyProfileStatus.ACTIVE },
-            relations: ['account'], // Ensure the `account` relation is loaded
+            relations: ['account'],
         });
 
         if (!studyProfile) {

@@ -57,7 +57,6 @@ export class AccountService extends BaseService<Account> {
         return emailRegex.test(email);
     }
 
-    //save
     async save(accountDTO: CreateAccountDTO): Promise<CreateAccountDTO> {
         const role = await this.roleRepository.findOne({
             where: { rolename: accountDTO.role },

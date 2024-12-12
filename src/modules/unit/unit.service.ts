@@ -47,7 +47,7 @@ export class UnitService extends BaseService<Unit> {
             relations: ['section', 'level', 'unitAreas', 'unitAreas.lessons'],
         });
 
-        // Transform the fetched data to include domain, level, and counts
+       
         return units.map((unit) => ({
             unitId: unit.id,
             unitTitle: unit.title,
@@ -151,8 +151,6 @@ export class UnitService extends BaseService<Unit> {
         pageSize: number = 10,
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
-
-        // Fetch all Units along with related UnitAreas, Lessons, Section, Level and Domain
         const [units, totalCount] = await this.unitRepository.findAndCount({
             relations: [
                 'section',
@@ -169,7 +167,7 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
+        
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -216,7 +214,7 @@ export class UnitService extends BaseService<Unit> {
         if (filters.levelId) {
             whereClause.level = { id: filters.levelId };
         }
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: whereClause,
             relations: [
@@ -233,7 +231,7 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
+        
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -259,7 +257,7 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.PENDING, createdby: userId },
             relations: [
@@ -277,7 +275,7 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
+        
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -303,7 +301,7 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.APPROVED, createdby: userId },
             relations: [
@@ -321,7 +319,7 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
+        
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -347,7 +345,7 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.REJECTED, createdby: userId },
             relations: [
@@ -365,7 +363,7 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
+        
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -391,7 +389,7 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
+        
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.DRAFT, createdby: userId },
             relations: [
@@ -409,7 +407,7 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
+        
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -434,7 +432,6 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.PENDING },
             relations: [
@@ -452,7 +449,6 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -477,7 +473,6 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.APPROVED },
             relations: [
@@ -495,7 +490,7 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
+        
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -520,7 +515,6 @@ export class UnitService extends BaseService<Unit> {
     ): Promise<PagedUnitResponseDto> {
         const skip = (page - 1) * pageSize;
 
-        // Fetch all Units along with related UnitAreas, Lessons, Section, and Level
         const [units, totalCount] = await this.unitRepository.findAndCount({
             where: { status: UnitStatus.REJECTED },
             relations: [
@@ -537,7 +531,6 @@ export class UnitService extends BaseService<Unit> {
             take: pageSize,
         });
 
-        // If no units are found, return an empty array
         if (!units || units.length === 0) {
             return {
                 data: [],
@@ -557,7 +550,6 @@ export class UnitService extends BaseService<Unit> {
     }
 
     async getUnitWithDetails(unitId: string): Promise<UnitResponseDto> {
-        // Fetch the Unit along with related UnitAreas, Lessons, and LessonContents
         const unit = await this.unitRepository.findOne({
             where: { id: unitId },
             relations: [
@@ -570,7 +562,6 @@ export class UnitService extends BaseService<Unit> {
             ],
         });
 
-        // If the unit is not found, throw an error
         if (!unit) {
             throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
         }
@@ -697,7 +688,7 @@ export class UnitService extends BaseService<Unit> {
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
-                'unitAreas.lessons.feedback', // Include feedback for lessons
+                'unitAreas.lessons.feedback',
             ],
             skip,
             take: pageSize,
@@ -737,7 +728,7 @@ export class UnitService extends BaseService<Unit> {
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
-                'unitAreas.lessons.feedback', // Include feedback for lessons
+                'unitAreas.lessons.feedback',
             ],
             skip,
             take: pageSize,
@@ -777,7 +768,7 @@ export class UnitService extends BaseService<Unit> {
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
-                'unitAreas.lessons.feedback', // Include feedback for lessons
+                'unitAreas.lessons.feedback',
             ],
             skip,
             take: pageSize,
@@ -911,7 +902,6 @@ export class UnitService extends BaseService<Unit> {
     async getOneUnitWithDetailsIncludeFeedback(
         unitId: string,
     ): Promise<UnitFeedbackResponseDto> {
-        // Fetch the Unit along with related UnitAreas, Lessons, LessonContents, and Feedback
         const unit = await this.unitRepository.findOne({
             where: { id: unitId },
             relations: [
@@ -921,11 +911,10 @@ export class UnitService extends BaseService<Unit> {
                 'unitAreas',
                 'unitAreas.lessons',
                 'unitAreas.lessons.lessonContents',
-                'unitAreas.lessons.feedback', // Include feedback for lessons
+                'unitAreas.lessons.feedback',
             ],
         });
 
-        // If the unit is not found, throw an error
         if (!unit) {
             throw new NotFoundException(`Unit not found for UnitId: ${unitId}`);
         }
@@ -1123,7 +1112,6 @@ export class UnitService extends BaseService<Unit> {
             throw new Error('Unit not found');
         }
 
-        // Update status to indicate that the learning material has been submitted
         unit.status = UnitStatus.PENDING;
         await this.unitRepository.save(unit);
 
