@@ -24,12 +24,12 @@ export class AuthService {
     ) {}
 
     async sendMail(email: string, activationToken: string) {
-        const activationLink = `http://localhost:5000/account/activate?token=${activationToken}`;
+        const activationLink = `https://server.vsatcenter.edu.vn/account/activate?token=${activationToken}`;
 
         await this.mailerService.sendMail({
             to: email,
             subject: 'Activate Your Account',
-            template: './common/mail/templates/active.hbs',
+            template: 'active',
             context: {
                 activation_link: activationLink,
             },

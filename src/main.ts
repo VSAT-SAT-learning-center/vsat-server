@@ -10,7 +10,7 @@ import { AuditSubscriber } from './common/subscriber/audit.subscriber';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
-        logger: ['log', 'error', 'warn', 'debug', 'verbose'], // Ensure all log is activated
+        logger: ['log', 'error', 'warn', 'debug', 'verbose'],
     });
 
     const PORT = 5000;
