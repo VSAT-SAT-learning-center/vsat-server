@@ -1025,6 +1025,101 @@ export class QuestionService extends BaseService<Question> {
             }),
         );
 
+        const exams = await this.examRepository.find({
+            where: { createdby: accountId },
+            relations: [
+                'examattempt',
+                'examType',
+                'examattempt.targetlearning',
+                'examattempt.targetlearning.studyProfile',
+                'examattempt.targetlearning.studyProfile.account',
+            ],
+        });
+
+        const examDistribution = [];
+        for (const examData of exams) {
+            for (const attemptData of examData.examattempt) {
+                const studyProfile = attemptData.targetlearning?.studyProfile;
+
+                if (studyProfile) {
+                    const relatedAttempts = examData.examattempt.filter(
+                        (attempt) =>
+                            attempt.targetlearning?.studyProfile?.id === studyProfile.id,
+                    );
+
+                    const totalMathScore = relatedAttempts.reduce(
+                        (sum, attempt) => sum + (attempt.scoreMath || 0),
+                        0,
+                    );
+                    const totalRWScore = relatedAttempts.reduce(
+                        (sum, attempt) => sum + (attempt.scoreRW || 0),
+                        0,
+                    );
+
+                    examDistribution.push({
+                        examTitle: examData.title,
+                        student: studyProfile.account.username,
+                        rw: totalRWScore,
+                        math: totalMathScore,
+                        total: totalMathScore + totalRWScore,
+                    });
+                }
+            }
+        }
+
+        const scoresByType = new Map<
+            string,
+            {
+                totalMath: number;
+                totalRW: number;
+                mathAttempts: number;
+                rwAttempts: number;
+            }
+        >();
+
+        for (const exam of exams) {
+            const examType = exam.examType?.name;
+
+            if (!scoresByType.has(examType)) {
+                scoresByType.set(examType, {
+                    totalMath: 0,
+                    totalRW: 0,
+                    mathAttempts: 0,
+                    rwAttempts: 0,
+                });
+            }
+
+            const typeScores = scoresByType.get(examType);
+
+            for (const attempt of exam.examattempt) {
+                if (attempt.scoreMath !== null && attempt.scoreMath !== undefined) {
+                    typeScores.totalMath += attempt.scoreMath;
+                    typeScores.mathAttempts++;
+                }
+                if (attempt.scoreRW !== null && attempt.scoreRW !== undefined) {
+                    typeScores.totalRW += attempt.scoreRW;
+                    typeScores.rwAttempts++;
+                }
+            }
+        }
+
+        const resultAverage = [];
+        for (const [examType, scores] of scoresByType.entries()) {
+            const averageMathScore =
+                scores.mathAttempts > 0 ? scores.totalMath / scores.mathAttempts : 0;
+            const averageRWScore =
+                scores.rwAttempts > 0 ? scores.totalRW / scores.rwAttempts : 0;
+            const average = (averageMathScore + averageRWScore) / 2;
+            const typeResult = {
+                examType,
+                averageMathScore,
+                averageRWScore,
+                average,
+            };
+
+            resultAverage.push(typeResult);
+        }
+
         return {
             questions: {
                 approved: approvedQuestionCount,
@@ -1055,6 +1150,8 @@ export class QuestionService extends BaseService<Question> {
             },
             domainsquestion: domainStatistics,
             domainsquiz: domainQuizStatistics,
+            resultAverage,
+            examDistribution,
         };
     }
 
