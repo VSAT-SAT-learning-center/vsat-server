@@ -45,20 +45,28 @@ export class NotificationService {
             eventType: eventType,
         }));
 
-        await this.notificationRepository.save(notifications);
-        const account = await this.accountService.findById(accountFromId);
+        const savedNotifications = await this.notificationRepository.save(notifications);
 
-        const socketNotification = {
-            accountFrom: account,
-            message: message,
-            createdAt: new Date(),
-        } as SocketNotificationDto;
-        this.feedbackGateway.sendNotificationToMultipleUsers(
-            accountTos.map((accountTo) => accountTo.id),
-            socketNotification,
-            type,
-            eventType,
-        );
+        // Retrieve the accountFrom details for the notification
+        const accountFrom = await this.accountService.findById(accountFromId);
+
+        // Send WebSocket notifications for each accountTo with its corresponding notificationId
+        savedNotifications.forEach((notification) => {
+            const socketNotification: SocketNotificationDto = {
+                id: notification.id, // Unique notification ID
+                accountFrom,
+                message: notification.message,
+                createdAt: notification.createdat,
+            };
+
+            // Send notification to the specific accountTo
+            this.feedbackGateway.sendNotificationToUser(
+                notification.accountTo.id, // Target user ID
+                socketNotification, // Notification data with ID
+                type,
+                eventType,
+            );
+        });
     }
 
     async createAndSendMultipleNotificationsNew(
@@ -69,6 +77,7 @@ export class NotificationService {
         type: FeedbackType,
         eventType: FeedbackEventType,
     ): Promise<void> {
+        // Create notifications for each recipient
         const notifications = accountToIds.map((accountToId) => ({
             message,
             data: notificationData,
@@ -79,20 +88,29 @@ export class NotificationService {
             eventType: eventType,
         }));
 
-        await this.notificationRepository.save(notifications);
-        const account = await this.accountService.findById(accountFromId);
-        const socketNotification = {
-            accountFrom: account,
-            message: message,
-            createdAt: new Date(),
-        } as SocketNotificationDto;
+        // Save notifications to the database
+        const savedNotifications = await this.notificationRepository.save(notifications);
 
-        this.feedbackGateway.sendNotificationToMultipleUsers(
-            accountToIds,
-            socketNotification,
-            type,
-            eventType,
-        );
+        // Retrieve the accountFrom details for the notification
+        const accountFrom = await this.accountService.findById(accountFromId);
+
+        // Send WebSocket notifications for each accountTo with its corresponding notificationId
+        savedNotifications.forEach((notification) => {
+            const socketNotification: SocketNotificationDto = {
+                id: notification.id, // Unique notification ID
+                accountFrom,
+                message: notification.message,
+                createdAt: notification.createdat,
+            };
+
+            // Send notification to the specific accountTo
+            this.feedbackGateway.sendNotificationToUser(
+                notification.accountTo.id, // Target user ID
+                socketNotification, // Notification data with ID
+                type,
+                eventType,
+            );
+        });
     }
 
     async createAndSendNotification(
@@ -113,9 +131,10 @@ export class NotificationService {
             eventType: eventType,
         };
 
-        await this.notificationRepository.save(notification);
+        const savedNotification = await this.notificationRepository.save(notification);
         const account = await this.accountService.findById(accountFromId);
         const socketNotification = {
+            id: savedNotification.id,
             accountFrom: account,
             message: message,
             createdAt: new Date(),
@@ -170,7 +189,7 @@ export class NotificationService {
 
         const [notifications, totalItems] =
             await this.notificationRepository.findAndCount({
-                where: { accountTo: { id: userId }, isRead: false },
+                where: { accountTo: { id: userId } },
                 relations: ['accountFrom', 'accountTo'],
                 order: { createdat: 'DESC' },
                 // skip: (page - 1) * limit,

@@ -213,11 +213,12 @@ export class LessonService extends BaseService<Lesson> {
         }
     }
 
-    async deleteLessonsByUnitArea(unitAreaId: string): Promise<void> {
+    async deleteLessonsByUnitArea(unitAreaId: string): Promise<Lesson[]> {
         const lessons = await this.lessonRepository.find({
             where: { unitArea: { id: unitAreaId } },
         });
-        await this.lessonRepository.remove(lessons);
+        const deletedLessons = await this.lessonRepository.remove(lessons);
+        return deletedLessons;
     }
 
     async getLessonById(id: string): Promise<any> {

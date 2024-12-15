@@ -91,7 +91,7 @@ export class QuestionService extends BaseService<Question> {
         }
     }
 
-    normalizeContent(content: string): string {
+    private normalizeContent(content: string): string {
         const strippedContent = sanitizeHtml(content, {
             allowedTags: [],
             allowedAttributes: {},
@@ -103,7 +103,7 @@ export class QuestionService extends BaseService<Question> {
             .trim();
     }
 
-    jaccardSimilarity(str1: string, str2: string): number {
+    private jaccardSimilarity(str1: string, str2: string): number {
         const set1 = new Set(str1.split(' '));
         const set2 = new Set(str2.split(' '));
 
