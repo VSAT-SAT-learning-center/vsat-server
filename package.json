@@ -56,7 +56,8 @@
     "rxjs": "^7.8.1",
     "sanitize-html": "^2.13.1",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "typeorm-transactional-cls-hooked": "^0.1.21"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
