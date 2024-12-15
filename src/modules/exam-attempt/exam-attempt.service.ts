@@ -2,13 +2,10 @@ import { format, toZonedTime } from 'date-fns-tz';
 import { CreateCertifyDto } from './dto/create-certify.dto';
 import { UpdateDateDto } from './dto/update-date.dto';
 import { CreateExamWithExamAttemptDto } from './../exam/dto/create-examwithattempt.dto';
-import sanitizeHtml from 'sanitize-html';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
-import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
-import { PaginationService } from 'src/common/helpers/pagination.service';
 import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { BaseService } from '../base/base.service';
 import { TargetLearningDetailService } from '../target-learning-detail/target-learning-detail.service';
@@ -27,12 +24,9 @@ import { ExamScoreDetail } from 'src/database/entities/examscoredetail.entity';
 import { ExamStructure } from 'src/database/entities/examstructure.entity';
 import { ExamScore } from 'src/database/entities/examscore.entity';
 import { plainToInstance } from 'class-transformer';
-import { ExamService } from '../exam/exam.service';
 import { DomainDistribution } from 'src/database/entities/domaindistribution.entity';
 import { ModuleType } from 'src/database/entities/moduletype.entity';
-import { title } from 'process';
 import { StudyProfileService } from '../study-profile/study-profile.service';
-import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
 import { TargetLearningService } from '../target-learning/target-learning.service';
 import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
@@ -66,12 +60,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         private readonly studyProfileRepository: Repository<StudyProfile>,
         @InjectRepository(ExamScoreDetail)
         private readonly examScoreDetailRepository: Repository<ExamScoreDetail>,
-        @InjectRepository(ExamStructure)
-        private readonly examStructureRepository: Repository<ExamStructure>,
-        @InjectRepository(ExamScore)
-        private readonly examScoreRepository: Repository<ExamScore>,
-        @InjectRepository(DomainDistribution)
-        private readonly domainDistributionRepository: Repository<DomainDistribution>,
         @InjectRepository(ModuleType)
         private readonly moduleTypeRepository: Repository<ModuleType>,
         @InjectRepository(TargetLearning)
@@ -871,19 +859,15 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         updateExamAttempt.id,
                     );
 
-                    const staffs = await this.accountRepository.find({
-                        where: { role: { rolename: 'Staff' } },
-                    });
-
-                    await this.notificationService.createAndSendMultipleNotifications(
-                        staffs,
+                    await this.notificationService.createAndSendNotification(
+                        studyProfile.teacherId,
                         null,
                         studyProfile,
-                        `Student ${account.username} has completed the exam ${exam.title}`,
+                        `Student ${account.username} have complete the ${exam.title}`,
                         FeedbackType.EXAM,
                         FeedbackEventType.EXAM_ATTEMPT,
                     );
-
+        
                     await this.notificationService.createAndSendNotification(
                         account.id,
                         null,
@@ -917,6 +901,19 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 savedExamAttempt.id,
             );
 
+            const staffs = await this.accountRepository.find({
+                where: { role: { rolename: 'Staff' } },
+            });
+
+            await this.notificationService.createAndSendMultipleNotifications(
+                staffs,
+                null,
+                studyProfile,
+                `Student ${account.username} has completed the exam ${exam.title}`,
+                FeedbackType.EXAM,
+                FeedbackEventType.EXAM_ATTEMPT,
+            );
+
             await this.notificationService.createAndSendNotification(
                 account.id,
                 null,
@@ -925,6 +922,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 FeedbackType.EXAM,
                 FeedbackEventType.EXAM_ATTEMPT,
             );
+           
 
             return plainToInstance(CreateExamAttemptDto, {
                 scoreMath: savedExamAttempt.scoreMath,
@@ -1590,18 +1588,31 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return accounts.map((studyProfile) => studyProfile.account.id);
     }
 
-    async updateDateExamAttempt(updateDate: UpdateDateDto): Promise<any> {
+    async updateDateExamAttempt(accountFromId: string, updateDate: UpdateDateDto): Promise<any> {
         const targetLearning = await this.targetLearningRepository.findOne({
             where: { id: updateDate.targetLeaningId },
+            relations: ['studyProfile', 'studyProfile.account'],
         });
 
         const examAttempt = await this.examAttemptRepository.findOne({
             where: { targetlearning: { id: targetLearning.id } },
+            relations: ['exam'],
         });
 
         examAttempt.attemptdatetime = updateDate.attemptdatetime;
 
         const update = await this.examAttemptRepository.save(examAttempt);
+
+        let notificationMessage = `Your ${examAttempt.exam.title} has been rescheduled to ${updateDate.attemptdatetime}`;
+
+        await this.notificationService.createAndSendNotification(
+            targetLearning.studyProfile.account.id,
+            accountFromId,
+            update,
+            notificationMessage,
+            FeedbackType.QUESTION,
+            FeedbackEventType.EXAM_CHANGE_SCHEDULE,
+        );
 
         return update;
     }

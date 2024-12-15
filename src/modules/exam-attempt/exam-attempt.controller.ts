@@ -371,10 +371,14 @@ export class ExamAttemptController {
 
     @Put('updateDateExamAttempt')
     @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
-    async updateDateExamAttempt(@Body() updateDate: UpdateDateDto) {
+    async updateDateExamAttempt(
+        @Request() req,
+        @Body() updateDate: UpdateDateDto) {
         try {
+
+            const accountFromId = req?.user.id;
             const examAttempt =
-                await this.examAttemptService.updateDateExamAttempt(updateDate);
+                await this.examAttemptService.updateDateExamAttempt(accountFromId, updateDate);
 
             return ResponseHelper.success(
                 HttpStatus.OK,

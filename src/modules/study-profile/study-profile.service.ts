@@ -15,6 +15,7 @@ import { AccountDto } from 'src/common/dto/common.dto';
 import { NotificationService } from 'src/modules/notification/notification.service';
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
+import { ProgressStatus } from 'src/common/enums/progress-status.enum';
 
 @Injectable()
 export class StudyProfileService {
@@ -684,6 +685,143 @@ export class StudyProfileService {
             lastname: teacher.lastname,
             username: teacher.username,
             profilePicture: teacher.profilepictureurl,
+        };
+    }
+
+    async getCombinedLearningProgress(teacherId: string) {
+        const studyProfiles = await this.studyProfileRepository.find({
+            where: { teacherId },
+            relations: [
+                'account',
+                'targetlearning',
+                'targetlearning.targetlearningdetail',
+                'targetlearning.targetlearningdetail.unitprogress',
+            ],
+        });
+
+        // Aggregate unitProgress data
+        const unitProgressList = studyProfiles
+            .flatMap((profile) => profile.targetlearning)
+            .flatMap((target) => target.targetlearningdetail)
+            .flatMap((detail) => detail.unitprogress);
+
+        const completed = unitProgressList.filter(
+            (u) => u.status === ProgressStatus.COMPLETED,
+        ).length;
+        const inProgress = unitProgressList.filter(
+            (u) => u.status === ProgressStatus.PROGRESSING,
+        ).length;
+        const notStarted = unitProgressList.filter(
+            (u) => u.status === ProgressStatus.NOT_STARTED,
+        ).length;
+        const total = completed + inProgress + notStarted;
+
+        const overview = {
+            completed: total ? Math.round((completed / total) * 100) : 0,
+            inProgress: total ? Math.round((inProgress / total) * 100) : 0,
+            notStarted: total ? Math.round((notStarted / total) * 100) : 0,
+        };
+
+        // Student-specific progress
+        const progressStats = studyProfiles.map((profile) => {
+            const studentProgress = profile.targetlearning
+                .flatMap((target) => target.targetlearningdetail)
+                .flatMap((detail) => detail.unitprogress);
+
+            const completed = studentProgress.filter(
+                (u) => u.status === ProgressStatus.COMPLETED,
+            ).length;
+            const inProgress = studentProgress.filter(
+                (u) => u.status === ProgressStatus.PROGRESSING,
+            ).length;
+            const notStarted = studentProgress.filter(
+                (u) => u.status === ProgressStatus.NOT_STARTED,
+            ).length;
+            const total = completed + inProgress + notStarted;
+
+            return {
+                studentName: `${profile.account.firstname} ${profile.account.lastname}`,
+                completed: total ? Math.round((completed / total) * 100) : 0,
+                inProgress: total ? Math.round((inProgress / total) * 100) : 0,
+                notStarted: total ? Math.round((notStarted / total) * 100) : 0,
+            };
+        });
+
+        return {
+            overview,
+            statistics: progressStats,
+        };
+    }
+
+    // Combined function for Exam Performance and Participation
+    async getExamOverview(teacherId: string) {
+        // Fetch all study profiles for the teacher
+        const studyProfiles = await this.studyProfileRepository.find({
+            where: { teacherId },
+            relations: [
+                'account',
+                'targetlearning',
+                'targetlearning.examattempt',
+                'targetlearning.examattempt.exam',
+            ],
+        });
+
+        // Chart 1: Exam Participation Overview
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Normalize current date to 00:00:00
+
+        let completed = 0;
+        let scheduled = 0;
+        let missed = 0;
+
+        for (const profile of studyProfiles) {
+            const examAttempts = profile.targetlearning.flatMap(
+                (target) => target.examattempt || [],
+            );
+
+            for (const attempt of examAttempts) {
+                if (!attempt.exam) continue;
+
+                if (attempt.attemptdatetime < currentDate && attempt.status) {
+                    completed++;
+                } else if (attempt.attemptdatetime >= currentDate && !attempt.status) {
+                    scheduled++;
+                } else if (attempt.attemptdatetime < currentDate && !attempt.status) {
+                    missed++;
+                }
+            }
+        }
+
+        const participationOverview = {
+            completed: completed,
+            scheduled: scheduled,
+            missed: missed,
+        };
+
+        // Chart 2: Exam Performance Statistics
+        const performanceStats = [];
+        for (const profile of studyProfiles) {
+            const examAttempts = profile.targetlearning.flatMap(
+                (target) => target.examattempt || [],
+            );
+
+            const totalScore = examAttempts.reduce(
+                (sum, attempt) =>
+                    sum + ((attempt.scoreMath || 0) + (attempt.scoreRW || 0)),
+                0,
+            );
+
+            const attempts = examAttempts.length;
+
+            performanceStats.push({
+                studentName: `${profile.account.firstname} ${profile.account.lastname}`,
+                averageScore: attempts > 0 ? Math.round(totalScore / attempts) : 0,
+            });
+        }
+
+        return {
+            participationOverview,
+            performanceStats,
         };
     }
 }
