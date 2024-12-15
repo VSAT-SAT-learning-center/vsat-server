@@ -1759,7 +1759,7 @@ export class FeedbackService extends BaseService<Feedback> {
         // await Promise.all(feedbackPromises);
 
         // Prepare notification message
-        const notificationMessage = 'New exam was submitted';
+        const notificationMessage = 'Exam was submitted';
 
         // Delegate notification handling to NotificationService
         await this.notificationService.createAndSendMultipleNotifications(
