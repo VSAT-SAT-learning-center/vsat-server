@@ -13,6 +13,7 @@ import { ExamType } from './examtype.entity';
 import { ExamQuestion } from './examquestion.entity';
 import { ExamStatus } from 'src/common/enums/exam-status.enum';
 import { Feedback } from './feedback.entity';
+import { ExamAttempt } from './examattempt.entity';
 
 @Entity('exam')
 export class Exam {
@@ -60,6 +61,9 @@ export class Exam {
 
     @OneToMany(() => ExamQuestion, (examQuestion) => examQuestion.exam)
     examquestion: ExamQuestion[];
+
+    @OneToMany(() => ExamAttempt, (examattempt) => examattempt.exam)
+    examattempt: ExamAttempt[];
 
     @OneToMany(() => Feedback, (feedback) => feedback.exam)
     feedbacks: Feedback[];
