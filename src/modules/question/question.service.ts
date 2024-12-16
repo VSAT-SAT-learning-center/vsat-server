@@ -1162,6 +1162,10 @@ export class QuestionService extends BaseService<Question> {
     }
 
     async statisticForManager(): Promise<any> {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
         // Count questions by status
         const approvedQuestionCount = await this.questionRepository.count({
             where: {
@@ -1244,6 +1248,13 @@ export class QuestionService extends BaseService<Question> {
             },
         });
 
+        const feedbackOfMonth = await this.evaluateFeedbackRepository.count({
+            where: {
+                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_MANAGER,
+                createdat: Between(startOfMonth, endOfMonth),
+            },
+        });
+
         return {
             questions: {
                 approved: approvedQuestionCount,
@@ -1267,6 +1278,7 @@ export class QuestionService extends BaseService<Question> {
             },
             feedback: {
                 evaluateFeedback: feedback,
+                feedbackOfMonth: feedbackOfMonth
             },
         };
     }
