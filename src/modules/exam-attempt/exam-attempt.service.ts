@@ -1603,15 +1603,15 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
         const update = await this.examAttemptRepository.save(examAttempt);
 
-        let notificationMessage = `Your ${examAttempt.exam.title} has been rescheduled to ${updateDate.attemptdatetime}`;
+        let notificationMessage = `Your ${examAttempt.exam.title} has been rescheduled to ${format(updateDate.attemptdatetime, 'dd-MM-yyyy')}`;
 
         await this.notificationService.createAndSendNotification(
             targetLearning.studyProfile.account.id,
             accountFromId,
             update,
             notificationMessage,
-            FeedbackType.QUESTION,
-            FeedbackEventType.EXAM_CHANGE_SCHEDULE,
+            FeedbackType.EXAM,
+            FeedbackEventType.ASSIGN_EXAM,
         );
 
         return update;

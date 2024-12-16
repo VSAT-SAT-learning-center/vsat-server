@@ -7,10 +7,11 @@ import { TargetLearning } from 'src/database/entities/targetlearning.entity';
 import { Account } from 'src/database/entities/account.entity';
 import { AccountModule } from '../account/account.module';
 import { NotificationModule } from 'src/modules/notification/notification.module';
+import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([StudyProfile, TargetLearning, Account]),
+        TypeOrmModule.forFeature([StudyProfile, TargetLearning, Account, EvaluateFeedback]),
         forwardRef(() => AccountModule),
         NotificationModule
     ],

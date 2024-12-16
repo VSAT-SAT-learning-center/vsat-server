@@ -18,6 +18,5 @@ export enum FeedbackEventType {
     ASSIGN_EXAM = 'assignExamNotification',
     ASSIGN_TEACHER = 'assignTeacherNotification',
     EXAM_ATTEMPT = 'examAttemptNotification',
-    EXAM_CHANGE_SCHEDULE = 'examChangeScheduleNotification',
     UNKNOWN = 'unknown',
 }
