@@ -717,12 +717,11 @@ export class StudyProfileService {
         const notStarted = unitProgressList.filter(
             (u) => u.status === ProgressStatus.NOT_STARTED,
         ).length;
-        const total = completed + inProgress + notStarted;
 
         const overview = {
-            completed: total ? Math.round((completed / total) * 100) : 0,
-            inProgress: total ? Math.round((inProgress / total) * 100) : 0,
-            notStarted: total ? Math.round((notStarted / total) * 100) : 0,
+            completed: completed,
+            inProgress: inProgress,
+            notStarted: notStarted,
         };
 
         // Student-specific progress
@@ -740,13 +739,12 @@ export class StudyProfileService {
             const notStarted = studentProgress.filter(
                 (u) => u.status === ProgressStatus.NOT_STARTED,
             ).length;
-            const total = completed + inProgress + notStarted;
 
             return {
                 studentName: `${profile.account.firstname} ${profile.account.lastname}`,
-                completed: total ? Math.round((completed / total) * 100) : 0,
-                inProgress: total ? Math.round((inProgress / total) * 100) : 0,
-                notStarted: total ? Math.round((notStarted / total) * 100) : 0,
+                completed: completed,
+                inProgress: inProgress,
+                notStarted: notStarted,
             };
         });
 
@@ -784,7 +782,7 @@ export class StudyProfileService {
 
             for (const attempt of examAttempts) {
                 if (!attempt.exam) continue;
-                console.log(attempt.attemptdatetime >= currentDate)
+                console.log(attempt.attemptdatetime >= currentDate);
                 if (attempt.attemptdatetime <= currentDate && attempt.status) {
                     completed++;
                 } else if (attempt.attemptdatetime >= currentDate && !attempt.status) {
@@ -848,9 +846,14 @@ export class StudyProfileService {
 
         // 1. Total Study Profiles
         const totalStudyProfiles = studyProfiles.length;
+        const inactiveStudyProfiles = studyProfiles.filter(
+            (profile) => profile.status === StudyProfileStatus.ACTIVE,
+        ).length;
 
         // 2. Target Learning Counts
-        const totalTargetLearning = studyProfiles.flatMap((profile) => profile.targetlearning).length;
+        const totalTargetLearning = studyProfiles.flatMap(
+            (profile) => profile.targetlearning,
+        ).length;
         const inactiveTargetLearning = studyProfiles
             .flatMap((profile) => profile.targetlearning)
             .filter((target) => target.status === TargetLearningStatus.INACTIVE).length;
@@ -871,12 +874,35 @@ export class StudyProfileService {
             (u) => u.status === ProgressStatus.NOT_STARTED,
         ).length;
 
-        const totalProgress = completedProgress + inProgress + notStarted;
         const overview = {
-            completed: totalProgress ? Math.round((completedProgress / totalProgress) * 100) : 0,
-            inProgress: totalProgress ? Math.round((inProgress / totalProgress) * 100) : 0,
-            notStarted: totalProgress ? Math.round((notStarted / totalProgress) * 100) : 0,
+            completed: completedProgress,
+            inProgress: inProgress,
+            notStarted: notStarted,
         };
+
+        // Student-specific progress
+        const progressStats = studyProfiles.map((profile) => {
+            const studentProgress = profile.targetlearning
+                .flatMap((target) => target.targetlearningdetail)
+                .flatMap((detail) => detail.unitprogress);
+
+            const completed = studentProgress.filter(
+                (u) => u.status === ProgressStatus.COMPLETED,
+            ).length;
+            const inProgress = studentProgress.filter(
+                (u) => u.status === ProgressStatus.PROGRESSING,
+            ).length;
+            const notStarted = studentProgress.filter(
+                (u) => u.status === ProgressStatus.NOT_STARTED,
+            ).length;
+
+            return {
+                studentName: `${profile.account.firstname} ${profile.account.lastname}`,
+                completed: completed,
+                inProgress: inProgress,
+                notStarted: notStarted,
+            };
+        });
 
         // 4. Exam Participation Overview
         let completedExams = 0;
@@ -884,7 +910,9 @@ export class StudyProfileService {
         let missedExams = 0;
 
         for (const profile of studyProfiles) {
-            const examAttempts = profile.targetlearning.flatMap((target) => target.examattempt || []);
+            const examAttempts = profile.targetlearning.flatMap(
+                (target) => target.examattempt || [],
+            );
             for (const attempt of examAttempts) {
                 const examDate = new Date(attempt.attemptdatetime);
                 examDate.setHours(0, 0, 0, 0);
@@ -907,9 +935,12 @@ export class StudyProfileService {
 
         // 5. Exam Performance Statistics
         const performanceStats = studyProfiles.map((profile) => {
-            const examAttempts = profile.targetlearning.flatMap((target) => target.examattempt || []);
+            const examAttempts = profile.targetlearning.flatMap(
+                (target) => target.examattempt || [],
+            );
             const totalScore = examAttempts.reduce(
-                (sum, attempt) => sum + ((attempt.scoreMath || 0) + (attempt.scoreRW || 0)),
+                (sum, attempt) =>
+                    sum + ((attempt.scoreMath || 0) + (attempt.scoreRW || 0)),
                 0,
             );
             const attempts = examAttempts.length;
@@ -924,7 +955,7 @@ export class StudyProfileService {
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: { accountTo: { id: teacherId } },
         });
-        
+
         const totalFeedback = feedbacks.length;
         const feedbackThisMonth = feedbacks.filter((feedback) => {
             const feedbackDate = new Date(feedback.createdat);
@@ -936,10 +967,12 @@ export class StudyProfileService {
 
         return {
             overview,
+            progressStats,
             participationOverview,
             performanceStats,
             statistics: {
                 totalStudyProfiles,
+                inactiveStudyProfiles,
                 totalTargetLearning,
                 inactiveTargetLearning,
                 totalExams: completedExams + scheduledExams + missedExams,
