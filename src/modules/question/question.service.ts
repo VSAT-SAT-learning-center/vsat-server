@@ -45,6 +45,8 @@ import { UnitStatus } from 'src/common/enums/unit-status.enum';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { Domain } from 'src/database/entities/domain.entity';
+import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
+import { EvaluateFeedbackType } from 'src/common/enums/evaluate-feedback-type.enum';
 
 @Injectable()
 export class QuestionService extends BaseService<Question> {
@@ -71,6 +73,10 @@ export class QuestionService extends BaseService<Question> {
         private readonly unitRepository: Repository<Unit>,
         @InjectRepository(Domain)
         private readonly domainRepository: Repository<Domain>,
+        @InjectRepository(Feedback)
+        private readonly feedbackRepository: Repository<Feedback>,
+        @InjectRepository(EvaluateFeedback)
+        private readonly evaluateFeedbackRepository: Repository<EvaluateFeedback>,
         private readonly answerService: Answerservice,
 
         @Inject(forwardRef(() => FeedbackService))
@@ -1026,7 +1032,7 @@ export class QuestionService extends BaseService<Question> {
         );
 
         const exams = await this.examRepository.find({
-            where: { createdby: accountId },
+            where: { createdby: accountId, examattempt: { status: true } },
             relations: [
                 'examattempt',
                 'examType',
@@ -1109,7 +1115,7 @@ export class QuestionService extends BaseService<Question> {
                 scores.mathAttempts > 0 ? scores.totalMath / scores.mathAttempts : 0;
             const averageRWScore =
                 scores.rwAttempts > 0 ? scores.totalRW / scores.rwAttempts : 0;
-            const average = (averageMathScore + averageRWScore) / 2;
+            const average = averageMathScore + averageRWScore;
             const typeResult = {
                 examType,
                 averageMathScore,
@@ -1156,6 +1162,10 @@ export class QuestionService extends BaseService<Question> {
     }
 
     async statisticForManager(): Promise<any> {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
         // Count questions by status
         const approvedQuestionCount = await this.questionRepository.count({
             where: {
@@ -1166,6 +1176,12 @@ export class QuestionService extends BaseService<Question> {
         const rejectedQuestionCount = await this.questionRepository.count({
             where: {
                 status: QuestionStatus.REJECTED,
+            },
+        });
+
+        const pendingQuestionCount = await this.questionRepository.count({
+            where: {
+                status: QuestionStatus.PENDING,
             },
         });
 
@@ -1182,6 +1198,12 @@ export class QuestionService extends BaseService<Question> {
             },
         });
 
+        const pendingQuizCount = await this.quizQuestionRepository.count({
+            where: {
+                status: QuizQuestionStatus.PENDING,
+            },
+        });
+
         // Count exam by status
         const approvedExamCount = await this.examRepository.count({
             where: {
@@ -1192,6 +1214,12 @@ export class QuestionService extends BaseService<Question> {
         const rejectedExamCount = await this.examRepository.count({
             where: {
                 status: ExamStatus.REJECTED,
+            },
+        });
+
+        const pendingExamCount = await this.examRepository.count({
+            where: {
+                status: ExamStatus.PENDING,
             },
         });
 
@@ -1208,22 +1236,49 @@ export class QuestionService extends BaseService<Question> {
             },
         });
 
+        const pendingUnitCount = await this.unitRepository.count({
+            where: {
+                status: UnitStatus.PENDING,
+            },
+        });
+
+        const feedback = await this.evaluateFeedbackRepository.count({
+            where: {
+                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_MANAGER,
+            },
+        });
+
+        const feedbackOfMonth = await this.evaluateFeedbackRepository.count({
+            where: {
+                evaluateFeedbackType: EvaluateFeedbackType.STAFF_TO_MANAGER,
+                createdat: Between(startOfMonth, endOfMonth),
+            },
+        });
+
         return {
             questions: {
                 approved: approvedQuestionCount,
                 rejected: rejectedQuestionCount,
+                pending: pendingQuestionCount,
             },
             quizquestion: {
                 approved: approvedQuizCount,
                 rejected: rejectedQuizCount,
+                penidng: pendingQuizCount,
             },
             exam: {
                 approved: approvedExamCount,
                 rejected: rejectedExamCount,
+                pending: pendingExamCount,
             },
             unit: {
                 approved: approvedUnitCount,
                 rejected: rejectedUnitCount,
+                pending: pendingUnitCount,
+            },
+            feedback: {
+                evaluateFeedback: feedback,
+                feedbackOfMonth: feedbackOfMonth
             },
         };
     }
