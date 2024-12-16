@@ -15,10 +15,26 @@ import { Exam } from 'src/database/entities/exam.entity';
 import { Unit } from 'src/database/entities/unit.entity';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { Domain } from 'src/database/entities/domain.entity';
+import { Feedback } from 'src/database/entities/feedback.entity';
+import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Question, Section, Level, Skill, Answer, Account, QuizQuestion, Exam, Unit, StudyProfile, Domain]),
+        TypeOrmModule.forFeature([
+            Question,
+            Section,
+            Level,
+            Skill,
+            Answer,
+            Account,
+            QuizQuestion,
+            Exam,
+            Unit,
+            StudyProfile,
+            Domain,
+            Feedback,
+            EvaluateFeedback
+        ]),
 
         forwardRef(() => FeedbackModule),
     ],
