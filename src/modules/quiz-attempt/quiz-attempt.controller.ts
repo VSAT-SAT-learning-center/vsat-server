@@ -257,6 +257,9 @@ export class QuizAttemptController extends BaseController<QuizAttempt> {
     async getQuizAttemptInfoByUnitProgress(
         @Param('unitProgressId') unitProgressId: string,
     ) {
+        if (unitProgressId === null) {
+            return;
+        }
         try {
             const response =
                 await this.quizAttemptService.getLatestQuizAttemptStatus(unitProgressId);

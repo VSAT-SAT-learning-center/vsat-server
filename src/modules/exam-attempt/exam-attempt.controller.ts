@@ -13,18 +13,13 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { CreateExamAttemptDto } from './dto/create-examattempt.dto';
-import { UpdateExamAttemptDto } from './dto/update-examattempt.dto';
 import { ExamAttemptService } from './exam-attempt.service';
-import { PaginationOptionsDto } from 'src/common/dto/pagination-options.dto.ts';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
-import { BaseController } from '../base/base.controller';
-import { ExamAttempt } from 'src/database/entities/examattempt.entity';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateTargetLearningDto } from '../target-learning/dto/create-targetlearning.dto';
 import { SuccessMessages } from 'src/common/message/success-messages';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
-import { AssignExamAttemptDto } from './dto/assign-examattempt.dto';
 import { CreateExamWithExamAttemptDto } from '../exam/dto/create-examwithattempt.dto';
 import { UpdateDateDto } from './dto/update-date.dto';
 import { CreateCertifyDto } from './dto/create-certify.dto';

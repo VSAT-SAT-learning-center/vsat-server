@@ -16,6 +16,7 @@ import { NotificationService } from 'src/modules/notification/notification.servi
 import { FeedbackType } from 'src/common/enums/feedback-type.enum';
 import { FeedbackEventType } from 'src/common/enums/feedback-event-type.enum';
 import { ProgressStatus } from 'src/common/enums/progress-status.enum';
+import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 
 @Injectable()
 export class StudyProfileService {
@@ -26,6 +27,8 @@ export class StudyProfileService {
         private readonly targetLearningRepository: Repository<TargetLearning>,
         @InjectRepository(Account)
         private readonly accountRepository: Repository<Account>,
+        @InjectRepository(EvaluateFeedback)
+        private readonly evaluateFeedbackRepository: Repository<EvaluateFeedback>,
         private readonly notificationService: NotificationService,
     ) {}
 
@@ -781,8 +784,8 @@ export class StudyProfileService {
 
             for (const attempt of examAttempts) {
                 if (!attempt.exam) continue;
-
-                if (attempt.attemptdatetime < currentDate && attempt.status) {
+                console.log(attempt.attemptdatetime >= currentDate)
+                if (attempt.attemptdatetime <= currentDate && attempt.status) {
                     completed++;
                 } else if (attempt.attemptdatetime >= currentDate && !attempt.status) {
                     scheduled++;
@@ -822,6 +825,128 @@ export class StudyProfileService {
         return {
             participationOverview,
             performanceStats,
+        };
+    }
+
+    async getTeacherDashboard(teacherId: string) {
+        // Current date normalized to midnight
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+
+        // Fetch Study Profiles
+        const studyProfiles = await this.studyProfileRepository.find({
+            where: { teacherId },
+            relations: [
+                'account',
+                'targetlearning',
+                'targetlearning.targetlearningdetail',
+                'targetlearning.targetlearningdetail.unitprogress',
+                'targetlearning.examattempt',
+                'targetlearning.examattempt.exam',
+            ],
+        });
+
+        // 1. Total Study Profiles
+        const totalStudyProfiles = studyProfiles.length;
+
+        // 2. Target Learning Counts
+        const totalTargetLearning = studyProfiles.flatMap((profile) => profile.targetlearning).length;
+        const inactiveTargetLearning = studyProfiles
+            .flatMap((profile) => profile.targetlearning)
+            .filter((target) => target.status === TargetLearningStatus.INACTIVE).length;
+
+        // 3. Aggregate Learning Progress
+        const unitProgressList = studyProfiles
+            .flatMap((profile) => profile.targetlearning)
+            .flatMap((target) => target.targetlearningdetail)
+            .flatMap((detail) => detail.unitprogress);
+
+        const completedProgress = unitProgressList.filter(
+            (u) => u.status === ProgressStatus.COMPLETED,
+        ).length;
+        const inProgress = unitProgressList.filter(
+            (u) => u.status === ProgressStatus.PROGRESSING,
+        ).length;
+        const notStarted = unitProgressList.filter(
+            (u) => u.status === ProgressStatus.NOT_STARTED,
+        ).length;
+
+        const totalProgress = completedProgress + inProgress + notStarted;
+        const overview = {
+            completed: totalProgress ? Math.round((completedProgress / totalProgress) * 100) : 0,
+            inProgress: totalProgress ? Math.round((inProgress / totalProgress) * 100) : 0,
+            notStarted: totalProgress ? Math.round((notStarted / totalProgress) * 100) : 0,
+        };
+
+        // 4. Exam Participation Overview
+        let completedExams = 0;
+        let scheduledExams = 0;
+        let missedExams = 0;
+
+        for (const profile of studyProfiles) {
+            const examAttempts = profile.targetlearning.flatMap((target) => target.examattempt || []);
+            for (const attempt of examAttempts) {
+                const examDate = new Date(attempt.attemptdatetime);
+                examDate.setHours(0, 0, 0, 0);
+
+                if (examDate < currentDate && attempt.status) {
+                    completedExams++;
+                } else if (examDate >= currentDate && !attempt.status) {
+                    scheduledExams++;
+                } else if (examDate < currentDate && !attempt.status) {
+                    missedExams++;
+                }
+            }
+        }
+
+        const participationOverview = {
+            completed: completedExams,
+            scheduled: scheduledExams,
+            missed: missedExams,
+        };
+
+        // 5. Exam Performance Statistics
+        const performanceStats = studyProfiles.map((profile) => {
+            const examAttempts = profile.targetlearning.flatMap((target) => target.examattempt || []);
+            const totalScore = examAttempts.reduce(
+                (sum, attempt) => sum + ((attempt.scoreMath || 0) + (attempt.scoreRW || 0)),
+                0,
+            );
+            const attempts = examAttempts.length;
+
+            return {
+                studentName: `${profile.account.firstname} ${profile.account.lastname}`,
+                averageScore: attempts > 0 ? Math.round(totalScore / attempts) : 0,
+            };
+        });
+
+        // 6. Total Feedback and Feedback in Current Month
+        const feedbacks = await this.evaluateFeedbackRepository.find({
+            where: { accountTo: { id: teacherId } },
+        });
+        
+        const totalFeedback = feedbacks.length;
+        const feedbackThisMonth = feedbacks.filter((feedback) => {
+            const feedbackDate = new Date(feedback.createdat);
+            return (
+                feedbackDate.getMonth() === currentDate.getMonth() &&
+                feedbackDate.getFullYear() === currentDate.getFullYear()
+            );
+        }).length;
+
+        return {
+            overview,
+            participationOverview,
+            performanceStats,
+            statistics: {
+                totalStudyProfiles,
+                totalTargetLearning,
+                inactiveTargetLearning,
+                totalExams: completedExams + scheduledExams + missedExams,
+                upcomingExams: scheduledExams,
+                totalFeedback,
+                feedbackThisMonth,
+            },
         };
     }
 }

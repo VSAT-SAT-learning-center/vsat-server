@@ -27,6 +27,7 @@ import { ExamModule } from '../exam/exam.module';
 import { ModuleTypeModule } from '../module-type/module-type.module';
 import { AccountModule } from '../account/account.module';
 import { NotificationModule } from 'src/modules/notification/notification.module';
+import { EvaluateFeedback } from 'src/database/entities/evaluatefeedback.entity';
 
 @Module({
     imports: [
@@ -46,6 +47,7 @@ import { NotificationModule } from 'src/modules/notification/notification.module
             DomainDistribution,
             ModuleType,
             TargetLearning,
+            EvaluateFeedback
         ]),
         TargetLearningDetailModule,
         AccountModule,
