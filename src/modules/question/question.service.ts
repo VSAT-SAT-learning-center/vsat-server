@@ -1073,7 +1073,7 @@ export class QuestionService extends BaseService<Question> {
             }
         }
 
-        const scoresByType = new Map<
+        const scoresByTitle = new Map<
             string,
             {
                 totalMath: number;
@@ -1083,11 +1083,12 @@ export class QuestionService extends BaseService<Question> {
             }
         >();
 
+        // Duyệt qua danh sách exams
         for (const exam of exams) {
-            const examType = exam.examType?.name;
+            const examTitle = exam.title; // Sử dụng title để nhóm dữ liệu
 
-            if (!scoresByType.has(examType)) {
-                scoresByType.set(examType, {
+            if (!scoresByTitle.has(examTitle)) {
+                scoresByTitle.set(examTitle, {
                     totalMath: 0,
                     totalRW: 0,
                     mathAttempts: 0,
@@ -1095,35 +1096,35 @@ export class QuestionService extends BaseService<Question> {
                 });
             }
 
-            const typeScores = scoresByType.get(examType);
+            const titleScores = scoresByTitle.get(examTitle);
 
-            for (const attempt of exam.examattempt) {
-                if (attempt.scoreMath !== null && attempt.scoreMath !== undefined) {
-                    typeScores.totalMath += attempt.scoreMath;
-                    typeScores.mathAttempts++;
-                }
-                if (attempt.scoreRW !== null && attempt.scoreRW !== undefined) {
-                    typeScores.totalRW += attempt.scoreRW;
-                    typeScores.rwAttempts++;
+            if (exam.examattempt && Array.isArray(exam.examattempt)) {
+                for (const attempt of exam.examattempt) {
+                    if (attempt.scoreMath !== null && attempt.scoreMath !== undefined) {
+                        titleScores.totalMath += attempt.scoreMath;
+                        titleScores.mathAttempts++;
+                    }
+                    if (attempt.scoreRW !== null && attempt.scoreRW !== undefined) {
+                        titleScores.totalRW += attempt.scoreRW;
+                        titleScores.rwAttempts++;
+                    }
                 }
             }
         }
 
         const resultAverage = [];
-        for (const [examType, scores] of scoresByType.entries()) {
+        for (const [examTitle, scores] of scoresByTitle.entries()) {
             const averageMathScore =
                 scores.mathAttempts > 0 ? scores.totalMath / scores.mathAttempts : 0;
             const averageRWScore =
                 scores.rwAttempts > 0 ? scores.totalRW / scores.rwAttempts : 0;
             const average = averageMathScore + averageRWScore;
-            const typeResult = {
-                examType,
+            resultAverage.push({
+                examTitle,
                 averageMathScore,
                 averageRWScore,
                 average,
-            };
-
-            resultAverage.push(typeResult);
+            });
         }
 
         return {
