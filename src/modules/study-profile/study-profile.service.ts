@@ -1,7 +1,7 @@
 import { UpdateStudyProfileDto } from './dto/update-studyprofile.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { StudyProfile } from 'src/database/entities/studyprofile.entity';
 import { StudyProfileStatus } from 'src/common/enums/study-profile-status.enum';
 import { AssignStudyProfile } from './dto/asign-studyprofile.dto';
@@ -834,7 +834,10 @@ export class StudyProfileService {
 
         // Fetch Study Profiles
         const studyProfiles = await this.studyProfileRepository.find({
-            where: { teacherId },
+            where: {
+                teacherId,
+                targetlearning: { examattempt: { exam: { id: Not(IsNull()) } } },
+            },
             relations: [
                 'account',
                 'targetlearning',
@@ -942,7 +945,7 @@ export class StudyProfileService {
             .filter((attempt) => attempt.exam.examType.name !== 'Trial Exam'); // Exclude trial exams
 
         // Use a Map to group exams by unique exam ID
-        const uniqueExams = new Map<string, { examDate: Date; }>();
+        const uniqueExams = new Map<string, { examDate: Date }>();
 
         allExams.forEach((attempt) => {
             const exam = attempt.exam;
