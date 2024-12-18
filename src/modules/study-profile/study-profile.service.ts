@@ -905,29 +905,46 @@ export class StudyProfileService {
             };
         });
 
-        // 4. Exam Participation Overview
+        // 4. Exam Participation Overview (Group by Exam, Exclude Trial Exams)
+        const allExams = studyProfiles
+            .flatMap((profile) => profile.targetlearning)
+            .flatMap((target) => target.examattempt || [])
+            .filter((attempt) => attempt.exam.examType.name !== 'Trial Exam'); // Exclude trial exams
+
+        // Use a Map to group exams by unique exam ID
+        const uniqueExams = new Map<string, { examDate: Date; status: boolean }>();
+
+        allExams.forEach((attempt) => {
+            const exam = attempt.exam;
+            if (!uniqueExams.has(exam.id)) {
+                uniqueExams.set(exam.id, {
+                    examDate: new Date(attempt.attemptdatetime),
+                    status: attempt.status,
+                });
+            }
+        });
+
+        // Counters
         let completedExams = 0;
         let scheduledExams = 0;
         let missedExams = 0;
 
-        for (const profile of studyProfiles) {
-            const examAttempts = profile.targetlearning.flatMap(
-                (target) => target.examattempt || [],
-            ).filter((attempt) => attempt.exam.examType.name !== 'Trial Exam');
-            
-            for (const attempt of examAttempts) {
-                const examDate = new Date(attempt.attemptdatetime);
-                examDate.setHours(0, 0, 0, 0);
+        // Normalize current date to midnight
+        currentDate.setHours(0, 0, 0, 0);
 
-                if (examDate < currentDate && attempt.status) {
-                    completedExams++;
-                } else if (examDate >= currentDate && !attempt.status) {
-                    scheduledExams++;
-                } else if (examDate < currentDate && !attempt.status) {
-                    missedExams++;
-                }
+        // Process unique exams
+        uniqueExams.forEach((exam) => {
+            const examDate = new Date(exam.examDate);
+            examDate.setHours(0, 0, 0, 0);
+
+            if (examDate < currentDate && exam.status) {
+                completedExams++;
+            } else if (examDate >= currentDate && !exam.status) {
+                scheduledExams++;
+            } else if (examDate < currentDate && !exam.status) {
+                missedExams++;
             }
-        }
+        });
 
         const participationOverview = {
             completed: completedExams,
@@ -937,9 +954,9 @@ export class StudyProfileService {
 
         // 5. Exam Performance Statistics
         const performanceStats = studyProfiles.map((profile) => {
-            const examAttempts = profile.targetlearning.flatMap(
-                (target) => target.examattempt || [],
-            ).filter((attempt) => attempt.exam.examType.name !== 'Trial Exam');
+            const examAttempts = profile.targetlearning
+                .flatMap((target) => target.examattempt || [])
+                .filter((attempt) => attempt.exam.examType.name !== 'Trial Exam');
 
             const totalScore = examAttempts.reduce(
                 (sum, attempt) =>
