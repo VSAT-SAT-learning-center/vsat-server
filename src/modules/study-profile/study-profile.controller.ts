@@ -402,19 +402,19 @@ export class StudyProfileController {
         return this.studyProfileService.getTeacherInfoByAccountId(accountId);
     }
 
-    // @Get('learningProgressStatistics')
-    // @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
-    // async getCombinedProgress(@Request() req) {
-    //     const teacherId = req.user.id; // Extract teacher ID from JWT or session
-    //     return this.studyProfileService.getCombinedLearningProgress(teacherId);
-    // }
+    @Get('learningProgressStatistics')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    async getCombinedProgress(@Request() req) {
+        const teacherId = req.user.id; // Extract teacher ID from JWT or session
+        return this.studyProfileService.getCombinedLearningProgress(teacherId);
+    }
 
-    // @Get('examAttemptStatistics')
-    // @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
-    // async getExamOverview(@Request() req) {
-    //     const teacherId = req.user.id; // Extract teacher ID from JWT or session
-    //     return this.studyProfileService.getExamOverview(teacherId);
-    // }
+    @Get('examAttemptStatistics')
+    @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
+    async getExamOverview(@Request() req) {
+        const teacherId = req.user.id; // Extract teacher ID from JWT or session
+        return this.studyProfileService.getExamOverview(teacherId);
+    }
 
     @Get('teacherDashboard')
     @UseGuards(JwtAuthGuard, new RoleGuard(['teacher']))
