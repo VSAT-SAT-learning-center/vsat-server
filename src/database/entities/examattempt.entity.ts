@@ -45,7 +45,7 @@ export class ExamAttempt {
     )
     examattemptdetail: ExamAttemptDetail[];
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'date', nullable: true })
     attemptdatetime: Date;
 
     @Column({ type: 'int', nullable: true })

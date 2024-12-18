@@ -34,10 +34,10 @@ export class TargetLearning {
     @Column({ type: 'uuid', nullable: true })
     updatedby: string;
 
-    @UpdateDateColumn({ type: 'timestamp', nullable: true })
+    @UpdateDateColumn({ type: 'date', nullable: true })
     startdate: Date;
 
-    @UpdateDateColumn({ type: 'timestamp', nullable: true })
+    @UpdateDateColumn({ type: 'date', nullable: true })
     enddate: Date;
 
     @OneToOne(() => ExamAttempt, (examattempt) => examattempt.targetlearning)
