@@ -906,29 +906,56 @@ export class StudyProfileService {
             };
         });
 
-        // 4. Exam Participation Overview (Group by Exam, Exclude Trial Exams)
+        // 4. Exam Participation Overview
+        let completedExams = 0;
+        let scheduledExams = 0;
+        let missedExams = 0;
+
+        for (const profile of studyProfiles) {
+            const examAttempts = profile.targetlearning.flatMap(
+                (target) => target.examattempt || [],
+            );
+            for (const attempt of examAttempts) {
+                const examDate = new Date(attempt.attemptdatetime);
+                examDate.setHours(0, 0, 0, 0);
+
+                if (examDate < currentDate && attempt.status) {
+                    completedExams++;
+                } else if (examDate >= currentDate && !attempt.status) {
+                    scheduledExams++;
+                } else if (examDate < currentDate && !attempt.status) {
+                    missedExams++;
+                }
+            }
+        }
+
+        const participationOverview = {
+            completed: completedExams,
+            scheduled: scheduledExams,
+            missed: missedExams,
+        };
+
+        // 5. Exam Participation Overview (Group by Exam, Exclude Trial Exams)
         const allExams = studyProfiles
             .flatMap((profile) => profile.targetlearning)
             .flatMap((target) => target.examattempt || [])
             .filter((attempt) => attempt.exam.examType.name !== 'Trial Exam'); // Exclude trial exams
 
         // Use a Map to group exams by unique exam ID
-        const uniqueExams = new Map<string, { examDate: Date; status: boolean }>();
+        const uniqueExams = new Map<string, { examDate: Date; }>();
 
         allExams.forEach((attempt) => {
             const exam = attempt.exam;
             if (!uniqueExams.has(exam.id)) {
                 uniqueExams.set(exam.id, {
                     examDate: new Date(attempt.attemptdatetime),
-                    status: attempt.status,
                 });
             }
         });
 
         // Counters
-        let completedExams = 0;
-        let scheduledExams = 0;
-        let missedExams = 0;
+        let overviewCompletedExams = 0;
+        let overviewScheduledExams = 0;
 
         // Normalize current date to midnight
         currentDate.setHours(0, 0, 0, 0);
@@ -938,22 +965,14 @@ export class StudyProfileService {
             const examDate = new Date(exam.examDate);
             examDate.setHours(0, 0, 0, 0);
 
-            if (examDate < currentDate && exam.status) {
-                completedExams++;
-            } else if (examDate >= currentDate && !exam.status) {
-                scheduledExams++;
-            } else if (examDate < currentDate && !exam.status) {
-                missedExams++;
+            if (examDate < currentDate) {
+                overviewCompletedExams++;
+            } else if (examDate >= currentDate) {
+                overviewScheduledExams++;
             }
         });
 
-        const participationOverview = {
-            completed: completedExams,
-            scheduled: scheduledExams,
-            missed: missedExams,
-        };
-
-        // 5. Exam Performance Statistics
+        // 6. Exam Performance Statistics
         const performanceStats = studyProfiles.map((profile) => {
             const examAttempts = profile.targetlearning
                 .flatMap((target) => target.examattempt || [])
@@ -972,7 +991,7 @@ export class StudyProfileService {
             };
         });
 
-        // 6. Total Feedback and Feedback in Current Month
+        // 7. Total Feedback and Feedback in Current Month
         const feedbacks = await this.evaluateFeedbackRepository.find({
             where: { accountTo: { id: teacherId } },
         });
@@ -996,8 +1015,8 @@ export class StudyProfileService {
                 inactiveStudyProfiles,
                 totalTargetLearning,
                 inactiveTargetLearning,
-                totalExams: completedExams + scheduledExams + missedExams,
-                upcomingExams: scheduledExams,
+                totalExams: overviewCompletedExams + overviewScheduledExams,
+                upcomingExams: overviewScheduledExams,
                 totalFeedback,
                 feedbackThisMonth,
             },
