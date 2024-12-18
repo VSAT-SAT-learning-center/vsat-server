@@ -867,7 +867,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                         FeedbackType.EXAM,
                         FeedbackEventType.EXAM_ATTEMPT,
                     );
-        
+
                     await this.notificationService.createAndSendNotification(
                         account.id,
                         null,
@@ -922,7 +922,6 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
                 FeedbackType.EXAM,
                 FeedbackEventType.EXAM_ATTEMPT,
             );
-           
 
             return plainToInstance(CreateExamAttemptDto, {
                 scoreMath: savedExamAttempt.scoreMath,
@@ -1325,7 +1324,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const transformedResult = result.map((item) => {
             if (item.attemptdatetime) {
                 const utcDate = new Date(item.attemptdatetime);
-                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+                const timeZone = 'Asia/Ho_Chi_Minh';
+                const vietnamDate = toZonedTime(utcDate, timeZone);
                 item.attemptdatetime = vietnamDate;
             }
             return item;
@@ -1404,7 +1404,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const transformedResult = result.map((item) => {
             if (item.attemptdatetime) {
                 const utcDate = new Date(item.attemptdatetime);
-                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+                const vietnamDate = new Date(utcDate.getTime());
                 item.attemptdatetime = vietnamDate;
             }
             return item;
@@ -1441,7 +1441,8 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
             if (examAttempt) {
                 const utcDate = new Date(examAttempt.attemptdatetime);
-                const vietnamDate = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+                const timeZone = 'Asia/Ho_Chi_Minh';
+                const vietnamDate = toZonedTime(utcDate, timeZone);
 
                 const scoreTotal =
                     (examAttempt.scoreMath || 0) + (examAttempt.scoreRW || 0);
@@ -1588,7 +1589,10 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         return accounts.map((studyProfile) => studyProfile.account.id);
     }
 
-    async updateDateExamAttempt(accountFromId: string, updateDate: UpdateDateDto): Promise<any> {
+    async updateDateExamAttempt(
+        accountFromId: string,
+        updateDate: UpdateDateDto,
+    ): Promise<any> {
         const targetLearning = await this.targetLearningRepository.findOne({
             where: { id: updateDate.targetLeaningId },
             relations: ['studyProfile', 'studyProfile.account'],

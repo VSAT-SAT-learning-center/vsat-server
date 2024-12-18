@@ -1278,7 +1278,7 @@ export class QuestionService extends BaseService<Question> {
             },
             feedback: {
                 evaluateFeedback: feedback,
-                feedbackOfMonth: feedbackOfMonth
+                feedbackOfMonth: feedbackOfMonth,
             },
         };
     }
