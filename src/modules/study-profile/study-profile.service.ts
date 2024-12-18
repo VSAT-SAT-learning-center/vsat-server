@@ -100,7 +100,8 @@ export class StudyProfileService {
     async create(accountId: string) {
         const studyProfile = await this.studyProfileRepository.create({
             account: { id: accountId },
-            startdate: new Date(),
+            startdate: null,
+            enddate: null,
         });
 
         return await this.studyProfileRepository.save(studyProfile);
