@@ -841,6 +841,7 @@ export class StudyProfileService {
                 'targetlearning.targetlearningdetail.unitprogress',
                 'targetlearning.examattempt',
                 'targetlearning.examattempt.exam',
+                'targetlearning.examattempt.exam.examType',
             ],
         });
 
@@ -912,7 +913,8 @@ export class StudyProfileService {
         for (const profile of studyProfiles) {
             const examAttempts = profile.targetlearning.flatMap(
                 (target) => target.examattempt || [],
-            );
+            ).filter((attempt) => attempt.exam.examType.name !== 'Trial Exam');
+            
             for (const attempt of examAttempts) {
                 const examDate = new Date(attempt.attemptdatetime);
                 examDate.setHours(0, 0, 0, 0);
@@ -937,7 +939,8 @@ export class StudyProfileService {
         const performanceStats = studyProfiles.map((profile) => {
             const examAttempts = profile.targetlearning.flatMap(
                 (target) => target.examattempt || [],
-            );
+            ).filter((attempt) => attempt.exam.examType.name !== 'Trial Exam');
+
             const totalScore = examAttempts.reduce(
                 (sum, attempt) =>
                     sum + ((attempt.scoreMath || 0) + (attempt.scoreRW || 0)),
