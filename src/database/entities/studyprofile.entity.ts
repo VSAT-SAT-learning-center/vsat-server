@@ -45,10 +45,10 @@ export class StudyProfile {
     @Column({ type: 'int', nullable: true })
     targetscoreRW: number;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'date', nullable: true })
     startdate: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'date', nullable: true })
     enddate: Date;
 
     @Column({

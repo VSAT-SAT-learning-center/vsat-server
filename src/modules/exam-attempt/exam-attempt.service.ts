@@ -1324,8 +1324,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
         const transformedResult = result.map((item) => {
             if (item.attemptdatetime) {
                 const utcDate = new Date(item.attemptdatetime);
-                const timeZone = 'Asia/Ho_Chi_Minh';
-                const vietnamDate = toZonedTime(utcDate, timeZone);
+                const vietnamDate = new Date(utcDate.getTime());
                 item.attemptdatetime = vietnamDate;
             }
             return item;
@@ -1441,8 +1440,7 @@ export class ExamAttemptService extends BaseService<ExamAttempt> {
 
             if (examAttempt) {
                 const utcDate = new Date(examAttempt.attemptdatetime);
-                const timeZone = 'Asia/Ho_Chi_Minh';
-                const vietnamDate = toZonedTime(utcDate, timeZone);
+                const vietnamDate = new Date(utcDate.getTime());
 
                 const scoreTotal =
                     (examAttempt.scoreMath || 0) + (examAttempt.scoreRW || 0);
