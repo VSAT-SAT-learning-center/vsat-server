@@ -463,8 +463,8 @@ export class StudyProfileService {
             throw new NotFoundException('StudyProfile is not found');
         }
 
-        studyProfile.startdate = updateStudyProfileDto.startDate;
-        studyProfile.enddate = updateStudyProfileDto.endDate;
+        studyProfile.startdate = updateStudyProfileDto.startDate || null;
+        studyProfile.enddate = updateStudyProfileDto.endDate || null;
 
         return await this.studyProfileRepository.save(studyProfile);
     }
@@ -859,9 +859,16 @@ export class StudyProfileService {
         const totalTargetLearning = studyProfiles.flatMap(
             (profile) => profile.targetlearning,
         ).length;
+
         const inactiveTargetLearning = studyProfiles
             .flatMap((profile) => profile.targetlearning)
-            .filter((target) => target.status === TargetLearningStatus.INACTIVE).length;
+            .filter((target) => {
+                const details = target.targetlearningdetail || [];
+                // Count if at least one detail is inactive
+                return details.some(
+                    (detail) => detail.status === TargetLearningStatus.INACTIVE,
+                );
+            }).length;
 
         // 3. Aggregate Learning Progress
         const unitProgressList = studyProfiles
@@ -945,32 +952,33 @@ export class StudyProfileService {
             .filter((attempt) => attempt.exam.examType.name !== 'Trial Exam'); // Exclude trial exams
 
         // Use a Map to group exams by unique exam ID
-        const uniqueExams = new Map<string, { examDate: Date }>();
+        const uniqueExams = new Map<string, { examDate: Date; attempts: any[] }>();
 
         allExams.forEach((attempt) => {
             const exam = attempt.exam;
             if (!uniqueExams.has(exam.id)) {
                 uniqueExams.set(exam.id, {
                     examDate: new Date(attempt.attemptdatetime),
+                    attempts: [], // Collect attempts for this exam
                 });
             }
+            uniqueExams.get(exam.id)?.attempts.push(attempt);
         });
 
         // Counters
         let overviewCompletedExams = 0;
         let overviewScheduledExams = 0;
 
-        // Normalize current date to midnight
-        currentDate.setHours(0, 0, 0, 0);
-
         // Process unique exams
         uniqueExams.forEach((exam) => {
             const examDate = new Date(exam.examDate);
             examDate.setHours(0, 0, 0, 0);
 
+            const allAttemptsCompleted = exam.attempts.every((attempt) => attempt.status);
+
             if (examDate < currentDate) {
                 overviewCompletedExams++;
-            } else if (examDate >= currentDate) {
+            } else if (examDate >= currentDate && !allAttemptsCompleted) {
                 overviewScheduledExams++;
             }
         });
